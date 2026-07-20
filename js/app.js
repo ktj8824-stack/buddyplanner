@@ -11,7 +11,7 @@ const App = {
     }
     this.loadPreferences();
     this.renderNav();
-    this.renderAdMockup();
+    this.renderAdBanner();
     
     const isLoggedIn = localStorage.getItem('bp_logged_in') === 'true';
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
@@ -145,11 +145,52 @@ const App = {
     U.$('#app').prepend(nav);
   },
 
-  renderAdMockup() {
-    const ad = U.el('div','sticky-ad-mockup');
-    ad.innerHTML = `<span>광고 1안: 하단 고정 배너 (Sticky)</span>`;
-    U.$('#app').appendChild(ad);
+  // 카카오 AdFit 광고 단위 ID (발급 후 교체)
+  ADFIT_UNIT_ID: 'DAN-XXXXXXXXXXXXXXXX',
+
+  renderAdBanner() {
+    // 이미 광고 있으면 중복 생성 방지
+    if (U.$('#adfit-banner-wrap')) return;
+
+    const wrap = U.el('div', '');
+    wrap.id = 'adfit-banner-wrap';
+    wrap.style.cssText = `
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(10,10,15,0.95);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 6px 0;
+      min-height: 62px;
+    `;
+
+    // AdFit 스크립트 삽입
+    const ins = document.createElement('ins');
+    ins.className = 'kakao_ad_area';
+    ins.style.cssText = 'display:none;';
+    ins.setAttribute('data-ad-unit', this.ADFIT_UNIT_ID);
+    ins.setAttribute('data-ad-width', '320');
+    ins.setAttribute('data-ad-height', '50');
+
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//t1.daumcdn.net/kas/static/ba.min.js';
+    script.async = true;
+
+    wrap.appendChild(ins);
+    wrap.appendChild(script);
+    document.body.appendChild(wrap);
+
+    // 광고 영역만큼 하단 여백 추가
+    document.documentElement.style.setProperty('--ad-banner-height', '62px');
   },
+
 
   updateNav(name) {
     U.$$('.top-nav-item').forEach(i => i.classList.toggle('active', i.dataset.s === name));
