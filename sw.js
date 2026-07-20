@@ -1,7 +1,8 @@
-const CACHE_NAME = 'buddyplanner-v96-cache';
+const CACHE_NAME = 'buddyplanner-v97-cache';
 const ASSETS = [
   './',
   './index.html',
+  './privacy.html',
   './manifest.json',
   './icon.svg',
   './icon-192.png',
