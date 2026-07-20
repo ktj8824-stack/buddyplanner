@@ -1,0 +1,187 @@
+/* =========================================
+   BuddyPlanner v2 — Timeline Screen
+   Multi-step: Home → Restaurant → Golf Course
+   ========================================= */
+
+.tl-hero {
+  padding: var(--sp-6) var(--sp-5) var(--sp-4);
+  background: var(--bg-app);
+  position: relative;
+  overflow: hidden;
+}
+.tl-dday {
+  display:inline-flex;align-items:center;gap:var(--sp-2);
+  padding:4px var(--sp-3);background:var(--gold-dim);
+  border:1px solid rgba(200,169,81,0.25);border-radius:var(--r-full);
+  font-size:var(--fs-xs);font-weight:var(--fw-extrabold);color:var(--gold-400);
+  margin-bottom:var(--sp-3);animation:glow 3s ease-in-out infinite;
+}
+.tl-course {
+  font-size:var(--fs-3xl);font-weight:var(--fw-bold);
+  letter-spacing:var(--ls-tight);line-height:var(--lh-tight);
+  margin-bottom:var(--sp-2);
+}
+.tl-course .accent {
+  color: var(--text-100);
+}
+.tl-meta {
+  display:flex;align-items:center;gap:var(--sp-4);flex-wrap:wrap;
+  font-size:var(--fs-sm);color:var(--text-400);
+}
+.tl-meta span { display:flex;align-items:center;gap:var(--sp-1); }
+
+/* ── Route Summary ── */
+.route-summary {
+  display:flex;align-items:center;gap:0;
+  padding:var(--sp-4) var(--sp-5);overflow-x:auto;
+}
+.route-node {
+  display:flex;flex-direction:column;align-items:center;gap:var(--sp-1);
+  min-width:60px;flex-shrink:0;
+}
+.route-icon {
+  width:40px;height:40px;border-radius:var(--r-md);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg-input);border:1px solid var(--border-subtle);
+  color: var(--text-400);
+}
+.route-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+.route-node.active .route-icon { background:var(--accent-dim);border-color:var(--border-accent);color: var(--accent); box-shadow:var(--glow-accent); }
+.route-node.gold .route-icon { background:var(--gold-dim);border-color:rgba(200,169,81,0.3); color: var(--gold); }
+.route-label { font-size:var(--fs-2xs);color:var(--text-500);font-weight:var(--fw-medium);white-space:nowrap; }
+.route-arrow {
+  flex:1;min-width:20px;height:2px;background:var(--border-default);
+  position:relative;margin:0 -2px;margin-bottom:var(--sp-4);
+}
+.route-arrow::after {
+  content:'';position:absolute;right:-1px;top:-3px;
+  width:0;height:0;border-left:6px solid var(--border-default);
+  border-top:4px solid transparent;border-bottom:4px solid transparent;
+}
+.route-time {
+  font-size:var(--fs-2xs);color:var(--text-500);margin-bottom:var(--sp-4);
+  display:flex;align-items:center;gap:2px;
+}
+
+/* ── Timeline ── */
+.tl-section { padding:var(--sp-4) var(--sp-5); }
+.tl-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-5); }
+.tl-title { font-size:var(--fs-md);font-weight:var(--fw-bold);display:flex;align-items:center;gap:var(--sp-2); }
+.tl-sub { font-size:var(--fs-xs);color:var(--text-500); }
+
+.tl-list { position:relative;padding-left:30px; }
+.tl-list::before {
+  content:'';position:absolute;left:9px;top:8px;bottom:8px;
+  width:2px;background:var(--border-default);border-radius:var(--r-full);
+}
+
+/* ── Timeline Item ── */
+.tl-item { position:relative;padding-bottom:var(--sp-3); }
+.tl-item:last-child { padding-bottom:0; }
+
+.tl-dot {
+  position:absolute;left:-26px;top:7px;width:14px;height:14px;
+  border-radius:50%;border:2px solid var(--border-strong);background:var(--bg-app);z-index:2;
+  transition:all var(--dur-fast) var(--ease-out);
+}
+.tl-item.now .tl-dot { background:var(--accent); border-color:var(--accent); }
+.tl-item.done .tl-dot { background:var(--text-400); border-color:var(--text-400); }
+.tl-item.gold .tl-dot { width:18px;height:18px;left:-28px;top:5px;background:var(--gold);border-color:var(--gold); }
+.tl-item.meal .tl-dot { background:var(--gold-600);border-color:var(--gold); }
+
+.tl-card {
+  background:var(--bg-card);border:1px solid var(--border-subtle);
+  border-radius:var(--r-lg);padding:var(--sp-3);
+  transition:all var(--dur-fast) var(--ease-out);
+}
+.tl-item.now .tl-card { border-color:var(--border-default); }
+.tl-item.gold .tl-card { border-color:var(--border-default); background:var(--bg-card); }
+.tl-item.meal .tl-card { border-color:var(--border-default); background:var(--bg-card); }
+
+.tl-time {
+  font-size:var(--fs-lg);font-weight:var(--fw-bold);
+  font-family:var(--font-mono);letter-spacing:var(--ls-tight);margin-bottom:0px;
+}
+.tl-item.gold .tl-time { color:var(--gold-400);font-size:var(--fs-xl); }
+.tl-item.meal .tl-time { color:var(--gold-300); }
+
+.tl-event { display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-sm);font-weight:var(--fw-semibold);margin-bottom:2px; }
+
+.tl-detail {
+  font-size:var(--fs-xs);color:var(--text-500);line-height:var(--lh-snug);
+  padding:4px 8px;background:rgba(255,255,255,0.02);
+  border-radius:var(--r-xs);border-left:2px solid rgba(34,201,135,0.25);margin-top:4px;
+}
+.tl-item.gold .tl-detail { border-left-color:rgba(200,169,81,0.35); }
+.tl-item.meal .tl-detail { border-left-color:rgba(200,169,81,0.25); }
+
+.tl-nav-btns { display:flex;gap:var(--sp-2);margin-top:var(--sp-3); }
+.tl-nav-btn {
+  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  height:38px;border-radius:var(--r-md);font-size:var(--fs-sm);font-weight:var(--fw-bold);
+  transition:all var(--dur-fast) var(--ease-out); border:none; cursor:pointer;
+}
+.tl-nav-btn:active { transform:scale(0.97); }
+
+/* TMAP Button */
+.tl-nav-btn.tmap { background:#000000; color:#FFFFFF; }
+.tl-nav-btn.tmap:hover { background:#222222; }
+
+/* KakaoNavi Button */
+.tl-nav-btn.kakao { background:#FEE500; color:#191919; }
+.tl-nav-btn.kakao:hover { background:#E6CF00; }
+
+/* Rating Button */
+.tl-nav-btn.rating { 
+  background:linear-gradient(135deg, #f59e0b, #d97706); 
+  color:#ffffff; 
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+.tl-nav-btn.rating:hover { 
+  background:linear-gradient(135deg, #fbbf24, #f59e0b); 
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(245, 158, 11, 0.4);
+}
+
+/* ── Companion ── */
+.comp-section { padding:0 var(--sp-5) var(--sp-5); }
+.comp-card { background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r-xl);padding:var(--sp-4); }
+.comp-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-3); }
+.comp-title { display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-base);font-weight:var(--fw-bold); }
+.comp-list { display:flex;flex-direction:column;gap:var(--sp-2); }
+.comp-row {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--sp-3);background:rgba(255,255,255,0.02);
+  border-radius:var(--r-md);border:1px solid var(--border-subtle);
+}
+.comp-info { display:flex;align-items:center;gap:var(--sp-3); }
+.comp-avatar {
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:var(--fs-sm);font-weight:var(--fw-bold);color:#fff;
+}
+.comp-name { font-size:var(--fs-sm);font-weight:var(--fw-semibold); }
+.comp-status { font-size:var(--fs-xs);color:var(--text-500);margin-top:1px; }
+.comp-status.departed { color:var(--gold); }
+.comp-status.arrived { color:var(--accent); }
+.status-btn {
+  padding:4px var(--sp-3);border-radius:var(--r-full);
+  font-size:var(--fs-xs);font-weight:var(--fw-semibold);
+  border:1px solid var(--border-default);background:var(--bg-input);
+  transition:all var(--dur-fast) var(--ease-out);
+}
+.status-btn:hover { background:var(--accent-dim);border-color:rgba(34,201,135,0.3);color:var(--accent); }
+
+/* ── Quick Actions ── */
+.quick-acts {
+  display:flex;gap:var(--sp-3);padding:0 var(--sp-5) var(--sp-5);
+}
+.qact {
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);
+  padding:var(--sp-4);background:var(--bg-card);border:1px solid var(--border-subtle);
+  border-radius:var(--r-lg);font-size:var(--fs-2xs);font-weight:var(--fw-medium);color:var(--text-400);
+  transition:all var(--dur-fast) var(--ease-out);
+}
+.qact:hover { border-color:var(--border-default);color:var(--text-200); }
+.qact-icon { display:inline-flex; width:20px; height:20px; align-items:center; justify-content:center; }
+.qact-icon svg { width:100%; height:100%; stroke:currentColor; fill:none; }
