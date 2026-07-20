@@ -425,3 +425,60 @@ const ReviewStore = {
     U.haptic();
   }
 };
+
+/* =========================================
+   GOLFER_PICKS — 지역별 골퍼 추천 맛집
+   ========================================= */
+const GOLFER_PICKS = {
+  '경기': [
+    { place_name:'여주 한우타운',      category:'한우', address_name:'경기 여주시 여주읍 상리', tag:'라운딩 후 인기 1위', rating:4.8 },
+    { place_name:'이천 도자기 한정식', category:'한식', address_name:'경기 이천시 관고동',       tag:'단체 회식 추천',    rating:4.6 },
+    { place_name:'용인 수원갈비',       category:'갈비', address_name:'경기 용인시 기흥구',       tag:'캐디 추천',         rating:4.7 },
+    { place_name:'안성 민속 쌈밥',      category:'쌈밥', address_name:'경기 안성시 공도읍',       tag:'아침 라운딩 전 필수', rating:4.5 },
+    { place_name:'가평 장어구이',        category:'장어', address_name:'경기 가평군 청평면',       tag:'스태미나 보충',      rating:4.7 },
+    { place_name:'광주 분원 순대국',     category:'순대국', address_name:'경기 광주시 남종면',     tag:'아침 해장 인기',     rating:4.4 },
+  ],
+  '강원': [
+    { place_name:'원주 한우 명가',       category:'한우', address_name:'강원 원주시 단계동',       tag:'라운딩 후 인기',     rating:4.8 },
+    { place_name:'평창 황태 해장국',     category:'해장국', address_name:'강원 평창군 대관령면', tag:'아침 라운딩 필수',   rating:4.6 },
+    { place_name:'춘천 닭갈비',          category:'갈비', address_name:'강원 춘천시 낙원동',       tag:'단체 추천',          rating:4.5 },
+    { place_name:'속초 대게 찜',         category:'해산물', address_name:'강원 속초시 중앙동',     tag:'프리미엄 회식',      rating:4.9 },
+  ],
+  '충청': [
+    { place_name:'세종 삼겹살 마을',     category:'삼겹살', address_name:'세종시 보람동',          tag:'가성비 최고',        rating:4.4 },
+    { place_name:'천안 순대 본가',       category:'순대', address_name:'충남 천안시 동남구',       tag:'아침 든든하게',      rating:4.5 },
+    { place_name:'공주 한우 정육점식',   category:'한우', address_name:'충남 공주시 반죽동',       tag:'캐디 추천 1위',      rating:4.7 },
+    { place_name:'청주 갈비찜 원조',     category:'갈비', address_name:'충북 청주시 상당구',       tag:'30년 전통 명가',     rating:4.8 },
+  ],
+  '경남': [
+    { place_name:'남해 멸치쌈밥',        category:'쌈밥', address_name:'경남 남해군 남해읍',       tag:'남해 대표 맛집',     rating:4.7 },
+    { place_name:'거제 대구탕',          category:'국밥', address_name:'경남 거제시 고현동',       tag:'아침 라운딩 전 필수', rating:4.6 },
+    { place_name:'창원 한우 불고기',     category:'한우', address_name:'경남 창원시 성산구',       tag:'단체 회식 강추',     rating:4.8 },
+    { place_name:'통영 굴구이',          category:'해산물', address_name:'경남 통영시 중앙동',     tag:'제철 해산물 1위',    rating:4.9 },
+    { place_name:'진주 냉면',            category:'한식', address_name:'경남 진주시 남성동',       tag:'진주 필수 코스',     rating:4.7 },
+  ],
+  '경북': [
+    { place_name:'경주 한정식',          category:'한식', address_name:'경북 경주시 황남동',       tag:'관광 코스 필수',     rating:4.6 },
+    { place_name:'포항 과메기',          category:'해산물', address_name:'경북 포항시 북구',       tag:'겨울 제철 별미',     rating:4.7 },
+    { place_name:'안동 찜닭',            category:'찜닭', address_name:'경북 안동시 구시장',       tag:'30년 원조 명가',     rating:4.8 },
+    { place_name:'상주 곶감 한우',       category:'한우', address_name:'경북 상주시 외남면',       tag:'라운딩 후 1위',      rating:4.7 },
+  ],
+  '전라': [
+    { place_name:'전주 한옥마을 한정식', category:'한식', address_name:'전북 전주시 완산구',       tag:'전국 1위 한정식',    rating:4.9 },
+    { place_name:'광주 보리밥 정식',     category:'한식', address_name:'광주 북구 운암동',         tag:'건강한 선택',        rating:4.6 },
+    { place_name:'여수 돌산 갓김치 낙지',category:'해산물', address_name:'전남 여수시 돌산읍',     tag:'제철 해산물 강추',   rating:4.8 },
+    { place_name:'목포 홍어삼합',        category:'회', address_name:'전남 목포시 중동',           tag:'목포 필수 코스',     rating:4.7 },
+  ],
+  '제주': [
+    { place_name:'제주 흑돼지 구이',     category:'삼겹살', address_name:'제주 제주시 연동',       tag:'제주 대표 먹거리',   rating:4.9 },
+    { place_name:'서귀포 갈치조림',      category:'한식', address_name:'제주 서귀포시 정방동',     tag:'제주 필수 코스',     rating:4.8 },
+    { place_name:'성산 해녀 전복죽',     category:'해산물', address_name:'제주 서귀포시 성산읍', tag:'아침 건강식',        rating:4.7 },
+    { place_name:'애월 카페 & 브런치',   category:'카페', address_name:'제주 제주시 애월읍',       tag:'라운딩 전 가볍게',   rating:4.8 },
+  ],
+  '인천': [
+    { place_name:'영종도 조개구이',      category:'해산물', address_name:'인천 중구 운서동',       tag:'라운딩 후 강추',     rating:4.7 },
+    { place_name:'청라 한우 정육식당',   category:'한우', address_name:'인천 서구 청라동',         tag:'가성비 한우 1위',    rating:4.6 },
+    { place_name:'강화 순무 한정식',     category:'한식', address_name:'인천 강화군 강화읍',       tag:'건강 식단',          rating:4.5 },
+  ],
+};
+
