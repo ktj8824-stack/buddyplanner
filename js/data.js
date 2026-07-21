@@ -429,7 +429,7 @@ const ReviewStore = {
 /* =========================================
    GOLFER_PICKS — 지역별 골퍼 추천 맛집
    ========================================= */
-const GOLFER_PICKS = {
+Object.assign(GOLFER_PICKS, {
   '경기': [
     { place_name:'여주 한우타운',      category:'한우', address_name:'경기 여주시 여주읍 상리', tag:'라운딩 후 인기 1위', rating:4.8 },
     { place_name:'이천 도자기 한정식', category:'한식', address_name:'경기 이천시 관고동',       tag:'단체 회식 추천',    rating:4.6 },
@@ -480,5 +480,5 @@ const GOLFER_PICKS = {
     { place_name:'청라 한우 정육식당',   category:'한우', address_name:'인천 서구 청라동',         tag:'가성비 한우 1위',    rating:4.6 },
     { place_name:'강화 순무 한정식',     category:'한식', address_name:'인천 강화군 강화읍',       tag:'건강 식단',          rating:4.5 },
   ],
-};
+});
 
