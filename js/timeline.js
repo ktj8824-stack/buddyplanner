@@ -63,15 +63,15 @@ const Timeline = {
 
         <!-- Timeline -->
         <div class="tl-section">
-          <div class="tl-head">
-            <div>
-              <h3 class="tl-title" style="display:flex; align-items:center; gap:6px;">
+          <div class="tl-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+            <div style="flex: 1; min-width: 0;">
+              <h3 class="tl-title" style="display:flex; align-items:center; gap:6px; margin-bottom: 4px;">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 타임라인
               </h3>
               <p class="tl-sub">${tl.hasMeal ? '출발지 → 식당 → 골프코스 동선 연산' : '출발지 → 골프코스 최적 경로'}</p>
             </div>
-            <div style="display:flex; gap:8px; align-items:center;">
+            <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0;">
               <div class="chip chip-accent chip-live">실시간</div>
               <button style="border:1px solid var(--gold-500); background:var(--gold-dim); color:var(--gold-400); cursor:pointer; padding: 4px 12px; font-size: 14px; font-weight: bold; border-radius: 20px; line-height: 1.2; white-space: nowrap;" onclick="Register.edit(${this.schedIdx})">
                 ✏️ 일정 수정
