@@ -73,7 +73,7 @@ const Timeline = {
             </div>
             <div style="display:flex; gap:8px; align-items:center;">
               <div class="chip chip-accent chip-live">실시간</div>
-              <button style="border:1px solid var(--gold-500); background:var(--gold-dim); color:var(--gold-400); cursor:pointer; padding: 4px 12px; font-size: 14px; font-weight: bold; border-radius: 20px; line-height: 1.2;" onclick="Register.edit(${this.schedIdx})">
+              <button style="border:1px solid var(--gold-500); background:var(--gold-dim); color:var(--gold-400); cursor:pointer; padding: 4px 12px; font-size: 14px; font-weight: bold; border-radius: 20px; line-height: 1.2; white-space: nowrap;" onclick="Register.edit(${this.schedIdx})">
                 ✏️ 일정 수정
               </button>
             </div>

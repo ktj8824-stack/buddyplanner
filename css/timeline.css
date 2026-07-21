@@ -18,9 +18,10 @@
   margin-bottom:var(--sp-3);animation:glow 3s ease-in-out infinite;
 }
 .tl-course {
-  font-size:var(--fs-3xl);font-weight:var(--fw-bold);
+  font-size: 26px; font-weight:var(--fw-bold);
   letter-spacing:var(--ls-tight);line-height:var(--lh-tight);
   margin-bottom:var(--sp-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tl-course .accent {
   color: var(--text-100);
@@ -68,7 +69,7 @@
 .tl-section { padding:var(--sp-4) var(--sp-5); }
 .tl-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-5); }
 .tl-title { font-size:var(--fs-md);font-weight:var(--fw-bold);display:flex;align-items:center;gap:var(--sp-2); }
-.tl-sub { font-size:14px;color:var(--text-400); }
+.tl-sub { font-size:13px;color:var(--text-400); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing: -0.3px; }
 
 .tl-list { position:relative;padding-left:30px; }
 .tl-list::before {
