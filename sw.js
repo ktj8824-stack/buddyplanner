@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buddyplanner-v97-cache';
+const CACHE_NAME = 'buddyplanner-v124-cache';
 const ASSETS = [
   './',
   './index.html',
@@ -16,8 +16,12 @@ const ASSETS = [
   './css/register.css',
   './css/restaurant.css',
   './css/login.css',
+  './images/banner_ad.png',
   './css/profile.css',
   './css/upgrade.css',
+  './css/record.css',
+  './css/community.css',
+  './css/calendar.css',
   './js/data.js',
   './js/api.js',
   './js/utils.js',
@@ -29,6 +33,9 @@ const ASSETS = [
   './js/onboarding.js',
   './js/profile.js',
   './js/upgrade.js',
+  './js/record.js',
+  './js/community.js',
+  './js/calendar.js',
   './js/app.js'
 ];
 

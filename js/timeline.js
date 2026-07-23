@@ -25,7 +25,7 @@ const Timeline = {
 
     el.innerHTML = `
       <div class="header">
-        <button class="header-btn" onclick="App.navigate('home')">
+        <button class="header-btn" onclick="App.navigate('calendar')">
           <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
         <h1 class="header-title">스마트 타임라인</h1>

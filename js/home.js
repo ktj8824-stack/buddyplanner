@@ -1,6 +1,5 @@
 /* =========================================
-   BuddyPlanner v2 — Home Screen
-   Calendar Main + Upcoming Schedules
+   BuddyPlanner v3 — Home Dashboard Screen (SmartScore Clone)
    ========================================= */
 
 const Home = {
@@ -8,313 +7,167 @@ const Home = {
 
   render() {
     const el = U.$('#screen-home');
-    el.innerHTML = `
-      <div class="screen-scroll">
-        <!-- Calendar Section (Full View) -->
-        <div class="cal-section full-cal" style="padding-top:var(--sp-2);">
-          <div class="cal-card" style="box-shadow:none; border:none; background:transparent;">
-            <div class="cal-header">
-              <h3 class="cal-month">
-                ${State.calMonth + 1}
-              </h3>
-              <div class="cal-nav">
-                <button class="cal-nav-btn today-btn" onclick="Home.initCal()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> TODAY
-                </button>
-                <button class="cal-nav-btn" onclick="Home.prevMonth()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
-                <button class="cal-nav-btn" onclick="Home.nextMonth()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </button>
-              </div>
-            </div>
-            <div class="cal-weekdays">
-              ${U.DAYS.map((d,i)=>`<div class="cal-wd ${i===0||i===6?'weekend':''}" style="${i===0?'color:var(--ios-red);':''}">${d}</div>`).join('')}
-            </div>
-            <div class="cal-days" id="cal-grid">
-              ${this.renderCalDays()}
-            </div>
-            <div id="cal-selected-area" style="margin-top: 16px; padding: 0 4px;">
-              ${this.getSelectAreaHtml(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())}
-            </div>
-        </div>
-      </div>
-    `;
-  },
-
-  getSelectAreaHtml(y, m, d) {
-    const dateStr = `${y}년 ${m+1}월 ${d}일 (${U.DAYS[new Date(y, m, d).getDay()]})`;
-    const scheds = State.getSchedulesForDate(y, m, d);
-    let schedHtml = '';
-    
-    if (scheds.length > 0) {
-      scheds.forEach(s => {
-        const idx = State.schedules.indexOf(s);
-        const dday = U.dday(s.date);
-        const teeTime = U.fmtTimeKo(s.teeOff);
-        const cellDate = new Date(s.date);
-        const todayDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-        const isPast = cellDate < todayDate;
-        
-        schedHtml += `
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; ${isPast ? 'opacity:0.6;' : ''}">
-            <div class="sched-card" onclick="App.viewTimeline(${idx})" style="margin-bottom:0; cursor:pointer; padding: 14px 16px; flex:1; box-shadow:0 2px 8px rgba(0,0,0,0.04); ${isPast ? 'background:#ffffff; border:1px solid var(--border-default);' : ''}">
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <div class="sched-course" style="margin-bottom:0; font-size:17px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:8px;">${s.course.name}</div>
-                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                  <span class="sched-time" style="font-size:14px; font-weight:700; color:var(--text-200);">${teeTime}</span>
-                  <span class="sched-dday" style="font-size:11px; padding:2px 8px; border-radius:4px;">${dday}</span>
-                </div>
-              </div>
-            </div>
-            <button onclick="event.stopPropagation(); Home.deleteSchedule(${idx})" style="padding:0 14px; height:50px; border-radius:25px; background:var(--bg-card); border:1px solid rgba(255,59,48,0.2); color:var(--red-500); font-size:13px; font-weight:700; flex-shrink:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-              삭제
-            </button>
-          </div>
-        `;
-      });
-    }
-
-    return `
-      <div style="font-size: 20px; font-weight: 800; margin-bottom: 12px; color: var(--text-100);">${dateStr}</div>
-      ${schedHtml}
-      <div style="display:flex; gap:8px;">
-        <button onclick="window._selectedDateForRegister = new Date(${y}, ${m}, ${d}); App.navigate('register')" style="flex:1; display:flex; align-items:center; justify-content:center; gap:8px; background:var(--gray-800); padding:0 16px; height:54px; border-radius:12px; font-size:16px; font-weight:600; color:#ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 
-          새로운 일정
-        </button>
-      </div>
-    `;
-  },
-
-  deleteSchedule(idx) {
-    if (confirm("정말로 이 일정을 삭제하시겠습니까?")) {
-      const targetDate = new Date(State.schedules[idx].date);
-      const y = targetDate.getFullYear();
-      const m = targetDate.getMonth();
-      const d = targetDate.getDate();
-
-      State.schedules.splice(idx, 1);
-      State.saveSchedules();
-      U.toast('🗑️ 일정이 삭제되었습니다.');
-      
-      // Re-render calendar without jumping to TODAY
-      State.calYear = y;
-      State.calMonth = m;
-      this.updateCalendar();
-      
-      // Re-select the original date after DOM updates
-      setTimeout(() => {
-        this.selectDate(null, y, m, d);
-        
-        // Visually highlight the correct day in the grid
-        const days = U.$$('.cal-day:not(.empty)');
-        days.forEach(el => {
-          const numEl = el.querySelector('.cal-day-num');
-          if (numEl && parseInt(numEl.textContent, 10) === d) {
-            el.classList.add('selected');
-          }
-        });
-      }, 160);
-    }
-  },
-
-  renderCalDays() {
-    const y = State.calYear, m = State.calMonth;
-    const firstDay = new Date(y, m, 1).getDay();
-    const daysInMonth = new Date(y, m + 1, 0).getDate();
     const today = new Date();
-
-    let html = '';
-    // Empty cells before first day
-    for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = y === today.getFullYear() && m === today.getMonth() && d === today.getDate();
-      const dayOfWeek = new Date(y, m, d).getDay();
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      const scheds = State.getSchedulesForDate(y, m, d);
-      const hasSched = scheds.length > 0;
-
-      const cellDate = new Date(y, m, d);
-      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const isPast = cellDate < todayDate;
-
-      let cls = 'cal-day';
-      if (isToday) cls += ' today';
-      if (isWeekend) cls += ' weekend';
-      if (hasSched) cls += ' has-event';
-      if (isPast) cls += ' past-date';
-
-      const isSunday = dayOfWeek === 0;
-      const isHoliday = U.isHoliday && U.isHoliday(y, m, d);
-      const isRedDay = isSunday || isHoliday;
-
-      let numStyle = '';
-      if (isPast) {
-        numStyle = isRedDay ? 'color: rgba(255, 59, 48, 0.4);' : 'color: var(--text-400);';
-      } else if (isRedDay) {
-        numStyle = 'color: var(--ios-red);';
-      }
-
-      let inner = `<div class="cal-day-num" style="${numStyle}">${d}</div>`;
-      if (hasSched) {
-        const s = scheds[0];
-        const cleanName = s.course.name.replace(/\s*(CC|GC|골프클럽|컨트리클럽|골프코스|하늘코스|GC\s*제주|CC\s*제주)\s*/gi, '').trim();
-        const shortName = cleanName.length > 4 ? cleanName.slice(0, 3) + '..' : cleanName;
-        // For upcoming: Red band. For past: Black band (dimmed text).
-        const bandColor = isPast ? '#000000' : '#ff3b30';
-        
-        const tagStyle = isPast 
-          ? `--comp-color: ${bandColor}; color:var(--text-400);` 
-          : `--comp-color: ${bandColor};`;
-          
-        inner += `
-          <div class="cal-course-tag" style="${tagStyle}">
-            ${shortName}
+    today.setHours(0, 0, 0, 0);
+    const upcomingScheds = (State.schedules || []).filter(s => {
+      const d = s.date instanceof Date ? s.date : new Date(s.date);
+      return d >= today;
+    }).sort((a, b) => {
+      const da = a.date instanceof Date ? a.date : new Date(a.date);
+      const db = b.date instanceof Date ? b.date : new Date(b.date);
+      return da - db;
+    });
+    
+    // 최대 2개의 일정 추출
+    const nextSchedules = upcomingScheds.slice(0, 2);
+    let schedsHtml = '';
+    
+        if (nextSchedules.length > 0) {
+      schedsHtml = nextSchedules.map(sch => {
+        const cName = sch.course ? sch.course.name : sch.courseName || '코스 정보 없음';
+        const tTime = sch.teeOff || sch.teeTime || '--:--';
+        return `
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px; gap:2px;">
+            <span style="color:var(--text-100); font-size:15px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${cName}</span>
+            <span style="color:var(--text-300); font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0;">${tTime}</span>
           </div>
         `;
-      }
-
-      html += `<div class="${cls}" onclick="Home.selectDate(event, ${y},${m},${d})">
-        ${inner}
-      </div>`;
-    }
-    return html;
-  },
-
-  prevMonth() {
-    State.calMonth--;
-    if (State.calMonth < 0) { State.calMonth = 11; State.calYear--; }
-    this.updateCalendar();
-  },
-
-  nextMonth() {
-    State.calMonth++;
-    if (State.calMonth > 11) { State.calMonth = 0; State.calYear++; }
-    this.updateCalendar();
-  },
-
-  initCal() {
-    const today = new Date();
-    State.calYear = today.getFullYear();
-    State.calMonth = today.getMonth();
-    this.updateCalendar();
-    
-    // Slight delay to let DOM render before selecting today
-    setTimeout(() => {
-      const grid = U.$('#cal-grid');
-      if (grid) {
-        const todayEl = grid.querySelector('.cal-day.today');
-        if (todayEl) {
-          todayEl.click();
-        } else {
-          this.selectDate(null, State.calYear, State.calMonth, today.getDate());
-        }
-      }
-    }, 160);
-  },
-
-  updateCalendar() {
-    const grid = U.$('#cal-grid');
-    if (grid) {
-      grid.style.opacity = '0';
-      grid.style.transform = 'scale(0.97)';
-      setTimeout(() => {
-        grid.innerHTML = this.renderCalDays();
-        grid.style.transition = 'all 0.3s cubic-bezier(0.22,1,0.36,1)';
-        grid.style.opacity = '1';
-        grid.style.transform = 'scale(1)';
-      }, 150);
-    }
-    // Update month label
-    const label = U.$('.cal-month');
-    if (label) label.innerHTML = `${State.calMonth+1}월<span class="cal-year">${State.calYear}</span>`;
-  },
-
-  selectDate(evt, y, m, d) {
-    // Highlight selected day
-    U.$$('.cal-day').forEach(el => el.classList.remove('selected'));
-    if (evt && evt.currentTarget) {
-      evt.currentTarget.classList.add('selected');
-    }
-    
-    // Update selected date area below calendar
-    const area = U.$('#cal-selected-area');
-    if (area) {
-      area.innerHTML = this.getSelectAreaHtml(y, m, d);
-    }
-  },
-
-  showScheduleList(y, m, d) {
-    const scheds = State.getSchedulesForDate(y, m, d);
-    
-    // Ensure sheet elements exist in document.body
-    let listContainer = U.$('#home-schedule-list');
-    let overlay = U.$('#home-sheet-overlay');
-    if (!listContainer) {
-      overlay = U.el('div');
-      overlay.id = 'home-sheet-overlay';
-      overlay.className = 'schedule-sheet-overlay';
-      overlay.onclick = () => Home.closeScheduleSheet();
-      document.body.appendChild(overlay);
-      
-      listContainer = U.el('div');
-      listContainer.id = 'home-schedule-list';
-      listContainer.className = 'schedule-sheet';
-      document.body.appendChild(listContainer);
-    }
-    
-      if (scheds.length > 0) {
-      let html = `<div class="sheet-drag-handle"></div>`;
-      html += `<div class="dash-grid-title" style="padding: 0 0 var(--sp-4); font-size:var(--fs-xs); font-weight:var(--fw-bold); color:var(--text-400); text-transform:uppercase; letter-spacing:var(--ls-wide); text-align:center;">
-        ⛳ 선택한 날짜의 일정 (${scheds.length}건)
-      </div>`;
-      
-      scheds.forEach(s => {
-        const idx = State.schedules.indexOf(s);
-        const dateStr = U.fmtDateShort(s.date);
-        const teeTime = U.fmtTimeKo(s.teeOff);
-        
-        const cellDate = new Date(s.date);
-        const todayDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-        const isPast = cellDate < todayDate;
-        
-        html += `
-          <div class="sched-card" onclick="Home.closeScheduleSheet(); setTimeout(() => App.viewTimeline(${idx}), 150);" style="${isPast ? 'opacity:0.6; background:#ffffff; border:1px solid var(--border-default);' : ''}">
-            <div class="sched-top">
-              <span class="sched-dday">${U.dday(s.date)}</span>
-              <span class="sched-date">${dateStr}</span>
-            </div>
-            <div class="sched-course">${s.course.name}</div>
-            <div class="sched-info">
-              <span>
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                ${teeTime} 티오프
-              </span>
-            </div>
-          </div>
-        `;
-      });
-      
-      listContainer.innerHTML = html;
-      
-      // Show bottom sheet
-      requestAnimationFrame(() => {
-        overlay.classList.add('active');
-        listContainer.classList.add('active');
-      });
-      
+      }).join('');
     } else {
-      U.toast('이 날짜에는 등록된 일정이 없습니다.');
+      schedsHtml = `
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
+          <span style="color:var(--text-400); font-size:13px; font-weight:600;">일정 없음</span>
+          <span style="color:var(--accent); font-size:13px; font-weight:700;">+ 추가</span>
+        </div>
+      `;
     }
-  },
 
-  closeScheduleSheet() {
-    const listContainer = U.$('#home-schedule-list');
-    const overlay = U.$('#home-sheet-overlay');
-    if(listContainer) listContainer.classList.remove('active');
-    if(overlay) overlay.classList.remove('active');
+    el.innerHTML = `
+      <div class="screen-scroll dash-scroll bg-light">
+        
+        <!-- 1. Dashboard Stats (Points & Info) -->
+        <div style="padding: var(--sp-4); display: flex; flex-direction: column; gap: 10px;">
+          <!-- Row 1: Points (Full Width) -->
+          <div class="stat-card" style="border:1px solid var(--accent); background:rgba(255, 91, 41, 0.03); width: 100%; display: flex; align-items: center; justify-content: space-between; flex-direction: row; padding: 10px 14px; min-height: 44px; border-radius: 12px;" onclick="App.showModal('포인트 적립', '동영상 광고를 시청하고 포인트를 적립하시겠습니까?<br><br><button class=\'btn btn-primary\' style=\'width:100%\'>광고 보고 50P 받기</button>')">
+            <div style="display:flex; align-items:baseline; gap:8px;">
+              <div style="font-size:14px; color:var(--text-400); font-weight:600;">내 포인트</div>
+              <div style="font-size:18px; font-weight:800; color:var(--accent);">1,250 <span style="font-size:14px;">P</span></div>
+            </div>
+            <div style="font-size:12px; color:var(--text-100); background:#ffffff; border:1px solid var(--border-default); padding:5px 10px; border-radius:12px; display:flex; align-items:center; gap:4px; font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.02);">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="var(--accent)" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 보고 받기
+            </div>
+          </div>
+          
+          <!-- Row 2: Schedule & Score (Asymmetric Grid) -->
+          <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 8px;">
+            <div class="stat-card" style="width: 100%; padding: 8px 10px;" onclick="App.navigate('calendar')">
+              <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">다음 라운딩 일정 <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+              <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+                ${schedsHtml}
+              </div>
+            </div>
+            
+            <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 8px 10px; justify-content: space-between;" onclick="App.navigate('record')">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">스코어</span>
+                <span style="font-size:18px; font-weight:800; color:var(--text-100);">89<span style="font-size:13px; font-weight:600;">타</span></span>
+              </div>
+              <div style="font-size:12px; color:#fff; background:var(--gray-800); padding:4px 0; border-radius:6px; font-weight:600; display:flex; justify-content:center; align-items:center; gap:4px; width:100%; margin-top:4px;">
+                <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 등록
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Weekly Calendar -->
+        <div style="padding: 0 var(--sp-4) var(--sp-4);">
+          <div class="stat-card" style="padding: 16px; border:1px solid var(--border-default); background:#fff; border-radius:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+              <span style="font-size: 20px; font-weight: 800; color:var(--text-100);">${new Date().getMonth() + 1}월 일정</span>
+              <div style="font-size: 13px; font-weight:700; color:var(--accent); cursor:pointer; padding: 4px 8px; border-radius: 4px; background: rgba(255, 91, 41, 0.05);" onclick="App.navigate('calendar')">전체보기</div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;" class="hide-scrollbar">
+              ${Array.from({length: 30}).map((_, i) => {
+                 let d = new Date();
+                 d.setDate(d.getDate() + i);
+                 let dayName = U.DAYS[d.getDay()];
+                 let isToday = i === 0;
+                 
+                 let hasSchedule = State.getSchedulesForDate(d.getFullYear(), d.getMonth(), d.getDate()).length > 0;
+                 let highlight = isToday ? `background:var(--gray-900); color:#fff;` : `background:rgba(0,0,0,0.02);`;
+                 let dateColor = isToday ? `#fff` : `var(--text-100)`;
+                 let dayColor = isToday ? `#fff` : (d.getDay() === 0 ? 'var(--ios-red)' : d.getDay() === 6 ? 'var(--ios-blue)' : 'var(--text-400)');
+                 let dotHtml = hasSchedule ? `<div style="width:4px;height:4px;border-radius:2px;background:var(--accent);margin-top:4px;"></div>` : `<div style="height:8px;"></div>`;
+                 
+                 return `
+                   <div style="min-width: 48px; display:flex; flex-direction:column; align-items:center; padding:10px 0; border-radius:12px; cursor:pointer; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
+                     <div style="font-size:11px; font-weight:700; color:${dayColor};">${dayName}</div>
+                     <div style="font-size:18px; font-weight:800; margin-top:2px; color:${dateColor};">${d.getDate()}</div>
+                     ${dotHtml}
+                   </div>
+                 `;
+              }).join('')}
+            </div>
+            <style>
+              .hide-scrollbar::-webkit-scrollbar { display: none; }
+            </style>
+          </div>
+        </div>
+
+        <!-- 4. Round Icon Grid (2 Rows) -->
+        <div class="round-menu-grid">
+          <div class="round-menu-item" onclick="App.navigate('calendar')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <span>예약/일정</span>
+          </div>
+          <div class="round-menu-item" onclick="App.navigate('record')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
+            </div>
+            <span>국내투어</span>
+          </div>
+          <div class="round-menu-item" onclick="App.navigate('community')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><path d="M22 2 11 13"></path><path d="m22 2-7 20-4-9-9-4 20-7z"></path></svg>
+            </div>
+            <span>해외투어</span>
+          </div>
+          <div class="round-menu-item" onclick="App.navigate('restaurant')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            </div>
+            <span>마켓</span>
+          </div>
+          <div class="round-menu-item" onclick="App.navigate('profile')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <span>원게임보험</span>
+          </div>
+          <div class="round-menu-item" onclick="App.navigate('profile')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <span>스스+</span>
+          </div>
+          <div class="round-menu-item" onclick="App.navigate('community')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <span>조인양도</span>
+          </div>
+          <div class="round-menu-item" onclick="App.navigate('timeline')">
+            <div class="round-icon">
+              <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="1.5" fill="none"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            </div>
+            <span>라이브스코어</span>
+          </div>
+        </div>
+
+      </div>
+    `;
   }
 };

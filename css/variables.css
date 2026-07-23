@@ -17,58 +17,56 @@
 
   --ios-blue: #007aff;
   --ios-red: #ff3b30;
-  --ios-orange: #ff9500;
+  --ios-orange: #FF5B29; /* SmartScore Orange */
   --ios-green: #34c759;
   
-  /* ── Semantic Colors ── */
-  --bg-app: #f2f2f7; /* iOS grouped background */
-  --bg-surface: #f2f2f7;
+  /* ── Semantic Colors (Light Mode) ── */
+  --bg-app: #ffffff; /* Pure white background */
+  --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
   --bg-card-hover: #f9f9f9;
-  --bg-input: #efeff4;
+  --bg-input: #f2f2f7;
   --bg-input-hover: #e5e5ea;
   --bg-input-focus: #ffffff;
 
-  --text-100: #000000;
-  --text-200: #1c1c1e;
-  --text-300: #3c3c43;
-  --text-400: #8e8e93;
-  --text-500: #aeaeb2;
+  --text-100: #111111; /* Sharp black */
+  --text-200: #333333; /* Dark gray */
+  --text-300: #666666; /* Medium gray */
+  --text-400: #999999; /* Light gray */
+  --text-500: #cccccc; /* Muted */
 
-  --accent: var(--ios-blue);
-  --accent-dim: rgba(0, 122, 255, 0.1);
-  --accent-glow: rgba(0, 122, 255, 0.05);
-  --gold: var(--ios-red); /* Map old gold points to iOS red */
+  --accent: #FF5B29; /* Signature Orange */
+  --accent-dim: rgba(255, 91, 41, 0.1);
+  --accent-glow: rgba(255, 91, 41, 0.15);
+  --accent-dark: #e04514; /* Dark Orange */
+  --gold: #FF3B30; /* Red */
   --gold-dim: rgba(255, 59, 48, 0.1);
-  --danger: var(--ios-red);
+  --danger: #FF3B30;
 
-  --border-subtle: rgba(60, 60, 67, 0.08); /* Minimalist thin border */
-  --border-default: rgba(60, 60, 67, 0.18);
-  --border-strong: rgba(60, 60, 67, 0.29);
-  --border-accent: rgba(0, 122, 255, 0.3);
+  --border-subtle: #f2f2f7;
+  --border-default: #e5e5ea; /* The primary light border */
+  --border-strong: #d1d1d6;
+  --border-accent: rgba(255, 91, 41, 0.3);
 
   /* ── Shadows & Glows ── */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.02);
-  --shadow-sm: 0 2px 6px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
-  --shadow-xl: 0 12px 32px rgba(0,0,0,0.1);
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
   
   --glow-accent: none;
   --glow-gold: none;
   --glow-accent-strong: none;
 
   /* ── Gradients ── */
-  --grad-accent: var(--accent);
-  --grad-accent-v: var(--accent);
-  --grad-gold: var(--ios-red);
-  --grad-card: #ffffff;
-  --grad-card-gold: #ffffff;
-  --grad-hero: #f2f2f7;
+  --grad-accent: none;
+  --grad-accent-v: none;
+  --grad-gold: none;
+  --grad-card: none;
+  --grad-hero: none;
   --grad-bg-radial: none;
-  --grad-bg-radial-gold: none;
-  --grad-timeline: var(--border-subtle);
   --grad-glass-border: none;
 
   /* ── Typography ── */
@@ -140,12 +138,16 @@
   --z-base: 1;
   --z-sticky: 50;
   --z-dropdown: 100;
-  --z-modal: 500;
+  --z-modal: 1000;
   --z-toast: 900;
 
   /* ── Layout ── */
   --app-w: 430px;
   --header-h: 56px;
-  --nav-h: 68px;
+  --nav-h: 50px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.cal-wd {
+  padding-bottom: 4px;
 }

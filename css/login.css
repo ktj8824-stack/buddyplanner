@@ -3,14 +3,13 @@
    ========================================= */
 
 /* ── Login Screen ── */
-.login-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
+.login-wrap {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: var(--sp-6);
   background: var(--bg-app);
+  background-image: var(--grad-bg-radial);
+  min-height: 100vh;
 }
 
 .login-logo {
@@ -25,7 +24,11 @@
 .login-title {
   font-size: var(--fs-3xl);
   font-weight: var(--fw-extrabold);
+  margin-bottom: var(--sp-2);
   color: var(--text-100);
+  background: linear-gradient(135deg, #fff, #bbb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   letter-spacing: var(--ls-tight);
 }
 .login-subtitle {
@@ -71,12 +74,19 @@
 }
 
 .btn-kakao {
+  width: 100%; max-width: 320px;
   background: #FEE500;
   color: #000000;
+  border-radius: var(--r-md);
+  padding: 16px;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-bold);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-bottom: var(--sp-4);
+  box-shadow: 0 4px 16px rgba(254, 229, 0, 0.2);
+  transition: all var(--dur-normal) var(--ease-spring);
 }
-.btn-kakao:hover {
-  background: #F4DC00;
-}
+.btn-kakao:active { transform: scale(0.96); box-shadow: 0 2px 8px rgba(254, 229, 0, 0.2); filter: brightness(0.9); }
 
 
 /* ── Onboarding Screen ── */

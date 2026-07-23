@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','register','timeline','restaurant','login','onboarding','profile','upgrade'],
+  screens: ['home','calendar','register','timeline','restaurant','login','onboarding','profile','upgrade','record','community'],
 
   init() {
     if (!State.loadSchedules()) {
@@ -76,6 +76,7 @@ const App = {
       target.classList.add('active');
       switch(name) {
         case 'home': Home.init(); break;
+        case 'calendar': Calendar.init(); break;
         case 'register': Register.init(); break;
         case 'timeline': Timeline.init(); break;
         case 'restaurant': Restaurant.init(); break;
@@ -83,6 +84,8 @@ const App = {
         case 'onboarding': Onboarding.init(); break;
         case 'profile': Profile.render(); break;
         case 'upgrade': Upgrade.init(); break;
+        case 'record': Record.init(); break;
+        case 'community': Community.init(); break;
       }
     }
     this.updateNav(name === 'timeline' ? 'home' : name);
@@ -93,6 +96,15 @@ const App = {
         nav.style.display = 'none';
       } else {
         nav.style.display = 'flex';
+      }
+    }
+
+    const bottomNav = U.$('#gnb');
+    if (bottomNav) {
+      if (name === 'login' || name === 'onboarding') {
+        bottomNav.style.display = 'none';
+      } else {
+        bottomNav.style.display = 'flex';
       }
     }
     
@@ -114,35 +126,64 @@ const App = {
   },
 
   renderNav() {
+    if (U.$('#top-header')) return; // Prevent duplicate injection
+    
     const nav = U.el('header','top-header');
     nav.id = 'top-header';
     nav.innerHTML = `
-      <div class="top-nav-left">
-        <button class="top-nav-item active" data-s="home" onclick="App.navigate('home')">
-          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-          <span class="nav-label">홈</span>
-        </button>
-        <button class="top-nav-item" data-s="profile" onclick="App.navigate('profile')">
-          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <span class="nav-label">내 정보</span>
-        </button>
+      <div class="top-nav-left" style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="App.navigate('home')">
+        <div style="width:28px;height:28px;border-radius:50%;background:#007aff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;line-height:1.1;text-align:center;">BUDDY<br>PLAN</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text-100);letter-spacing:-0.5px;">버디플래너</div>
       </div>
-      <div class="top-brand">
-        ⛳ 버디플래너
-      </div>
-      <div class="top-nav-right">
-        <button class="top-nav-item" data-s="restaurant" onclick="App.navigate('restaurant')">
-          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M12 2c3.866 0 7 3.134 7 7 0 5.25-7 13-7 13S5 14.25 5 9c0-3.866 3.134-7 7-7z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
-          <span class="nav-label">맛집 찾기</span>
+      <div class="top-nav-right" style="display:flex; align-items:center; gap:16px; margin-left:auto;">
+        <!-- Weather Icon -->
+        <button class="top-nav-item" style="padding:0;color:#f59e0b;" aria-label="날씨">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
-        <button class="top-nav-item membership-nav" data-s="upgrade" onclick="App.navigate('upgrade')">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M2 19h20v2H2v-2zm19-11c-.55 0-1 .45-1 1v4l-3-2-2 3-3-4-3 4-2-3-3 2v-4c0-.55-.45-1-1-1s-1 .45-1 1v7h20V9c0-.55-.45-1-1-1zM7 6c.83 0 1.5-.67 1.5-1.5S7.83 3 7 3s-1.5.67-1.5 1.5S6.17 6 7 6zm10 0c.83 0 1.5-.67 1.5-1.5S17.83 3 17 3s-1.5.67-1.5 1.5S16.17 6 17 6zm-5-2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
-          <span class="nav-label">멤버쉽등록</span>
+        <!-- Search -->
+        <button class="top-nav-item" style="padding:0;color:var(--text-100);" aria-label="검색">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+        <!-- Notification -->
+        <button class="top-nav-item" style="padding:0;color:var(--text-100);position:relative;" aria-label="알림">
+          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <div style="position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #fff;">N</div>
+        </button>
+        <!-- Profile Image -->
+        <button class="top-nav-item" style="padding:0;" onclick="App.navigate('profile')" aria-label="프로필">
+          <div style="width:26px;height:26px;border-radius:50%;overflow:hidden;border:1px solid var(--border-default);">
+            <img src="https://images.unsplash.com/photo-1587329310686-91414b8e3cb7?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" alt="Profile" style="width:100%;height:100%;object-fit:cover;" />
+          </div>
+        </button>
+        <!-- Menu -->
+        <button class="top-nav-item" style="padding:0;color:var(--text-100);" aria-label="메뉴">
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
       </div>
     `;
-    // Prepend to app instead of append so it's logically first
     U.$('#app').prepend(nav);
+
+    const bottomNav = U.el('nav','bottom-nav');
+    bottomNav.id = 'gnb';
+    bottomNav.innerHTML = `
+      <button class="gnb-item active" data-s="home" onclick="App.navigate('home')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span class="nav-label">홈</span>
+      </button>
+      <button class="gnb-item" data-s="record" onclick="App.navigate('record')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span class="nav-label">기록</span>
+      </button>
+      <button class="gnb-item" data-s="community" onclick="App.navigate('community')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span class="nav-label">커뮤니티</span>
+      </button>
+      <button class="gnb-item" data-s="profile" onclick="App.navigate('profile')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span class="nav-label">마이</span>
+      </button>
+    `;
+    U.$('#app').appendChild(bottomNav);
   },
 
   // 카카오 AdFit 광고 단위 ID (발급 후 교체)
@@ -156,9 +197,11 @@ const App = {
     wrap.id = 'adfit-banner-wrap';
     wrap.style.cssText = `
       position: fixed;
-      bottom: 0;
-      left: 0;
+      bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
       width: 100%;
+      max-width: var(--app-w);
       z-index: 999;
       display: flex;
       justify-content: center;
@@ -193,7 +236,7 @@ const App = {
 
 
   updateNav(name) {
-    U.$$('.top-nav-item').forEach(i => i.classList.toggle('active', i.dataset.s === name));
+    U.$$('.gnb-item').forEach(i => i.classList.toggle('active', i.dataset.s === name));
   },
 
   showModal(title, content) {
