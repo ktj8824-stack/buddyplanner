@@ -58,6 +58,11 @@
   cursor: pointer;
   border: none;
 }
+
+.btn-kakao {
+  background-color: #FEE500;
+  color: #000000;
+}
 .btn-social:active {
   transform: scale(0.98);
 }

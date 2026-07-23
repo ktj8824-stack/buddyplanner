@@ -108,6 +108,15 @@ const App = {
       }
     }
     
+    const adBanner = U.$('#adfit-banner-wrap');
+    if (adBanner) {
+      if (['onboarding', 'profile', 'record', 'community'].includes(name)) {
+        adBanner.style.display = 'none';
+      } else {
+        adBanner.style.display = 'flex';
+      }
+    }
+    
     State.screen = name;
     window.scrollTo(0,0);
   },

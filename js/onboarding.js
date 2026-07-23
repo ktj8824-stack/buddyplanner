@@ -5,6 +5,8 @@
 const Onboarding = {
   fontFamily: 'Pretendard',
   fontSize: 'medium',
+  homeObj: null,
+  officeObj: null,
   
   init() {
     this.render();
@@ -39,14 +41,14 @@ const Onboarding = {
 
         <div class="ob-section">
           <div class="ob-section-title">자주 출발하는 장소 등록</div>
-          <div class="ob-input-group">
-            <div class="ob-input-row">
-              <span class="ob-input-icon">🏠</span>
-              <input type="text" id="ob-home-input" placeholder="집 주소 (예: 강남구 테헤란로)"/>
+          <div class="ob-input-group" style="display:flex; flex-direction:column; gap:8px;">
+            <div class="setting-item" style="cursor:pointer; background:var(--bg-input); padding:16px; border-radius:12px; display:flex; align-items:center;" onclick="Onboarding.searchAddress('home')">
+              <span class="address-icon" style="margin-right:12px; font-size:18px;">🏠</span>
+              <div id="ob-home-label" style="flex:1; color:var(--text-400); font-size:15px; font-weight:600;">집 주소 검색하기 (터치)</div>
             </div>
-            <div class="ob-input-row">
-              <span class="ob-input-icon">🏢</span>
-              <input type="text" id="ob-office-input" placeholder="회사 주소 (예: 성남시 판교역로)"/>
+            <div class="setting-item" style="cursor:pointer; background:var(--bg-input); padding:16px; border-radius:12px; display:flex; align-items:center;" onclick="Onboarding.searchAddress('work')">
+              <span class="address-icon" style="margin-right:12px; font-size:18px;">🏢</span>
+              <div id="ob-office-label" style="flex:1; color:var(--text-400); font-size:15px; font-weight:600;">회사 주소 검색하기 (터치)</div>
             </div>
           </div>
         </div>
@@ -95,22 +97,44 @@ const Onboarding = {
     U.haptic();
   },
 
+  searchAddress(type) {
+    const title = type === 'home' ? '🏠 집 주소 검색' : '🏢 회사 주소 검색';
+    App.openAddressSearch(title, (selectedPlace) => {
+      if (type === 'home') {
+        this.homeObj = selectedPlace;
+        const el = U.$('#ob-home-label');
+        if (el) {
+          el.textContent = selectedPlace.name;
+          el.style.color = 'var(--text-800)';
+        }
+      } else {
+        this.officeObj = selectedPlace;
+        const el = U.$('#ob-office-label');
+        if (el) {
+          el.textContent = selectedPlace.name;
+          el.style.color = 'var(--text-800)';
+        }
+      }
+      U.toast('✅ 주소가 정확히 등록되었습니다.');
+      U.haptic();
+    });
+  },
+
   complete() {
-    const homeVal = U.$('#ob-home-input').value.trim();
-    const officeVal = U.$('#ob-office-input').value.trim();
-    
     // Save state
     localStorage.setItem('bp_onboarded', 'true');
     localStorage.setItem('bp_font', this.fontFamily);
     localStorage.setItem('bp_size', this.fontSize);
     
     if (!State.userAddresses) State.userAddresses = { home: '', office: '' };
-    State.userAddresses.home = homeVal;
-    State.userAddresses.office = officeVal;
-    
-    // Persist to local storage mock
-    localStorage.setItem('bp_home', homeVal);
-    localStorage.setItem('bp_office', officeVal);
+    if (this.homeObj) {
+      State.userAddresses.home = this.homeObj;
+      localStorage.setItem('bp_home', JSON.stringify(this.homeObj));
+    }
+    if (this.officeObj) {
+      State.userAddresses.office = this.officeObj;
+      localStorage.setItem('bp_office', JSON.stringify(this.officeObj));
+    }
     
     U.toast('✅ 설정이 완료되었습니다!');
     
