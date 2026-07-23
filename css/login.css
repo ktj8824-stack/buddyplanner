@@ -26,9 +26,6 @@
   font-weight: var(--fw-extrabold);
   margin-bottom: var(--sp-2);
   color: var(--text-100);
-  background: linear-gradient(135deg, #fff, #bbb);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   letter-spacing: var(--ls-tight);
 }
 .login-subtitle {

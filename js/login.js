@@ -16,11 +16,8 @@ const Login = {
     const el = U.$('#screen-login');
     el.innerHTML = `
       <div class="login-container">
-        <div class="login-logo">
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="50" fill="var(--accent-dim)"/>
-            <text x="50" y="65" font-size="50" text-anchor="middle" dominant-baseline="middle">⛳</text>
-          </svg>
+        <div class="login-logo" style="display:flex; flex-direction:column; align-items:center;">
+          <div style="width:72px; height:72px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:36px; box-shadow:var(--glow-accent); margin-bottom:16px;">⛳</div>
           <h1 class="login-title">버디플래너</h1>
           <p class="login-subtitle">골프 일정 관리의 새로운 기준</p>
         </div>
