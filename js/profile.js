@@ -24,6 +24,9 @@ const Profile = {
     const userEmail = localStorage.getItem('bp_user_email') || 'buddygolfer@example.com';
     const provider = localStorage.getItem('bp_provider');
     const avatarLetter = userName.charAt(0).toUpperCase();
+    const currentPoints = parseInt(localStorage.getItem('bp_points') || '0', 10);
+    const todayStr = new Date().toLocaleDateString('ko-KR');
+    const adCount = (localStorage.getItem('bp_ad_date') === todayStr) ? parseInt(localStorage.getItem('bp_ad_count') || '0', 10) : 0;
 
     app.innerHTML = `
       <div class="header">
@@ -42,6 +45,20 @@ const Profile = {
           ${State.isPro ? '<div style="margin-top:8px; display:inline-block; padding:4px 12px; background:var(--gold-dim); color:var(--gold-500); border:1px solid rgba(217,119,6,0.3); border-radius:var(--r-full); font-size:12px; font-weight:bold;">👑 PRO 멤버</div>' : ''}
         </div>
         
+        <div style="margin: var(--sp-4) var(--sp-5) var(--sp-6);">
+          <div style="background:var(--bg-100); border-radius:var(--r-xl); padding:var(--sp-4); display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-sm); border:1px solid var(--border-default);">
+            <div>
+              <div style="font-size:var(--fs-sm); color:var(--text-400); font-weight:bold; margin-bottom:4px;">내 포인트</div>
+              <div style="font-size:1.5rem; font-weight:800; color:var(--text-900); font-family:'Montserrat', sans-serif;">
+                <span style="color:var(--primary); margin-right:4px;">P</span>${currentPoints.toLocaleString()}
+              </div>
+            </div>
+            <button onclick="Profile.watchAd()" class="ad-reward-btn">
+              <span>광고 보고 50P 받기 <span style="font-size:11px; font-weight:normal; opacity:0.9;">(${adCount}/20)</span></span>
+            </button>
+          </div>
+        </div>
+
         ${!State.isPro ? `
         <div style="margin: 0 var(--sp-5) var(--sp-6);">
           <div style="background:linear-gradient(135deg, #0f172a, #1e293b); border-radius:var(--r-xl); padding:var(--sp-4); color:#fff; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-md);">
@@ -127,6 +144,54 @@ const Profile = {
         </div>
       </div>
     `;
+  },
+
+  watchAd() {
+    // 하루 20회 제한 로직
+    const todayStr = new Date().toLocaleDateString('ko-KR');
+    let lastAdDate = localStorage.getItem('bp_ad_date');
+    let adCount = parseInt(localStorage.getItem('bp_ad_count') || '0', 10);
+    
+    if (lastAdDate !== todayStr) {
+      adCount = 0;
+      localStorage.setItem('bp_ad_date', todayStr);
+    }
+    
+    if (adCount >= 20) {
+      U.toast('하루 최대 시청 횟수(20회)를 모두 소진하셨습니다. 내일 다시 시도해주세요!');
+      return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'fake-ad-overlay';
+    overlay.innerHTML = `
+      <div class="fake-ad-content">
+        <div class="spinner"></div>
+        <h3>스폰서 영상 시청 중...</h3>
+        <p>영상을 끝까지 시청하시면 50P가 적립됩니다.<br><span style="color:#888; font-size:12px;">(오늘 시청 횟수: ${adCount + 1}/20)</span></p>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // 3.5초 대기 후 보상 지급
+    setTimeout(() => {
+      if (document.body.contains(overlay)) {
+        document.body.removeChild(overlay);
+        
+        let pts = parseInt(localStorage.getItem('bp_points') || '0', 10);
+        pts += 50;
+        localStorage.setItem('bp_points', pts.toString());
+        
+        // 횟수 증가 및 저장
+        adCount++;
+        localStorage.setItem('bp_ad_count', adCount.toString());
+        
+        U.toast(`🎉 50 포인트 적립! (오늘 ${adCount}/20회 완료)`);
+        U.haptic();
+        Profile.render(); // 프로필 갱신
+        if(typeof Home !== 'undefined') Home.render(); // 홈 화면도 갱신
+      }
+    }, 3500);
   },
 
   setFont(type, el) {

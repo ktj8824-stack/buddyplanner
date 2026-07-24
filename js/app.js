@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','calendar','register','timeline','restaurant','login','onboarding','profile','upgrade','record','community'],
+  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community'],
 
   init() {
     if (!State.loadSchedules()) {
@@ -13,18 +13,11 @@ const App = {
     this.renderNav();
     this.renderAdBanner();
     
-    const isLoggedIn = localStorage.getItem('bp_logged_in') === 'true';
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     State.isPro = localStorage.getItem('bp_pro') === 'true';
 
-    if (!isLoggedIn) {
-      this.navigate('login');
-    } else if (!hasOnboarded) {
-      this.navigate('onboarding');
-    } else {
-      this.navigate('home');
-      setTimeout(()=>U.toast('⛳ 버디플래너에 오신 것을 환영합니다!'), 700);
-    }
+    // Start with splash screen
+    this.navigate('splash');
     
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
@@ -80,7 +73,7 @@ const App = {
         case 'register': Register.init(); break;
         case 'timeline': Timeline.init(); break;
         case 'restaurant': Restaurant.init(); break;
-        case 'login': Login.init(); break;
+        case 'splash': Splash.init(); break;
         case 'onboarding': Onboarding.init(); break;
         case 'profile': Profile.render(); break;
         case 'upgrade': Upgrade.init(); break;
@@ -92,7 +85,7 @@ const App = {
     
     const nav = U.$('#top-header');
     if (nav) {
-      if (name === 'login' || name === 'onboarding') {
+      if (name === 'splash' || name === 'onboarding') {
         nav.style.display = 'none';
       } else {
         nav.style.display = 'flex';
@@ -101,7 +94,7 @@ const App = {
 
     const bottomNav = U.$('#gnb');
     if (bottomNav) {
-      if (name === 'login' || name === 'onboarding') {
+      if (name === 'splash' || name === 'onboarding') {
         bottomNav.style.display = 'none';
       } else {
         bottomNav.style.display = 'flex';
@@ -110,7 +103,7 @@ const App = {
     
     const adBanner = U.$('#adfit-banner-wrap');
     if (adBanner) {
-      if (['onboarding', 'profile', 'record', 'community'].includes(name)) {
+      if (['splash', 'onboarding', 'profile', 'record', 'community'].includes(name)) {
         adBanner.style.display = 'none';
       } else {
         adBanner.style.display = 'flex';
@@ -141,12 +134,12 @@ const App = {
     nav.id = 'top-header';
     nav.innerHTML = `
       <div class="top-nav-left" style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="App.navigate('home')">
-        <div style="width:28px;height:28px;border-radius:50%;background:#007aff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;line-height:1.1;text-align:center;">BUDDY<br>PLAN</div>
-        <div style="font-size:16px;font-weight:800;color:var(--text-100);letter-spacing:-0.5px;">버디플래너</div>
+        <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg, #222 0%, #000 100%);color:#bf953f;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display', serif;font-size:14px;font-weight:700;font-style:italic;text-shadow:0 1px 3px rgba(0,0,0,0.8);box-shadow:0 2px 5px rgba(0,0,0,0.2);">myB</div>
+        <div style="font-family:'Montserrat', sans-serif;font-size:18px;font-weight:600;color:var(--text-100);letter-spacing:0.02em;">buddybirdie</div>
       </div>
       <div class="top-nav-right" style="display:flex; align-items:center; gap:16px; margin-left:auto;">
         <!-- Weather Icon -->
-        <button class="top-nav-item" style="padding:0;color:#f59e0b;" aria-label="날씨">
+        <button class="top-nav-item" style="padding:0;color:#f59e0b;" aria-label="날씨" onclick="App.showWeather()">
           <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         </button>
         <!-- Search -->
@@ -246,6 +239,55 @@ const App = {
 
   updateNav(name) {
     U.$$('.gnb-item').forEach(i => i.classList.toggle('active', i.dataset.s === name));
+  },
+
+  showWeather() {
+    this.showModal('실시간 골프장 날씨', '<div style="padding: 32px 16px; text-align: center; color: var(--text-300); font-weight:600;"><div style="font-size:24px; margin-bottom:12px;">📡</div>기상청 데이터를 불러오는 중입니다...</div>');
+    
+    // Simulate API Fetch
+    setTimeout(() => {
+      const bg = U.$('#app-modal');
+      if (!bg) return;
+      const list = bg.querySelector('.modal-list');
+      if (list) {
+        list.innerHTML = `
+          <div style="padding: 16px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+            <div style="font-size:14px; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.03); padding:4px 12px; border-radius:12px;">📍 현재 위치: 서울특별시 강남구</div>
+            
+            <div style="display:flex; align-items:center; gap:24px; margin-top:8px;">
+              <div style="font-size:64px; text-shadow:0 4px 12px rgba(245,158,11,0.3);">☀️</div>
+              <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                <div style="font-size:36px; font-weight:800; color:var(--text-900); font-family:'Montserrat', sans-serif;">24<span style="font-size:20px; color:var(--text-300);">°C</span></div>
+                <div style="font-size:16px; font-weight:700; color:var(--text-100);">맑음, 화창함</div>
+              </div>
+            </div>
+            
+            <div style="width:100%; display:flex; justify-content:space-around; background:#f9fafb; border:1px solid var(--border-default); border-radius:16px; padding:16px; margin-top:8px;">
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <span style="font-size:12px; color:var(--text-400); font-weight:600;">체감 온도</span>
+                <span style="font-size:15px; color:var(--text-100); font-weight:800;">26°C</span>
+              </div>
+              <div style="width:1px; background:var(--border-default);"></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <span style="font-size:12px; color:var(--text-400); font-weight:600;">바람</span>
+                <span style="font-size:15px; color:var(--text-100); font-weight:800;">남서 3m/s</span>
+              </div>
+              <div style="width:1px; background:var(--border-default);"></div>
+              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                <span style="font-size:12px; color:var(--text-400); font-weight:600;">습도</span>
+                <span style="font-size:15px; color:var(--text-100); font-weight:800;">45%</span>
+              </div>
+            </div>
+            
+            <div style="width:100%; background:linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%); border-radius:12px; padding:16px; margin-top:8px; text-align:center;">
+              <div style="font-size:14px; font-weight:700; color:var(--accent);">"라운딩 가기 딱 좋은 훌륭한 날씨입니다! ⛳️"</div>
+            </div>
+            
+            <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="App.closeModal()">확인</button>
+          </div>
+        `;
+      }
+    }, 1500);
   },
 
   showModal(title, content) {

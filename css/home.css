@@ -28,7 +28,7 @@
   flex-direction: column;
   gap: 2px;
   box-shadow: none;
-  border: 1px solid var(--border-default);
+  border: 1.5px solid rgba(0,0,0,0.2);
 }
 .stat-label {
   font-size: 13px;
@@ -59,15 +59,15 @@
   display: flex;
   flex-direction: column;
   box-shadow: none;
-  border: 1px solid var(--border-default);
+  border: 1.5px solid rgba(0,0,0,0.2);
 }
 .hero-green {
   background: #ffffff;
-  border: 1px solid var(--border-default);
+  border: 1.5px solid rgba(0,0,0,0.2);
 }
 .hero-purple {
   background: #ffffff;
-  border: 1px solid var(--border-default);
+  border: 1.5px solid rgba(0,0,0,0.2);
 }
 
 .hero-bg-text {
@@ -139,7 +139,7 @@
   border-radius: var(--r-md);
   overflow: hidden;
   box-shadow: none;
-  border: 1px solid var(--border-default);
+  border: 1.5px solid rgba(0,0,0,0.2);
 }
 .campaign-banner-img {
   width: 100%;
@@ -185,7 +185,7 @@
   color: var(--text-200);
   box-shadow: none;
   background: #ffffff;
-  border: 1px solid var(--border-default);
+  border: 1.5px solid rgba(0,0,0,0.2);
   position: relative;
   transition: all var(--dur-fast);
 }
