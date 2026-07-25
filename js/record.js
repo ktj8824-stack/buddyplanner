@@ -39,7 +39,16 @@ const Record = {
         </div>
 
         <div style="padding: 0 var(--sp-4) var(--sp-4);">
-          <h2 style="font-size:18px; font-weight:800; color:var(--text-100); margin-bottom:12px;">라운드 히스토리</h2>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h2 style="font-size:18px; font-weight:800; color:var(--text-100); margin:0; display:flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              라운딩 히스토리
+            </h2>
+            <button onclick="Record.showRecordForm()" style="background:var(--text-100); color:#fff; border:none; padding:7px 14px; border-radius:8px; font-size:14px; font-weight:800; display:flex; align-items:center; gap:5px; cursor:pointer;">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              등록
+            </button>
+          </div>
           
           <div class="record-calendar">
             <div class="record-cal-header">
@@ -102,7 +111,12 @@ const Record = {
       
       let badgeHtml = '';
       if (hasRecord) {
-        badgeHtml = `<div class="record-badge">${hasRecord.score}</div>`;
+        badgeHtml = `
+          <div class="record-badge">
+            <div class="record-badge-course">${hasRecord.course}</div>
+            <div>${hasRecord.score}타</div>
+          </div>
+        `;
       } else if (State.aiGeneratingDate === dateKey) {
         badgeHtml = `
           <div style="position:absolute; bottom:4px; right:4px; display:flex; align-items:center; justify-content:center; background:rgba(251,191,36,0.15); color:#d97706; border:1px solid rgba(251,191,36,0.3); padding:1px 3px; border-radius:4px; font-size:8px; font-weight:800; box-shadow:0 1px 2px rgba(0,0,0,0.05); white-space:nowrap;">

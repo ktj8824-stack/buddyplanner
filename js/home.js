@@ -76,11 +76,11 @@ const Home = {
             
             <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 8px 10px; justify-content: space-between;" onclick="App.navigate('record')">
               <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">스코어</span>
+                <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">최근 스코어</span>
                 <span style="font-size:18px; font-weight:800; color:var(--text-100);">89<span style="font-size:13px; font-weight:600;">타</span></span>
               </div>
               <div onclick="Record.showRecordForm(); event.stopPropagation();" style="font-size:12px; color:#fff; background:var(--gray-800); padding:4px 0; border-radius:6px; font-weight:600; display:flex; justify-content:center; align-items:center; gap:4px; width:100%; margin-top:4px;">
-                <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 등록
+                <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 스코어등록
               </div>
             </div>
           </div>

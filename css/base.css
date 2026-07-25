@@ -11,6 +11,13 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+}
+
+img, svg, video {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: translateZ(0);
 }
 
 body {
