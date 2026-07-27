@@ -261,7 +261,13 @@ const Timeline = {
     delete compactSched.timeline;
     compactSched.companions = [];
     const payload = btoa(encodeURIComponent(JSON.stringify(compactSched)));
-    const shareUrl = 'https://buddyplanner.kr/#shared=' + payload;
+    
+    // 만약 로컬 테스트 중이라면 buddyplanner.kr을 쓰고, 아니면 현재 접속중인 도메인(www 포함 여부 등 완벽 일치)을 사용합니다.
+    let baseDomain = window.location.origin;
+    if (baseDomain.includes('localhost') || baseDomain.includes('192.168')) {
+      baseDomain = 'https://buddyplanner.kr';
+    }
+    const shareUrl = baseDomain + '/#shared=' + payload;
 
     const dateStr = U.fmtDateShort(s.date);
     const startPt = s.startPoint || '집';
