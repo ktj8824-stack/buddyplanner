@@ -19,34 +19,52 @@ const App = {
     // Automatically schedule alarms for today's events in the background
     Timeline.autoScheduleAllAlarms();
     
-    // Check for shared schedule link
+    // Check for shared schedule link (두 가지 형식 모두 지원)
+    const searchParams = new URLSearchParams(window.location.search);
+    const sharedPayload = searchParams.get('s');
     const hash = window.location.hash;
     let hasShared = false;
-    if (hash && hash.startsWith('#s=')) {
+
+    if (sharedPayload) {
+      // 카카오톡 공유 링크 (?s= 형식, 초경량 압축)
       try {
-        const payload = decodeURIComponent(hash.substring(3));
-        const arr = payload.split('|');
+        const arr = sharedPayload.split('|');
         const schedData = {
-          date: arr[0] || new Date().toISOString().split('T')[0],
+          date: arr[0] ? new Date(arr[0]) : new Date(),
           teeOff: arr[1] || '07:00',
           startPoint: arr[2] || '집',
-          course: { name: arr[3], lat: parseFloat(arr[4]) || 0, lng: parseFloat(arr[5]) || 0 },
+          course: { name: arr[3] || '', lat: parseFloat(arr[4]) || 0, lng: parseFloat(arr[5]) || 0 },
           companions: [],
           prepTime: parseInt(arr[9]) || 30,
           travelTime: parseInt(arr[10]) || 60,
-          hasMeal: arr[11] === '1'
+          hasMeal: arr[11] === '1',
+          mealDuration: parseInt(arr[12]) || 30,
+          travelToRestaurant: parseInt(arr[13]) || 0
         };
         if (arr[6]) {
           schedData.restaurant = { name: arr[6], lat: parseFloat(arr[7]) || 0, lng: parseFloat(arr[8]) || 0 };
         }
-        
         State.addSchedule(schedData);
         State.currentScheduleIdx = State.schedules.length - 1;
-        // Clean URL
-        window.history.replaceState('', document.title, window.location.pathname + window.location.search);
+        window.history.replaceState('', document.title, window.location.pathname);
         hasShared = true;
       } catch (e) {
-        console.error('Shared schedule import failed', e);
+        console.error('Kakao shared schedule import failed', e);
+        U.toast('공유된 일정을 불러오는데 실패했습니다.');
+      }
+    } else if (hash && hash.startsWith('#shared=')) {
+      // 타임라인 공유하기 링크 (#shared= 형식, 풀 JSON)
+      try {
+        const payload = decodeURIComponent(hash.substring(8));
+        const decoded = decodeURIComponent(atob(payload));
+        const schedData = JSON.parse(decoded);
+        if (schedData.date) schedData.date = new Date(schedData.date);
+        State.addSchedule(schedData);
+        State.currentScheduleIdx = State.schedules.length - 1;
+        window.history.replaceState('', document.title, window.location.pathname);
+        hasShared = true;
+      } catch (e) {
+        console.error('Text shared schedule import failed', e);
         U.toast('공유된 일정을 불러오는데 실패했습니다.');
       }
     }

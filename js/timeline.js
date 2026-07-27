@@ -259,8 +259,18 @@ const Timeline = {
   shareTimeline() {
     const s = State.schedules[this.schedIdx];
     const tl = s.timeline;
-    
-    // 카카오 서버의 URL 길이 제한(500자) 및 복잡도 에러를 우회하기 위해 데이터를 최소 단위(| 구분자)로 초경량 압축합니다.
+    const baseDomain = 'https://buddyplanner.kr';
+
+    // ── 타임라인 공유하기(텍스트 복사) 용: 기존 풀 JSON 방식 (#shared=) ─────
+    // 이 방식은 항상 작동하고, URL 길이 제한이 없어 모든 일정 정보가 정상 복원됩니다.
+    const compactSched = { ...s };
+    delete compactSched.timeline;
+    compactSched.companions = [];
+    const fullPayload = encodeURIComponent(btoa(encodeURIComponent(JSON.stringify(compactSched))));
+    const textShareUrl = baseDomain + '/#shared=' + fullPayload;
+
+    // ── 카카오톡 공유 용: 초경량 압축 방식 (?s=) ────────────────────────────
+    // 카카오 서버의 URL 길이 제한을 피하기 위해 핵심 정보만 압축해서 전송
     const c = s.course || {};
     const r = s.restaurant || {};
     const arr = [
@@ -275,17 +285,12 @@ const Timeline = {
       r.lng || '',
       s.prepTime || 30,
       s.travelTime || 60,
-      s.hasMeal ? 1 : 0
+      s.hasMeal ? 1 : 0,
+      s.mealDuration || 0,
+      s.travelToRestaurant || 0
     ];
-    
-    // 안전하게 한 번만 인코딩 (특수문자 없음)
-    const payload = encodeURIComponent(arr.join('|'));
-    
-    let baseDomain = window.location.origin;
-    if (baseDomain.includes('localhost') || baseDomain.includes('192.168')) {
-      baseDomain = 'https://buddyplanner.kr';
-    }
-    const shareUrl = baseDomain + '/#s=' + payload;
+    const kakaoPayload = encodeURIComponent(arr.join('|'));
+    const kakaoShareUrl = baseDomain + '/?s=' + kakaoPayload;
 
     const dateStr = U.fmtDateShort(s.date);
     const startPt = s.startPoint || '집';
@@ -307,25 +312,22 @@ const Timeline = {
     textStr += `[${tl.arrival}] 골프장 도착\n`;
     textStr += `[${s.teeOff}] 라운딩 시작\n`;
     
-    // 라운딩 종료 시간 계산 (5시간)
     const teeParts = (s.teeOff||'07:00').split(':');
     const playEndMins = parseInt(teeParts[0],10)*60 + parseInt(teeParts[1],10) + 300;
     const playEndHH = Math.floor(playEndMins/60).toString().padStart(2,'0');
     const playEndMM = (playEndMins%60).toString().padStart(2,'0');
-    const playEndStr = `${playEndHH}:${playEndMM}`;
-    textStr += `[${playEndStr}] 라운딩 종료\n`;
-    
+    textStr += `[${playEndHH}:${playEndMM}] 라운딩 종료\n`;
     textStr += `[${tl.returnStart}] 귀가 출발\n`;
     textStr += `[${tl.returnEnd}] 귀가 완료\n\n`;
-    
-    textStr += `🔗 [자세한 타임라인 & 내비게이션 보기]\n${shareUrl}`;
+    textStr += `🔗 [자세한 타임라인 & 내비게이션 보기]\n${textShareUrl}`;
 
-    this.showShareModal(textStr, shareUrl, s);
+    this.showShareModal(textStr, textShareUrl, kakaoShareUrl, s);
   },
 
-  showShareModal(shareText, shareUrl, s) {
+  showShareModal(shareText, textShareUrl, kakaoShareUrl, s) {
     Timeline._pendingShareText = shareText;
-    Timeline._pendingShareUrl = shareUrl;
+    Timeline._pendingShareUrl = kakaoShareUrl;    // 카카오용 짧은 URL
+    Timeline._pendingTextUrl  = textShareUrl;      // 텍스트 복사용 풀 URL
     Timeline._pendingShareS = s;
 
     let modal = U.$('#share-modal');
@@ -339,12 +341,8 @@ const Timeline = {
     modal.innerHTML = `
       <div style="background:var(--bg-card); border-radius:24px; width:100%; max-width:400px; padding:24px; text-align:center; position:relative; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
         <button onclick="document.getElementById('share-modal').style.display='none'" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--text-300); font-size:24px; cursor:pointer;">✕</button>
-        
         <h3 style="margin:0 0 16px 0; color:var(--text-100); font-size:18px;">공유 준비 완료! 🎉</h3>
-        <p style="font-size:13px; color:var(--text-300); margin-bottom:24px; line-height:1.4;">
-          원하시는 공유 방식을 선택해주세요!
-        </p>
-        
+        <p style="font-size:13px; color:var(--text-300); margin-bottom:24px; line-height:1.4;">원하시는 공유 방식을 선택해주세요!</p>
         <div style="display:flex; flex-direction:column; gap:12px;">
           <button onclick="Timeline.executeKakaoShare()" style="background:#FEE500; color:#3c1e1e; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; cursor:pointer;">
             💬 카카오톡 일정 링크 공유
