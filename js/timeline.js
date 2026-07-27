@@ -261,7 +261,7 @@ const Timeline = {
     delete compactSched.timeline;
     compactSched.companions = [];
     const payload = btoa(encodeURIComponent(JSON.stringify(compactSched)));
-    const shareUrl = window.location.origin + window.location.pathname + '#shared=' + payload;
+    const shareUrl = 'https://buddyplanner.kr/#shared=' + payload;
 
     const dateStr = U.fmtDateShort(s.date);
     const startPt = s.startPoint || '집';
