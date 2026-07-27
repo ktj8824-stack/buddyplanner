@@ -70,7 +70,10 @@ const App = {
     }
 
     if (hasShared) {
-      this.navigate('timeline');
+      // 일정이 정상 로드된 후 타임라인으로 직접 이동
+      setTimeout(() => {
+        App.viewTimeline(State.currentScheduleIdx);
+      }, 100);
     } else {
       // Start with splash screen
       this.navigate('splash');
