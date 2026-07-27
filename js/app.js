@@ -70,10 +70,11 @@ const App = {
     }
 
     if (hasShared) {
-      // 일정이 정상 로드된 후 타임라인으로 직접 이동
+      // 캘린더(메인) 화면을 먼저 초기화한 뒤 타임라인으로 이동
+      this.navigate('calendar');
       setTimeout(() => {
         App.viewTimeline(State.currentScheduleIdx);
-      }, 100);
+      }, 300);
     } else {
       // Start with splash screen
       this.navigate('splash');
