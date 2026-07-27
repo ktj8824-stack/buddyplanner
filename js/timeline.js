@@ -260,9 +260,11 @@ const Timeline = {
     const compactSched = { ...s };
     delete compactSched.timeline;
     compactSched.companions = [];
-    const payload = btoa(encodeURIComponent(JSON.stringify(compactSched)));
     
-    // 만약 로컬 테스트 중이라면 buddyplanner.kr을 쓰고, 아니면 현재 접속중인 도메인(www 포함 여부 등 완벽 일치)을 사용합니다.
+    // 카카오 서버가 특수문자(+, /, =) 때문에 URL을 에러로 판단하고 강제로 첫번째 주소(localhost)로 튕겨내는 것을 막기 위해 이중 인코딩
+    const base64Str = btoa(encodeURIComponent(JSON.stringify(compactSched)));
+    const payload = encodeURIComponent(base64Str);
+    
     let baseDomain = window.location.origin;
     if (baseDomain.includes('localhost') || baseDomain.includes('192.168')) {
       baseDomain = 'https://buddyplanner.kr';

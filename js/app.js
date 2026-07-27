@@ -24,7 +24,7 @@ const App = {
     let hasShared = false;
     if (hash && hash.startsWith('#shared=')) {
       try {
-        const payload = hash.substring(8);
+        const payload = decodeURIComponent(hash.substring(8));
         const decoded = decodeURIComponent(atob(payload));
         const schedData = JSON.parse(decoded);
         State.addSchedule(schedData);
