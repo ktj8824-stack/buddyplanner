@@ -16,8 +16,34 @@ const App = {
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     State.isPro = localStorage.getItem('bp_pro') === 'true';
 
-    // Start with splash screen
-    this.navigate('splash');
+    // Automatically schedule alarms for today's events in the background
+    Timeline.autoScheduleAllAlarms();
+
+    // Check for shared schedule link
+    const hash = window.location.hash;
+    let hasShared = false;
+    if (hash && hash.startsWith('#shared=')) {
+      try {
+        const payload = hash.substring(8);
+        const decoded = decodeURIComponent(atob(payload));
+        const schedData = JSON.parse(decoded);
+        State.addSchedule(schedData);
+        State.currentScheduleIdx = State.schedules.length - 1;
+        // Clean URL
+        window.history.replaceState('', document.title, window.location.pathname + window.location.search);
+        hasShared = true;
+      } catch (e) {
+        console.error('Shared schedule import failed', e);
+        U.toast('공유된 일정을 불러오는데 실패했습니다.');
+      }
+    }
+
+    // Start with splash screen or timeline if shared
+    if (hasShared) {
+      this.navigate('timeline');
+    } else {
+      this.navigate('splash');
+    }
     
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
@@ -64,7 +90,13 @@ const App = {
   navigate(name) {
     if (!this.screens.includes(name)) return;
     this.screens.forEach(s => { const el=U.$(`#screen-${s}`); if(el)el.classList.remove('active'); });
-    const target = U.$(`#screen-${name}`);
+    let target = U.$(`#screen-${name}`);
+    if (!target) {
+      target = U.el('div', 'screen');
+      target.id = `screen-${name}`;
+      const appContainer = U.$('#app');
+      if (appContainer) appContainer.appendChild(target);
+    }
     if (target) {
       target.classList.add('active');
       switch(name) {

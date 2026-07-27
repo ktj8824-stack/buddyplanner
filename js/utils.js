@@ -62,9 +62,12 @@ const U = {
   },
 
   fmtTimeKo(s) {
-    const [h,m]=s.split(':').map(Number);
-    const p=h<12?'오전':'오후';
-    const dh=h===0?12:h>12?h-12:h;
+    if (!s || typeof s !== 'string' || !s.includes(':')) return s || '';
+    const parts = s.split(':').map(Number);
+    if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return s;
+    const [h,m] = parts;
+    const p = h < 12 ? '오전' : '오후';
+    const dh = h === 0 ? 12 : (h > 12 ? h - 12 : h);
     return `${p} ${String(dh).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
   },
 

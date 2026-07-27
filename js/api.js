@@ -139,6 +139,71 @@ const TmapAPI = {
     }
   },
 
+  async getPredictiveRouteTime(startX, startY, endX, endY, targetTimeIso, predictionType = "W02") {
+    // W01: Departure time, W02: Arrival time
+    if (!startX || !startY || !endX || !endY || !targetTimeIso) return null;
+
+    try {
+      // TMAP requires format: YYYY-MM-DDThh:mm:ss+0900
+      // Ensure targetTimeIso is converted properly
+      const dateObj = new Date(targetTimeIso);
+      
+      // 만약 과거 시간이라면 일반 경로 탐색(교통정보 미포함, 즉 기본 시간)으로 Fallback 처리
+      if (dateObj.getTime() < Date.now()) {
+        console.log('과거 시간 탐색 요청이므로 기본 라우팅으로 Fallback 합니다.');
+        const qs = `version=1&startX=${startX}&startY=${startY}&endX=${endX}&endY=${endY}&reqCoordType=WGS84GEO&resCoordType=WGS84GEO&searchOption=0&trafficInfo=N&appKey=${TmapAPI.APP_KEY}`;
+        const res = await fetch('https://apis.openapi.sk.com/tmap/routes?' + qs, { method: 'GET' });
+        if(res.ok) {
+          const d = await res.json();
+          if (d?.features?.[0]) return Math.ceil(d.features[0].properties.totalTime / 60);
+        }
+        return null;
+      }
+
+      // Format for TMAP: YYYY-MM-DDThh:mm:ss+0900 (assuming KST input)
+      const pad = n => String(n).padStart(2,'0');
+      const y = dateObj.getFullYear();
+      const m = pad(dateObj.getMonth() + 1);
+      const d = pad(dateObj.getDate());
+      const h = pad(dateObj.getHours());
+      const min = pad(dateObj.getMinutes());
+      const s = pad(dateObj.getSeconds());
+      const predictionTime = `${y}-${m}-${d}T${h}:${min}:${s}+0900`;
+
+      const qs = `version=1&resCoordType=WGS84GEO&reqCoordType=WGS84GEO&sort=index&appKey=${TmapAPI.APP_KEY}`;
+      
+      const payload = {
+        routesInfo: {
+          departure: { name: "출발지", lon: startX.toString(), lat: startY.toString() },
+          destination: { name: "도착지", lon: endX.toString(), lat: endY.toString() },
+          predictionType: predictionType,
+          predictionTime: predictionTime
+        }
+      };
+
+      const response = await fetch('https://apis.openapi.sk.com/tmap/routes/prediction?' + qs, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        console.error("TMAP Prediction Route API HTTP Error:", response.status, await response.text());
+        return null; // Fallback should be handled in caller or here, but we handled past dates above.
+      }
+
+      const data = await response.json();
+      if (data && data.features && data.features.length > 0) {
+        const totalTimeSeconds = data.features[0].properties.totalTime;
+        return Math.ceil(totalTimeSeconds / 60);
+      }
+      return null;
+    } catch (error) {
+      console.error("TMAP Prediction Route API Fetch Error:", error);
+      return null;
+    }
+  },
+
   async searchNearbyPlaces(lat, lng, keyword = '맛집', radius = 3) {
     if (!lat || !lng) return [];
     try {

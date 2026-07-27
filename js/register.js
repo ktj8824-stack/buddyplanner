@@ -15,6 +15,9 @@ const Register = {
   hasPostMeal: false,
   postMealRestaurant: null,
   startPoint: '집',
+  hasMeetingPoint: false,
+  meetingPointObj: null,
+  searchMode: 'start',
   editIdx: null,
 
   getStartPointValue() {
@@ -39,6 +42,9 @@ const Register = {
     this.hasPostMeal = false;
     this.postMealRestaurant = null;
     this.startPoint = '집';
+    this.hasMeetingPoint = false;
+    this.meetingPointObj = null;
+    this.searchMode = 'start';
   },
 
   edit(idx) {
@@ -58,10 +64,19 @@ const Register = {
     this.hasPostMeal = s.hasPostMeal || false;
     this.postMealRestaurant = s.postMealRestaurant || null;
     this.startPoint = s.startPoint || '집';
+    this.hasMeetingPoint = s.hasMeetingPoint || false;
+    this.meetingPointObj = s.meetingPointObj || null;
+    
     if (s.startPoint === '직접 입력' && s.startAddress) {
       setTimeout(() => {
-        const customInput = U.$('#r-startpoint-custom');
-        if (customInput) customInput.value = s.startAddress;
+        const customInput = U.$('#r-startpoint-text');
+        if (customInput) customInput.textContent = s.startAddress;
+      }, 150);
+    }
+    if (this.hasMeetingPoint && this.meetingPointObj) {
+      setTimeout(() => {
+        const meetInput = U.$('#r-meetingpoint-text');
+        if (meetInput) meetInput.textContent = this.meetingPointObj.name;
       }, 150);
     }
     
@@ -155,14 +170,35 @@ const Register = {
                 <button type="button" class="pill ${this.startPoint==='직접 입력'?'on':''}" onclick="Register.setStartPoint('직접 입력',this)">📍 직접 입력</button>
               </div>
               <div class="field-input" id="r-startpoint-custom-wrap" style="display:flex;margin-top:var(--sp-2)">
-                <div id="r-startpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; cursor:pointer; background:var(--bg); border:1px solid var(--border);" onclick="Register.searchCustomAddress()">
+                <div id="r-startpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:var(--bg); border:1px solid var(--border); padding:12px 16px; border-radius:var(--r-sm);" onclick="Register.searchMode='start';Register.searchCustomAddress()">
                   <span id="r-startpoint-text" style="color:var(--text-400)">출발지 주소를 검색하세요</span>
+                  <span style="opacity:0.5;">🔍</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Meeting Point Toggle -->
+            <div class="meal-section">
+              <div class="meal-header">
+                <span class="meal-title">🤝 집결지 설정 (동반자 탑승)</span>
+                <div class="toggle ${this.hasMeetingPoint?'on':''}" id="meeting-toggle" onclick="Register.toggleMeetingPoint()"></div>
+              </div>
+              <div class="meal-body ${this.hasMeetingPoint?'show':''}" id="meeting-body">
+                <div class="field" style="margin-bottom:0">
+                  <label class="field-label">집결지 선택</label>
+                  <div class="field-input">
+                    <div id="r-meetingpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:var(--bg); border:1px solid var(--border); padding:12px 16px; border-radius:var(--r-sm);" onclick="Register.searchMode='meeting';Register.searchCustomAddress()">
+                      <span id="r-meetingpoint-text" style="color:${this.meetingPointObj ? 'var(--text-100)' : 'var(--text-400)'}">${this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명)를 검색하세요'}</span>
+                      <span style="opacity:0.5;">🔍</span>
+                    </div>
+                  </div>
+                  <p class="field-hint" style="margin-top:var(--sp-2)">집결지에서 만나서 출발하는 데 약 10분의 대기/탑승 시간이 추가됩니다.</p>
                 </div>
               </div>
             </div>
 
             <!-- Meal Toggle -->
-            <div class="meal-section">
+            <div class="meal-section" style="margin-top:var(--sp-4);">
               <div class="meal-header">
                 <span class="meal-title">🍽️ 라운딩 전 식사</span>
                 <div class="toggle ${this.hasMeal?'on':''}" id="meal-toggle" onclick="Register.toggleMeal('pre')"></div>
@@ -499,23 +535,43 @@ const Register = {
 
   searchCustomAddress() {
     let title = '📍 출발지 주소 검색';
-    if (this.startPoint === '집') title = '🏠 집 주소 검색';
-    else if (this.startPoint === '회사') title = '🏢 회사 주소 검색';
+    if (this.searchMode === 'meeting') {
+      title = '🤝 집결지 주소 검색';
+    } else {
+      if (this.startPoint === '집') title = '🏠 집 주소 검색';
+      else if (this.startPoint === '회사') title = '🏢 회사 주소 검색';
+    }
 
     App.openAddressSearch(title, (selectedPlace) => {
-      if (this.startPoint === '집') {
-        if (!State.userAddresses) State.userAddresses = { home: null, office: null };
-        State.userAddresses.home = selectedPlace;
-        localStorage.setItem('bp_home', JSON.stringify(selectedPlace));
-      } else if (this.startPoint === '회사') {
-        if (!State.userAddresses) State.userAddresses = { home: null, office: null };
-        State.userAddresses.office = selectedPlace;
-        localStorage.setItem('bp_office', JSON.stringify(selectedPlace));
+      if (this.searchMode === 'meeting') {
+        this.meetingPointObj = selectedPlace;
+        const textEl = U.$('#r-meetingpoint-text');
+        if (textEl) {
+          textEl.textContent = selectedPlace.name;
+          textEl.style.color = 'var(--text-100)';
+        }
       } else {
-        this.customStartObj = selectedPlace;
+        if (this.startPoint === '집') {
+          if (!State.userAddresses) State.userAddresses = { home: null, office: null };
+          State.userAddresses.home = selectedPlace;
+          localStorage.setItem('bp_home', JSON.stringify(selectedPlace));
+        } else if (this.startPoint === '회사') {
+          if (!State.userAddresses) State.userAddresses = { home: null, office: null };
+          State.userAddresses.office = selectedPlace;
+          localStorage.setItem('bp_office', JSON.stringify(selectedPlace));
+        } else {
+          this.customStartObj = selectedPlace;
+        }
+        this.updateStartPointUI();
       }
-      this.updateStartPointUI();
     });
+  },
+
+  toggleMeetingPoint() {
+    this.hasMeetingPoint = !this.hasMeetingPoint;
+    U.$('#meeting-toggle').classList.toggle('on', this.hasMeetingPoint);
+    U.$('#meeting-body').classList.toggle('show', this.hasMeetingPoint);
+    U.haptic();
   },
 
   toggleMeal(type) {
@@ -791,28 +847,81 @@ const Register = {
       return;
     }
 
-    // TMAP 실시간 경로 소요 시간 계산
-    let travelTime = 60; // 기본 소요 시간
-    let travelToRest = 0;
+    if (this.startPoint === '직접 입력') {
+      finalStartPoint = valObj.name;
+    }
+
+    // TMAP 도착 목표 시간 기반 예측 경로 소요 시간 계산
+    let travelTime = 60; // 총 이동 관련 소요 시간 (집결지 대기 포함)
+    let travelToRest = 0; // 출발지(또는 집결지) -> 식당 소요시간
+    let travelToMeeting = 0; // 출발지 -> 집결지 소요시간
+    let restTravelDur = 0; // 식당 -> 골프장 소요시간
     let startLat = valObj.lat;
     let startLng = valObj.lng;
 
+    // 목표 골프장 도착 시간: 식사 유무에 따라 30분 또는 40분
+    const mannerTime = (this.hasMeal && this.mealRestaurant) ? 30 : 40;
+    const d = new Date(this.date);
+    d.setHours(this.timeH, this.timeM, 0, 0);
+    const arrivalTime = new Date(d.getTime() - mannerTime * 60000);  
+
     try {
       if (this.hasMeal && this.mealRestaurant) {
-        // 출발지 -> 식당
-        const rt = await TmapAPI.getRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat);
-        if (rt) {
+        restTravelDur = this.mealRestaurant.distMin || 15;
+        const restArrivalTime = new Date(arrivalTime.getTime() - restTravelDur * 60000 - this.mealDuration * 60000);
+
+        if (this.hasMeetingPoint && this.meetingPointObj) {
+          // 집결지 -> 식당
+          const meetLat = this.meetingPointObj.lat;
+          const meetLng = this.meetingPointObj.lng;
+          let rtMeetToRest = await TmapAPI.getPredictiveRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat, restArrivalTime.toISOString(), "W02");
+          if (!rtMeetToRest) rtMeetToRest = await TmapAPI.getRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || 30;
+          travelToRest = rtMeetToRest;
+
+          const meetWaitTime = 10;
+          const meetArrivalTime = new Date(restArrivalTime.getTime() - travelToRest * 60000 - meetWaitTime * 60000);
+
+          // 출발지 -> 집결지
+          let rtStartToMeet = await TmapAPI.getPredictiveRouteTime(startLng, startLat, meetLng, meetLat, meetArrivalTime.toISOString(), "W02");
+          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || 30;
+          travelToMeeting = rtStartToMeet;
+
+          travelTime = travelToMeeting + meetWaitTime + travelToRest + restTravelDur;
+        } else {
+          // 출발지 -> 식당
+          let rt = await TmapAPI.getPredictiveRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat, restArrivalTime.toISOString(), "W02");
+          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || 60;
           travelToRest = rt;
-          travelTime = rt + (this.mealRestaurant.distMin || 15); 
+          travelTime = travelToRest + restTravelDur;
         }
       } else {
-        // 출발지 -> 골프장
-        const rt = await TmapAPI.getRouteTime(startLng, startLat, this.course.lng, this.course.lat);
-        if (rt) travelTime = rt;
+        // 식사 없음
+        if (this.hasMeetingPoint && this.meetingPointObj) {
+          // 집결지 -> 골프장
+          const meetLat = this.meetingPointObj.lat;
+          const meetLng = this.meetingPointObj.lng;
+          let rtMeetToGolf = await TmapAPI.getPredictiveRouteTime(meetLng, meetLat, this.course.lng, this.course.lat, arrivalTime.toISOString(), "W02");
+          if (!rtMeetToGolf) rtMeetToGolf = await TmapAPI.getRouteTime(meetLng, meetLat, this.course.lng, this.course.lat) || 40;
+          
+          const meetWaitTime = 10;
+          const meetArrivalTime = new Date(arrivalTime.getTime() - rtMeetToGolf * 60000 - meetWaitTime * 60000);
+
+          // 출발지 -> 집결지
+          let rtStartToMeet = await TmapAPI.getPredictiveRouteTime(startLng, startLat, meetLng, meetLat, meetArrivalTime.toISOString(), "W02");
+          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || 30;
+          travelToMeeting = rtStartToMeet;
+
+          travelTime = travelToMeeting + meetWaitTime + rtMeetToGolf;
+        } else {
+          // 출발지 -> 골프장
+          let rt = await TmapAPI.getPredictiveRouteTime(startLng, startLat, this.course.lng, this.course.lat, arrivalTime.toISOString(), "W02");
+          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.course.lng, this.course.lat) || 60;
+          travelTime = rt;
+        }
       }
     } catch (e) {
       console.error("TMAP 연동 중 에러 발생:", e);
-      U.toast('⚠️ 경로 탐색 오류. 기본 소요시간으로 계산됩니다.');
+      U.toast('⚠️ 예측 경로 탐색 오류. 기본 소요시간으로 계산됩니다.');
     }
 
     const schedData = {
@@ -831,7 +940,10 @@ const Register = {
       startPoint: finalStartPoint,
       startAddress: valObj.name,
       startLat,
-      startLng
+      startLng,
+      hasMeetingPoint: this.hasMeetingPoint,
+      meetingPointObj: this.meetingPointObj,
+      travelToMeeting
     };
 
     if (this.editIdx !== null) {
@@ -841,13 +953,13 @@ const Register = {
       this.editIdx = null;
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(idx);
-      U.autoSyncCalendar(State.schedules[idx], idx);
+      Timeline.toggleAlarm();
     } else {
       State.addSchedule(schedData);
       U.toast('✅ 스마트 플랜이 생성되었습니다!');
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(State.schedules.length - 1);
-      U.autoSyncCalendar(State.schedules[State.schedules.length - 1], State.schedules.length - 1);
+      Timeline.toggleAlarm();
     }
   }
 };

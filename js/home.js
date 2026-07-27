@@ -89,7 +89,7 @@ const Home = {
           <div class="stat-card" style="padding: 16px; border:none; background:#fff; border-radius:16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
               <span style="font-size: 20px; font-weight: 800; color:var(--text-100);">${new Date().getMonth() + 1}월 일정</span>
-              <div style="font-size: 13px; font-weight:700; color:var(--accent); cursor:pointer; padding: 4px 8px; border-radius: 4px; background: rgba(255, 91, 41, 0.05);" onclick="App.navigate('calendar')">전체보기</div>
+              <div role="button" tabindex="0" style="font-size: 14px; font-weight:700; color:var(--accent); cursor:pointer; padding: 8px 16px; border-radius: 8px; background: rgba(255, 91, 41, 0.05); min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;" onclick="if(window.Calendar) Calendar.initCal(); App.navigate('calendar');">전체보기</div>
             </div>
             
             <div style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;" class="hide-scrollbar">

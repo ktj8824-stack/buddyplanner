@@ -8,9 +8,14 @@ const Calendar = {
 
   render() {
     const el = U.$('#screen-calendar');
-    const nextSch = (State.schedules && State.schedules.length > 0) ? State.schedules[0] : null;
-    const courseName = nextSch ? nextSch.courseName : '아난티남해 CC';
-    const teeTime = nextSch ? nextSch.teeTime : '08:30';
+    if (!el) {
+      console.error('Calendar element not found');
+      return;
+    }
+    try {
+      const nextSch = (State.schedules && State.schedules.length > 0) ? State.schedules[0] : null;
+      const courseName = nextSch ? (nextSch.course ? nextSch.course.name : (nextSch.courseName || '아난티남해 CC')) : '아난티남해 CC';
+      const teeTime = nextSch ? (nextSch.teeTime || nextSch.teeOff || '08:30') : '08:30';
 
     el.innerHTML = `
       <div style="display:flex; flex-direction:column; height:100%; min-height:100vh; min-height:100dvh;">
@@ -52,6 +57,10 @@ const Calendar = {
         </div>
       </div>
     `;
+    } catch (e) {
+      console.error('Calendar Render Error:', e);
+      el.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-200);">캘린더를 렌더링하는 중 오류가 발생했습니다.<br><br>앱을 새로고침 해주세요.</div>`;
+    }
   },
 
   // 날짜 레이블 + 일정 목록만 (버튼 제외 — 버튼은 하단 고정)
@@ -76,7 +85,7 @@ const Calendar = {
         schedHtml += `
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; ${isPast ? 'opacity:0.55;' : ''}" onclick="App.viewTimeline(${idx})">
             <div style="flex:1; background:var(--bg-input); border-radius:12px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-              <span style="font-size:16px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:8px;">${s.course.name}</span>
+              <span style="font-size:16px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:8px;">${s.course ? s.course.name : (s.courseName || '골프장')}</span>
               <span style="font-size:14px; font-weight:600; color:var(--text-300); white-space:nowrap;">${teeTime} <span style="color:var(--accent); font-size:12px; margin-left:2px;">${dday}</span></span>
             </div>
             <button onclick="event.stopPropagation(); Calendar.deleteSchedule(${idx})" style="width:36px; height:36px; border-radius:50%; background:rgba(255,59,48,0.08); border:none; color:var(--danger); font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">✕</button>

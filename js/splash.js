@@ -31,10 +31,10 @@ const Splash = {
   },
 
   startTransitionTimer() {
-    // Automatically transition after 3.5 seconds
+    // Automatically transition after 5 seconds
     this.timeoutId = setTimeout(() => {
       this.nextScreen();
-    }, 3500);
+    }, 5000);
   },
 
   nextScreen() {

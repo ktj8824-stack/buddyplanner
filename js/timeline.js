@@ -8,6 +8,7 @@ const Timeline = {
   audioCtx: null,
   oscillator: null,
   alarmInterval: null,
+  bannerInterval: null,
 
   init(idx) {
     this.schedIdx = idx !== undefined ? idx : State.currentScheduleIdx;
@@ -32,6 +33,11 @@ const Timeline = {
         <button class="header-btn" onclick="U.downloadICS(State.schedules[${this.schedIdx}])">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
+      </div>
+
+      <!-- Sticky Event Banner -->
+      <div id="tl-sticky-banner" style="display:none; flex-shrink:0; z-index:90; background:var(--accent); color:#fff; padding:12px 16px; font-size:14px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:all 0.3s ease;">
+        <span style="font-weight:var(--fw-bold);" id="tl-banner-text">현재 진행 중인 일정 없음</span>
       </div>
 
       <div class="screen-scroll" style="padding-top:0;">
@@ -71,9 +77,11 @@ const Timeline = {
               </h3>
               <p class="tl-sub">${tl.hasMeal ? '출발지 → 식당 → 골프코스 동선 연산' : '출발지 → 골프코스 최적 경로'}</p>
             </div>
-            <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0;">
-              <div class="chip chip-accent chip-live">실시간</div>
-              <button style="border:1px solid var(--gold-500); background:var(--gold-dim); color:var(--gold-400); cursor:pointer; padding: 4px 12px; font-size: 14px; font-weight: bold; border-radius: 20px; line-height: 1.2; white-space: nowrap;" onclick="Register.edit(${this.schedIdx})">
+            <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
+              <button id="tl-alarm-btn" onclick="Timeline.toggleAlarm()" style="border:1px solid var(--accent); background:transparent; color:var(--accent); cursor:pointer; padding: 4px 12px; font-size: 13px; font-weight: bold; border-radius: 20px; line-height: 1.2; white-space: nowrap; transition:all 0.3s ease;">
+                🔔 알람 켜기
+              </button>
+              <button style="border:1px solid var(--gold-500); background:var(--gold-dim); color:var(--gold-400); cursor:pointer; padding: 4px 12px; font-size: 13px; font-weight: bold; border-radius: 20px; line-height: 1.2; white-space: nowrap;" onclick="Register.edit(${this.schedIdx})">
                 ✏️ 일정 수정
               </button>
             </div>
@@ -98,11 +106,17 @@ const Timeline = {
             </span>
             <span>준비물 체크</span>
           </button>
+          <button class="qact" onclick="Timeline.shareTimeline()">
+            <span class="qact-icon" style="display:inline-flex; width:36px; height:36px; align-items:center; justify-content:center; border-radius:50%; background:rgba(254, 229, 0, 0.2); color:#3c1e1e;">
+              <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px; height:20px;"><path d="M12 3c-5.523 0-10 3.553-10 7.938 0 2.825 1.83 5.303 4.606 6.744l-1.01 3.7c-.053.195.166.353.332.227l4.316-2.82c.575.08 1.162.124 1.756.124 5.523 0 10-3.553 10-7.938C22 6.553 17.523 3 12 3z"/></svg>
+            </span>
+            <span>일정 공유</span>
+          </button>
           <button class="qact" onclick="U.downloadICS(State.schedules[${this.schedIdx}])">
             <span class="qact-icon" style="display:inline-flex; width:36px; height:36px; align-items:center; justify-content:center; border-radius:50%; background:rgba(142, 142, 147, 0.15); color:var(--text-300);">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px; height:18px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             </span>
-            <span>일정 연동</span>
+            <span>일정 캘린더</span>
           </button>
           <button class="qact" onclick="U.openNativeAlarm(${this.schedIdx})">
             <span class="qact-icon" style="display:inline-flex; width:36px; height:36px; align-items:center; justify-content:center; border-radius:50%; background:rgba(255, 59, 48, 0.15); color:var(--ios-red);">
@@ -127,6 +141,8 @@ const Timeline = {
 
     this.hidePastItems();
     setTimeout(() => U.stagger(U.$('.tl-list'), '.tl-item:not([style*="display: none"])', 120), 200);
+    
+    this.startBannerUpdater();
   },
 
   hidePastItems() {
@@ -238,6 +254,176 @@ const Timeline = {
     }
   },
 
+  shareTimeline() {
+    const s = State.schedules[this.schedIdx];
+    const tl = s.timeline;
+    const compactSched = { ...s };
+    delete compactSched.timeline;
+    compactSched.companions = [];
+    const payload = btoa(encodeURIComponent(JSON.stringify(compactSched)));
+    const shareUrl = window.location.origin + window.location.pathname + '#shared=' + payload;
+
+    const dateStr = U.fmtDateShort(s.date);
+    const startPt = s.startPoint || '집';
+    const cName = s.course ? s.course.name : '골프장';
+    
+    let textStr = `⛳ [버디플래너] 라운딩 타임라인 안내 ⛳\n\n`;
+    textStr += `📅 일시: ${dateStr}\n`;
+    textStr += `📍 장소: ${cName}\n`;
+    textStr += `⏰ 티오프: ${s.teeOff}\n\n`;
+    textStr += `🚗 [이동 동선 & 시간표]\n`;
+    textStr += `[${tl.homeDepart}] 출발 (${startPt})\n`;
+    
+    if (tl.hasMeal) {
+      const rName = s.restaurant ? s.restaurant.name : '식당';
+      textStr += `[${tl.mealStart}] 식당 도착 (${rName})\n`;
+      textStr += `[${tl.restDepart}] 식당 출발\n`;
+    }
+    
+    textStr += `[${tl.arrival}] 골프장 도착\n`;
+    textStr += `[${s.teeOff}] 라운딩 시작\n`;
+    
+    // 라운딩 종료 시간 계산 (5시간)
+    const teeParts = (s.teeOff||'07:00').split(':');
+    const playEndMins = parseInt(teeParts[0],10)*60 + parseInt(teeParts[1],10) + 300;
+    const playEndHH = Math.floor(playEndMins/60).toString().padStart(2,'0');
+    const playEndMM = (playEndMins%60).toString().padStart(2,'0');
+    const playEndStr = `${playEndHH}:${playEndMM}`;
+    textStr += `[${playEndStr}] 라운딩 종료\n`;
+    
+    textStr += `[${tl.returnStart}] 귀가 출발\n`;
+    textStr += `[${tl.returnEnd}] 귀가 완료\n\n`;
+    
+    textStr += `🔗 [자세한 타임라인 & 내비게이션 보기]\n${shareUrl}`;
+
+    this.showShareModal(textStr, shareUrl, s);
+  },
+
+  showShareModal(shareText, shareUrl, s) {
+    Timeline._pendingShareText = shareText;
+    Timeline._pendingShareUrl = shareUrl;
+    Timeline._pendingShareS = s;
+
+    let modal = U.$('#share-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'share-modal';
+      modal.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; backdrop-filter:blur(5px);';
+      document.body.appendChild(modal);
+    }
+    
+    modal.innerHTML = `
+      <div style="background:var(--bg-card); border-radius:24px; width:100%; max-width:400px; padding:24px; text-align:center; position:relative; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+        <button onclick="document.getElementById('share-modal').style.display='none'" style="position:absolute; top:16px; right:16px; background:none; border:none; color:var(--text-300); font-size:24px; cursor:pointer;">✕</button>
+        
+        <h3 style="margin:0 0 16px 0; color:var(--text-100); font-size:18px;">공유 준비 완료! 🎉</h3>
+        <p style="font-size:13px; color:var(--text-300); margin-bottom:24px; line-height:1.4;">
+          원하시는 공유 방식을 선택해주세요!
+        </p>
+        
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <button onclick="Timeline.executeKakaoShare()" style="background:#FEE500; color:#3c1e1e; border:none; padding:16px; border-radius:12px; font-weight:700; font-size:16px; cursor:pointer;">
+            💬 카카오톡 일정 링크 공유
+          </button>
+          <button onclick="Timeline.copyDetailedText()" style="background:var(--bg-input); color:var(--text-100); border:1px solid var(--border-color); padding:16px; border-radius:12px; font-weight:700; font-size:16px; cursor:pointer;">
+            🔗 타임라인 공유하기
+          </button>
+        </div>
+      </div>
+    `;
+    modal.style.display = 'flex';
+  },
+
+  copyDetailedText() {
+    const text = Timeline._pendingShareText;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+      } else {
+        const temp = document.createElement('textarea');
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+      }
+      U.toast('✅ 상세 타임라인이 복사되었습니다! 카톡이나 문자에 붙여넣기 하세요.', 3000);
+      document.getElementById('share-modal').style.display = 'none';
+    } catch(e) {
+      U.toast('복사를 지원하지 않는 기기입니다.');
+    }
+  },
+
+  async executeNativeShare() {
+    const file = Timeline._pendingShareFile;
+    const shareText = Timeline._pendingShareText;
+    
+    try {
+      if (!navigator.share) throw new Error('No share support');
+      
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: '버디플래너 라운딩 일정',
+          text: shareText,
+          files: [file]
+        });
+      } else {
+        await navigator.share({
+          title: '버디플래너 라운딩 일정',
+          text: shareText
+        });
+      }
+      
+      const modal = document.getElementById('share-modal');
+      if (modal) modal.style.display = 'none';
+      
+    } catch (e) {
+      if (e.name === 'AbortError') return; // User simply closed the share sheet
+      console.error('Share error:', e);
+      
+      // Fallback to copy
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareText);
+        } else {
+          const temp = document.createElement('textarea');
+          temp.value = shareText;
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand('copy');
+          document.body.removeChild(temp);
+        }
+        U.toast('기본 공유가 막혀 링크가 복사되었습니다! 카톡창에 붙여넣기 해주세요.');
+      } catch (err) {
+        U.toast('이 기기에서는 공유 기능을 사용할 수 없습니다.');
+      }
+    }
+  },
+
+  executeKakaoShare() {
+    if (typeof Kakao !== 'undefined') {
+      try {
+        if (!Kakao.isInitialized()) Kakao.init('5729341d219d8cb6f0a189fa86c91456');
+        Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: `⛳ ${Timeline._pendingShareS.course.name} 라운딩 일정`,
+            description: '아래 버튼을 눌러 타임라인과 내비게이션을 같이 이용해보세요!',
+            imageUrl: 'https://files.catbox.moe/672ojg.png',
+            link: { mobileWebUrl: Timeline._pendingShareUrl, webUrl: Timeline._pendingShareUrl },
+          },
+          buttons: [{ title: '일정 및 타임라인 같이 보기', link: { mobileWebUrl: Timeline._pendingShareUrl, webUrl: Timeline._pendingShareUrl } }]
+        });
+        document.getElementById('share-modal').style.display='none';
+      } catch (e) {
+        console.error(e);
+        U.toast('카카오톡 공유를 실행할 수 없습니다.');
+      }
+    } else {
+      U.toast('카카오톡 모듈이 로드되지 않았습니다.');
+    }
+  },
+
   renderRouteSummary(s, tl) {
     const startPt = s.startPoint || '집';
     let startSvg = `<svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
@@ -316,8 +502,22 @@ const Timeline = {
         </div>
       </div>`;
 
+    let nextDestName = '';
+    let nextDestLat = 0;
+    let nextDestLng = 0;
+    
     if (tl.hasMeal) {
-      // 2) 출발지 → 식당 출발
+      nextDestName = s.mealRestaurant.name;
+      nextDestLat = s.mealRestaurant.lat;
+      nextDestLng = s.mealRestaurant.lng;
+    } else {
+      nextDestName = s.course.name;
+      nextDestLat = s.course.lat;
+      nextDestLng = s.course.lng;
+    }
+
+    if (tl.hasMeetingPoint) {
+      // 2) 출발지 → 집결지 출발
       items += `
         <div class="tl-item stag">
           <div class="tl-dot"></div>
@@ -327,14 +527,66 @@ const Timeline = {
               ${startIconHtml}
               ${startPt}에서 출발하기
             </div>
-            <div class="tl-detail">${tl.restaurantName}까지 약 ${tl.homeTravelDur}분 소요</div>
+            <div class="tl-detail">집결지(${tl.meetingPointName})까지 약 ${tl.homeTravelDur}분 소요</div>
             <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${s.mealRestaurant.name}',${s.mealRestaurant.lat},${s.mealRestaurant.lng},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${s.mealRestaurant.name}',${s.mealRestaurant.lat},${s.mealRestaurant.lng},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
+              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
+              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
             </div>
           </div>
         </div>`;
 
+      // 2-1) 집결지 도착 및 탑승
+      items += `
+        <div class="tl-item stag">
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-time">${tl.meetArrival}</div>
+            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              집결지 도착 및 동반자 탑승
+            </div>
+            <div class="tl-detail">여유 대기 시간 (약 10분)</div>
+          </div>
+        </div>`;
+
+      // 2-2) 집결지 → 다음 목적지 출발
+      items += `
+        <div class="tl-item stag">
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-time">${tl.meetDepart}</div>
+            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
+              ${nextDestName}(으)로 출발
+            </div>
+            <div class="tl-detail">예측 길찾기 기준 약 ${tl.meetTravelDur}분 소요</div>
+            <div class="tl-nav-btns">
+              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${tmapIcon} TMAP</button>
+              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${kakaoIcon} 카카오내비</button>
+            </div>
+          </div>
+        </div>`;
+    } else {
+      // 2) 출발지 → 다음 목적지 출발
+      items += `
+        <div class="tl-item stag">
+          <div class="tl-dot"></div>
+          <div class="tl-card">
+            <div class="tl-time">${tl.homeDepart}</div>
+            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
+              ${startIconHtml}
+              ${startPt}에서 출발하기
+            </div>
+            <div class="tl-detail">예측 길찾기 기준 ${nextDestName}까지 약 ${tl.homeTravelDur}분 소요</div>
+            <div class="tl-nav-btns">
+              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
+              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    if (tl.hasMeal) {
       // 3) 식사
       const mealReview = ReviewStore.getReviews(tl.restaurantName);
       const mealRatingHtml = mealReview.count > 0 
@@ -369,24 +621,6 @@ const Timeline = {
             <div class="tl-nav-btns">
               <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${s.course.name}',${s.course.lat},${s.course.lng},'${s.mealRestaurant.name}',${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${tmapIcon} TMAP</button>
               <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${s.course.name}',${s.course.lat},${s.course.lng},'${s.mealRestaurant.name}',${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${kakaoIcon} 카카오내비</button>
-            </div>
-          </div>
-        </div>`;
-    } else {
-      // 2) 출발지 → 골프장 출발
-      items += `
-        <div class="tl-item stag">
-          <div class="tl-dot"></div>
-          <div class="tl-card">
-            <div class="tl-time">${tl.homeDepart}</div>
-            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              ${startIconHtml}
-              ${startPt}에서 출발하기
-            </div>
-            <div class="tl-detail">실시간 교통정보 기준 ${s.course.name}까지 약 ${tl.homeTravelDur}분 소요</div>
-            <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${s.course.name}',${s.course.lat},${s.course.lng},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${s.course.name}',${s.course.lat},${s.course.lng},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
             </div>
           </div>
         </div>`;
@@ -547,15 +781,85 @@ const Timeline = {
         Notification.requestPermission().then(permission => {
           if (permission === 'granted') {
             U.toast('실제 타임라인 일정에 맞춰 알람이 예약되었습니다!');
-            this.scheduleTimelineAlarms();
           } else {
-            U.toast('알림 권한이 차단되어 푸시 알림을 보낼 수 없습니다.');
+            U.toast('푸시 알림은 차단되었지만 앱 내 알람은 작동합니다.');
           }
+          this.scheduleTimelineAlarms();
         });
       } else {
-        U.toast('알림을 지원하지 않는 기기입니다.');
+        U.toast('아이폰 푸시 알림은 지원하지 않지만 앱 내 알람은 정상 작동합니다!');
+        this.scheduleTimelineAlarms();
       }
     }
+  },
+
+  autoScheduleAllAlarms() {
+    this.alarmTimeouts = this.alarmTimeouts || [];
+    this.alarmTimeouts.forEach(id => clearTimeout(id));
+    this.alarmTimeouts = [];
+
+    const now = new Date();
+    State.schedules.forEach((s) => {
+      if (!s.timeline || !s.date) return;
+      const sDate = new Date(s.date);
+      if (sDate.getFullYear() === now.getFullYear() && 
+          sDate.getMonth() === now.getMonth() && 
+          sDate.getDate() === now.getDate()) {
+        
+        const tl = s.timeline;
+        const dateStr = s.date;
+        const getDelay = (timeStr) => {
+          if (!timeStr) return -1;
+          const [hour, min] = timeStr.split(':').map(Number);
+          const targetDate = new Date(dateStr);
+          targetDate.setHours(hour, min, 0, 0);
+          return targetDate.getTime() - Date.now();
+        };
+
+        const events = [];
+        const iPrep = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+        const iHome = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
+        const iMeal = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+        const iRest = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>`;
+        const iArrive = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>`;
+        const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
+
+        if (tl.prepStart) events.push({ time: tl.prepStart, msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep });
+        if (tl.homeDepart) events.push({ time: tl.homeDepart, msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome });
+        if (tl.mealStart) events.push({ time: tl.mealStart, msg: '식당 예약 시간입니다. 든든한 식사 하세요 🍽️', icon: iMeal });
+        if (tl.restDepart) events.push({ time: tl.restDepart, msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest });
+        if (tl.arrival) events.push({ time: tl.arrival, msg: '클럽하우스 도착 시간입니다. 환복을 준비하세요 🏌️', icon: iArrive });
+        if (tl.teeOff) events.push({ time: tl.teeOff, msg: '곧 티오프 시간입니다! 멋진 라운딩 되세요 ⛳', icon: iTee });
+
+        events.forEach(ev => {
+          const delay = getDelay(ev.time);
+          if (delay > 0) {
+            const timeoutId = setTimeout(() => {
+              try {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                  new Notification('버디플래너 타임라인', {
+                    body: ev.msg,
+                    icon: 'assets/icons/icon-192x192.png'
+                  });
+                }
+              } catch (e) {
+                console.warn('Notification failed:', e);
+              }
+              Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon);
+            }, delay);
+            this.alarmTimeouts.push(timeoutId);
+          }
+        });
+      }
+    });
+
+    const unlockAudio = () => {
+      Timeline.initAudioContext();
+      document.removeEventListener('click', unlockAudio);
+      document.removeEventListener('touchstart', unlockAudio);
+    };
+    document.addEventListener('click', unlockAudio);
+    document.addEventListener('touchstart', unlockAudio, {passive: true});
   },
 
   scheduleTimelineAlarms() {
@@ -575,25 +879,37 @@ const Timeline = {
     };
 
     const events = [];
-    if (tl.prepStart) events.push({ time: tl.prepStart, msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!' });
-    if (tl.homeDepart) events.push({ time: tl.homeDepart, msg: '출발 시간입니다! 목적지로 출발하세요 🚗' });
-    if (tl.mealStart) events.push({ time: tl.mealStart, msg: '식당 예약 시간입니다. 든든한 식사 하세요 🍽️' });
-    if (tl.restDepart) events.push({ time: tl.restDepart, msg: '골프장으로 출발할 시간입니다 🚙' });
-    if (tl.arrival) events.push({ time: tl.arrival, msg: '클럽하우스 도착 시간입니다. 환복을 준비하세요 🏌️' });
-    if (tl.teeOff) events.push({ time: tl.teeOff, msg: '곧 티오프 시간입니다! 멋진 라운딩 되세요 ⛳' });
+    const iPrep = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
+    const iHome = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
+    const iMeal = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+    const iRest = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>`;
+    const iArrive = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>`;
+    const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
+
+    if (tl.prepStart) events.push({ time: tl.prepStart, msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep });
+    if (tl.homeDepart) events.push({ time: tl.homeDepart, msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome });
+    if (tl.mealStart) events.push({ time: tl.mealStart, msg: '식당 예약 시간입니다. 든든한 식사 하세요 🍽️', icon: iMeal });
+    if (tl.restDepart) events.push({ time: tl.restDepart, msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest });
+    if (tl.arrival) events.push({ time: tl.arrival, msg: '클럽하우스 도착 시간입니다. 환복을 준비하세요 🏌️', icon: iArrive });
+    if (tl.teeOff) events.push({ time: tl.teeOff, msg: '곧 티오프 시간입니다! 멋진 라운딩 되세요 ⛳', icon: iTee });
 
     let scheduledCount = 0;
     events.forEach(ev => {
       const delay = getDelay(ev.time);
       if (delay > 0) {
         const timeoutId = setTimeout(() => {
-          new Notification('버디플래너 타임라인', {
-            body: ev.msg,
-            icon: 'assets/icons/icon-192x192.png'
-          });
-          if (ev.time === tl.prepStart) {
-            Timeline.playAlarmSound(ev.msg);
+          try {
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('버디플래너 타임라인', {
+                body: ev.msg,
+                icon: 'assets/icons/icon-192x192.png'
+              });
+            }
+          } catch (e) {
+            console.warn('Notification failed:', e);
           }
+          
+          Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon);
         }, delay);
         this.alarmTimeouts.push(timeoutId);
         scheduledCount++;
@@ -640,35 +956,138 @@ const Timeline = {
     }
   },
 
-  playAlarmSound(msg) {
+  playAlarmSound(msg, title = '🚨 타임라인 알람', iconHtml = null) {
     if (!this.audioCtx) this.initAudioContext();
     
-    // Create an intermittent beep sound
-    let isBeep = true;
-    this.alarmInterval = setInterval(() => {
-      if (isBeep) {
-        this.oscillator = this.audioCtx.createOscillator();
-        this.oscillator.type = 'square';
-        this.oscillator.frequency.setValueAtTime(880, this.audioCtx.currentTime); // A5 note
-        this.oscillator.connect(this.audioCtx.destination);
-        this.oscillator.start();
-        setTimeout(() => { if (this.oscillator) { this.oscillator.stop(); this.oscillator.disconnect(); this.oscillator = null; } }, 200);
-      }
-      isBeep = !isBeep;
-    }, 400);
+    // 한 번만 울리는 알림음 (A5 -> C#6)
+    try {
+      this.oscillator = this.audioCtx.createOscillator();
+      this.oscillator.type = 'sine';
+      this.oscillator.frequency.setValueAtTime(880, this.audioCtx.currentTime); 
+      this.oscillator.frequency.setValueAtTime(1108.73, this.audioCtx.currentTime + 0.15);
+      
+      const gainNode = this.audioCtx.createGain();
+      gainNode.gain.setValueAtTime(1, this.audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.5);
 
-    // Show modal to stop alarm
-    const stopHtml = `
-      <div style="text-align:center; padding:var(--sp-4);">
-        <div style="font-size:3rem; margin-bottom:var(--sp-3);">⏰</div>
-        <p style="font-size:var(--fs-lg); margin-bottom:var(--sp-5);">${msg}</p>
-        <button class="btn btn-gold" style="width:100%;" onclick="Timeline.stopAlarmSound()">알람 끄기</button>
-      </div>
-    `;
-    App.showModal('🚨 준비 시작 시간 알람', stopHtml);
+      this.oscillator.connect(gainNode);
+      gainNode.connect(this.audioCtx.destination);
+      
+      this.oscillator.start();
+      this.oscillator.stop(this.audioCtx.currentTime + 0.5);
+    } catch(e) {
+      console.warn('Audio play failed:', e);
+    }
+
+    this.showAlarmPopup(msg, title, iconHtml);
+  },
+
+  showAlarmPopup(msg, title, iconHtml) {
+    const old = document.getElementById('tl-alarm-popup');
+    if (old) old.remove();
+
+    const popup = document.createElement('div');
+    popup.id = 'tl-alarm-popup';
+    popup.style.position = 'fixed';
+    popup.style.top = '16px';
+    popup.style.left = '16px';
+    popup.style.right = '16px';
+    popup.style.background = 'var(--bg-card)';
+    popup.style.border = '1px solid var(--accent)';
+    popup.style.borderRadius = 'var(--r-md)';
+    popup.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)';
+    popup.style.zIndex = '9999';
+    popup.style.padding = '16px';
+    popup.style.display = 'flex';
+    popup.style.alignItems = 'center';
+    popup.style.gap = '16px';
+    popup.style.transform = 'translateY(-150%)';
+    popup.style.transition = 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
     
-    // Fallback: stop automatically after 30 seconds
-    setTimeout(() => this.stopAlarmSound(), 30000);
+    // 아이콘 크기 축소
+    const displayIcon = iconHtml ? iconHtml.replace('width="48"', 'width="32"').replace('height="48"', 'height="32"') : `<div style="font-size:2rem;">⏰</div>`;
+
+    popup.innerHTML = `
+      <div style="flex-shrink:0;">${displayIcon}</div>
+      <div style="flex-grow:1;">
+        <div style="font-size:12px; color:var(--accent); font-weight:var(--fw-bold); margin-bottom:4px;">${title}</div>
+        <div style="font-size:14px; font-weight:var(--fw-bold); color:var(--text-100); line-height:1.4;">${msg}</div>
+      </div>
+      <button onclick="this.parentElement.style.transform='translateY(-150%)'; setTimeout(()=>this.parentElement.remove(), 400);" style="flex-shrink:0; background:none; border:none; color:var(--text-300); padding:4px; cursor:pointer;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    `;
+
+    document.body.appendChild(popup);
+
+    requestAnimationFrame(() => {
+      popup.style.transform = 'translateY(0)';
+    });
+
+    // 10초 뒤 자동 숨김
+    setTimeout(() => {
+      if (popup.parentElement) {
+        popup.style.transform = 'translateY(-150%)';
+        setTimeout(() => popup.remove(), 400);
+      }
+    }, 10000);
+  },
+
+  startBannerUpdater() {
+    this.stopBannerUpdater();
+    const s = State.schedules[this.schedIdx];
+    if (!s || !s.timeline) return;
+
+    const updateBanner = () => {
+      const tl = s.timeline;
+      const now = Date.now();
+      
+      const parseTime = (timeStr) => {
+        if (!timeStr) return Infinity;
+        const [hour, min] = timeStr.split(':').map(Number);
+        const td = new Date(s.date);
+        td.setHours(hour, min, 0, 0);
+        return td.getTime();
+      };
+
+      const events = [
+        { time: parseTime(tl.prepStart), name: '준비 중 (짐 챙기기)' },
+        { time: parseTime(tl.homeDepart), name: '목적지로 이동 중 🚗' },
+        { time: parseTime(tl.mealStart), name: '식사 중 🍽️' },
+        { time: parseTime(tl.restDepart), name: '골프장으로 이동 중 🚙' },
+        { time: parseTime(tl.arrival), name: '환복 및 라운딩 준비 🏌️' },
+        { time: parseTime(tl.teeOff), name: '라운딩 진행 중 ⛳' },
+      ].filter(e => e.time !== Infinity).sort((a, b) => a.time - b.time);
+
+      let currentEvent = null;
+      for (let i = events.length - 1; i >= 0; i--) {
+        if (now >= events[i].time) {
+          currentEvent = events[i].name;
+          break;
+        }
+      }
+
+      const banner = U.$('#tl-sticky-banner');
+      const bannerText = U.$('#tl-banner-text');
+      if (banner && bannerText) {
+        if (currentEvent) {
+          banner.style.display = 'block';
+          bannerText.textContent = '현재 일정: ' + currentEvent;
+        } else {
+          banner.style.display = 'none';
+        }
+      }
+    };
+
+    updateBanner();
+    this.bannerInterval = setInterval(updateBanner, 10000); // 10초마다 갱신
+  },
+
+  stopBannerUpdater() {
+    if (this.bannerInterval) {
+      clearInterval(this.bannerInterval);
+      this.bannerInterval = null;
+    }
   },
 
   stopAlarmSound() {

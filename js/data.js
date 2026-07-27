@@ -169,12 +169,12 @@ const State = {
     if (data) {
       try {
         const parsed = JSON.parse(data);
-        this.schedules = parsed.map(s => {
-          if (s.date && typeof s.date === 'string') {
+        this.schedules = parsed.filter(s => s && s.date).map(s => {
+          if (s.date && (typeof s.date === 'string' || typeof s.date === 'number')) {
             s.date = new Date(s.date);
           }
           return s;
-        });
+        }).filter(s => s.date && !isNaN(s.date.getTime()));
         return true;
       } catch (e) {
         console.error('Failed to load schedules', e);
@@ -188,7 +188,8 @@ const State = {
     if (!s) return;
     const [th, tm] = s.teeOff.split(':').map(Number);
     const teeTotal = th * 60 + tm;
-    const arrival = teeTotal - MANNER_TIME;
+    const mannerTime = (s.hasMeal && s.mealRestaurant) ? 30 : 40;
+    const arrival = teeTotal - mannerTime;
 
     let tl = {};
 
@@ -196,37 +197,95 @@ const State = {
       const restToGolf = s.mealRestaurant.distMin || 15;
       const restDepart = arrival - restToGolf;
       const mealStart = restDepart - s.mealDuration;
-      const homeToRest = s.travelToRestaurant || 20;
-      const homeDepart = mealStart - homeToRest;
-      const prepStart = homeDepart - s.prepTime;
+      
+      if (s.hasMeetingPoint && s.meetingPointObj) {
+        const meetToRest = s.travelToRestaurant || 30;
+        const meetDepart = mealStart - meetToRest;
+        const meetWaitTime = 10;
+        const meetArrival = meetDepart - meetWaitTime;
+        const homeToMeet = s.travelToMeeting || 30;
+        const homeDepart = meetArrival - homeToMeet;
+        const prepStart = homeDepart - s.prepTime;
 
-      tl = {
-        prepStart: this.mToTime(prepStart),
-        homeDepart: this.mToTime(homeDepart),
-        homeTravelDur: homeToRest,
-        mealStart: this.mToTime(mealStart),
-        mealDuration: s.mealDuration,
-        restDepart: this.mToTime(restDepart),
-        restTravelDur: restToGolf,
-        arrival: this.mToTime(arrival),
-        teeOff: s.teeOff,
-        mannerTime: MANNER_TIME,
-        hasMeal: true,
-        restaurantName: s.mealRestaurant.name,
-      };
+        tl = {
+          prepStart: this.mToTime(prepStart),
+          homeDepart: this.mToTime(homeDepart),
+          homeTravelDur: homeToMeet,
+          hasMeetingPoint: true,
+          meetingPointName: s.meetingPointObj.name,
+          meetArrival: this.mToTime(meetArrival),
+          meetDepart: this.mToTime(meetDepart),
+          meetTravelDur: meetToRest,
+          mealStart: this.mToTime(mealStart),
+          mealDuration: s.mealDuration,
+          restDepart: this.mToTime(restDepart),
+          restTravelDur: restToGolf,
+          arrival: this.mToTime(arrival),
+          teeOff: s.teeOff,
+          mannerTime: mannerTime,
+          hasMeal: true,
+          restaurantName: s.mealRestaurant.name,
+        };
+      } else {
+        const homeToRest = s.travelToRestaurant || 20;
+        const homeDepart = mealStart - homeToRest;
+        const prepStart = homeDepart - s.prepTime;
+
+        tl = {
+          prepStart: this.mToTime(prepStart),
+          homeDepart: this.mToTime(homeDepart),
+          homeTravelDur: homeToRest,
+          hasMeetingPoint: false,
+          mealStart: this.mToTime(mealStart),
+          mealDuration: s.mealDuration,
+          restDepart: this.mToTime(restDepart),
+          restTravelDur: restToGolf,
+          arrival: this.mToTime(arrival),
+          teeOff: s.teeOff,
+          mannerTime: mannerTime,
+          hasMeal: true,
+          restaurantName: s.mealRestaurant.name,
+        };
+      }
     } else {
-      const travelDur = s.travelTime || 60;
-      const depart = arrival - travelDur;
-      const prepStart = depart - s.prepTime;
-      tl = {
-        prepStart: this.mToTime(prepStart),
-        homeDepart: this.mToTime(depart),
-        homeTravelDur: travelDur,
-        arrival: this.mToTime(arrival),
-        teeOff: s.teeOff,
-        mannerTime: MANNER_TIME,
-        hasMeal: false,
-      };
+      if (s.hasMeetingPoint && s.meetingPointObj) {
+        const meetWaitTime = 10;
+        const homeToMeet = s.travelToMeeting || 30;
+        const meetToGolf = (s.travelTime || 70) - homeToMeet - meetWaitTime;
+        const meetDepart = arrival - meetToGolf;
+        const meetArrival = meetDepart - meetWaitTime;
+        const homeDepart = meetArrival - homeToMeet;
+        const prepStart = homeDepart - s.prepTime;
+        
+        tl = {
+          prepStart: this.mToTime(prepStart),
+          homeDepart: this.mToTime(homeDepart),
+          homeTravelDur: homeToMeet,
+          hasMeetingPoint: true,
+          meetingPointName: s.meetingPointObj.name,
+          meetArrival: this.mToTime(meetArrival),
+          meetDepart: this.mToTime(meetDepart),
+          meetTravelDur: meetToGolf,
+          arrival: this.mToTime(arrival),
+          teeOff: s.teeOff,
+          mannerTime: mannerTime,
+          hasMeal: false,
+        };
+      } else {
+        const travelDur = s.travelTime || 60;
+        const depart = arrival - travelDur;
+        const prepStart = depart - s.prepTime;
+        tl = {
+          prepStart: this.mToTime(prepStart),
+          homeDepart: this.mToTime(depart),
+          homeTravelDur: travelDur,
+          hasMeetingPoint: false,
+          arrival: this.mToTime(arrival),
+          teeOff: s.teeOff,
+          mannerTime: mannerTime,
+          hasMeal: false,
+        };
+      }
     }
 
     if (s.hasPostMeal && s.postMealRestaurant) {
@@ -258,7 +317,8 @@ const State = {
 
   getSchedulesForDate(y, m, d) {
     return this.schedules.filter(s => {
-      const sd = s.date;
+      if (!s || !s.date) return false;
+      const sd = new Date(s.date);
       return sd.getFullYear()===y && sd.getMonth()===m && sd.getDate()===d;
     });
   },
