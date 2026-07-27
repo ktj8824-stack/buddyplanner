@@ -22,11 +22,24 @@ const App = {
     // Check for shared schedule link
     const hash = window.location.hash;
     let hasShared = false;
-    if (hash && hash.startsWith('#shared=')) {
+    if (hash && hash.startsWith('#s=')) {
       try {
-        const payload = decodeURIComponent(hash.substring(8));
-        const decoded = decodeURIComponent(atob(payload));
-        const schedData = JSON.parse(decoded);
+        const payload = decodeURIComponent(hash.substring(3));
+        const arr = payload.split('|');
+        const schedData = {
+          date: arr[0] || new Date().toISOString().split('T')[0],
+          teeOff: arr[1] || '07:00',
+          startPoint: arr[2] || '집',
+          course: { name: arr[3], lat: parseFloat(arr[4]) || 0, lng: parseFloat(arr[5]) || 0 },
+          companions: [],
+          prepTime: parseInt(arr[9]) || 30,
+          travelTime: parseInt(arr[10]) || 60,
+          hasMeal: arr[11] === '1'
+        };
+        if (arr[6]) {
+          schedData.restaurant = { name: arr[6], lat: parseFloat(arr[7]) || 0, lng: parseFloat(arr[8]) || 0 };
+        }
+        
         State.addSchedule(schedData);
         State.currentScheduleIdx = State.schedules.length - 1;
         // Clean URL

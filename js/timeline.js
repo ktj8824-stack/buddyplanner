@@ -259,20 +259,33 @@ const Timeline = {
   shareTimeline() {
     const s = State.schedules[this.schedIdx];
     const tl = s.timeline;
-    const compactSched = { ...s };
-    delete compactSched.timeline;
-    compactSched.companions = [];
     
-    // 카카오 서버가 특수문자(+, /, =) 때문에 URL을 에러로 판단하고 강제로 첫번째 주소(localhost)로 튕겨내는 것을 막기 위해 이중 인코딩
-    const base64Str = btoa(encodeURIComponent(JSON.stringify(compactSched)));
-    const payload = encodeURIComponent(base64Str);
+    // 카카오 서버의 URL 길이 제한(500자) 및 복잡도 에러를 우회하기 위해 데이터를 최소 단위(| 구분자)로 초경량 압축합니다.
+    const c = s.course || {};
+    const r = s.restaurant || {};
+    const arr = [
+      s.date || '',
+      s.teeOff || '',
+      s.startPoint || '집',
+      c.name || '',
+      c.lat || '',
+      c.lng || '',
+      r.name || '',
+      r.lat || '',
+      r.lng || '',
+      s.prepTime || 30,
+      s.travelTime || 60,
+      s.hasMeal ? 1 : 0
+    ];
     
-    // 현재 접속중인 도메인(www 포함 여부 등)을 그대로 사용하여 카카오 디벨로퍼스 설정과 완벽 매칭
+    // 안전하게 한 번만 인코딩 (특수문자 없음)
+    const payload = encodeURIComponent(arr.join('|'));
+    
     let baseDomain = window.location.origin;
     if (baseDomain.includes('localhost') || baseDomain.includes('192.168')) {
       baseDomain = 'https://buddyplanner.kr';
     }
-    const shareUrl = baseDomain + '/#shared=' + payload;
+    const shareUrl = baseDomain + '/#s=' + payload;
 
     const dateStr = U.fmtDateShort(s.date);
     const startPt = s.startPoint || '집';
