@@ -254,6 +254,8 @@ const Timeline = {
     }
   },
 
+
+
   shareTimeline() {
     const s = State.schedules[this.schedIdx];
     const tl = s.timeline;
@@ -265,6 +267,7 @@ const Timeline = {
     const base64Str = btoa(encodeURIComponent(JSON.stringify(compactSched)));
     const payload = encodeURIComponent(base64Str);
     
+    // 현재 접속중인 도메인(www 포함 여부 등)을 그대로 사용하여 카카오 디벨로퍼스 설정과 완벽 매칭
     let baseDomain = window.location.origin;
     if (baseDomain.includes('localhost') || baseDomain.includes('192.168')) {
       baseDomain = 'https://buddyplanner.kr';
@@ -359,52 +362,6 @@ const Timeline = {
       document.getElementById('share-modal').style.display = 'none';
     } catch(e) {
       U.toast('복사를 지원하지 않는 기기입니다.');
-    }
-  },
-
-  async executeNativeShare() {
-    const file = Timeline._pendingShareFile;
-    const shareText = Timeline._pendingShareText;
-    
-    try {
-      if (!navigator.share) throw new Error('No share support');
-      
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: '버디플래너 라운딩 일정',
-          text: shareText,
-          files: [file]
-        });
-      } else {
-        await navigator.share({
-          title: '버디플래너 라운딩 일정',
-          text: shareText
-        });
-      }
-      
-      const modal = document.getElementById('share-modal');
-      if (modal) modal.style.display = 'none';
-      
-    } catch (e) {
-      if (e.name === 'AbortError') return; // User simply closed the share sheet
-      console.error('Share error:', e);
-      
-      // Fallback to copy
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(shareText);
-        } else {
-          const temp = document.createElement('textarea');
-          temp.value = shareText;
-          document.body.appendChild(temp);
-          temp.select();
-          document.execCommand('copy');
-          document.body.removeChild(temp);
-        }
-        U.toast('기본 공유가 막혀 링크가 복사되었습니다! 카톡창에 붙여넣기 해주세요.');
-      } catch (err) {
-        U.toast('이 기기에서는 공유 기능을 사용할 수 없습니다.');
-      }
     }
   },
 

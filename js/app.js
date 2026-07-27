@@ -18,7 +18,7 @@ const App = {
 
     // Automatically schedule alarms for today's events in the background
     Timeline.autoScheduleAllAlarms();
-
+    
     // Check for shared schedule link
     const hash = window.location.hash;
     let hasShared = false;
@@ -38,19 +38,32 @@ const App = {
       }
     }
 
-    // Start with splash screen or timeline if shared
     if (hasShared) {
       this.navigate('timeline');
     } else {
+      // Start with splash screen
       this.navigate('splash');
+      
+      // Automatically transition from splash
+      setTimeout(() => {
+        if (hasOnboarded) {
+          if (State.schedules.length > 0) {
+            this.navigate('calendar');
+          } else {
+            this.navigate('home');
+          }
+        } else {
+          this.navigate('onboarding');
+        }
+      }, 2000);
     }
-    
+
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
           .then(reg => console.log('Service Worker Registered!', reg.scope))
-          .catch(err => console.error('Service Worker Registration Failed:', err));
+          .catch(err => console.log('Service Worker registration failed:', err));
       });
     }
   },
