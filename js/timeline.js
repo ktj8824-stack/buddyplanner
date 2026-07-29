@@ -308,8 +308,18 @@ const Timeline = {
     // 카카오 서버의 URL 길이 제한을 피하기 위해 핵심 정보만 압축해서 전송
     const c = s.course || {};
     const r = s.mealRestaurant || {};
+    
+    // 아이폰(Safari)에서 Invalid Date 방지를 위해 명시적으로 ISO 문자열 변환
+    let dateVal = s.date || '';
+    if (dateVal instanceof Date) {
+      dateVal = dateVal.toISOString();
+    } else if (typeof dateVal === 'string' && !dateVal.includes('T')) {
+      // 혹시라도 문자열인데 T가 없는 경우 처리 (예방 차원)
+      try { dateVal = new Date(dateVal).toISOString(); } catch(e) {}
+    }
+
     const arr = [
-      s.date || '',
+      dateVal,
       s.teeOff || '',
       s.startPoint || '집',
       c.name || '',
