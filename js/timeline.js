@@ -17,12 +17,28 @@ const Timeline = {
 
   render() {
     const el = U.$('#screen-timeline');
-    const s = State.schedules[this.schedIdx];
-    if (!s) { el.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-500);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div><h2 class="empty-title">일정이 없습니다</h2></div>'; return; }
+    try {
+      const s = State.schedules[this.schedIdx];
+      if (!s) { el.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-500);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div><h2 class="empty-title">일정이 없습니다</h2></div>'; return; }
 
-    const tl = s.timeline;
-    const dday = U.dday(s.date);
-    const dateStr = U.fmtDateShort(s.date);
+      let tl = s.timeline;
+      // 공유 링크 등으로 인해 timeline이 없는 경우 강제 재계산
+      if (!tl) {
+        if (typeof State !== 'undefined' && State.calculateTimeline) {
+          try { State.calculateTimeline(this.schedIdx); } catch(e) { console.error('Timeline calc error', e); }
+          tl = s.timeline;
+        }
+        if (!tl) {
+          el.innerHTML = '<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--text-500);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><h2 class="empty-title">타임라인 정보가 부족합니다</h2><p class="empty-desc">필수 정보(시간/장소 등)가 누락되어 타임라인을 계산할 수 없습니다.</p></div>';
+          return;
+        }
+      }
+
+      // 안전하게 객체 접근 보장 (Undefined 방어)
+      if (!s.course) s.course = { name: '골프장', lat: 0, lng: 0, region: '' };
+      
+      const dday = U.dday(s.date);
+      const dateStr = U.fmtDateShort(s.date);
 
     el.innerHTML = `
       <div class="header">
@@ -139,10 +155,19 @@ const Timeline = {
       </div>
     `;
 
-    this.hidePastItems();
-    setTimeout(() => U.stagger(U.$('.tl-list'), '.tl-item:not([style*="display: none"])', 120), 200);
-    
-    this.startBannerUpdater();
+      this.hidePastItems();
+      setTimeout(() => U.stagger(U.$('.tl-list'), '.tl-item:not([style*="display: none"])', 120), 200);
+      
+      this.startBannerUpdater();
+    } catch (e) {
+      console.error('Timeline render crash', e);
+      el.innerHTML = `<div class="empty">
+        <div class="empty-icon">❌</div>
+        <h2 class="empty-title">화면을 불러오지 못했습니다.</h2>
+        <p class="empty-desc" style="color:var(--red-400); font-size:12px; margin-top:10px;">${e.toString()}</p>
+        <button class="btn" style="margin-top:20px;" onclick="App.navigate('calendar')">돌아가기</button>
+      </div>`;
+    }
   },
 
   hidePastItems() {
@@ -258,7 +283,17 @@ const Timeline = {
 
   shareTimeline() {
     const s = State.schedules[this.schedIdx];
-    const tl = s.timeline;
+    let tl = s.timeline;
+    if (!tl) {
+      if (typeof State !== 'undefined' && State.calculateTimeline) {
+        State.calculateTimeline(this.schedIdx);
+        tl = s.timeline;
+      }
+      if (!tl) {
+        U.toast('타임라인 정보가 부족하여 공유할 수 없습니다.');
+        return;
+      }
+    }
     const baseDomain = 'https://buddyplanner.kr';
 
     // ── 타임라인 공유하기(텍스트 복사) 용: 기존 풀 JSON 방식 (#shared=) ─────
@@ -272,7 +307,7 @@ const Timeline = {
     // ── 카카오톡 공유 용: 초경량 압축 방식 (?s=) ────────────────────────────
     // 카카오 서버의 URL 길이 제한을 피하기 위해 핵심 정보만 압축해서 전송
     const c = s.course || {};
-    const r = s.restaurant || {};
+    const r = s.mealRestaurant || {};
     const arr = [
       s.date || '',
       s.teeOff || '',
@@ -304,7 +339,7 @@ const Timeline = {
     textStr += `[${tl.homeDepart}] 출발 (${startPt})\n`;
     
     if (tl.hasMeal) {
-      const rName = s.restaurant ? s.restaurant.name : '식당';
+      const rName = s.mealRestaurant ? s.mealRestaurant.name : '식당';
       textStr += `[${tl.mealStart}] 식당 도착 (${rName})\n`;
       textStr += `[${tl.restDepart}] 식당 출발\n`;
     }

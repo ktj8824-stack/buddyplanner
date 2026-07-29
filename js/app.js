@@ -21,11 +21,19 @@ const App = {
     
     // Check for shared schedule link (두 가지 형식 모두 지원)
     const searchParams = new URLSearchParams(window.location.search);
-    const sharedPayload = searchParams.get('s');
+    let sharedPayload = searchParams.get('s');
     const hash = window.location.hash;
     let hasShared = false;
 
     if (sharedPayload) {
+      while (sharedPayload.includes('%')) {
+        try {
+          const decoded = decodeURIComponent(sharedPayload);
+          if (decoded === sharedPayload) break;
+          sharedPayload = decoded;
+        } catch(e) { break; }
+      }
+      
       // 카카오톡 공유 링크 (?s= 형식, 초경량 압축)
       try {
         const arr = sharedPayload.split('|');
@@ -42,7 +50,7 @@ const App = {
           travelToRestaurant: parseInt(arr[13]) || 0
         };
         if (arr[6]) {
-          schedData.restaurant = { name: arr[6], lat: parseFloat(arr[7]) || 0, lng: parseFloat(arr[8]) || 0 };
+          schedData.mealRestaurant = { name: arr[6], lat: parseFloat(arr[7]) || 0, lng: parseFloat(arr[8]) || 0 };
         }
         State.addSchedule(schedData);
         State.currentScheduleIdx = State.schedules.length - 1;
@@ -70,11 +78,8 @@ const App = {
     }
 
     if (hasShared) {
-      // 캘린더(메인) 화면을 먼저 초기화한 뒤 타임라인으로 이동
-      this.navigate('calendar');
-      setTimeout(() => {
-        App.viewTimeline(State.currentScheduleIdx);
-      }, 300);
+      // 스플래시 없이 바로 타임라인으로 이동 (화면 생성 보장)
+      App.viewTimeline(State.currentScheduleIdx);
     } else {
       // Start with splash screen
       this.navigate('splash');
@@ -196,15 +201,7 @@ const App = {
 
   viewTimeline(idx) {
     State.currentScheduleIdx = idx;
-    const target = U.$('#screen-timeline');
-    if (target) {
-      this.screens.forEach(s => { const el=U.$(`#screen-${s}`); if(el)el.classList.remove('active'); });
-      target.classList.add('active');
-      Timeline.init(idx);
-    }
-    this.updateNav('home');
-    State.screen = 'timeline';
-    window.scrollTo(0,0);
+    this.navigate('timeline');
   },
 
   renderNav() {

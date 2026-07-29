@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buddyplanner-v133-cache';
+const CACHE_NAME = 'buddyplanner-v155-cache';
 const ASSETS = [
   './',
   './index.html',
@@ -49,20 +49,28 @@ self.addEventListener('install', e => {
   self.skipWaiting();
 });
 
-// Activate Event
+// Activate Event: Clear all old caches
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
-  self.clients.claim();
+});
+
+// Immediately reload all clients when a new SW takes over
+self.addEventListener('message', event => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
 
 // Fetch Event (Network First, fallback to Cache)

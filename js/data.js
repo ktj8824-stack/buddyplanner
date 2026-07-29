@@ -186,8 +186,13 @@ const State = {
   calculateTimeline(idx) {
     const s = this.schedules[idx];
     if (!s) return;
+    
+    // 치명적 에러 방어: 필수 객체가 없으면 기본 객체 생성
+    if (!s.course) s.course = { name: '골프장', lat: 0, lng: 0 };
+    if (!s.teeOff || typeof s.teeOff !== 'string') s.teeOff = '07:00';
+    
     const [th, tm] = s.teeOff.split(':').map(Number);
-    const teeTotal = th * 60 + tm;
+    const teeTotal = (th || 7) * 60 + (tm || 0);
     const mannerTime = (s.hasMeal && s.mealRestaurant) ? 30 : 40;
     const arrival = teeTotal - mannerTime;
 
@@ -196,7 +201,7 @@ const State = {
     if (s.hasMeal && s.mealRestaurant) {
       const restToGolf = s.mealRestaurant.distMin || 15;
       const restDepart = arrival - restToGolf;
-      const mealStart = restDepart - s.mealDuration;
+      const mealStart = restDepart - (s.mealDuration || 30);
       
       if (s.hasMeetingPoint && s.meetingPointObj) {
         const meetToRest = s.travelToRestaurant || 30;
@@ -205,31 +210,32 @@ const State = {
         const meetArrival = meetDepart - meetWaitTime;
         const homeToMeet = s.travelToMeeting || 30;
         const homeDepart = meetArrival - homeToMeet;
-        const prepStart = homeDepart - s.prepTime;
+        const prepStart = homeDepart - (s.prepTime || 30);
 
         tl = {
           prepStart: this.mToTime(prepStart),
           homeDepart: this.mToTime(homeDepart),
           homeTravelDur: homeToMeet,
           hasMeetingPoint: true,
-          meetingPointName: s.meetingPointObj.name,
+          meetingPointName: s.meetingPointObj.name || '모임장소',
           meetArrival: this.mToTime(meetArrival),
           meetDepart: this.mToTime(meetDepart),
           meetTravelDur: meetToRest,
           mealStart: this.mToTime(mealStart),
-          mealDuration: s.mealDuration,
+          mealDuration: s.mealDuration || 30,
           restDepart: this.mToTime(restDepart),
           restTravelDur: restToGolf,
           arrival: this.mToTime(arrival),
           teeOff: s.teeOff,
           mannerTime: mannerTime,
           hasMeal: true,
-          restaurantName: s.mealRestaurant.name,
+          restaurantName: s.mealRestaurant.name || '식당',
+          courseName: s.course.name,
         };
       } else {
         const homeToRest = s.travelToRestaurant || 20;
         const homeDepart = mealStart - homeToRest;
-        const prepStart = homeDepart - s.prepTime;
+        const prepStart = homeDepart - (s.prepTime || 30);
 
         tl = {
           prepStart: this.mToTime(prepStart),
@@ -237,14 +243,15 @@ const State = {
           homeTravelDur: homeToRest,
           hasMeetingPoint: false,
           mealStart: this.mToTime(mealStart),
-          mealDuration: s.mealDuration,
+          mealDuration: s.mealDuration || 30,
           restDepart: this.mToTime(restDepart),
           restTravelDur: restToGolf,
           arrival: this.mToTime(arrival),
           teeOff: s.teeOff,
           mannerTime: mannerTime,
           hasMeal: true,
-          restaurantName: s.mealRestaurant.name,
+          restaurantName: s.mealRestaurant.name || '식당',
+          courseName: s.course.name,
         };
       }
     } else {
@@ -255,14 +262,14 @@ const State = {
         const meetDepart = arrival - meetToGolf;
         const meetArrival = meetDepart - meetWaitTime;
         const homeDepart = meetArrival - homeToMeet;
-        const prepStart = homeDepart - s.prepTime;
+        const prepStart = homeDepart - (s.prepTime || 30);
         
         tl = {
           prepStart: this.mToTime(prepStart),
           homeDepart: this.mToTime(homeDepart),
           homeTravelDur: homeToMeet,
           hasMeetingPoint: true,
-          meetingPointName: s.meetingPointObj.name,
+          meetingPointName: s.meetingPointObj.name || '모임장소',
           meetArrival: this.mToTime(meetArrival),
           meetDepart: this.mToTime(meetDepart),
           meetTravelDur: meetToGolf,
@@ -270,11 +277,12 @@ const State = {
           teeOff: s.teeOff,
           mannerTime: mannerTime,
           hasMeal: false,
+          courseName: s.course.name,
         };
       } else {
         const travelDur = s.travelTime || 60;
         const depart = arrival - travelDur;
-        const prepStart = depart - s.prepTime;
+        const prepStart = depart - (s.prepTime || 30);
         tl = {
           prepStart: this.mToTime(prepStart),
           homeDepart: this.mToTime(depart),
@@ -284,6 +292,7 @@ const State = {
           teeOff: s.teeOff,
           mannerTime: mannerTime,
           hasMeal: false,
+          courseName: s.course.name,
         };
       }
     }
