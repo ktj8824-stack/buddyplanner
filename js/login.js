@@ -15,19 +15,19 @@ const Login = {
   render() {
     const el = U.$('#screen-login');
     el.innerHTML = `
-      <div class="login-container">
+      <div class="login-wrap" style="padding-top: 15vh;">
         <div class="login-logo" style="display:flex; flex-direction:column; align-items:center;">
-          <div style="width:72px; height:72px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:36px; box-shadow:var(--glow-accent); margin-bottom:16px;">⛳</div>
-          <h1 class="login-title">버디플래너</h1>
+          <img src="./img/buddybirdie_app_icon.png" style="width:80px; height:80px; border-radius:20px; box-shadow:var(--glow-accent); margin-bottom:16px; object-fit:cover;" alt="buddybirdie Logo" />
+          <h1 class="login-title">buddybirdie</h1>
           <p class="login-subtitle">골프 일정 관리의 새로운 기준</p>
         </div>
         
-        <div class="login-actions">
+        <div class="login-actions" style="align-items: center;">
           <!-- 구글 로그인 고유 버튼이 여기에 렌더링 됩니다 -->
-          <div id="google_btn_wrapper" style="display:flex; justify-content:center; margin-bottom:12px;"></div>
+          <div id="google_btn_wrapper" style="display:flex; justify-content:center; margin-bottom:12px; width:100%; max-width:320px;"></div>
           
-          <button class="btn-social btn-kakao" onclick="Login.doKakaoLogin()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#000000">
+          <button class="btn-social btn-kakao" onclick="Login.doKakaoLogin()" style="margin-left:auto; margin-right:auto; width:300px; height:40px; border-radius:4px; padding:0; font-size:14px; font-weight:500; box-shadow:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#000000">
               <path d="M12 3C6.48 3 2 6.47 2 10.75c0 2.76 1.84 5.17 4.67 6.49-.15.54-.53 1.96-.6 2.27-.08.35.12.35.3.23.14-.09 1.94-1.32 2.75-1.89.92.26 1.88.4 2.88.4 5.52 0 10-3.47 10-7.75S17.52 3 12 3z"/>
             </svg>
             카카오 로그인
@@ -46,7 +46,18 @@ const Login = {
     }
 
     // 2. 구글 초기화
-    if (typeof google !== 'undefined') {
+    if (this.GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+      // 임시 구글 로그인 버튼 (API 키 없을 때 테스트용)
+      const wrapper = document.getElementById('google_btn_wrapper');
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <button class="btn-social" onclick="Login.doGoogleLoginMock()" style="background:#fff; color:#3c4043; border:1px solid #dadce0; width:300px; height:40px; border-radius:4px; padding:0; font-size:14px; font-weight:500; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google">
+            Google 로그인
+          </button>
+        `;
+      }
+    } else if (typeof google !== 'undefined') {
       google.accounts.id.initialize({
         client_id: this.GOOGLE_CLIENT_ID,
         callback: this.handleGoogleResponse.bind(this)
@@ -59,8 +70,19 @@ const Login = {
     }
   },
 
+  doGoogleLoginMock() {
+    const inputId = prompt("[테스트용 가상 구글 로그인]\n구글 아이디(이메일 또는 이름)를 입력해주세요.\n\n* 실제 구글 로그인은 구글 개발자 센터에서 발급받은 클라이언트 ID를 입력해야 작동합니다.", "구글 유저");
+    if (inputId) {
+      this.finishLogin('google', { name: inputId, email: 'google@example.com' });
+    } else {
+      U.toast('구글 로그인을 취소했습니다.');
+    }
+  },
+
   doKakaoLogin() {
     console.log('doKakaoLogin called');
+    U.toast('카카오 로그인을 시도합니다...');
+    
     if (this.KAKAO_JS_KEY === 'YOUR_KAKAO_JS_KEY') {
       U.toast('⚠️ 카카오 API 키가 설정되지 않았습니다. (임시 로그인 처리)');
       this.finishLogin('kakao', { name: '카카오 유저', email: 'kakao@example.com' });
@@ -136,3 +158,5 @@ const Login = {
     }
   }
 };
+
+window.Login = Login;

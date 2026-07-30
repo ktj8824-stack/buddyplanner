@@ -160,7 +160,7 @@
 .round-menu-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  row-gap: 28px;
+  row-gap: 16px;
   padding: 0 var(--sp-4) var(--sp-6);
 }
 .round-menu-item {

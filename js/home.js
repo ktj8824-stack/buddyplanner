@@ -32,10 +32,11 @@ const Home = {
       schedsHtml = nextSchedules.map(sch => {
         const cName = sch.course ? sch.course.name : sch.courseName || '코스 정보 없음';
         const tTime = sch.teeOff || sch.teeTime || '--:--';
+        const originalIdx = State.schedules.indexOf(sch);
         return `
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px; gap:2px;">
-            <span style="color:#444444; font-size:15px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${cName}</span>
-            <span style="color:var(--text-300); font-size:13px; font-weight:500; white-space:nowrap; flex-shrink:0;">${tTime}</span>
+          <div onclick="if(${originalIdx} >= 0) { App.viewTimeline(${originalIdx}); event.stopPropagation(); }" style="display:flex; align-items:center; justify-content:space-between; margin-top:2px; cursor:pointer; padding:2px 6px; background:#f8fafc; border-radius:4px; border:1px solid #f1f5f9;">
+            <span style="color:var(--text-100); font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${cName}</span>
+            <span style="color:var(--text-100); font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0; margin-left:8px;">${tTime}</span>
           </div>
         `;
       }).join('');
@@ -52,9 +53,9 @@ const Home = {
       <div class="screen-scroll dash-scroll bg-light">
         
         <!-- 1. Dashboard Stats (Points & Info) -->
-        <div style="padding: var(--sp-4); display: flex; flex-direction: column; gap: 10px;">
+        <div style="padding: 4px var(--sp-4) 8px; display: flex; flex-direction: column; gap: 6px;">
           <!-- Row 1: Points (Full Width) -->
-          <div class="stat-card" style="border:1.5px solid rgba(0,0,0,0.2); background:#fff; width: 100%; display: flex; align-items: center; justify-content: space-between; flex-direction: row; padding: 12px 16px; min-height: 44px; border-radius: 12px;">
+          <div class="stat-card" style="border:1.5px solid rgba(0,0,0,0.2); background:#fff; width: 100%; display: flex; align-items: center; justify-content: space-between; flex-direction: row; padding: 8px 16px; min-height: 40px; border-radius: 12px;">
             <div style="display:flex; align-items:baseline; gap:8px;">
               <div style="font-size:18px; color:#000; font-weight:800;">내 포인트</div>
               <div style="font-size:18px; font-weight:800; color:var(--accent); font-family:'Montserrat', sans-serif;">${currentPoints.toLocaleString()} <span style="font-size:18px; color:#666666;">P</span></div>
@@ -67,29 +68,32 @@ const Home = {
           
           <!-- Row 2: Schedule & Score (Asymmetric Grid) -->
           <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 8px;">
-            <div class="stat-card" style="width: 100%; padding: 8px 10px;" onclick="App.navigate('calendar')">
+            <div class="stat-card" style="width: 100%; padding: 6px 10px;" onclick="App.navigate('calendar')">
               <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">다음 라운딩 일정 <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
-              <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px;">
+              <div style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
                 ${schedsHtml}
               </div>
             </div>
             
-            <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 8px 10px; justify-content: space-between;" onclick="App.navigate('record')">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">최근 스코어</span>
-                <span style="font-size:18px; font-weight:800; color:var(--text-100);">89<span style="font-size:13px; font-weight:600;">타</span></span>
+            <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 6px 10px; justify-content: space-between;" onclick="App.navigate('record')">
+              <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:-2px;">
+                <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:13px; margin-bottom:4px;">최근 스코어</span>
+                <span style="font-size:19px; font-weight:800; color:var(--text-100); line-height:1;">89<span style="font-size:12px; font-weight:600;">타</span></span>
               </div>
-              <div onclick="Record.showRecordForm(); event.stopPropagation();" style="font-size:12px; color:#fff; background:var(--gray-800); padding:4px 0; border-radius:6px; font-weight:600; display:flex; justify-content:center; align-items:center; gap:4px; width:100%; margin-top:4px;">
+              <div onclick="App.navigate('record'); event.stopPropagation();" style="font-size:12px; color:#fff; background:var(--text-300); padding:3px 0; border-radius:6px; font-weight:600; display:flex; justify-content:center; align-items:center; gap:4px; width:100%; margin-top:4px;">
                 <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 스코어등록
               </div>
             </div>
           </div>
         </div>        <!-- 2. Weekly Calendar -->
-        <div style="padding: 0 var(--sp-4) var(--sp-4);">
+        <div style="padding: 0 var(--sp-4) 12px;">
           <div class="stat-card" style="padding: 16px; border:none; background:#fff; border-radius:16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
               <span style="font-size: 20px; font-weight: 800; color:var(--text-100);">${new Date().getMonth() + 1}월 일정</span>
-              <div role="button" tabindex="0" style="font-size: 14px; font-weight:700; color:var(--accent); cursor:pointer; padding: 8px 16px; border-radius: 8px; background: rgba(255, 91, 41, 0.05); min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center;" onclick="if(window.Calendar) Calendar.initCal(); App.navigate('calendar');">전체보기</div>
+              <div style="display:flex; gap:8px;">
+                <div role="button" tabindex="0" style="font-size: 13px; font-weight:700; color:#fff; cursor:pointer; padding: 4px 12px; border-radius: 6px; background: var(--text-300); display:flex; align-items:center; justify-content:center;" onclick="App.navigate('register');">+ 일정등록</div>
+                <div role="button" tabindex="0" style="font-size: 13px; font-weight:700; color:var(--accent); cursor:pointer; padding: 4px 12px; border-radius: 6px; background: rgba(255, 91, 41, 0.05); display:flex; align-items:center; justify-content:center;" onclick="if(window.Calendar) Calendar.initCal(); App.navigate('calendar');">전체보기</div>
+              </div>
             </div>
             
             <div style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;" class="hide-scrollbar">
@@ -100,14 +104,18 @@ const Home = {
                  let isToday = i === 0;
                  
                  let hasSchedule = State.getSchedulesForDate(d.getFullYear(), d.getMonth(), d.getDate()).length > 0;
-                 let highlight = isToday ? `background:var(--gray-900); color:#fff;` : `background:rgba(0,0,0,0.02);`;
-                 let dateColor = isToday ? `#fff` : `var(--text-100)`;
-                 let dayColor = isToday ? `#fff` : (d.getDay() === 0 ? 'var(--ios-red)' : d.getDay() === 6 ? 'var(--ios-blue)' : 'var(--text-400)');
+                 let highlight = isToday 
+                   ? `background:transparent; border: 1.5px solid var(--ios-blue);` 
+                   : `background:rgba(0,0,0,0.02); border: 1.5px solid transparent;`;
+                 let dateStyle = isToday 
+                   ? `color: var(--ios-blue); margin-top:2px;` 
+                   : `color: var(--text-100); margin-top:2px;`;
+                 let dayColor = d.getDay() === 0 ? 'var(--ios-red)' : d.getDay() === 6 ? 'var(--ios-blue)' : 'var(--text-400)';
                  
                  return `
-                   <div style="min-width: 45px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:10px 0; border-radius:12px; cursor:pointer; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
+                   <div style="min-width: 45px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:9px 0; border-radius:12px; cursor:pointer; box-sizing:border-box; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
                      <div style="font-size:11px; font-weight:700; color:${dayColor};">${dayName}</div>
-                     <div style="font-size:18px; font-weight:800; margin-top:2px; color:${dateColor};">${d.getDate()}</div>
+                     <div style="font-size:17px; font-weight:800; ${dateStyle}">${d.getDate()}</div>
                      <div style="height:8px;"></div>
                    </div>
                  `;
@@ -199,6 +207,12 @@ const Home = {
             </div>
             <span style="font-weight:700;">커뮤니티</span>
           </div>
+        </div>
+
+        <div style="text-align:center; padding: 20px;">
+          <button onclick="localStorage.clear(); location.reload();" style="background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:8px; font-size:12px; cursor:pointer;">
+            🔄 데이터 초기화 (로그아웃)
+          </button>
         </div>
 
       </div>

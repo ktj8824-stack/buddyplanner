@@ -3,16 +3,16 @@
    ========================================= */
 
 const Profile = {
-  fontMap: { 'sans': '고딕', 'serif': '명조', 'round': '둥근고딕' },
-  sizeMap: { 'sm': '작게', 'md': '보통', 'lg': '크게' },
+  fontMap: { 'Pretendard': '고딕', 'Nanum Myeongjo': '명조', 'Gowun Dodum': '둥근고딕' },
+  sizeMap: { 'small': '작게', 'medium': '보통', 'large': '크게' },
 
   render() {
     const app = U.$('#screen-profile');
     if (!app) return;
 
     // 현재 설정 불러오기
-    const currentFont = localStorage.buddy_fontType || 'sans';
-    const currentSize = localStorage.buddy_fontSize || 'md';
+    const currentFont = localStorage.getItem('bp_font') || 'Pretendard';
+    const currentSize = localStorage.getItem('bp_size') || 'medium';
     
     const hData = State.userAddresses?.home || {name:''};
     const wData = State.userAddresses?.office || {name:''};
@@ -75,43 +75,43 @@ const Profile = {
           <div class="profile-section-title">기본 설정</div>
           
           <div class="setting-card">
+            <div class="setting-item" style="flex-direction:column; align-items:flex-start; border-bottom:1px solid var(--border-default);">
+              <div class="setting-item-header" style="margin-bottom:8px;">닉네임</div>
+              <input type="text" id="prof-nickname" class="form-input" value="${userName}" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:15px;" onchange="Profile.saveNickname(this.value)" />
+            </div>
+            
             <div class="setting-item">
               <div class="setting-item-header">글꼴 스타일</div>
               <div class="setting-options">
-                <button class="setting-opt-btn ${currentFont==='sans'?'active':''}" onclick="Profile.setFont('sans', this)">고딕 (기본)</button>
-                <button class="setting-opt-btn ${currentFont==='serif'?'active':''}" onclick="Profile.setFont('serif', this)">명조체</button>
-                <button class="setting-opt-btn ${currentFont==='round'?'active':''}" onclick="Profile.setFont('round', this)">둥근고딕</button>
+                <button class="setting-opt-btn ${currentFont==='Pretendard'?'active':''}" onclick="Profile.setFont('Pretendard', this)">고딕 (기본)</button>
+                <button class="setting-opt-btn ${currentFont==='Nanum Myeongjo'?'active':''}" onclick="Profile.setFont('Nanum Myeongjo', this)">명조체</button>
+                <button class="setting-opt-btn ${currentFont==='Gowun Dodum'?'active':''}" onclick="Profile.setFont('Gowun Dodum', this)">둥근고딕</button>
               </div>
             </div>
             
             <div class="setting-item">
               <div class="setting-item-header">글자 크기</div>
               <div class="setting-options">
-                <button class="setting-opt-btn ${currentSize==='sm'?'active':''}" onclick="Profile.setSize('sm', this)">작게</button>
-                <button class="setting-opt-btn ${currentSize==='md'?'active':''}" onclick="Profile.setSize('md', this)">보통</button>
-                <button class="setting-opt-btn ${currentSize==='lg'?'active':''}" onclick="Profile.setSize('lg', this)">크게</button>
+                <button class="setting-opt-btn ${currentSize==='small'?'active':''}" onclick="Profile.setSize('small', this)">작게</button>
+                <button class="setting-opt-btn ${currentSize==='medium'?'active':''}" onclick="Profile.setSize('medium', this)">보통</button>
+                <button class="setting-opt-btn ${currentSize==='large'?'active':''}" onclick="Profile.setSize('large', this)">크게</button>
               </div>
             </div>
           </div>
 
           <div class="profile-section-title">자주 출발하는 장소</div>
           
-          <div class="setting-card">
-            <div class="setting-item" style="cursor:pointer" onclick="Profile.searchAndSaveAddress('home')">
-              <div class="address-input-wrap" style="flex:1">
-                <span class="address-icon">🏠</span>
-                <div class="address-input" style="display:flex; align-items:center; background:transparent; color:${homeName?'var(--text-800)':'var(--text-400)'}">
-                  ${homeName ? homeName : '집 주소 검색하기 (터치)'}
-                </div>
+          <div style="display:flex; flex-direction:row; gap:8px;">
+            <div class="setting-card" style="flex:1; min-width:0; padding:16px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Profile.searchAndSaveAddress('home')">
+              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏠</span>
+              <div id="prof-home-container" style="width:100%; overflow:hidden;">
+                ${homeName ? `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${homeName}</div>` : `<div style="font-size:14px; color:var(--text-400); font-weight:600;">집 주소 검색</div>`}
               </div>
             </div>
-            
-            <div class="setting-item" style="cursor:pointer" onclick="Profile.searchAndSaveAddress('work')">
-              <div class="address-input-wrap" style="flex:1">
-                <span class="address-icon">🏢</span>
-                <div class="address-input" style="display:flex; align-items:center; background:transparent; color:${workName?'var(--text-800)':'var(--text-400)'}">
-                  ${workName ? workName : '회사 주소 검색하기 (터치)'}
-                </div>
+            <div class="setting-card" style="flex:1; min-width:0; padding:16px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Profile.searchAndSaveAddress('work')">
+              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏢</span>
+              <div id="prof-office-container" style="width:100%; overflow:hidden;">
+                ${workName ? `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${workName}</div>` : `<div style="font-size:14px; color:var(--text-400); font-weight:600;">회사 주소 검색</div>`}
               </div>
             </div>
           </div>
@@ -194,22 +194,44 @@ const Profile = {
     }, 3500);
   },
 
-  setFont(type, el) {
-    localStorage.buddy_fontType = type;
-    document.documentElement.setAttribute('data-font', type);
+  setFont(font, el) {
+    localStorage.setItem('bp_font', font);
+    const fontStr = font === 'Pretendard' ? "'Pretendard Variable', 'Pretendard', sans-serif" : `'${font}', sans-serif`;
+    document.documentElement.style.setProperty('--font-sans', fontStr);
     
     // Update UI active state
     const siblings = el.parentElement.querySelectorAll('.setting-opt-btn');
     siblings.forEach(s => s.classList.remove('active'));
     el.classList.add('active');
     
-    U.toast(`글꼴이 '${this.fontMap[type]}'으로 변경되었습니다.`);
+    U.toast(`글꼴이 '${this.fontMap[font]}'으로 변경되었습니다.`);
     U.haptic();
   },
 
+  saveNickname(val) {
+    const newVal = val.trim();
+    if (newVal) {
+      localStorage.setItem('bp_user_name', newVal);
+      U.toast('✅ 닉네임이 변경되었습니다.');
+      // Update profile name display instantly
+      const nameEl = document.querySelector('.profile-name');
+      if (nameEl) {
+        const provider = localStorage.getItem('bp_provider') || 'mock';
+        nameEl.innerHTML = `${newVal} <span style="font-size:10px; color:var(--text-400); font-weight:normal;">(${provider})</span>`;
+      }
+      const avatarEl = document.querySelector('.profile-avatar');
+      if (avatarEl) {
+        avatarEl.textContent = newVal.charAt(0).toUpperCase();
+      }
+    }
+  },
+
   setSize(size, el) {
-    localStorage.buddy_fontSize = size;
-    document.documentElement.setAttribute('data-size', size);
+    localStorage.setItem('bp_size', size);
+    let basePx = 16;
+    if (size === 'small') basePx = 14;
+    if (size === 'large') basePx = 18;
+    document.documentElement.style.fontSize = basePx + 'px';
     
     // Update UI active state
     const siblings = el.parentElement.querySelectorAll('.setting-opt-btn');

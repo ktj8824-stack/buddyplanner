@@ -148,7 +148,7 @@
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 var(--sp-4);
   z-index: var(--z-sticky);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: none;
 }
 
 .top-brand {

@@ -22,6 +22,11 @@ const Onboarding = {
         </div>
 
         <div class="ob-section">
+          <div class="ob-section-title" style="margin-bottom: 8px;">닉네임</div>
+          <input type="text" id="ob-nickname" class="form-input" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:15px;" />
+        </div>
+
+        <div class="ob-section">
           <div class="ob-section-title">글꼴 스타일</div>
           <div class="font-options" id="ob-fonts">
             <div class="ob-pill on" onclick="Onboarding.setFont('Pretendard', this)">고딕 (기본)</div>
@@ -41,14 +46,18 @@ const Onboarding = {
 
         <div class="ob-section">
           <div class="ob-section-title">자주 출발하는 장소 등록</div>
-          <div class="ob-input-group" style="display:flex; flex-direction:column; gap:8px;">
-            <div class="setting-item" style="cursor:pointer; background:var(--bg-input); padding:16px; border-radius:12px; display:flex; align-items:center;" onclick="Onboarding.searchAddress('home')">
-              <span class="address-icon" style="margin-right:12px; font-size:18px;">🏠</span>
-              <div id="ob-home-label" style="flex:1; color:var(--text-400); font-size:15px; font-weight:600;">집 주소 검색하기 (터치)</div>
+          <div class="ob-input-group" style="display:flex; flex-direction:row; gap:8px;">
+            <div class="setting-item" style="flex:1; min-width:0; cursor:pointer; background:var(--bg-input); padding:16px 8px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Onboarding.searchAddress('home')">
+              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏠</span>
+              <div id="ob-home-container" style="width:100%; overflow:hidden;">
+                <div style="font-size:14px; color:var(--text-400); font-weight:600;">집 주소 검색</div>
+              </div>
             </div>
-            <div class="setting-item" style="cursor:pointer; background:var(--bg-input); padding:16px; border-radius:12px; display:flex; align-items:center;" onclick="Onboarding.searchAddress('work')">
-              <span class="address-icon" style="margin-right:12px; font-size:18px;">🏢</span>
-              <div id="ob-office-label" style="flex:1; color:var(--text-400); font-size:15px; font-weight:600;">회사 주소 검색하기 (터치)</div>
+            <div class="setting-item" style="flex:1; min-width:0; cursor:pointer; background:var(--bg-input); padding:16px 8px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Onboarding.searchAddress('work')">
+              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏢</span>
+              <div id="ob-office-container" style="width:100%; overflow:hidden;">
+                <div style="font-size:14px; color:var(--text-400); font-weight:600;">회사 주소 검색</div>
+              </div>
             </div>
           </div>
         </div>
@@ -61,6 +70,13 @@ const Onboarding = {
     
     // Inject custom fonts if not already there
     this.injectFonts();
+    
+    // Set default nickname if exists
+    const nickInput = U.$('#ob-nickname');
+    if (nickInput) {
+      const savedName = localStorage.getItem('bp_user_name');
+      if (savedName) nickInput.value = savedName;
+    }
   },
 
   injectFonts() {
@@ -102,17 +118,15 @@ const Onboarding = {
     App.openAddressSearch(title, (selectedPlace) => {
       if (type === 'home') {
         this.homeObj = selectedPlace;
-        const el = U.$('#ob-home-label');
+        const el = U.$('#ob-home-container');
         if (el) {
-          el.textContent = selectedPlace.name;
-          el.style.color = 'var(--text-800)';
+          el.innerHTML = `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${selectedPlace.name}</div>`;
         }
       } else {
         this.officeObj = selectedPlace;
-        const el = U.$('#ob-office-label');
+        const el = U.$('#ob-office-container');
         if (el) {
-          el.textContent = selectedPlace.name;
-          el.style.color = 'var(--text-800)';
+          el.innerHTML = `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${selectedPlace.name}</div>`;
         }
       }
       U.toast('✅ 주소가 정확히 등록되었습니다.');
@@ -122,6 +136,11 @@ const Onboarding = {
 
   complete() {
     // Save state
+    const nickInput = U.$('#ob-nickname');
+    if (nickInput && nickInput.value.trim() !== '') {
+      localStorage.setItem('bp_user_name', nickInput.value.trim());
+    }
+
     localStorage.setItem('bp_onboarded', 'true');
     localStorage.setItem('bp_font', this.fontFamily);
     localStorage.setItem('bp_size', this.fontSize);

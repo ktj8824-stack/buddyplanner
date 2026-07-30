@@ -96,13 +96,13 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: var(--sp-6) var(--sp-5);
+  padding: 20px var(--sp-5);
   background: var(--bg-app);
 }
 
 .ob-header {
-  margin-bottom: var(--sp-6);
-  padding-top: var(--sp-4);
+  margin-bottom: 16px;
+  padding-top: 4px;
 }
 .ob-title {
   font-size: var(--fs-2xl);
@@ -118,16 +118,16 @@
 .ob-section {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
-  border-radius: var(--r-xl);
-  padding: var(--sp-5);
-  margin-bottom: var(--sp-4);
+  border-radius: var(--r-lg);
+  padding: 12px 16px;
+  margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
 }
 .ob-section-title {
   font-size: var(--fs-md);
   font-weight: var(--fw-bold);
   color: var(--text-200);
-  margin-bottom: var(--sp-4);
+  margin-bottom: 8px;
 }
 
 /* Font Selection */
@@ -137,7 +137,7 @@
   gap: var(--sp-2);
 }
 .ob-pill {
-  height: 48px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;

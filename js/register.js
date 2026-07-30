@@ -765,7 +765,6 @@ const Register = {
   },
 
   selectRestaurant(idx, idStr) {
-    // idx is based on filtered list, so we must find by idStr from _nearbyRestsAll
     let rests = window._nearbyRestsAll || [];
     const r = rests.find(x => String(x.id) === String(idStr));
     if (!r) return;
@@ -796,20 +795,66 @@ const Register = {
   },
 
   openCompanionModal() {
-    const items = COMPANIONS.map(c => {
-      const sel = this.invited.find(x=>x.id===c.id);
-      return `<div class="modal-item ${sel?'selected':''}" onclick="Register.toggleCompanion(${c.id},this)">
-        <div class="modal-item-icon" style="background:linear-gradient(135deg,${c.color},${c.color}88);color:#fff;border-radius:50%">${c.emoji}</div>
-        <span class="modal-item-text">${c.name}</span>
-        <div class="modal-item-check">✓</div></div>`;
+    let items = `
+      <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; margin: -24px -24px 16px -24px; position: sticky; top: -24px; background: white; z-index: 10;">
+        <div style="font-size: 16px; font-weight: 700; text-align: center;">카카오톡 친구 선택</div>
+        <div style="position: absolute; right: 16px; top: 12px; cursor: pointer;" onclick="App.closeModal()">✕</div>
+      </div>
+      <div style="margin-bottom: 12px; position: relative;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" style="position: absolute; left: 12px; top: 10px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="companion-search" placeholder="이름(초성), 전화번호 검색" onkeyup="Register.filterCompanions(this.value)" style="width: 100%; background: #f5f5f5; border: none; border-radius: 6px; padding: 8px 12px 8px 36px; color: #333; font-size: 14px; outline: none;">
+      </div>
+      <div style="font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 600;">친구 ${COMPANIONS.length}</div>
+      <div id="companion-list-container" style="max-height: 50vh; overflow-y: auto; margin: 0 -8px; padding: 0 8px;">
+        ${this.renderCompanionItems(COMPANIONS)}
+      </div>
+      <button style="margin-top: 16px; width: 100%; padding: 14px; border-radius: 8px; background: #FEE500; color: #191919; font-weight: 700; font-size: 16px; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(254, 229, 0, 0.3);" onclick="App.closeModal();Register.updateTags()">확인</button>
+    `;
+    
+    App.showModal('', items);
+  },
+
+  renderCompanionItems(list) {
+    if (list.length === 0) {
+      return `<div style="text-align:center; padding: 20px; color: #999; font-size: 14px;">검색 결과가 없습니다.</div>`;
+    }
+    return list.map(c => {
+      const sel = this.invited.find(x => x.id === c.id);
+      return `<div style="display: flex; align-items: center; padding: 10px 8px; cursor: pointer; border-radius: 8px; transition: background 0.2s;" onclick="Register.toggleCompanion(${c.id}, this)">
+        <div style="width: 44px; height: 44px; border-radius: 18px; background: ${c.color}; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">${c.emoji}</div>
+        <div style="flex: 1; font-size: 15px; font-weight: 500; color: #111;">${c.name}</div>
+        <div class="check-circle" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${sel ? '#FEE500' : '#ddd'}; background: ${sel ? '#FEE500' : 'transparent'}; display: flex; align-items: center; justify-content: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${sel ? '#000' : 'transparent'}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+      </div>`;
     }).join('');
-    App.showModal('👥 동반자 초대', items + `<button class="btn btn-primary" style="margin-top:var(--sp-4)" onclick="App.closeModal();Register.updateTags()">✅ 선택 완료</button>`);
+  },
+
+  filterCompanions(query) {
+    const q = query.trim().toLowerCase();
+    const filtered = COMPANIONS.filter(c => c.name.toLowerCase().includes(q));
+    const container = document.getElementById('companion-list-container');
+    if (container) {
+      container.innerHTML = this.renderCompanionItems(filtered);
+    }
   },
 
   toggleCompanion(id, el) {
-    const i = this.invited.findIndex(c=>c.id===id);
-    if (i===-1) { const c=COMPANIONS.find(x=>x.id===id); if(c)this.invited.push(c); el.classList.add('selected'); }
-    else { this.invited.splice(i,1); el.classList.remove('selected'); }
+    const i = this.invited.findIndex(x => x.id === id);
+    const checkCircle = el.querySelector('.check-circle');
+    const checkIcon = checkCircle.querySelector('svg');
+    if (i === -1) { 
+      const c = COMPANIONS.find(x => x.id === id); 
+      if(c) this.invited.push(c); 
+      checkCircle.style.borderColor = '#FEE500';
+      checkCircle.style.background = '#FEE500';
+      checkIcon.setAttribute('stroke', '#000');
+    } else { 
+      this.invited.splice(i, 1); 
+      checkCircle.style.borderColor = '#ddd';
+      checkCircle.style.background = 'transparent';
+      checkIcon.setAttribute('stroke', 'transparent');
+    }
     U.haptic();
   },
 

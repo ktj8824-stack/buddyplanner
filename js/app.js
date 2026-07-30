@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community'],
+  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login'],
 
   init() {
     if (!State.loadSchedules()) {
@@ -83,19 +83,6 @@ const App = {
     } else {
       // Start with splash screen
       this.navigate('splash');
-      
-      // Automatically transition from splash
-      setTimeout(() => {
-        if (hasOnboarded) {
-          if (State.schedules.length > 0) {
-            this.navigate('calendar');
-          } else {
-            this.navigate('home');
-          }
-        } else {
-          this.navigate('onboarding');
-        }
-      }, 2000);
     }
 
     // Register Service Worker for PWA
@@ -164,13 +151,14 @@ const App = {
         case 'upgrade': Upgrade.init(); break;
         case 'record': Record.init(); break;
         case 'community': Community.init(); break;
+        case 'login': Login.init(); break;
       }
     }
     this.updateNav(name === 'timeline' ? 'home' : name);
     
     const nav = U.$('#top-header');
     if (nav) {
-      if (name === 'splash' || name === 'onboarding') {
+      if (name === 'splash' || name === 'onboarding' || name === 'login') {
         nav.style.display = 'none';
       } else {
         nav.style.display = 'flex';
@@ -179,7 +167,7 @@ const App = {
 
     const bottomNav = U.$('#gnb');
     if (bottomNav) {
-      if (name === 'splash' || name === 'onboarding') {
+      if (name === 'splash' || name === 'onboarding' || name === 'login') {
         bottomNav.style.display = 'none';
       } else {
         bottomNav.style.display = 'flex';
@@ -188,7 +176,7 @@ const App = {
     
     const adBanner = U.$('#adfit-banner-wrap');
     if (adBanner) {
-      if (['splash', 'onboarding', 'profile', 'record', 'community'].includes(name)) {
+      if (['splash', 'onboarding', 'profile', 'record', 'community', 'login'].includes(name)) {
         adBanner.style.display = 'none';
       } else {
         adBanner.style.display = 'flex';

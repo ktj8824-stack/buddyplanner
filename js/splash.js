@@ -22,7 +22,7 @@ const Splash = {
       </video>
       <div class="splash-overlay"></div>
       <div class="splash-content">
-        <p class="splash-top-text">나만의 골프 비서</p>
+        <p class="splash-top-text">나만의 비서</p>
         <h1 class="splash-logo-title">myB</h1>
         <p class="splash-subtitle">my-buddybirdie</p>
       </div>
@@ -31,15 +31,22 @@ const Splash = {
   },
 
   startTransitionTimer() {
-    // Automatically transition after 5 seconds
+    // Automatically transition after 4 seconds
     this.timeoutId = setTimeout(() => {
       this.nextScreen();
-    }, 5000);
+    }, 4000);
   },
 
   nextScreen() {
     if (this.timeoutId) {
       clearTimeout(this.timeoutId);
+    }
+    
+    // Check login status
+    const isLoggedIn = localStorage.getItem('bp_logged_in') === 'true';
+    if (!isLoggedIn) {
+      App.navigate('login');
+      return;
     }
     
     // Check onboarding status
