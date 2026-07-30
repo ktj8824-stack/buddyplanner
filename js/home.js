@@ -114,8 +114,8 @@ const Home = {
                  
                  return `
                    <div style="min-width: 46px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:10px 0 6px 0; border-radius:12px; cursor:pointer; box-sizing:border-box; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
-                     <div style="font-size:11px; font-weight:700; color:${dayColor};">${dayName}</div>
-                     <div style="font-size:17px; font-weight:800; ${dateStyle}">${d.getDate()}</div>
+                     <div style="font-size:12.5px; font-weight:700; color:${dayColor}; margin-bottom:2px;">${dayName}</div>
+                     <div style="font-size:19px; font-weight:800; ${dateStyle}">${d.getDate()}</div>
                      <div style="height:12px; display:flex; align-items:center; justify-content:center; margin-top:2px;">
                        ${hasSchedule ? `<div style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></div>` : ''}
                      </div>
