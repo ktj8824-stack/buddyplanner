@@ -55,7 +55,7 @@ const Home = {
         <!-- 1. Dashboard Stats (Points & Info) -->
         <div style="padding: 4px var(--sp-4) 8px; display: flex; flex-direction: column; gap: 6px;">
           <!-- Row 1: Points (Full Width) -->
-          <div class="stat-card" style="border:1.5px solid rgba(0,0,0,0.2); background:#fff; width: 100%; display: flex; align-items: center; justify-content: space-between; flex-direction: row; padding: 8px 16px; min-height: 40px; border-radius: 12px;">
+          <div class="stat-card" style="border:1.5px solid rgba(0,0,0,0.2); background:#fff; width: 100%; display: flex; align-items: center; justify-content: space-between; flex-direction: row; padding: 14px 18px; min-height: 52px; border-radius: 12px;">
             <div style="display:flex; align-items:baseline; gap:8px;">
               <div style="font-size:18px; color:#000; font-weight:800;">내 포인트</div>
               <div style="font-size:18px; font-weight:800; color:var(--accent); font-family:'Montserrat', sans-serif;">${currentPoints.toLocaleString()} <span style="font-size:18px; color:#666666;">P</span></div>
@@ -68,14 +68,14 @@ const Home = {
           
           <!-- Row 2: Schedule & Score (Asymmetric Grid) -->
           <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 8px;">
-            <div class="stat-card" style="width: 100%; padding: 6px 10px;" onclick="App.navigate('calendar')">
+            <div class="stat-card" style="width: 100%; padding: 10px 12px;" onclick="App.navigate('calendar')">
               <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">다음 라운딩 일정 <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
               <div style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
                 ${schedsHtml}
               </div>
             </div>
             
-            <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 6px 10px; justify-content: space-between;" onclick="App.navigate('record')">
+            <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 10px 12px; justify-content: space-between;" onclick="App.navigate('record')">
               <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:-2px;">
                 <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:13px; margin-bottom:4px;">최근 스코어</span>
                 <span style="font-size:19px; font-weight:800; color:var(--text-100); line-height:1;">89<span style="font-size:12px; font-weight:600;">타</span></span>
@@ -113,10 +113,12 @@ const Home = {
                  let dayColor = d.getDay() === 0 ? 'var(--ios-red)' : d.getDay() === 6 ? 'var(--ios-blue)' : 'var(--text-400)';
                  
                  return `
-                   <div style="min-width: 45px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:9px 0; border-radius:12px; cursor:pointer; box-sizing:border-box; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
+                   <div style="min-width: 46px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:10px 0 6px 0; border-radius:12px; cursor:pointer; box-sizing:border-box; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
                      <div style="font-size:11px; font-weight:700; color:${dayColor};">${dayName}</div>
                      <div style="font-size:17px; font-weight:800; ${dateStyle}">${d.getDate()}</div>
-                     <div style="height:8px;"></div>
+                     <div style="height:12px; display:flex; align-items:center; justify-content:center; margin-top:2px;">
+                       ${hasSchedule ? `<div style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></div>` : ''}
+                     </div>
                    </div>
                  `;
               }).join('')}
