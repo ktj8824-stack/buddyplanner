@@ -1,0 +1,1 @@
+{"version":3,"file":"types.js","sourceRoot":"","sources":["../../src/types.ts"],"names":[],"mappings":"","sourcesContent":["export interface KakaoLoginResponse {\n  accessToken: string;\n  expiredAt: string;\n  expiresIn: string;\n  refreshToken: string;\n  idToken?: string;\n  refreshTokenExpiredAt: string;\n  refreshTokenExpiresIn: string;\n  tokenType: string;\n}"]}

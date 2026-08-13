@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>개인정보처리방침 | 버디플래너</title>
+  <meta name="description" content="버디플래너 개인정보처리방침 — 골프 라운딩 스마트 플래너의 개인정보 수집 및 이용에 관한 방침입니다."/>
+  <link rel="icon" href="icon.svg"/>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0a0a0f;
+      color: #e5e5ea;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+    .header {
+      background: rgba(15,15,25,0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header a {
+      color: #30d158;
+      text-decoration: none;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .header a:hover { color: #4ade80; }
+    .header-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 48px;
+      padding: 40px 24px;
+      background: linear-gradient(135deg, rgba(48,209,88,0.1) 0%, rgba(10,132,255,0.1) 100%);
+      border: 1px solid rgba(48,209,88,0.2);
+      border-radius: 20px;
+    }
+    .hero-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+    .hero h1 { font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 8px; }
+    .hero p { font-size: 14px; color: #8e8e93; }
+    .section {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+    .section:hover { border-color: rgba(48,209,88,0.3); }
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #30d158, #0a84ff);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+    .section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+    }
+    .section p { font-size: 14px; color: #aeaeb2; margin-bottom: 12px; }
+    .section p:last-child { margin-bottom: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    thead { background: rgba(48,209,88,0.1); }
+    th { padding: 10px 14px; text-align: left; color: #30d158; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    td { padding: 10px 14px; color: #aeaeb2; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    ul { padding-left: 0; list-style: none; }
+    ul li { font-size: 14px; color: #aeaeb2; padding: 6px 0 6px 20px; position: relative; }
+    ul li::before { content: '•'; color: #30d158; position: absolute; left: 4px; }
+    .highlight {
+      background: rgba(10,132,255,0.1);
+      border: 1px solid rgba(10,132,255,0.25);
+      border-radius: 10px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #5ac8fa;
+      margin-top: 12px;
+    }
+    .contact-box {
+      background: linear-gradient(135deg, rgba(48,209,88,0.08), rgba(10,132,255,0.08));
+      border: 1px solid rgba(48,209,88,0.25);
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      margin-top: 32px;
+    }
+    .contact-box h3 { font-size: 18px; font-weight: 700; color: #ffffff; margin-bottom: 12px; }
+    .contact-box p { font-size: 14px; color: #aeaeb2; margin-bottom: 6px; }
+    .contact-box a { color: #30d158; text-decoration: none; }
+    .footer { text-align: center; padding: 32px 24px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 48px; }
+    .footer p { font-size: 12px; color: #636366; }
+    .footer a { color: #30d158; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      홈으로
+    </a>
+    <span class="header-title">개인정보처리방침</span>
+  </header>
+
+  <div class="container">
+
+    <div class="hero">
+      <span class="hero-icon">🔒</span>
+      <h1>개인정보처리방침</h1>
+      <p>버디플래너는 이용자의 개인정보를 소중히 보호합니다.<br/>시행일: 2025년 1월 1일 &nbsp;|&nbsp; 최종 수정일: 2025년 7월 21일</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">1</span>수집하는 개인정보 항목</h2>
+      <p>버디플래너는 서비스 제공을 위해 아래와 같은 개인정보를 수집합니다.</p>
+      <table>
+        <thead><tr><th>수집 항목</th><th>수집 방법</th><th>목적</th></tr></thead>
+        <tbody>
+          <tr><td>이름, 이메일</td><td>카카오·구글 소셜 로그인</td><td>회원 식별 및 서비스 제공</td></tr>
+          <tr><td>서비스 이용 기록</td><td>앱 사용 중 자동 수집</td><td>서비스 품질 개선</td></tr>
+          <tr><td>광고 식별자, 쿠키</td><td>Google AdSense 자동 수집</td><td>맞춤형 광고 제공</td></tr>
+        </tbody>
+      </table>
+      <div class="highlight">📍 버디플래너는 위치 정보를 직접 수집하지 않습니다. 골프장 검색은 이용자가 직접 입력한 키워드를 사용합니다.</div>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">2</span>개인정보의 이용 목적</h2>
+      <ul>
+        <li>회원 가입 및 로그인 처리</li>
+        <li>골프 라운딩 일정 관리 서비스 제공</li>
+        <li>맞춤형 서비스 기능 제공 (타임라인, 맛집 추천 등)</li>
+        <li>서비스 개선 및 신규 서비스 개발</li>
+        <li>법적 의무 이행 및 분쟁 해결</li>
+        <li>Google AdSense를 통한 맞춤형 광고 표시</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">3</span>개인정보의 보유 및 이용 기간</h2>
+      <p>이용자의 개인정보는 수집·이용 목적이 달성된 후 즉시 파기합니다.</p>
+      <table>
+        <thead><tr><th>보관 항목</th><th>보관 기간</th><th>근거</th></tr></thead>
+        <tbody>
+          <tr><td>회원 정보</td><td>회원 탈퇴 시까지</td><td>서비스 이용 계약</td></tr>
+          <tr><td>서비스 이용 기록</td><td>1년</td><td>통신비밀보호법</td></tr>
+          <tr><td>결제 기록</td><td>5년</td><td>전자상거래법</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">4</span>개인정보의 제3자 제공</h2>
+      <p>버디플래너는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다.</p>
+      <table>
+        <thead><tr><th>서비스</th><th>제공 정보</th><th>목적</th></tr></thead>
+        <tbody>
+          <tr><td>카카오 (kakao.com)</td><td>OAuth 토큰</td><td>소셜 로그인</td></tr>
+          <tr><td>구글 (google.com)</td><td>OAuth 토큰</td><td>소셜 로그인</td></tr>
+          <tr><td>Google AdSense</td><td>쿠키, 광고 식별자</td><td>맞춤형 광고</td></tr>
+          <tr><td>SK Tmap API</td><td>검색 키워드</td><td>경로 및 장소 검색</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">5</span>쿠키 및 광고 관련 안내</h2>
+      <p>버디플래너는 Google AdSense를 통해 광고를 제공할 수 있습니다. Google은 쿠키를 사용하여 이용자의 관심사에 맞는 광고를 표시합니다.</p>
+      <ul>
+        <li>Google 개인정보처리방침: <a href="https://policies.google.com/privacy" target="_blank" style="color:#30d158;">policies.google.com/privacy</a></li>
+        <li>광고 개인화 해제: <a href="https://adssettings.google.com" target="_blank" style="color:#30d158;">adssettings.google.com</a></li>
+        <li>브라우저 설정에서 쿠키 수신을 거부할 수 있으나 일부 서비스 이용이 제한될 수 있습니다.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">6</span>이용자의 권리</h2>
+      <ul>
+        <li>개인정보 열람 요청</li>
+        <li>개인정보 수정·삭제 요청</li>
+        <li>개인정보 처리 정지 요청</li>
+        <li>서비스 탈퇴 및 개인정보 완전 삭제 요청</li>
+      </ul>
+      <div class="highlight">위 권리 행사는 아래 개인정보 보호 책임자에게 이메일로 요청하시면 10일 이내에 처리해 드립니다.</div>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">7</span>개인정보 보호를 위한 기술적 조치</h2>
+      <ul>
+        <li>HTTPS(SSL/TLS) 암호화 통신 적용</li>
+        <li>개인정보 접근 권한 최소화</li>
+        <li>비밀번호 미수집 (소셜 로그인만 사용)</li>
+        <li>개인정보를 서버에 직접 저장하지 않고 기기 내 로컬 스토리지 활용</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">8</span>아동·청소년 보호</h2>
+      <p>버디플래너는 만 14세 미만 아동의 개인정보를 수집하지 않습니다.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">9</span>개인정보처리방침의 변경</h2>
+      <p>본 방침은 관련 법령 또는 서비스 변경에 따라 개정될 수 있습니다. 변경 시 앱 내 공지사항 또는 이 페이지를 통해 사전 공지합니다.</p>
+    </div>
+
+    <div class="contact-box">
+      <h3>👤 개인정보 보호 책임자</h3>
+      <p><strong style="color:#fff;">버디플래너 운영팀</strong></p>
+      <p>서비스명: 버디플래너 (BuddyPlanner)</p>
+      <p>웹사이트: <a href="https://buddyplanner.kr">buddyplanner.kr</a></p>
+      <p>이메일: <a href="mailto:privacy@buddyplanner.kr">privacy@buddyplanner.kr</a></p>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <p>© 2025 버디플래너. All rights reserved. &nbsp;|&nbsp; <a href="index.html">홈으로</a></p>
+  </footer>
+
+</body>
+</html>

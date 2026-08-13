@@ -1,0 +1,110 @@
+/* =========================================
+   BuddyPlanner v2 — Upgrade (Premium) Screen
+   ========================================= */
+
+.upgrade-hero {
+  padding: calc(var(--header-h) + var(--sp-6)) var(--sp-5) var(--sp-6);
+  background: var(--bg-app);
+  color: var(--text-100);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.upg-crown {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px;
+  background: var(--gold-100);
+  border-radius: var(--r-full);
+  margin-bottom: var(--sp-4);
+  color: var(--gold-500);
+  position: relative;
+  z-index: 2;
+}
+.upg-title {
+  font-size: var(--fs-3xl); font-weight: var(--fw-extrabold);
+  letter-spacing: var(--ls-tight); margin-bottom: var(--sp-2);
+  color: var(--text-100);
+  position: relative; z-index: 2;
+}
+.upg-subtitle {
+  font-size: var(--fs-base); color: var(--slate-300);
+  margin-bottom: var(--sp-5);
+  position: relative; z-index: 2;
+}
+.upg-price-box {
+  display: inline-block; padding: var(--sp-3) var(--sp-6);
+  background: var(--bg-input); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-full);
+  position: relative; z-index: 2;
+}
+.upg-price {
+  font-size: var(--fs-2xl); font-weight: var(--fw-bold); color: var(--gold-400);
+  font-family: var(--font-mono);
+}
+.upg-price span { font-size: var(--fs-sm); color: var(--slate-400); font-weight: var(--fw-normal); font-family: var(--font-sans); }
+
+.upg-content { padding: var(--sp-6) var(--sp-5); }
+.upg-feature-title { font-size: var(--fs-lg); font-weight: var(--fw-bold); margin-bottom: var(--sp-4); }
+
+.feat-list { display: flex; flex-direction: column; gap: var(--sp-4); margin-bottom: var(--sp-8); }
+.feat-item {
+  display: flex; align-items: flex-start; gap: var(--sp-4);
+  padding: var(--sp-4); background: var(--bg-card);
+  border: 1px solid var(--border-subtle); border-radius: var(--r-lg);
+  transition: all var(--dur-normal) var(--ease-out);
+}
+.feat-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: rgba(217,119,6,0.3); }
+.feat-icon {
+  width: 48px; height: 48px; border-radius: var(--r-full);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background: var(--gold-dim); color: var(--gold-500);
+}
+.feat-icon.blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
+.feat-icon.green { background: rgba(16,185,129,0.1); color: #10b981; }
+.feat-icon.purple { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+.feat-text { flex: 1; }
+.feat-text h4 { font-size: var(--fs-base); font-weight: var(--fw-bold); margin-bottom: 2px; }
+.feat-text p { font-size: var(--fs-sm); color: var(--text-500); line-height: var(--lh-relaxed); }
+
+.upg-action { padding: var(--sp-2) var(--sp-5) var(--sp-6); }
+
+.btn-upg {
+  width: 100%; height: 56px; border-radius: var(--r-full);
+  background: var(--text-100);
+  color: var(--bg-app); font-size: var(--fs-lg); font-weight: var(--fw-bold);
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-2);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.btn-upg:hover { transform: translateY(-2px); opacity: 0.9; }
+.btn-upg:active { transform: translateY(0); }
+
+/* Payment Simulation Modal */
+.pay-loader {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: var(--sp-8) 0;
+}
+.pay-spinner {
+  width: 50px; height: 50px;
+  border: 4px solid var(--border-subtle);
+  border-top-color: var(--gold-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--sp-4);
+}
+.pay-msg { font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text-200); }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.pay-success { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--sp-6) 0; }
+.pay-success-icon {
+  width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center; margin-bottom: var(--sp-4);
+  animation: popIn 0.5s var(--ease-spring);
+}
+.pay-success h3 { font-size: var(--fs-2xl); font-weight: var(--fw-bold); margin-bottom: var(--sp-2); }
+.pay-success p { font-size: var(--fs-base); color: var(--text-500); margin-bottom: var(--sp-6); }
+
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  80% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}

@@ -10,6 +10,16 @@ const Login = {
   init() {
     this.render();
     this.initOAuth();
+    // Capacitor 환경이라면 네이티브 카카오 로그인 초기화
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      if (!window.Capacitor.Plugins.CapacitorKakaoLogin && window.Capacitor.registerPlugin) {
+        window.Capacitor.Plugins.CapacitorKakaoLogin = window.Capacitor.registerPlugin('CapacitorKakaoLogin');
+      }
+      if (window.Capacitor.Plugins.CapacitorKakaoLogin) {
+        window.Capacitor.Plugins.CapacitorKakaoLogin.initialize({ appKey: '023bb498015836d0a4a922373e48f39f' })
+          .catch(e => console.error('Kakao native init err', e));
+      }
+    }
   },
 
   render() {
@@ -87,6 +97,42 @@ const Login = {
       U.toast('⚠️ 카카오 API 키가 설정되지 않았습니다. (임시 로그인 처리)');
       this.finishLogin('kakao', { name: '카카오 유저', email: 'kakao@example.com' });
       return;
+    }
+
+    // [추가] 모바일(Capacitor) 환경일 경우 네이티브 로그인 사용
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      if (!window.Capacitor.Plugins.CapacitorKakaoLogin && window.Capacitor.registerPlugin) {
+        window.Capacitor.Plugins.CapacitorKakaoLogin = window.Capacitor.registerPlugin('CapacitorKakaoLogin');
+      }
+      if (window.Capacitor.Plugins.CapacitorKakaoLogin) {
+        window.Capacitor.Plugins.CapacitorKakaoLogin.login()
+          .then(res => {
+            // 네이티브 로그인 성공 시 발급받은 토큰을 JS SDK에 세팅
+            if (typeof Kakao !== 'undefined' && Kakao.isInitialized()) {
+              Kakao.Auth.setAccessToken(res.accessToken);
+              Kakao.API.request({
+                url: '/v2/user/me',
+                success: (profileRes) => {
+                  const name = profileRes.properties && profileRes.properties.nickname ? profileRes.properties.nickname : '카카오 유저';
+                  const email = profileRes.kakao_account && profileRes.kakao_account.email ? profileRes.kakao_account.email : '';
+                  this.finishLogin('kakao', { name, email });
+                },
+                fail: (err) => {
+                  console.error('프로필 조회 실패:', err);
+                  this.finishLogin('kakao', { name: '카카오 유저', email: '' });
+                }
+              });
+            } else {
+              this.finishLogin('kakao', { name: '카카오(네이티브)', email: '' });
+            }
+          })
+          .catch(err => {
+            console.error('Kakao login err:', err);
+            const msg = err.message || (typeof err === 'string' ? err : JSON.stringify(err));
+            U.toast('카카오 네이티브 로그인 실패: ' + msg);
+          });
+        return;
+      }
     }
 
     if (typeof Kakao === 'undefined') {

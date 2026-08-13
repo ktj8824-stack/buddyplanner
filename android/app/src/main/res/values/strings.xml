@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BuddyPlanner</string>
+    <string name="title_activity_main">BuddyPlanner</string>
+    <string name="package_name">com.myB</string>
+    <string name="custom_url_scheme">com.myB</string>
+    <string name="kakao_app_key">023bb498015836d0a4a922373e48f39f</string>
+    <string name="kakao_scheme">kakao023bb498015836d0a4a922373e48f39f</string>
+</resources>

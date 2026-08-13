@@ -138,6 +138,17 @@ const Profile = {
             </div>
           </div>
           
+          <div class="setting-card" style="margin-top:20px;">
+            <div class="setting-item" style="cursor:pointer" onclick="Profile.openAdmin()">
+              <div class="address-input-wrap" style="flex:1">
+                <span class="address-icon">⚙️</span>
+                <div class="address-input" style="display:flex; align-items:center; background:transparent; color:var(--text-800); font-weight:700;">
+                  [대표님 전용] 버디마켓 관리자 모드
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="logout-wrap">
             <button class="logout-btn" onclick="Profile.logout()">로그아웃</button>
           </div>
@@ -146,7 +157,7 @@ const Profile = {
     `;
   },
 
-  watchAd() {
+  async watchAd() {
     // 하루 20회 제한 로직
     const todayStr = new Date().toLocaleDateString('ko-KR');
     let lastAdDate = localStorage.getItem('bp_ad_date');
@@ -162,6 +173,27 @@ const Profile = {
       return;
     }
 
+    // 모바일 네이티브 애드몹 연동
+    if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins.AdMob) {
+      const AdMob = window.Capacitor.Plugins.AdMob;
+      try {
+        // 보상형 광고 준비
+        await AdMob.prepareRewardVideoAd({
+          adId: App.ADMOB_REWARD_ID, // app.js에 선언된 ID 사용
+          isTesting: true
+        });
+        
+        // 보상형 광고 재생 (재생 완료 시 app.js에 등록된 리스너에서 포인트 지급)
+        await AdMob.showRewardVideoAd();
+        return;
+      } catch (err) {
+        console.error('AdMob Reward Error:', err);
+        U.toast('광고를 불러오는 데 실패했습니다.');
+        return;
+      }
+    }
+
+    // 네이티브 환경이 아닌 경우(웹/PC) 가짜 광고 UI 띄우기
     const overlay = document.createElement('div');
     overlay.className = 'fake-ad-overlay';
     overlay.innerHTML = `
@@ -173,7 +205,7 @@ const Profile = {
     `;
     document.body.appendChild(overlay);
 
-    // 3.5초 대기 후 보상 지급
+    // 3.5초 대기 후 보상 지급 (가짜 로직 유지)
     setTimeout(() => {
       if (document.body.contains(overlay)) {
         document.body.removeChild(overlay);
@@ -281,6 +313,16 @@ const Profile = {
       
       U.toast('로그아웃 되었습니다.');
       App.navigate('login');
+    }
+  },
+
+  openAdmin() {
+    const pw = prompt('관리자 비밀번호를 입력하세요 (0000)');
+    if (pw === '0000') {
+      U.toast('관리자 모드에 진입합니다.');
+      App.navigate('admin');
+    } else if (pw !== null) {
+      U.toast('비밀번호가 일치하지 않습니다.');
     }
   },
 

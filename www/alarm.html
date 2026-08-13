@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Buddy Planner - Alarm</title>
+    <link rel="stylesheet" href="css/alarm.css">
+</head>
+<body>
+    <div class="alarm-container">
+        <div class="glass-panel">
+            <h1 class="title">Quick Alarm</h1>
+            <div class="time-display" id="timeDisplay">00:05</div>
+            
+            <div class="controls">
+                <button id="decreaseBtn" class="icon-btn">-</button>
+                <div class="preset-times">
+                    <span>Adjust Time</span>
+                </div>
+                <button id="increaseBtn" class="icon-btn">+</button>
+            </div>
+            
+            <button id="startBtn" class="primary-btn">Start Alarm</button>
+            <p id="statusMsg" class="status-msg">Ready to start</p>
+        </div>
+    </div>
+    <script src="js/alarm.js"></script>
+</body>
+</html>

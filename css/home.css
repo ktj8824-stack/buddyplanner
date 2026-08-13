@@ -162,6 +162,7 @@
   grid-template-columns: repeat(4, 1fr);
   row-gap: 16px;
   padding: 0 var(--sp-4) var(--sp-6);
+  margin-top: 30px;
 }
 .round-menu-item {
   display: flex;

@@ -94,13 +94,16 @@ const Register = {
       if (this.editIdx !== null) {
         if (this.course) {
           U.$('#r-search').value = this.course.name;
-          U.$('#r-hint').innerHTML = `📍 ${this.course.addr}`;
-          U.$('#r-hint').style.color = 'var(--accent)';
+          const hint = U.$('#r-hint');
+          if(hint) {
+            hint.innerHTML = `📍 ${this.course.addr}`;
+            hint.style.color = 'var(--accent)';
+          }
         }
         if (this.date) {
           const el = U.$('#r-date');
           el.textContent = U.fmtDateShort(this.date);
-          el.classList.remove('empty');
+          el.classList.remove('is-empty');
         }
         this.updateTags();
       }
@@ -132,6 +135,7 @@ const Register = {
                 </div>
                 <div class="search-drop" id="r-results"></div>
               </div>
+              <p class="field-hint" id="r-hint" style="margin-top:var(--sp-2)"></p>
             </div>
 
             <!-- Date -->
@@ -156,7 +160,7 @@ const Register = {
             <div class="field">
               <label class="field-label"><span class="req">*</span> 나의 외출 준비 시간</label>
               <div class="pills" id="r-pills">
-                ${PREP_OPTIONS.map(t => `<button class="pill ${t===30?'on':''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
+                ${PREP_OPTIONS.map(t => `<button class="pill ${t===this.prep?'on':''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
               </div>
               <p class="field-hint">샤워, 짐 챙기기 등 출발 전 준비 시간</p>
             </div>
@@ -312,8 +316,11 @@ const Register = {
     
     U.$('#r-search').value = this.course.name;
     U.$('#r-results').classList.remove('show');
-    U.$('#r-hint').innerHTML = `📍 ${this.course.addr}`;
-    U.$('#r-hint').style.color = 'var(--accent)';
+    const hint = U.$('#r-hint');
+    if (hint) {
+      hint.innerHTML = `📍 ${this.course.addr}`;
+      hint.style.color = 'var(--accent)';
+    }
     
     // Clear restaurant when course changes
     this.mealRestaurant = null;

@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login'],
+  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin'],
 
   init() {
     if (!State.loadSchedules()) {
@@ -12,6 +12,7 @@ const App = {
     this.loadPreferences();
     this.renderNav();
     this.renderAdBanner();
+    this.initRewardedAd();
     
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     State.isPro = localStorage.getItem('bp_pro') === 'true';
@@ -152,6 +153,8 @@ const App = {
         case 'record': Record.init(); break;
         case 'community': Community.init(); break;
         case 'login': Login.init(); break;
+        case 'market': Market.init(); break;
+        case 'admin': Admin.init(); break;
       }
     }
     this.updateNav(name === 'timeline' ? 'home' : name);
@@ -175,11 +178,25 @@ const App = {
     }
     
     const adBanner = U.$('#adfit-banner-wrap');
+    const hideBannerScreens = ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin'];
+    const shouldHideBanner = hideBannerScreens.includes(name);
+
+    // 웹 환경 (AdFit) 배너 토글
     if (adBanner) {
-      if (['splash', 'onboarding', 'profile', 'record', 'community', 'login'].includes(name)) {
+      if (shouldHideBanner) {
         adBanner.style.display = 'none';
       } else {
         adBanner.style.display = 'flex';
+      }
+    }
+
+    // 모바일 네이티브 (AdMob) 배너 토글
+    if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins.AdMob) {
+      if (shouldHideBanner) {
+        window.Capacitor.Plugins.AdMob.hideBanner().catch(e=>console.error('AdMob hide Error',e));
+      } else {
+        // 이미 렌더링 된 상태라면 다시 show 호출
+        window.Capacitor.Plugins.AdMob.resumeBanner().catch(e=>console.error('AdMob resume Error',e));
       }
     }
     
@@ -245,6 +262,10 @@ const App = {
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span class="nav-label">커뮤니티</span>
       </button>
+      <button class="gnb-item" data-s="market" onclick="App.navigate('market')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        <span class="nav-label">버디마켓</span>
+      </button>
       <button class="gnb-item" data-s="profile" onclick="App.navigate('profile')">
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         <span class="nav-label">마이</span>
@@ -256,7 +277,76 @@ const App = {
   // 카카오 AdFit 광고 단위 ID (발급 후 교체)
   ADFIT_UNIT_ID: 'DAN-XXXXXXXXXXXXXXXX',
 
-  renderAdBanner() {
+  // 구글 애드몹 배너 ID (테스트용)
+  ADMOB_BANNER_ID: 'ca-app-pub-3940256099942544/6300978111',
+  // 구글 애드몹 보상형 동영상 광고 ID (테스트용)
+  ADMOB_REWARD_ID: 'ca-app-pub-3940256099942544/5224354917',
+
+  async initRewardedAd() {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      if (!window.Capacitor.Plugins.AdMob) {
+        window.Capacitor.Plugins.AdMob = window.Capacitor.registerPlugin('AdMob');
+      }
+      const AdMob = window.Capacitor.Plugins.AdMob;
+      if (AdMob) {
+        try {
+          // 리워드 지급 이벤트 리스너 등록
+          AdMob.addListener('onRewardedVideoAdReward', (reward) => {
+            console.log('Reward earned:', reward);
+            // Profile.js에 있는 보상 지급 로직을 여기서 호출하거나 전역에서 처리
+            let adCount = parseInt(localStorage.getItem('bp_ad_count') || '0', 10);
+            let pts = parseInt(localStorage.getItem('bp_points') || '0', 10);
+            pts += 50;
+            adCount++;
+            localStorage.setItem('bp_points', pts.toString());
+            localStorage.setItem('bp_ad_count', adCount.toString());
+            
+            U.toast(`🎉 50 포인트 적립! (오늘 ${adCount}/20회 완료)`);
+            U.haptic();
+            if (typeof Profile !== 'undefined') Profile.render();
+            if (typeof Home !== 'undefined') Home.render();
+          });
+        } catch (e) {
+          console.error('AdMob Rewarded Listener Error:', e);
+        }
+      }
+    }
+  },
+
+  async renderAdBanner() {
+    // 모바일(Capacitor) 네이티브 환경인 경우 구글 애드몹 사용
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      if (!window.Capacitor.Plugins.AdMob) {
+        window.Capacitor.Plugins.AdMob = window.Capacitor.registerPlugin('AdMob');
+      }
+      const AdMob = window.Capacitor.Plugins.AdMob;
+      if (AdMob) {
+        try {
+          await AdMob.initialize({});
+          
+          // 하단 네비게이션 바 높이만큼 margin-bottom 설정 (네비바 바로 위에 표시)
+          // CSS variables(--nav-h)나 안전 영역 등을 고려해 대략 60px ~ 70px 정도 띄웁니다.
+          const bottomMargin = 65; 
+          
+          const options = {
+            adId: this.ADMOB_BANNER_ID,
+            adSize: 'BANNER', // BannerAdSize.BANNER
+            position: 'BOTTOM_CENTER', // BannerAdPosition.BOTTOM_CENTER
+            margin: bottomMargin,
+            isTesting: true // 개발 중에는 무조건 true (혹은 테스트 ID 사용)
+          };
+          await AdMob.showBanner(options);
+          
+          // 전역 광고 상태 저장 (앱 전환 시 숨김/보임 처리용)
+          this.adMobActive = true;
+          return;
+        } catch (e) {
+          console.error('AdMob Init/Show Error:', e);
+        }
+      }
+    }
+
+    // 네이티브가 아닌 경우(웹)이거나 애드몹 초기화 실패 시 기존 카카오 AdFit 실행 (옵션)
     // 이미 광고 있으면 중복 생성 방지
     if (U.$('#adfit-banner-wrap')) return;
 
@@ -296,6 +386,7 @@ const App = {
     wrap.appendChild(ins);
     wrap.appendChild(script);
     document.body.appendChild(wrap);
+
 
     // 광고 영역만큼 하단 여백 추가
     document.documentElement.style.setProperty('--ad-banner-height', '62px');

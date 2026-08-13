@@ -1,0 +1,139 @@
+{
+  "api": {
+    "name": "CapacitorKakaoLoginPlugin",
+    "slug": "capacitorkakaologinplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "initialize",
+        "signature": "(data: { appKey: string; }) => Promise<void>",
+        "parameters": [
+          {
+            "name": "data",
+            "docs": "",
+            "type": "{ appKey: string; }"
+          }
+        ],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "param",
+            "text": "appKey"
+          }
+        ],
+        "docs": "Kakao SDK를 초기화합니다.",
+        "complexTypes": [],
+        "slug": "initialize"
+      },
+      {
+        "name": "login",
+        "signature": "() => Promise<KakaoLoginResponse>",
+        "parameters": [],
+        "returns": "Promise<KakaoLoginResponse>",
+        "tags": [
+          {
+            "name": "returns",
+            "text": "카카오 로그인 응답"
+          }
+        ],
+        "docs": "카카오 로그인을 시도합니다.",
+        "complexTypes": [
+          "KakaoLoginResponse"
+        ],
+        "slug": "login"
+      },
+      {
+        "name": "logout",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "카카오 로그아웃을 시도합니다.",
+        "complexTypes": [],
+        "slug": "logout"
+      },
+      {
+        "name": "unlink",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [],
+        "docs": "카카오 플랫폼 안에서 앱과 사용자 카카오계정의 연결 상태를 해제합니다.",
+        "complexTypes": [],
+        "slug": "unlink"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [
+    {
+      "name": "KakaoLoginResponse",
+      "slug": "kakaologinresponse",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "accessToken",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "expiredAt",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "expiresIn",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "refreshToken",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "idToken",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string | undefined"
+        },
+        {
+          "name": "refreshTokenExpiredAt",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "refreshTokenExpiresIn",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        },
+        {
+          "name": "tokenType",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "string"
+        }
+      ]
+    }
+  ],
+  "enums": [],
+  "typeAliases": [],
+  "pluginConfigs": []
+}

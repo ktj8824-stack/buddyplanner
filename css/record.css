@@ -17,7 +17,7 @@
 .best-score-card {
   background: 
     repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 6px),
-    linear-gradient(145deg, #3f3f46 0%, #18181b 100%);
+    linear-gradient(145deg, #62626b 0%, #3f3f46 100%);
   border: 1px solid rgba(191, 149, 63, 0.4);
   border-radius: var(--r-xl);
   padding: 16px;
@@ -159,7 +159,7 @@
 }
 
 .record-card {
-  background: rgba(20, 20, 24, 0.9);
+  background: linear-gradient(145deg, #62626b 0%, #3f3f46 100%);
   border-radius: var(--r-xl);
   padding: 16px;
   border: 1px solid rgba(255,255,255,0.05);

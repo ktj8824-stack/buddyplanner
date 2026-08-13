@@ -191,8 +191,10 @@ const State = {
     if (!s.course) s.course = { name: '골프장', lat: 0, lng: 0 };
     if (!s.teeOff || typeof s.teeOff !== 'string') s.teeOff = '07:00';
     
-    const [th, tm] = s.teeOff.split(':').map(Number);
-    const teeTotal = (th || 7) * 60 + (tm || 0);
+    const [thRaw, tmRaw] = s.teeOff.split(':').map(Number);
+    const th = isNaN(thRaw) ? 7 : thRaw;
+    const tm = isNaN(tmRaw) ? 0 : tmRaw;
+    const teeTotal = th * 60 + tm;
     const mannerTime = (s.hasMeal && s.mealRestaurant) ? 30 : 40;
     const arrival = teeTotal - mannerTime;
 

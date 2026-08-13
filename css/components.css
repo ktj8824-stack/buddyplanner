@@ -63,7 +63,7 @@
 .field-input:hover { background: var(--bg-input-hover); border-color: var(--border-default); }
 .field-input:focus-within { background: var(--bg-input-focus); border-color: var(--border-accent); box-shadow: var(--glow-accent); }
 .field-input input { 
-  flex:1; height:100%; 
+  flex:1; min-width:0; height:100%; 
   font-family: inherit; font-size:var(--fs-base); font-weight:var(--fw-medium); color:var(--text-100);
   padding:0; margin:0; border:none; outline:none; background:transparent; box-sizing:border-box;
 }

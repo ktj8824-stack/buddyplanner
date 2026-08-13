@@ -25,6 +25,16 @@
   z-index: 1;
   opacity: 0;
   animation: fadeIn 1.5s ease forwards;
+  pointer-events: none;
+}
+
+/* 모바일 안드로이드 웹뷰 재생 버튼 강제 숨김 */
+.splash-video-bg::-webkit-media-controls {
+  display: none !important;
+}
+.splash-video-bg::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  -webkit-appearance: none;
 }
 
 .splash-overlay {
@@ -71,19 +81,27 @@
   transform: translateY(20px);
   
   /* 럭셔리 골드 그라데이션 및 샤인 효과 */
-  background: linear-gradient(to right, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+  background: linear-gradient(-45deg, #bf953f 15%, #fcf6ba 30%, #b38728 45%, #fbf5b7 60%, #bf953f 75%);
   background-size: 200% auto;
   color: transparent;
+  -webkit-text-fill-color: transparent;
   -webkit-background-clip: text;
   background-clip: text;
   
   /* 화려한 후광(Glow) 효과 */
   filter: drop-shadow(0 0 15px rgba(252, 246, 186, 0.4)) drop-shadow(0 4px 10px rgba(0,0,0,0.8));
   
-  /* 텍스트 등장 + 표면이 빛나는 애니메이션 */
-  animation: 
-    fadeInUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards,
-    shineText 4s linear infinite;
+  /* 모바일 강제 리페인트 트리거 */
+  will-change: background-position, opacity, transform;
+  -webkit-transform: translateZ(0);
+  
+  /* 텍스트 등장 + 표면이 빛나는 애니메이션 (분리) */
+  animation-name: fadeInUp, shineText;
+  animation-duration: 1.2s, 3.5s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1), linear;
+  animation-delay: 0.5s, 0s;
+  animation-fill-mode: forwards, none;
+  animation-iteration-count: 1, infinite;
 }
 
 .splash-subtitle {
@@ -135,5 +153,6 @@
 }
 
 @keyframes shineText {
-  to { background-position: 200% center; }
+  0% { background-position-x: 0%; }
+  100% { background-position-x: -200%; }
 }

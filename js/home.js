@@ -49,6 +49,18 @@ const Home = {
       `;
     }
 
+    let recentScore = 89;
+    try {
+      const recordsData = localStorage.getItem('bp_records_v1');
+      if (recordsData) {
+        const records = JSON.parse(recordsData);
+        const sortedDates = Object.keys(records).sort((a, b) => new Date(b) - new Date(a));
+        if (sortedDates.length > 0) {
+          recentScore = records[sortedDates[0]].score || recentScore;
+        }
+      }
+    } catch (e) {}
+
     el.innerHTML = `
       <div class="screen-scroll dash-scroll bg-light">
         
@@ -78,7 +90,7 @@ const Home = {
             <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 10px 12px; justify-content: space-between;" onclick="App.navigate('record')">
               <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:-2px;">
                 <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:13px; margin-bottom:4px;">최근 스코어</span>
-                <span style="font-size:19px; font-weight:800; color:var(--text-100); line-height:1;">89<span style="font-size:12px; font-weight:600;">타</span></span>
+                <span style="font-size:19px; font-weight:800; color:var(--text-100); line-height:1;">${recentScore}<span style="font-size:12px; font-weight:600;">타</span></span>
               </div>
               <div onclick="App.navigate('record'); event.stopPropagation();" style="font-size:12px; color:#fff; background:var(--text-300); padding:3px 0; border-radius:6px; font-weight:600; display:flex; justify-content:center; align-items:center; gap:4px; width:100%; margin-top:4px;">
                 <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 스코어등록
@@ -86,17 +98,16 @@ const Home = {
             </div>
           </div>
         </div>        <!-- 2. Weekly Calendar -->
-        <div style="padding: 0 var(--sp-4) 12px;">
-          <div class="stat-card" style="padding: 16px; border:none; background:#fff; border-radius:16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <div style="padding: 0 8px 12px;">
+          <div class="stat-card" style="padding: 12px; border: 1px solid #ddd; background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('./img/golf_bg.png') center/cover no-repeat; border-radius:16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
               <span style="font-size: 20px; font-weight: 800; color:var(--text-100);">${new Date().getMonth() + 1}월 일정</span>
               <div style="display:flex; gap:8px;">
                 <div role="button" tabindex="0" style="font-size: 13px; font-weight:700; color:#fff; cursor:pointer; padding: 4px 12px; border-radius: 6px; background: var(--text-300); display:flex; align-items:center; justify-content:center;" onclick="App.navigate('register');">+ 일정등록</div>
-                <div role="button" tabindex="0" style="font-size: 13px; font-weight:700; color:var(--accent); cursor:pointer; padding: 4px 12px; border-radius: 6px; background: rgba(255, 91, 41, 0.05); display:flex; align-items:center; justify-content:center;" onclick="if(window.Calendar) Calendar.initCal(); App.navigate('calendar');">전체보기</div>
               </div>
             </div>
             
-            <div style="display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;" class="hide-scrollbar">
+            <div style="display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;" class="hide-scrollbar">
               ${Array.from({length: 30}).map((_, i) => {
                  let d = new Date();
                  d.setDate(d.getDate() + i);
@@ -104,16 +115,14 @@ const Home = {
                  let isToday = i === 0;
                  
                  let hasSchedule = State.getSchedulesForDate(d.getFullYear(), d.getMonth(), d.getDate()).length > 0;
-                 let highlight = isToday 
-                   ? `background:transparent; border: 1.5px solid var(--ios-blue);` 
-                   : `background:rgba(0,0,0,0.02); border: 1.5px solid transparent;`;
+                 let highlight = `background:transparent; border:none;`;
                  let dateStyle = isToday 
-                   ? `color: var(--ios-blue); margin-top:2px;` 
-                   : `color: var(--text-100); margin-top:2px;`;
+                   ? `color: #fff; background: var(--ios-blue); margin-top:2px; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px;` 
+                   : `color: var(--text-100); margin-top:2px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:19px;`;
                  let dayColor = d.getDay() === 0 ? 'var(--ios-red)' : d.getDay() === 6 ? 'var(--ios-blue)' : 'var(--text-400)';
                  
                  return `
-                   <div style="min-width: 46px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:10px 0 6px 0; border-radius:12px; cursor:pointer; box-sizing:border-box; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
+                   <div style="width: calc((100% - 24px) / 7); min-width: calc((100% - 24px) / 7); flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:10px 0 14px 0; border-radius:12px; cursor:pointer; box-sizing:border-box; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
                      <div style="font-size:12.5px; font-weight:700; color:${dayColor}; margin-bottom:2px;">${dayName}</div>
                      <div style="font-size:19px; font-weight:800; ${dateStyle}">${d.getDate()}</div>
                      <div style="height:12px; display:flex; align-items:center; justify-content:center; margin-top:2px;">
@@ -153,12 +162,12 @@ const Home = {
             <span style="font-weight:700;">라운딩 일지</span>
           </div>
 
-          <!-- 2. 골마켓 -->
-          <div class="round-menu-item" onclick="App.navigate('restaurant')">
+          <!-- 2. 버디마켓 -->
+          <div class="round-menu-item" onclick="App.navigate('market')">
             <div class="round-icon icon-market" style="border:none;">
               <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
             </div>
-            <span style="font-weight:700;">골마켓</span>
+            <span style="font-weight:700;">버디마켓</span>
           </div>
 
           <!-- 3. 국내투어 -->
@@ -211,7 +220,7 @@ const Home = {
           </div>
         </div>
 
-        <div style="text-align:center; padding: 20px;">
+        <div style="text-align:center; padding: 20px; margin-top: 40px;">
           <button onclick="localStorage.clear(); location.reload();" style="background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:8px; font-size:12px; cursor:pointer;">
             🔄 데이터 초기화 (로그아웃)
           </button>

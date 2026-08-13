@@ -12,14 +12,7 @@ const Splash = {
     const container = U.$('#screen-splash');
     if (!container) return;
 
-    // Use a high-quality golf slow-motion video as placeholder
-    // Users can replace this URL with their own video
-    const videoUrl = 'https://assets.mixkit.co/videos/preview/mixkit-golf-player-hitting-the-ball-in-slow-motion-41857-large.mp4';
-    
     container.innerHTML = `
-      <video class="splash-video-bg" autoplay loop muted playsinline>
-        <source src="${videoUrl}" type="video/mp4">
-      </video>
       <div class="splash-overlay"></div>
       <div class="splash-content">
         <p class="splash-top-text">나만의 비서</p>
