@@ -20,68 +20,29 @@ const App = {
     // Automatically schedule alarms for today's events in the background
     Timeline.autoScheduleAllAlarms();
     
-    // Check for shared schedule link (두 가지 형식 모두 지원)
-    const searchParams = new URLSearchParams(window.location.search);
-    let sharedPayload = searchParams.get('s');
-    const hash = window.location.hash;
-    let hasShared = false;
-
-    if (sharedPayload) {
-      while (sharedPayload.includes('%')) {
-        try {
-          const decoded = decodeURIComponent(sharedPayload);
-          if (decoded === sharedPayload) break;
-          sharedPayload = decoded;
-        } catch(e) { break; }
-      }
-      
-      // 카카오톡 공유 링크 (?s= 형식, 초경량 압축)
+    // Capacitor Native DeepLink Event Listener
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
       try {
-        const arr = sharedPayload.split('|');
-        const schedData = {
-          date: arr[0] ? new Date(arr[0]) : new Date(),
-          teeOff: arr[1] || '07:00',
-          startPoint: arr[2] || '집',
-          course: { name: arr[3] || '', lat: parseFloat(arr[4]) || 0, lng: parseFloat(arr[5]) || 0 },
-          companions: [],
-          prepTime: parseInt(arr[9]) || 30,
-          travelTime: parseInt(arr[10]) || 60,
-          hasMeal: arr[11] === '1',
-          mealDuration: parseInt(arr[12]) || 30,
-          travelToRestaurant: parseInt(arr[13]) || 0
-        };
-        if (arr[6]) {
-          schedData.mealRestaurant = { name: arr[6], lat: parseFloat(arr[7]) || 0, lng: parseFloat(arr[8]) || 0 };
-        }
-        State.addSchedule(schedData);
-        State.currentScheduleIdx = State.schedules.length - 1;
-        window.history.replaceState('', document.title, window.location.pathname);
-        hasShared = true;
+        window.Capacitor.Plugins.App.addListener('appUrlOpen', (data) => {
+          if (data && data.url) {
+            console.log('🔗 DeepLink appUrlOpen triggered:', data.url);
+            App.handleIncomingUrl(data.url);
+          }
+        });
       } catch (e) {
-        console.error('Kakao shared schedule import failed', e);
-        U.toast('공유된 일정을 불러오는데 실패했습니다.');
-      }
-    } else if (hash && hash.startsWith('#shared=')) {
-      // 타임라인 공유하기 링크 (#shared= 형식, 풀 JSON)
-      try {
-        const payload = decodeURIComponent(hash.substring(8));
-        const decoded = decodeURIComponent(atob(payload));
-        const schedData = JSON.parse(decoded);
-        if (schedData.date) schedData.date = new Date(schedData.date);
-        State.addSchedule(schedData);
-        State.currentScheduleIdx = State.schedules.length - 1;
-        window.history.replaceState('', document.title, window.location.pathname);
-        hasShared = true;
-      } catch (e) {
-        console.error('Text shared schedule import failed', e);
-        U.toast('공유된 일정을 불러오는데 실패했습니다.');
+        console.warn('Capacitor App listener setup warning:', e);
       }
     }
 
-    if (hasShared) {
-      // 스플래시 없이 바로 타임라인으로 이동 (화면 생성 보장)
-      App.viewTimeline(State.currentScheduleIdx);
-    } else {
+    // Check for shared schedule link on direct startup (웹 & 앱 구동 시)
+    let hasShared = false;
+    const initialSched = this.handleIncomingUrl(window.location.href);
+    if (initialSched) {
+      window.history.replaceState('', document.title, window.location.pathname);
+      hasShared = true;
+    }
+
+    if (!hasShared) {
       // Start with splash screen
       this.navigate('splash');
     }
@@ -526,6 +487,157 @@ const App = {
       const input = U.$('#addr-search-input');
       if (input) setTimeout(() => input.focus(), 100);
     });
+  },
+
+  parseSharedPayload(rawUrl) {
+    if (!rawUrl) return null;
+    try {
+      let searchParams = null;
+      let hash = '';
+      if (rawUrl.includes('?')) {
+        const queryStr = rawUrl.substring(rawUrl.indexOf('?'));
+        searchParams = new URLSearchParams(queryStr);
+      }
+      if (rawUrl.includes('#')) {
+        hash = rawUrl.substring(rawUrl.indexOf('#'));
+      }
+      
+      let sharedPayload = searchParams ? searchParams.get('s') : null;
+      
+      if (sharedPayload) {
+        while (sharedPayload.includes('%')) {
+          try {
+            const decoded = decodeURIComponent(sharedPayload);
+            if (decoded === sharedPayload) break;
+            sharedPayload = decoded;
+          } catch(e) { break; }
+        }
+        
+        const arr = sharedPayload.split('|');
+        let schedData = null;
+
+        if (arr[0] === 'v2') {
+          // Version 2 format (주소, 집결지, 식후 식당 전체 포함)
+          schedData = {
+            date: arr[1] ? new Date(arr[1]) : new Date(),
+            teeOff: arr[2] || '07:00',
+            startPoint: arr[3] || '집',
+            course: { name: arr[4] || '', addr: arr[5] || '', lat: parseFloat(arr[6]) || 0, lng: parseFloat(arr[7]) || 0 },
+            companions: [],
+            prepTime: parseInt(arr[11]) || 30,
+            travelTime: parseInt(arr[12]) || 60,
+            hasMeal: arr[13] === '1',
+            mealDuration: parseInt(arr[14]) || 30,
+            travelToRestaurant: parseInt(arr[15]) || 0,
+            hasMeetingPoint: arr[16] === '1',
+            travelToMeeting: parseInt(arr[20]) || 0,
+            hasPostMeal: arr[21] === '1'
+          };
+          if (arr[8]) {
+            schedData.mealRestaurant = { name: arr[8], lat: parseFloat(arr[9]) || 0, lng: parseFloat(arr[10]) || 0 };
+          }
+          if (arr[17]) {
+            schedData.meetingPointObj = { name: arr[17], lat: parseFloat(arr[18]) || 0, lng: parseFloat(arr[19]) || 0 };
+          }
+          if (arr[22]) {
+            schedData.postMealRestaurant = { name: arr[22], lat: parseFloat(arr[23]) || 0, lng: parseFloat(arr[24]) || 0 };
+          }
+        } else {
+          // Version 1 레거시 형식
+          schedData = {
+            date: arr[0] ? new Date(arr[0]) : new Date(),
+            teeOff: arr[1] || '07:00',
+            startPoint: arr[2] || '집',
+            course: { name: arr[3] || '', addr: '', lat: parseFloat(arr[4]) || 0, lng: parseFloat(arr[5]) || 0 },
+            companions: [],
+            prepTime: parseInt(arr[9]) || 30,
+            travelTime: parseInt(arr[10]) || 60,
+            hasMeal: arr[11] === '1',
+            mealDuration: parseInt(arr[12]) || 30,
+            travelToRestaurant: parseInt(arr[13]) || 0
+          };
+          if (arr[6]) {
+            schedData.mealRestaurant = { name: arr[6], lat: parseFloat(arr[7]) || 0, lng: parseFloat(arr[8]) || 0 };
+          }
+        }
+        return schedData;
+      } else if (hash && hash.startsWith('#shared=')) {
+        const payload = decodeURIComponent(hash.substring(8));
+        const decoded = decodeURIComponent(atob(payload));
+        const schedData = JSON.parse(decoded);
+        if (schedData.date) schedData.date = new Date(schedData.date);
+        return schedData;
+      }
+    } catch (e) {
+      console.error('Failed to parse shared payload:', e);
+    }
+    return null;
+  },
+
+  handleIncomingUrl(urlStr) {
+    if (!urlStr) return null;
+    console.log('🔗 DeepLink URL received:', urlStr);
+    const schedData = this.parseSharedPayload(urlStr);
+    if (schedData) {
+      State.incomingSchedule = schedData;
+      console.log('✅ Shared schedule parsed successfully:', schedData);
+      setTimeout(() => this.showSharedScheduleModal(schedData), 300);
+      return schedData;
+    }
+    return null;
+  },
+
+  showSharedScheduleModal(schedData) {
+    if (!schedData) return;
+    const courseName = schedData.course && schedData.course.name ? schedData.course.name : '골프장';
+    const courseAddr = schedData.course && schedData.course.addr ? ` (${schedData.course.addr})` : '';
+    const dateStr = schedData.date ? U.fmtDateShort(schedData.date) : '';
+    const teeOff = schedData.teeOff || '';
+    const meetingName = (schedData.hasMeetingPoint && schedData.meetingPointObj) ? schedData.meetingPointObj.name : null;
+    const mealName = (schedData.hasMeal && schedData.mealRestaurant) ? schedData.mealRestaurant.name : null;
+
+    const modalId = 'shared-schedule-confirm-modal';
+    const oldModal = document.getElementById(modalId);
+    if (oldModal) oldModal.remove();
+
+    const html = `
+      <div id="${modalId}" class="modal-bg open" style="z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); position:fixed; top:0; left:0; right:0; bottom:0;">
+        <div class="modal-card" style="background:#ffffff; border-radius:24px; padding:24px; width:90%; max-width:380px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); transform:scale(1); transition:transform 0.2s ease;">
+          <div style="font-size:42px; margin-bottom:6px;">⛳</div>
+          <h3 style="font-size:20px; font-weight:800; color:#111111; margin-bottom:6px;">공유받은 라운딩 일정</h3>
+          <p style="font-size:13px; color:#666666; margin-bottom:18px;">카카오톡으로 공유된 일정을 내 스케줄에 등록할까요?</p>
+          
+          <div style="background:#f4f6f8; border-radius:16px; padding:16px; text-align:left; font-size:14px; margin-bottom:22px; line-height:1.7; color:#222;">
+            <div><strong>📍 골프장:</strong> ${courseName}${courseAddr}</div>
+            <div><strong>📅 라운딩 일시:</strong> ${dateStr} ${teeOff}</div>
+            ${meetingName ? `<div style="color:#007aff;"><strong>🤝 중간 집결지:</strong> ${meetingName}</div>` : ''}
+            ${mealName ? `<div style="color:#28a745;"><strong>🍽️ 식당:</strong> ${mealName}</div>` : ''}
+            <div><strong>🚗 출발지 기준:</strong> ${schedData.startPoint || '집'}</div>
+          </div>
+
+          <div style="display:flex; gap:10px;">
+            <button id="btn-cancel-shared-sched" style="flex:1; padding:14px; border:none; background:#e9ecef; color:#495057; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer;">취소</button>
+            <button id="btn-accept-shared-sched" style="flex:2; padding:14px; border:none; background:#007aff; color:#ffffff; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(0,122,255,0.3);">내 일정에 등록 ⛳</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    document.getElementById('btn-cancel-shared-sched').onclick = () => {
+      const el = document.getElementById(modalId);
+      if (el) el.remove();
+    };
+
+    document.getElementById('btn-accept-shared-sched').onclick = () => {
+      const el = document.getElementById(modalId);
+      if (el) el.remove();
+      State.addSchedule(schedData);
+      State.currentScheduleIdx = State.schedules.length - 1;
+      App.viewTimeline(State.currentScheduleIdx);
+      U.toast('✅ 공유받은 일정이 내 플래너에 성공적으로 등록되었습니다!');
+    };
   }
 };
 

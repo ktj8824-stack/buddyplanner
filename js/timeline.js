@@ -283,9 +283,11 @@ const Timeline = {
     Timeline._pendingShareS = s;
     const baseDomain = 'https://buddyplanner.kr';
 
-    // ── 카카오톡 공유 용: 초경량 압축 방식 (?s=) ────────────────────────────
+    // ── 카카오톡 공유 용: 초경량 압축 방식 v2 (?s=) ────────────────────────────
     const c = s.course || {};
     const r = s.mealRestaurant || {};
+    const mp = s.meetingPointObj || {};
+    const pm = s.postMealRestaurant || {};
     
     let dateVal = s.date || '';
     if (dateVal instanceof Date) {
@@ -295,10 +297,12 @@ const Timeline = {
     }
 
     const arr = [
+      'v2',
       dateVal,
       s.teeOff || '',
       s.startPoint || '집',
       c.name || '',
+      c.addr || '',
       c.lat || '',
       c.lng || '',
       r.name || '',
@@ -308,12 +312,21 @@ const Timeline = {
       s.travelTime || 60,
       s.hasMeal ? 1 : 0,
       s.mealDuration || 0,
-      s.travelToRestaurant || 0
+      s.travelToRestaurant || 0,
+      s.hasMeetingPoint ? 1 : 0,
+      mp.name || '',
+      mp.lat || '',
+      mp.lng || '',
+      s.travelToMeeting || 0,
+      s.hasPostMeal ? 1 : 0,
+      pm.name || '',
+      pm.lat || '',
+      pm.lng || ''
     ];
     const kakaoPayload = encodeURIComponent(arr.join('|'));
     Timeline._pendingShareUrl = baseDomain + '/?s=' + kakaoPayload;
 
-    // 중간 팝업 없이 즉시 카카오톡 공유 실행!
+    // 즉시 카카오톡 공유 실행!
     this.executeKakaoShare();
   },
 
@@ -327,13 +340,10 @@ const Timeline = {
         const courseName = s.course ? s.course.name : '골프장';
         const dateStr = s.date ? U.fmtDateShort(s.date) : '';
         const teeOff = s.teeOff || '';
-        const execParams = Timeline._pendingShareUrl ? (Timeline._pendingShareUrl.split('?')[1] || '') : '';
 
         const shareLinkObj = {
           mobileWebUrl: Timeline._pendingShareUrl,
-          webUrl: Timeline._pendingShareUrl,
-          androidExecutionParams: execParams,
-          iosExecutionParams: execParams
+          webUrl: Timeline._pendingShareUrl
         };
 
         Kakao.Share.sendDefault({
