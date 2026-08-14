@@ -522,7 +522,7 @@ const App = {
             date: arr[1] ? new Date(arr[1]) : new Date(),
             teeOff: arr[2] || '07:00',
             startPoint: arr[3] || '집',
-            course: { name: arr[4] || '', addr: arr[5] || '', lat: parseFloat(arr[6]) || 0, lng: parseFloat(arr[7]) || 0 },
+            course: { name: arr[4] || '', addr: arr[5] || '', lat: parseFloat(arr[6]) || 0, lng: parseFloat(arr[7]) || 0, region: '' },
             companions: [],
             prepTime: parseInt(arr[11]) || 30,
             travelTime: parseInt(arr[12]) || 60,
@@ -536,8 +536,8 @@ const App = {
           if (arr[8]) {
             schedData.mealRestaurant = { name: arr[8], lat: parseFloat(arr[9]) || 0, lng: parseFloat(arr[10]) || 0 };
           }
-          if (arr[17]) {
-            schedData.meetingPointObj = { name: arr[17], lat: parseFloat(arr[18]) || 0, lng: parseFloat(arr[19]) || 0 };
+          if (arr[16] === '1') {
+            schedData.meetingPointObj = { name: arr[17] || '집결지', lat: parseFloat(arr[18]) || 0, lng: parseFloat(arr[19]) || 0 };
           }
           if (arr[22]) {
             schedData.postMealRestaurant = { name: arr[22], lat: parseFloat(arr[23]) || 0, lng: parseFloat(arr[24]) || 0 };
