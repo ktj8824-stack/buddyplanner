@@ -321,7 +321,8 @@ const Timeline = {
       s.hasPostMeal ? 1 : 0,
       pm.name || '',
       pm.lat || '',
-      pm.lng || ''
+      pm.lng || '',
+      c.region || ''  // arr[25]: 골프장 지역 (시/도 구)
     ];
     const kakaoPayload = encodeURIComponent(arr.join('|'));
     Timeline._pendingShareUrl = baseDomain + '/?s=' + kakaoPayload;

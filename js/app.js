@@ -522,7 +522,7 @@ const App = {
             date: arr[1] ? new Date(arr[1]) : new Date(),
             teeOff: arr[2] || '07:00',
             startPoint: arr[3] || '집',
-            course: { name: arr[4] || '', addr: arr[5] || '', lat: parseFloat(arr[6]) || 0, lng: parseFloat(arr[7]) || 0, region: '' },
+            course: { name: arr[4] || '', addr: arr[5] || '', lat: parseFloat(arr[6]) || 0, lng: parseFloat(arr[7]) || 0, region: arr[25] || '' },
             companions: [],
             prepTime: parseInt(arr[11]) || 30,
             travelTime: parseInt(arr[12]) || 60,
