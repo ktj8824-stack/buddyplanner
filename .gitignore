@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build data
+local_build_data/
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# Xcode
+ios/App/build/
+ios/App/DerivedData/
+*.xcuserdata/
+
+# Android build
+android/app/build/
+android/.gradle/
+android/build/

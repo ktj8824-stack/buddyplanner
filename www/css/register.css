@@ -1,0 +1,108 @@
+/* =========================================
+   BuddyPlanner v2 — Register Screen
+   ========================================= */
+
+.reg-content { padding: var(--sp-4) var(--sp-5) var(--sp-5); }
+.reg-form { display:flex; flex-direction:column; }
+
+/* ── Search Autocomplete ── */
+.search-wrap { position:relative; }
+.search-drop {
+  position:absolute; top:calc(100% + 4px); left:0; right:0;
+  background:var(--bg-elevated); border:1px solid var(--border-default);
+  border-radius:var(--r-md); max-height:220px; overflow-y:auto;
+  z-index:var(--z-dropdown); box-shadow:var(--shadow-lg);
+  display:none;
+}
+.search-drop.show { display:block; animation:scaleIn var(--dur-fast) var(--ease-out); }
+.search-item {
+  display:flex; align-items:center; gap:var(--sp-3);
+  padding:var(--sp-3) var(--sp-4); cursor:pointer;
+  transition: background var(--dur-fast);
+  border-bottom:1px solid var(--border-subtle);
+}
+.search-item:last-child { border-bottom:none; }
+.search-item:hover { background:var(--bg-input); }
+.search-item-icon { width:36px;height:36px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;background:var(--accent-dim);font-size:1rem;flex-shrink:0; }
+.search-item-info { flex:1;min-width:0; }
+.search-item-name { font-size:var(--fs-sm);font-weight:var(--fw-semibold); }
+.search-item-name .hl { color:var(--accent); }
+.search-item-addr { font-size:var(--fs-xs);color:var(--text-500);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+
+/* ── Picker ── */
+.picker-btn {
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;height:52px;padding:0 var(--sp-4);
+  background:var(--bg-input);border:1px solid var(--border-subtle);
+  border-radius:var(--r-md);cursor:pointer;
+  transition:all var(--dur-fast) var(--ease-out);
+}
+.picker-btn:hover { background:var(--bg-input-hover);border-color:var(--border-default); }
+.picker-btn:active { transform:scale(0.99); }
+.picker-val { font-size:var(--fs-base);font-weight:var(--fw-medium);color:var(--text-100); }
+.picker-val.is-empty { color:var(--text-500); }
+.picker-ico { font-size:1.15rem;color:var(--text-500); }
+
+/* ── Prep Time Pills ── */
+.pills { display:flex; gap:var(--sp-2); flex-wrap:wrap; }
+.pill {
+  height:40px; padding:0 var(--sp-4); border-radius:var(--r-full);
+  border:1px solid var(--border-subtle); background:var(--bg-input);
+  font-size:var(--fs-sm); font-weight:var(--fw-medium); color:var(--text-300);
+  cursor:pointer; transition:all var(--dur-fast) var(--ease-out);
+  display:flex;align-items:center;justify-content:center;
+}
+.pill:hover { border-color:var(--border-default);background:var(--bg-input-hover); }
+.pill.on { background:var(--accent-dim);border-color:rgba(34,201,135,0.35);color:var(--emerald-200);font-weight:var(--fw-semibold); }
+
+/* ── Invite ── */
+.invite-btn {
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;height:52px;padding:0 var(--sp-4);
+  background:var(--bg-input);border:1px solid var(--border-subtle);
+  border-radius:var(--r-md);cursor:pointer;
+  color:var(--text-500);font-size:var(--fs-base);font-weight:var(--fw-medium);
+  transition:all var(--dur-fast) var(--ease-out);
+}
+.invite-btn:hover { background:var(--bg-input-hover);border-color:var(--border-default); }
+.invite-tags { display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-top:var(--sp-2); }
+.invite-tag {
+  display:flex;align-items:center;gap:var(--sp-1);
+  padding:4px var(--sp-3);background:var(--accent-dim);
+  border:1px solid rgba(34,201,135,0.2);border-radius:var(--r-full);
+  font-size:var(--fs-xs);font-weight:var(--fw-medium);color:var(--emerald-200);
+}
+.invite-tag .x { width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer; }
+.invite-tag .x:hover { background:rgba(239,68,68,0.3); }
+
+/* ── Meal Toggle Section ── */
+.meal-section {
+  margin-top: var(--sp-2);
+  padding: 12px 16px;
+  background: var(--grad-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-lg);
+}
+.meal-header {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.meal-title {
+  font-size: var(--fs-base); font-weight: var(--fw-bold);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.meal-body {
+  margin-top: 12px;
+  display: flex; flex-direction: column; gap: 12px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: all var(--dur-slow) var(--ease-out);
+}
+.meal-body.show {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* ── Submit ── */
+.reg-submit { padding:var(--sp-5);padding-bottom:calc(var(--nav-h)+env(safe-area-inset-bottom, 0px)+var(--sp-5)); }
+.reg-submit .btn { height:58px; font-size:var(--fs-lg); }

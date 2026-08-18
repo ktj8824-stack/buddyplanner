@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width,initial-scale=1.0,viewport-fit=cover,maximum-scale=1.0,user-scalable=no" />
+  <meta name="description" content="버디플래너 — 골프 특화 스마트 일정 관리. 캘린더 연동, 라운딩 시간 역산, 다단계 내비, 맞춤 맛집 추천." />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6195996093323539"
+    crossorigin="anonymous"></script>
+
+  <!-- OAuth SDKs -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/1.43.1/kakao.min.js" crossorigin="anonymous"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+    crossorigin="anonymous"></script>
+
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <title>버디플래너 | 골프 라운딩 스마트 플래너</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛳</text></svg>" />
+  <link rel="manifest" href="manifest.json" />
+
+  <link rel="stylesheet" href="css/variables.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600;1,900&family=Montserrat:wght@300;400;700;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./css/variables.css?v=124">
+  <link rel="stylesheet" href="./css/base.css?v=124">
+  <link rel="stylesheet" href="./css/components.css?v=133">
+  <link rel="stylesheet" href="./css/calendar.css?v=133">
+  <link rel="stylesheet" href="./css/home.css?v=133">
+  <link rel="stylesheet" href="./css/timeline.css?v=133">
+  <link rel="stylesheet" href="./css/register.css?v=133">
+  <link rel="stylesheet" href="./css/restaurant.css?v=133">
+  <link rel="stylesheet" href="./css/splash.css?v=133">
+  <link rel="stylesheet" href="./css/login.css?v=133">
+  <link rel="stylesheet" href="./css/profile.css?v=133">
+  <link rel="stylesheet" href="css/upgrade.css?v=133" />
+  <link rel="stylesheet" href="css/record.css?v=133" />
+  <link rel="stylesheet" href="css/community.css?v=133" />
+</head>
+
+<body>
+  <div id="app">
+    <div id="screen-login" class="screen"></div>
+    <div id="screen-onboarding" class="screen"></div>
+    <div id="screen-home" class="screen"></div>
+    <div id="screen-calendar" class="screen"></div>
+    <div id="screen-register" class="screen"></div>
+    <div id="screen-timeline" class="screen"></div>
+    <div id="screen-restaurant" class="screen"></div>
+    <div id="screen-profile" class="screen"></div>
+    <div id="screen-upgrade" class="screen"></div>
+    <div id="screen-record" class="screen"></div>
+    <div id="screen-community" class="screen"></div>
+    <div id="screen-splash" class="screen"></div>
+  </div>
+
+
+  <script src="./js/data.js?v=134"></script>
+  <script src="./js/api.js?v=134"></script>
+  <script src="./js/utils.js?v=134"></script>
+  <script src="./js/splash.js?v=134"></script>
+  <script src="./js/home.js?v=134"></script>
+  <script src="./js/calendar.js?v=134"></script>
+  <script src="./js/timeline.js?v=134"></script>
+  <script src="./js/register.js?v=134"></script>
+  <script src="./js/restaurant.js?v=134"></script>
+  <script src="./js/login.js?v=134"></script>
+  <script src="./js/onboarding.js?v=134"></script>
+  <script src="./js/profile.js?v=134"></script>
+  <script src="./js/upgrade.js?v=134"></script>
+  <script src="./js/record.js?v=134"></script>
+  <script src="./js/community.js?v=134"></script>
+  <script src="./js/app.js?v=134"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then(function (names) {
+        for (let name of names) {
+          caches.delete(name);
+        }
+      });
+    }
+  </script>
+</body>
+
+</html>
