@@ -771,10 +771,10 @@ const Timeline = {
         const iArrive = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>`;
         const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
 
-        if (tl.prepStart) events.push({ isPrep: true, time: tl.prepStart, title: '준비', msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep, emoji: '🏃' });
-        if (tl.homeDepart) events.push({ time: tl.homeDepart, title: '이동', msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
+        if (tl.prepStart) events.push({ isNative: true, isPrep: true, time: tl.prepStart, title: '준비', msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep, emoji: '🏃' });
+        if (tl.homeDepart) events.push({ isNative: true, time: tl.homeDepart, title: '이동', msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
         if (tl.mealStart) events.push({ time: tl.mealStart, title: '식사', msg: '식당 예약 시간입니다. 든든한 식사 하세요 🍽️', icon: iMeal, emoji: '🍚' });
-        if (tl.restDepart) events.push({ time: tl.restDepart, title: '이동', msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest, emoji: '🚗' });
+        if (tl.restDepart) events.push({ isNative: true, time: tl.restDepart, title: '이동', msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest, emoji: '🚗' });
         if (tl.arrival) events.push({ time: tl.arrival, title: '도착', msg: '클럽하우스 도착 시간입니다. 환복을 준비하세요 🏌️', icon: iArrive, emoji: '👔' });
         if (tl.teeOff) events.push({ time: tl.teeOff, title: '티오프', msg: '곧 티오프 시간입니다! 멋진 라운딩 되세요 ⛳', icon: iTee, emoji: '⛳' });
 
@@ -790,7 +790,7 @@ const Timeline = {
           const targetTime = getTargetTime(ev.time);
           const delay = targetTime - Date.now();
           if (delay > 0) {
-            if (ev.isPrep && window.NativeApp) {
+            if ((ev.isNative || ev.isPrep) && window.NativeApp) {
               if (typeof window.NativeApp.setAlarmWithData === 'function') {
                 try { window.NativeApp.setAlarmWithData(targetTime, timelineJson); } catch(e) {}
               } else if (typeof window.NativeApp.setAlarm === 'function') {
@@ -849,10 +849,10 @@ const Timeline = {
     const iArrive = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>`;
     const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
 
-    if (tl.prepStart) events.push({ isPrep: true, time: tl.prepStart, title: '준비', msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep, emoji: '🏃' });
-    if (tl.homeDepart) events.push({ time: tl.homeDepart, title: '이동', msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
+    if (tl.prepStart) events.push({ isNative: true, isPrep: true, time: tl.prepStart, title: '준비', msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep, emoji: '🏃' });
+    if (tl.homeDepart) events.push({ isNative: true, time: tl.homeDepart, title: '이동', msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
     if (tl.mealStart) events.push({ time: tl.mealStart, title: '식사', msg: '식당 예약 시간입니다. 든든한 식사 하세요 🍽️', icon: iMeal, emoji: '🍚' });
-    if (tl.restDepart) events.push({ time: tl.restDepart, title: '이동', msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest, emoji: '🚗' });
+    if (tl.restDepart) events.push({ isNative: true, time: tl.restDepart, title: '이동', msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest, emoji: '🚗' });
     if (tl.arrival) events.push({ time: tl.arrival, title: '도착', msg: '클럽하우스 도착 시간입니다. 환복을 준비하세요 🏌️', icon: iArrive, emoji: '👔' });
     if (tl.teeOff) events.push({ time: tl.teeOff, title: '티오프', msg: '곧 티오프 시간입니다! 멋진 라운딩 되세요 ⛳', icon: iTee, emoji: '⛳' });
 
@@ -869,7 +869,7 @@ const Timeline = {
       const targetTime = getTargetTime(ev.time);
       const delay = targetTime - Date.now();
       if (delay > 0) {
-        if (ev.isPrep && window.NativeApp) {
+        if ((ev.isNative || ev.isPrep) && window.NativeApp) {
           if (typeof window.NativeApp.setAlarmWithData === 'function') {
             try { window.NativeApp.setAlarmWithData(targetTime, timelineJson); } catch(e) {}
           } else if (typeof window.NativeApp.setAlarm === 'function') {

@@ -71,10 +71,10 @@
             android:name=".FloatingTrackerService"
             android:exported="false" />
 
-        <!-- Google AdMob Application ID (Test ID) -->
+        <!-- Google AdMob Application ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+            android:value="ca-app-pub-6195996093323539~8134724002"/>
     </application>
 
     <!-- Permissions -->

@@ -48,6 +48,7 @@
   <link rel="stylesheet" href="css/community.css?v=133" />
   <link rel="stylesheet" href="css/market.css?v=133" />
   <link rel="stylesheet" href="css/admin.css?v=133" />
+  <link rel="stylesheet" href="css/polish.css?v=1" />
 </head>
 
 <body>
@@ -65,6 +66,9 @@
     <div id="screen-community" class="screen"></div>
     <div id="screen-market" class="screen"></div>
     <div id="screen-admin" class="screen"></div>
+    <div id="screen-insurance" class="screen"></div>
+    <div id="screen-event" class="screen"></div>
+    <div id="screen-raffle" class="screen"></div>
     <div id="screen-splash" class="screen"></div>
   </div>
 
@@ -86,23 +90,11 @@
   <script src="./js/community.js?v=134"></script>
   <script src="./js/market.js?v=134"></script>
   <script src="./js/admin.js?v=134"></script>
+  <script src="./js/insurance.js?v=134"></script>
+  <script src="./js/event.js?v=134"></script>
+  <script src="./js/raffle.js?v=134"></script>
   <script src="./js/app.js?v=134"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function (registrations) {
-        for (let registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
-    if ('caches' in window) {
-      caches.keys().then(function (names) {
-        for (let name of names) {
-          caches.delete(name);
-        }
-      });
-    }
-  </script>
+
 </body>
 
 </html>

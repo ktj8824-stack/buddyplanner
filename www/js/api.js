@@ -235,3 +235,53 @@ const TmapAPI = {
     }
   }
 };
+
+/* ── 실시간 골프장 날씨 API ── */
+const WeatherAPI = {
+  getWeatherDesc(code) {
+    if (code === 0) return { text: '맑음, 화창함', icon: '☀️' };
+    if (code === 1 || code === 2) return { text: '대체로 맑음', icon: '🌤️' };
+    if (code === 3) return { text: '구름 많음', icon: '☁️' };
+    if (code >= 45 && code <= 48) return { text: '안개 (가시거리 주의)', icon: '🌫️' };
+    if (code >= 51 && code <= 55) return { text: '이슬비', icon: '🌦️' };
+    if (code >= 61 && code <= 65) return { text: '비 예보', icon: '🌧️' };
+    if (code >= 71 && code <= 77) return { text: '눈', icon: '❄️' };
+    if (code >= 80 && code <= 82) return { text: '소나기', icon: '🌦️' };
+    if (code >= 95 && code <= 99) return { text: '뇌우 (낙뢰 주의)', icon: '⛈️' };
+    return { text: '구름 조금', icon: '⛅' };
+  },
+
+  getGolfAdvice(temp, windSpeed, rainProb) {
+    if (rainProb >= 60) return '비 소식이 있습니다. 방수 자켓과 레인그립을 꼭 챙기세요! ☔';
+    if (windSpeed >= 5) return `바람이 다소 강합니다 (${windSpeed}m/s). 한두 클럽 길게 잡으세요! 💨`;
+    if (temp >= 28) return '기온이 높습니다. 충분한 수분 섭취와 자외선 차단 필수! ☀️';
+    if (temp <= 5) return '쌀쌀한 날씨입니다. 핫팩과 방한 장갑을 꼭 챙기세요! 🧤';
+    return '"바람도 잔잔하고 라운딩 가기 딱 좋은 최상의 날씨입니다! ⛳"';
+  },
+
+  async fetchWeather(lat, lng) {
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FTokyo`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('날씨 API 응답 실패');
+      const data = await res.json();
+      const cur = data.current;
+      const wInfo = this.getWeatherDesc(cur.weather_code);
+      const windMs = Math.round((cur.wind_speed_10m / 3.6) * 10) / 10;
+
+      return {
+        temp: Math.round(cur.temperature_2m),
+        feelsLike: Math.round(cur.apparent_temperature),
+        humidity: cur.relative_humidity_2m,
+        weatherText: wInfo.text,
+        weatherIcon: wInfo.icon,
+        windSpeed: windMs,
+        advice: this.getGolfAdvice(cur.temperature_2m, windMs, cur.precipitation > 0 ? 70 : 0)
+      };
+    } catch (e) {
+      console.warn('WeatherAPI fetch error:', e);
+      return null;
+    }
+  }
+};
+

@@ -28,20 +28,32 @@ const Record = {
     let bestScore = Infinity;
     let bestCourse = '기록 없음';
     let bestDate = '-';
+    let totalScore = 0;
+    let validScoreCount = 0;
+    let sortedRecords = [];
     
     for (const [date, rec] of Object.entries(this.records)) {
-      if (rec && typeof rec.score === 'number' && rec.score < bestScore) {
-        bestScore = rec.score;
-        bestCourse = rec.course;
-        const parts = date.split('-');
-        if(parts.length === 3) {
-          bestDate = `${parts[0]}. ${String(parts[1]).padStart(2, '0')}. ${String(parts[2]).padStart(2, '0')}`;
-        } else {
-          bestDate = date;
+      if (rec && typeof rec.score === 'number') {
+        totalScore += rec.score;
+        validScoreCount++;
+        sortedRecords.push({ date, ...rec });
+
+        if (rec.score < bestScore) {
+          bestScore = rec.score;
+          bestCourse = rec.course;
+          const parts = date.split('-');
+          if(parts.length === 3) {
+            bestDate = `${parts[0]}. ${String(parts[1]).padStart(2, '0')}. ${String(parts[2]).padStart(2, '0')}`;
+          } else {
+            bestDate = date;
+          }
         }
       }
     }
     
+    sortedRecords.sort((a,b) => b.date.localeCompare(a.date));
+    const recentScore = sortedRecords.length > 0 ? sortedRecords[0].score : '--';
+    const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '--';
     let scoreDisplay = bestScore === Infinity ? '--' : bestScore;
 
     container.innerHTML = `
@@ -63,6 +75,24 @@ const Record = {
                   <span style="font-size:14px; font-weight:700; color:var(--text-300);">타</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- 라운딩 핵심 통계 바 (신규 업그레이드) -->
+          <div style="display:flex; justify-content:space-around; align-items:center; background:var(--bg-card, #ffffff); border:1px solid var(--border-default); border-radius:14px; padding:12px; margin-top:12px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+            <div style="text-align:center; flex:1;">
+              <div style="font-size:11px; font-weight:600; color:var(--text-400); margin-bottom:2px;">총 라운딩</div>
+              <div style="font-size:16px; font-weight:800; color:var(--text-100);"><span style="color:var(--accent);">${validScoreCount}</span>회</div>
+            </div>
+            <div style="width:1px; height:24px; background:var(--border-default);"></div>
+            <div style="text-align:center; flex:1;">
+              <div style="font-size:11px; font-weight:600; color:var(--text-400); margin-bottom:2px;">평균 타수</div>
+              <div style="font-size:16px; font-weight:800; color:var(--text-100);">${avgScore}<span style="font-size:12px; font-weight:600; color:var(--text-400);">타</span></div>
+            </div>
+            <div style="width:1px; height:24px; background:var(--border-default);"></div>
+            <div style="text-align:center; flex:1;">
+              <div style="font-size:11px; font-weight:600; color:var(--text-400); margin-bottom:2px;">최근 라운딩</div>
+              <div style="font-size:16px; font-weight:800; color:var(--text-100);">${recentScore}<span style="font-size:12px; font-weight:600; color:var(--text-400);">${recentScore !== '--' ? '타' : ''}</span></div>
             </div>
           </div>
         </div>

@@ -1006,12 +1006,14 @@ const Register = {
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(idx);
       Timeline.toggleAlarm();
+      App.showInterstitialAd();
     } else {
       State.addSchedule(schedData);
       U.toast('✅ 스마트 플랜이 생성되었습니다!');
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(State.schedules.length - 1);
       Timeline.toggleAlarm();
+      App.showInterstitialAd();
     }
   }
 };

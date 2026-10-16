@@ -124,10 +124,19 @@ const Market = {
   openLink(url) {
     if (!url) return;
     
-    // 네이티브 앱 환경인 경우 시스템 브라우저 사용 권장
-    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-      window.location.href = url;
-    } else {
+    // 네이티브 앱 환경인 경우 외부 시스템 브라우저로 안전하게 오픈 (웹뷰 이탈 방지)
+    try {
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+        window.Capacitor.Plugins.Browser.open({ url: url });
+        return;
+      }
+    } catch(e) {
+      console.warn('Capacitor Browser plugin fallback:', e);
+    }
+
+    // 시스템 브라우저로 열기 시도 (_system 또는 _blank)
+    const win = window.open(url, '_system');
+    if (!win || win.closed || typeof win.closed === 'undefined') {
       window.open(url, '_blank');
     }
   }

@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin'],
+  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle'],
 
   init() {
     if (!State.loadSchedules()) {
@@ -13,6 +13,7 @@ const App = {
     this.renderNav();
     this.renderAdBanner();
     this.initRewardedAd();
+    this.prepareInterstitialAd();
     
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     State.isPro = localStorage.getItem('bp_pro') === 'true';
@@ -47,8 +48,8 @@ const App = {
       this.navigate('splash');
     }
 
-    // Register Service Worker for PWA
-    if ('serviceWorker' in navigator) {
+    // Register Service Worker for PWA (웹 환경 전용)
+    if ('serviceWorker' in navigator && (!window.Capacitor || !window.Capacitor.isNativePlatform())) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
           .then(reg => console.log('Service Worker Registered!', reg.scope))
@@ -116,6 +117,9 @@ const App = {
         case 'login': Login.init(); break;
         case 'market': Market.init(); break;
         case 'admin': Admin.init(); break;
+        case 'insurance': Insurance.init(); break;
+        case 'event': EventPage.init(); break;
+        case 'raffle': Raffle.init(); break;
       }
     }
     this.updateNav(name === 'timeline' ? 'home' : name);
@@ -238,10 +242,50 @@ const App = {
   // 카카오 AdFit 광고 단위 ID (발급 후 교체)
   ADFIT_UNIT_ID: 'DAN-XXXXXXXXXXXXXXXX',
 
-  // 구글 애드몹 배너 ID (테스트용)
-  ADMOB_BANNER_ID: 'ca-app-pub-3940256099942544/6300978111',
-  // 구글 애드몹 보상형 동영상 광고 ID (테스트용)
-  ADMOB_REWARD_ID: 'ca-app-pub-3940256099942544/5224354917',
+  // 구글 애드몹 배너 ID (실제 광고 단위)
+  ADMOB_BANNER_ID: 'ca-app-pub-6195996093323539/4522782054',
+  // 구글 애드몹 전면(전환) 광고 ID (실제 광고 단위)
+  ADMOB_INTERSTITIAL_ID: 'ca-app-pub-6195996093323539/7047651850',
+  // 구글 애드몹 보상형 동영상 광고 ID (실제 광고 단위)
+  ADMOB_REWARD_ID: 'ca-app-pub-6195996093323539/4620360062',
+
+  async prepareInterstitialAd() {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      if (!window.Capacitor.Plugins.AdMob) {
+        window.Capacitor.Plugins.AdMob = window.Capacitor.registerPlugin('AdMob');
+      }
+      const AdMob = window.Capacitor.Plugins.AdMob;
+      if (AdMob) {
+        try {
+          await AdMob.prepareInterstitial({
+            adId: this.ADMOB_INTERSTITIAL_ID,
+            isTesting: true // 테스트 광고 모드
+          });
+        } catch (e) {
+          console.warn('AdMob Prepare Interstitial Warn:', e);
+        }
+      }
+    }
+  },
+
+  async showInterstitialAd() {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      if (!window.Capacitor.Plugins.AdMob) {
+        window.Capacitor.Plugins.AdMob = window.Capacitor.registerPlugin('AdMob');
+      }
+      const AdMob = window.Capacitor.Plugins.AdMob;
+      if (AdMob) {
+        try {
+          await AdMob.showInterstitial();
+          // 표시 후 다음 전환을 위해 백그라운드에서 재준비
+          this.prepareInterstitialAd();
+        } catch (e) {
+          console.warn('AdMob Show Interstitial Warn:', e);
+          this.prepareInterstitialAd();
+        }
+      }
+    }
+  },
 
   async initRewardedAd() {
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
@@ -294,7 +338,7 @@ const App = {
             adSize: 'BANNER', // BannerAdSize.BANNER
             position: 'BOTTOM_CENTER', // BannerAdPosition.BOTTOM_CENTER
             margin: bottomMargin,
-            isTesting: true // 개발 중에는 무조건 true (혹은 테스트 ID 사용)
+            isTesting: true // 테스트 광고 모드
           };
           await AdMob.showBanner(options);
           
@@ -358,53 +402,99 @@ const App = {
     U.$$('.gnb-item').forEach(i => i.classList.toggle('active', i.dataset.s === name));
   },
 
-  showWeather() {
-    this.showModal('실시간 골프장 날씨', '<div style="padding: 32px 16px; text-align: center; color: var(--text-300); font-weight:600;"><div style="font-size:24px; margin-bottom:12px;">📡</div>기상청 데이터를 불러오는 중입니다...</div>');
+  async showWeather() {
+    // 1. 가장 가까운 라운딩 골프장 또는 현재 일정 위치 파악
+    let targetName = '서울특별시 강남구';
+    let targetLat = 37.4979;
+    let targetLng = 127.0276;
     
-    // Simulate API Fetch
-    setTimeout(() => {
-      const bg = U.$('#app-modal');
-      if (!bg) return;
-      const list = bg.querySelector('.modal-list');
-      if (list) {
-        list.innerHTML = `
-          <div style="padding: 16px; display:flex; flex-direction:column; align-items:center; gap:16px;">
-            <div style="font-size:14px; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.03); padding:4px 12px; border-radius:12px;">📍 현재 위치: 서울특별시 강남구</div>
-            
-            <div style="display:flex; align-items:center; gap:24px; margin-top:8px;">
-              <div style="font-size:64px; text-shadow:0 4px 12px rgba(245,158,11,0.3);">☀️</div>
-              <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                <div style="font-size:36px; font-weight:800; color:var(--text-900); font-family:'Montserrat', sans-serif;">24<span style="font-size:20px; color:var(--text-300);">°C</span></div>
-                <div style="font-size:16px; font-weight:700; color:var(--text-100);">맑음, 화창함</div>
-              </div>
-            </div>
-            
-            <div style="width:100%; display:flex; justify-content:space-around; background:#f9fafb; border:1px solid var(--border-default); border-radius:16px; padding:16px; margin-top:8px;">
-              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                <span style="font-size:12px; color:var(--text-400); font-weight:600;">체감 온도</span>
-                <span style="font-size:15px; color:var(--text-100); font-weight:800;">26°C</span>
-              </div>
-              <div style="width:1px; background:var(--border-default);"></div>
-              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                <span style="font-size:12px; color:var(--text-400); font-weight:600;">바람</span>
-                <span style="font-size:15px; color:var(--text-100); font-weight:800;">남서 3m/s</span>
-              </div>
-              <div style="width:1px; background:var(--border-default);"></div>
-              <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                <span style="font-size:12px; color:var(--text-400); font-weight:600;">습도</span>
-                <span style="font-size:15px; color:var(--text-100); font-weight:800;">45%</span>
-              </div>
-            </div>
-            
-            <div style="width:100%; background:linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%); border-radius:12px; padding:16px; margin-top:8px; text-align:center;">
-              <div style="font-size:14px; font-weight:700; color:var(--accent);">"라운딩 가기 딱 좋은 훌륭한 날씨입니다! ⛳️"</div>
-            </div>
-            
-            <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="App.closeModal()">확인</button>
-          </div>
-        `;
+    if (State.schedules && State.schedules.length > 0) {
+      const now = new Date();
+      // 미래 일정 중 가장 가까운 일정 우선 탐색
+      const futureScheds = State.schedules
+        .filter(s => s && s.date && new Date(s.date) >= new Date(now.getFullYear(), now.getMonth(), now.getDate()))
+        .sort((a,b) => new Date(a.date) - new Date(b.date));
+      
+      const targetSched = futureScheds[0] || State.schedules[State.currentScheduleIdx] || State.schedules[0];
+      if (targetSched && targetSched.course && targetSched.course.lat && targetSched.course.lng) {
+        targetName = targetSched.course.name;
+        targetLat = targetSched.course.lat;
+        targetLng = targetSched.course.lng;
       }
-    }, 1500);
+    }
+
+    this.showModal('실시간 골프장 날씨', `
+      <div style="padding: 32px 16px; text-align: center; color: var(--text-300); font-weight:600;">
+        <div style="font-size:28px; margin-bottom:12px; animation:spin 1s infinite linear;">📡</div>
+        <div style="font-size:15px; color:var(--text-100); margin-bottom:4px;">${targetName}</div>
+        <div style="font-size:13px; color:var(--text-400);">실시간 기상 데이터를 분석 중입니다...</div>
+      </div>
+    `);
+
+    // 2. 실시간 날씨 데이터 조회
+    let weather = null;
+    if (typeof WeatherAPI !== 'undefined' && WeatherAPI.fetchWeather) {
+      weather = await WeatherAPI.fetchWeather(targetLat, targetLng);
+    }
+
+    // Fallback Mock 만약 API 실패 시
+    if (!weather) {
+      weather = {
+        temp: 22,
+        feelsLike: 23,
+        humidity: 48,
+        weatherText: '맑음, 시야 양호',
+        weatherIcon: '☀️',
+        windSpeed: 2.1,
+        advice: '"바람도 잔잔하고 라운딩 가기 딱 좋은 훌륭한 날씨입니다! ⛳"'
+      };
+    }
+
+    const bg = U.$('#app-modal');
+    if (!bg) return;
+    const list = bg.querySelector('.modal-list');
+    if (list) {
+      list.innerHTML = `
+        <div style="padding: 16px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+          <div style="font-size:13px; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.04); padding:6px 14px; border-radius:12px; display:flex; align-items:center; gap:6px;">
+            <span>📍</span> <span>${targetName}</span>
+          </div>
+          
+          <div style="display:flex; align-items:center; gap:20px; margin-top:4px;">
+            <div style="font-size:60px; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.15));">${weather.weatherIcon}</div>
+            <div style="display:flex; flex-direction:column; align-items:flex-start;">
+              <div style="font-size:38px; font-weight:900; color:var(--text-900); font-family:'Montserrat', sans-serif; line-height:1;">
+                ${weather.temp}<span style="font-size:22px; color:var(--text-300); font-weight:600;">°C</span>
+              </div>
+              <div style="font-size:16px; font-weight:700; color:var(--text-100); margin-top:4px;">${weather.weatherText}</div>
+            </div>
+          </div>
+          
+          <div style="width:100%; display:flex; justify-content:space-around; background:var(--bg-sub, #f9fafb); border:1px solid var(--border-default); border-radius:16px; padding:16px 8px; margin-top:4px;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <span style="font-size:12px; color:var(--text-400); font-weight:600;">체감 온도</span>
+              <span style="font-size:15px; color:var(--text-100); font-weight:800;">${weather.feelsLike}°C</span>
+            </div>
+            <div style="width:1px; background:var(--border-default);"></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <span style="font-size:12px; color:var(--text-400); font-weight:600;">바람 (풍속)</span>
+              <span style="font-size:15px; color:${weather.windSpeed >= 4 ? '#ef4444' : 'var(--text-100)'}; font-weight:800;">${weather.windSpeed} m/s</span>
+            </div>
+            <div style="width:1px; background:var(--border-default);"></div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
+              <span style="font-size:12px; color:var(--text-400); font-weight:600;">습도</span>
+              <span style="font-size:15px; color:var(--text-100); font-weight:800;">${weather.humidity}%</span>
+            </div>
+          </div>
+          
+          <div style="width:100%; background:linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:14px; margin-top:2px; text-align:center;">
+            <div style="font-size:13px; font-weight:700; color:var(--accent); line-height:1.4;">${weather.advice}</div>
+          </div>
+          
+          <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="App.closeModal()">확인</button>
+        </div>
+      `;
+    }
   },
 
   showModal(title, content) {

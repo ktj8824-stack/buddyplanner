@@ -180,7 +180,7 @@ const Profile = {
         // 보상형 광고 준비
         await AdMob.prepareRewardVideoAd({
           adId: App.ADMOB_REWARD_ID, // app.js에 선언된 ID 사용
-          isTesting: true
+          isTesting: true // 테스트 광고 모드
         });
         
         // 보상형 광고 재생 (재생 완료 시 app.js에 등록된 리스너에서 포인트 지급)

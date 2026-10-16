@@ -149,8 +149,8 @@ const Home = {
             .round-icon { border: 1px solid rgba(0,0,0,0.03) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
             .icon-diary { background: rgba(37, 99, 235, 0.05) !important; color: #2563eb; animation: floatAnim 4s ease-in-out infinite; }
             .icon-market { background: rgba(234, 88, 12, 0.05) !important; color: #ea580c; animation: bounceAnim 3s ease-in-out infinite; }
-            .icon-domestic { background: rgba(22, 163, 74, 0.05) !important; color: #16a34a; animation: pulseAnim 4s ease-in-out infinite alternate; }
-            .icon-overseas { background: rgba(147, 51, 234, 0.05) !important; color: #9333ea; animation: swayAnim 4s ease-in-out infinite; }
+            .icon-event { background: rgba(217, 70, 239, 0.05) !important; color: #d946ef; animation: pulseAnim 2s ease-in-out infinite alternate; }
+            .icon-raffle { background: rgba(16, 185, 129, 0.05) !important; color: #10b981; animation: floatAnim 3.5s ease-in-out infinite; }
           </style>
 
           <!-- 1. 라운딩 일지 -->
@@ -170,24 +170,26 @@ const Home = {
             <span style="font-weight:700;">버디마켓</span>
           </div>
 
-          <!-- 3. 국내투어 -->
-          <div class="round-menu-item" onclick="App.navigate('calendar')">
-            <div class="round-icon icon-domestic" style="border:none;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          <!-- 3. 이벤트 -->
+          <div class="round-menu-item" onclick="App.navigate('event')">
+            <div class="round-icon icon-event" style="border:none;">
+              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg>
+              <span style="position:absolute; top:-4px; right:-8px; background:#f59e0b; color:#fff; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; line-height:1;">EVENT</span>
             </div>
-            <span style="font-weight:700;">국내투어</span>
+            <span style="font-weight:700;">이벤트</span>
           </div>
 
-          <!-- 4. 해외투어 -->
-          <div class="round-menu-item" onclick="App.navigate('community')">
-            <div class="round-icon icon-overseas" style="border:none;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.2-1.1.6L3 8l6 5.5-4 4-2.5-1-1.5 1.5 4.5 4.5 1.5-1.5-1-2.5 4-4 5.5 6l1.2-.7c.4-.2.7-.6.6-1.1z"></path></svg>
+          <!-- 4. 럭키드로우 (포인트 응모) -->
+          <div class="round-menu-item" onclick="App.navigate('raffle')">
+            <div class="round-icon icon-raffle" style="border:none;">
+              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span style="position:absolute; top:-4px; right:-8px; background:#ef4444; color:#fff; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; line-height:1;">추첨</span>
             </div>
-            <span style="font-weight:700;">해외투어</span>
+            <span style="font-weight:700;">럭키드로우</span>
           </div>
 
           <!-- 5. 홀인원보험 -->
-          <div class="round-menu-item" onclick="App.navigate('profile')">
+          <div class="round-menu-item" onclick="App.navigate('insurance')">
             <div class="round-icon" style="background: rgba(71, 85, 105, 0.05); color: #475569; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 8px rgba(0,0,0,0.02); animation: pulseAnim 4s ease-in-out infinite alternate;">
               <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
               <span style="position:absolute; top:-4px; right:-12px; background:#6b7280; color:#fff; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; line-height:1; white-space:nowrap;">준비중</span>
