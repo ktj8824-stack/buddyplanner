@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle'],
+  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle','ai'],
 
   init() {
     if (!State.loadSchedules()) {
@@ -120,6 +120,7 @@ const App = {
         case 'insurance': Insurance.init(); break;
         case 'event': EventPage.init(); break;
         case 'raffle': Raffle.init(); break;
+        case 'ai': AI.init(); break;
       }
     }
     this.updateNav(name === 'timeline' ? 'home' : name);
@@ -143,7 +144,7 @@ const App = {
     }
     
     const adBanner = U.$('#adfit-banner-wrap');
-    const hideBannerScreens = ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin'];
+    const hideBannerScreens = ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai'];
     const shouldHideBanner = hideBannerScreens.includes(name);
 
     // 웹 환경 (AdFit) 배너 토글
@@ -215,10 +216,6 @@ const App = {
     const bottomNav = U.el('nav','bottom-nav');
     bottomNav.id = 'gnb';
     bottomNav.innerHTML = `
-      <button class="gnb-item active" data-s="home" onclick="App.navigate('home')">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-        <span class="nav-label">홈</span>
-      </button>
       <button class="gnb-item" data-s="record" onclick="App.navigate('record')">
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
         <span class="nav-label">기록</span>
@@ -226,6 +223,14 @@ const App = {
       <button class="gnb-item" data-s="community" onclick="App.navigate('community')">
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
         <span class="nav-label">커뮤니티</span>
+      </button>
+      <button class="gnb-item gnb-item-ai" data-s="ai" onclick="App.navigate('ai')">
+        <div class="gnb-ai-btn-bubble">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+        </div>
+        <span class="nav-label ai-label">버디 AI</span>
       </button>
       <button class="gnb-item" data-s="market" onclick="App.navigate('market')">
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
