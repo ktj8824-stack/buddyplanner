@@ -1,6 +1,6 @@
 /* css/record.css */
 #screen-record {
-  background: #f4f4f5;
+  background: #f8fafc;
 }
 
 .record-header {
@@ -13,42 +13,14 @@
   color: var(--text-100);
 }
 
-/* BEST SCORE DASHBOARD */
-.best-score-card {
-  background: 
-    repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 6px),
-    linear-gradient(145deg, #62626b 0%, #3f3f46 100%);
-  border: 1px solid rgba(191, 149, 63, 0.4);
-  border-radius: var(--r-xl);
-  padding: 16px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-}
-
-/* Watermark */
-.best-score-card::after {
-  content: 'myB';
-  position: absolute;
-  right: 10px;
-  bottom: -15px;
-  font-size: 80px;
-  font-family: 'Playfair Display', serif;
-  font-weight: 900;
-  font-style: italic;
-  color: rgba(191, 149, 63, 0.05);
-  pointer-events: none;
-}
-
-/* CALENDAR */
+/* CALENDAR CARD CONTAINER */
 .record-calendar {
   background: #ffffff;
-  padding: 16px 4px;
-  border-top: 1.5px solid rgba(0,0,0,0.1);
-  border-bottom: 1.5px solid rgba(0,0,0,0.1);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  margin-left: calc(-1 * var(--sp-4));
-  margin-right: calc(-1 * var(--sp-4));
+  padding: 18px 14px 14px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  margin: 0;
 }
 
 .record-cal-header {
@@ -130,54 +102,54 @@
 
 .record-badge {
   position: absolute;
-  bottom: 3px;
-  background: rgba(245, 158, 11, 0.15);
-  color: #451a03;
-  font-size: 13px;
-  font-weight: 900;
-  padding: 4px 2px;
-  border-radius: 6px;
-  line-height: 1.2;
-  box-shadow: none;
+  bottom: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 3px 2px;
+  border-radius: 8px;
+  border: 1px solid #dbeafe;
+  line-height: 1.15;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 96%;
+  width: 92%;
   box-sizing: border-box;
 }
 
 .record-badge-course {
-  font-size: 10px;
-  font-weight: 800;
-  color: #78350f;
-  opacity: 1;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #3b82f6;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 90%;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .record-card {
-  background: linear-gradient(145deg, #62626b 0%, #3f3f46 100%);
-  border-radius: var(--r-xl);
-  padding: 16px;
-  border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 18px 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
 }
 
 .record-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid #f1f5f9;
   padding-bottom: 12px;
   margin-bottom: 12px;
 }
 
 .record-date {
-  font-size: 12px;
-  color: var(--accent);
+  font-size: 13px;
+  color: #007aff;
   font-weight: 800;
 }
 
@@ -189,8 +161,48 @@
 .score-num {
   font-size: 32px;
   font-weight: 900;
-  color: #fff;
+  color: #0f172a;
   font-family: 'Montserrat', sans-serif;
+}
+.score-unit {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.record-course-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.record-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.record-btn-del {
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+.record-btn-edit {
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  background: #04122d;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
 }
 .score-unit {
   font-size: 12px;

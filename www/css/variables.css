@@ -20,54 +20,66 @@
   --ios-orange: #FF5B29; /* SmartScore Orange */
   --ios-green: #34c759;
   
+  /* ── BuddyPlanner Premium Palette ── */
+  --navy-900: #04122d;
+  --navy-800: #071c45;
+  --navy-700: #0c285d;
+  --navy-600: #1e3a8a;
+  --blue-sub: #93c5fd;
+  --blue-light: #eff6ff;
+  --gold-warm: #d97706;
+  --gold-light: #fffbf0;
+  --emerald-main: #10b981;
+  --emerald-light: #ecfdf5;
+
   /* ── Semantic Colors (Light Mode) ── */
-  --bg-app: #ffffff; /* Pure white background */
+  --bg-app: #f8fafc; /* Premium subtle off-white background */
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #f9f9f9;
-  --bg-input: #f2f2f7;
-  --bg-input-hover: #e5e5ea;
+  --bg-card-hover: #f1f5f9;
+  --bg-input: #f1f5f9;
+  --bg-input-hover: #e2e8f0;
   --bg-input-focus: #ffffff;
 
-  --text-100: #111111; /* Sharp black */
-  --text-200: #333333; /* Dark gray */
-  --text-300: #666666; /* Medium gray */
-  --text-400: #999999; /* Light gray */
-  --text-500: #cccccc; /* Muted */
+  --text-100: #0f172a; /* Rich sharp slate */
+  --text-200: #334155; /* Dark gray */
+  --text-300: #64748b; /* Medium gray */
+  --text-400: #94a3b8; /* Light gray */
+  --text-500: #cbd5e1; /* Muted */
 
-  --accent: #FF5B29; /* Signature Orange */
-  --accent-dim: rgba(255, 91, 41, 0.1);
-  --accent-glow: rgba(255, 91, 41, 0.15);
-  --accent-dark: #e04514; /* Dark Orange */
-  --gold: #FF3B30; /* Red */
-  --gold-dim: rgba(255, 59, 48, 0.1);
-  --danger: #FF3B30;
+  --accent: #007aff; /* Primary iOS blue accent */
+  --accent-dim: rgba(0, 122, 255, 0.08);
+  --accent-glow: rgba(0, 122, 255, 0.15);
+  --accent-dark: #0056b3;
+  --gold: #d97706;
+  --gold-dim: rgba(217, 119, 6, 0.1);
+  --danger: #ef4444;
 
-  --border-subtle: #f2f2f7;
-  --border-default: #e5e5ea; /* The primary light border */
-  --border-strong: #d1d1d6;
-  --border-accent: rgba(255, 91, 41, 0.3);
+  --border-subtle: #f1f5f9;
+  --border-default: #e2e8f0; /* The primary light border */
+  --border-strong: #cbd5e1;
+  --border-accent: rgba(0, 122, 255, 0.3);
 
   /* ── Shadows & Glows ── */
-  --shadow-xs: none;
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-xl: none;
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.08);
+  --shadow-xl: 0 20px 40px rgba(0,0,0,0.12);
   
-  --glow-accent: none;
-  --glow-gold: none;
-  --glow-accent-strong: none;
+  --glow-accent: 0 0 15px rgba(0, 122, 255, 0.2);
+  --glow-gold: 0 0 15px rgba(217, 119, 6, 0.2);
+  --glow-accent-strong: 0 0 25px rgba(0, 122, 255, 0.35);
 
   /* ── Gradients ── */
-  --grad-accent: none;
-  --grad-accent-v: none;
-  --grad-gold: none;
-  --grad-card: none;
-  --grad-hero: none;
+  --grad-hero: linear-gradient(180deg, #04122d 0%, #071c45 60%, #0c285d 100%);
+  --grad-accent: linear-gradient(135deg, #007aff 0%, #0056b3 100%);
+  --grad-emerald: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --grad-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --grad-card: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   --grad-bg-radial: none;
-  --grad-glass-border: none;
+  --grad-glass-border: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.2));
 
   /* ── Typography ── */
   --font-sans: -apple-system, BlinkMacSystemFont, 'Pretendard Variable', 'Pretendard', 'Inter', system-ui, sans-serif;

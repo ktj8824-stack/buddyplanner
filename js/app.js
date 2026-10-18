@@ -125,9 +125,10 @@ const App = {
     }
     this.updateNav(name === 'timeline' ? 'home' : name);
     
+    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'profile', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade'];
     const nav = U.$('#top-header');
     if (nav) {
-      if (name === 'splash' || name === 'onboarding' || name === 'login') {
+      if (hideHeaderScreens.includes(name)) {
         nav.style.display = 'none';
       } else {
         nav.style.display = 'flex';
@@ -181,33 +182,30 @@ const App = {
     const nav = U.el('header','top-header');
     nav.id = 'top-header';
     nav.innerHTML = `
-      <div class="top-nav-left" style="display:flex; align-items:center; gap:8px; cursor:pointer;" onclick="App.navigate('home')">
-        <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg, #222 0%, #000 100%);color:#bf953f;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display', serif;font-size:14px;font-weight:700;font-style:italic;text-shadow:0 1px 3px rgba(0,0,0,0.8);box-shadow:0 2px 5px rgba(0,0,0,0.2);">myB</div>
-        <div style="font-family:'Montserrat', sans-serif;font-size:18px;font-weight:600;color:var(--text-100);letter-spacing:0.02em;">buddybirdie</div>
+      <div class="top-nav-left" style="display:flex; align-items:center; cursor:pointer;" onclick="App.navigate('home')">
+        <div class="glounge-brand-logo">
+          <img src="img/buddybirdie_app_icon.png" class="brand-logo-icon" alt="BirdiePlanner" />
+          BirdiePlanner
+          <span class="glounge-brand-badge">PRO</span>
+        </div>
       </div>
-      <div class="top-nav-right" style="display:flex; align-items:center; gap:16px; margin-left:auto;">
-        <!-- Weather Icon -->
-        <button class="top-nav-item" style="padding:0;color:#f59e0b;" aria-label="날씨" onclick="App.showWeather()">
-          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      <div class="top-nav-right glounge-nav-actions" style="display:flex; align-items:center; gap:16px; margin-left:auto;">
+        <!-- Smile / Profile -->
+        <button class="glounge-icon-btn" onclick="App.navigate('profile')" aria-label="내 정보">
+          <svg viewBox="0 0 24 24" width="23" height="23" stroke="currentColor" stroke-width="2" fill="none">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+            <line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"></line>
+            <line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"></line>
+          </svg>
         </button>
-        <!-- Search -->
-        <button class="top-nav-item" style="padding:0;color:var(--text-100);" aria-label="검색">
-          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        </button>
-        <!-- Notification -->
-        <button class="top-nav-item" style="padding:0;color:var(--text-100);position:relative;" aria-label="알림">
-          <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          <div style="position:absolute;top:-2px;right:-2px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid #fff;">N</div>
-        </button>
-        <!-- Profile Image -->
-        <button class="top-nav-item" style="padding:0;" onclick="App.navigate('profile')" aria-label="프로필">
-          <div style="width:26px;height:26px;border-radius:50%;overflow:hidden;border:1px solid var(--border-default);">
-            <img src="https://images.unsplash.com/photo-1587329310686-91414b8e3cb7?ixlib=rb-1.2.1&auto=format&fit=crop&w=64&q=80" alt="Profile" style="width:100%;height:100%;object-fit:cover;" />
-          </div>
-        </button>
-        <!-- Menu -->
-        <button class="top-nav-item" style="padding:0;color:var(--text-100);" aria-label="메뉴">
-          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        <!-- Hamburger Menu -->
+        <button class="glounge-icon-btn" onclick="State.screen === 'calendar' ? App.navigate('home') : App.navigate('calendar')" aria-label="메뉴">
+          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none">
+            <line x1="3" y1="7" x2="21" y2="7"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="17" x2="21" y2="17"></line>
+          </svg>
         </button>
       </div>
     `;

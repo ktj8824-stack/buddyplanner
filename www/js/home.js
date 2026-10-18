@@ -1,14 +1,21 @@
-/* =========================================
-   BuddyPlanner v3 — Home Dashboard Screen (SmartScore Clone)
-   ========================================= */
+/* ========================================================
+   BuddyPlanner — Golfzon G Lounge Style Premium Home JS
+   ======================================================== */
 
 const Home = {
-  init() { this.render(); },
+  init() {
+    this.render();
+  },
 
   render() {
     const el = U.$('#screen-home');
+    if (!el) return;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const currentYear = today.getFullYear();
+
+    // 1. 다가오는 라운딩 일정 조회
     const upcomingScheds = (State.schedules || []).filter(s => {
       const d = s.date instanceof Date ? s.date : new Date(s.date);
       return d >= today;
@@ -17,217 +24,349 @@ const Home = {
       const db = b.date instanceof Date ? b.date : new Date(b.date);
       return da - db;
     });
-    
-    // 현재 포인트 및 일일 광고 시청 횟수 불러오기
-    const currentPoints = parseInt(localStorage.getItem('bp_points') || '0', 10);
-    const todayStr = new Date().toLocaleDateString('ko-KR');
-    const adCount = (localStorage.getItem('bp_ad_date') === todayStr) ? parseInt(localStorage.getItem('bp_ad_count') || '0', 10) : 0;
-    
-    
-    // 최대 2개의 일정 추출
-    const nextSchedules = upcomingScheds.slice(0, 2);
-    let schedsHtml = '';
-    
-        if (nextSchedules.length > 0) {
-      schedsHtml = nextSchedules.map(sch => {
-        const cName = sch.course ? sch.course.name : sch.courseName || '코스 정보 없음';
-        const tTime = sch.teeOff || sch.teeTime || '--:--';
-        const originalIdx = State.schedules.indexOf(sch);
-        return `
-          <div onclick="if(${originalIdx} >= 0) { App.viewTimeline(${originalIdx}); event.stopPropagation(); }" style="display:flex; align-items:center; justify-content:space-between; margin-top:2px; cursor:pointer; padding:2px 6px; background:#f8fafc; border-radius:4px; border:1px solid #f1f5f9;">
-            <span style="color:var(--text-100); font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">${cName}</span>
-            <span style="color:var(--text-100); font-size:13px; font-weight:600; white-space:nowrap; flex-shrink:0; margin-left:8px;">${tTime}</span>
-          </div>
-        `;
-      }).join('');
-    } else {
-      schedsHtml = `
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
-          <span style="color:var(--text-400); font-size:13px; font-weight:600;">일정 없음</span>
-          <span style="color:var(--accent); font-size:13px; font-weight:700; cursor:pointer;" onclick="Record.showRecordForm(); event.stopPropagation();">+ 추가</span>
-        </div>
-      `;
+
+    let subTag = '남서울 CC · D-Day';
+    let mainHeading = '<strong>남서울 CC</strong>에서<br>라운드를 즐겨보세요.';
+    let btnText = '타임라인 보기';
+    let btnAction = "App.navigate('register')";
+    let departTime = '05:20';
+    let arrivalTime = '06:20';
+    let teeOffTime = '07:00';
+
+    if (upcomingScheds.length > 0) {
+      const s = upcomingScheds[0];
+      const originalIdx = State.schedules.indexOf(s);
+      const cName = s.course ? s.course.name : (s.courseName || '골프장');
+      const dateObj = s.date instanceof Date ? s.date : new Date(s.date);
+      const dday = typeof U !== 'undefined' && U.dday ? U.dday(dateObj) : 'D-Day';
+
+      subTag = `${cName} · ${dday}`;
+      mainHeading = `<strong>${cName}</strong>에서<br>라운드를 즐겨보세요.`;
+      btnText = '타임라인 보기';
+      btnAction = `App.viewTimeline(${originalIdx})`;
+
+      if (!s.timeline && typeof State !== 'undefined' && State.calculateTimeline) {
+        try { State.calculateTimeline(originalIdx); } catch(e){}
+      }
+      const tl = s.timeline || {};
+      departTime = tl.homeDepart || '05:20';
+      arrivalTime = tl.arrival || '06:20';
+      teeOffTime = tl.teeOff || s.teeOff || '07:00';
     }
 
-    let recentScore = 89;
+    // 2. 스코어 기록 데이터 조회
+    let recentScore = 85;
+    let recentDiff = 13;
+    let recentDate = '26.10.11';
+    let recentCourse = 'THE HEAVEN CC';
+
+    let bestScore = 85;
+    let bestDiff = 13;
+    let bestDate = '26.10.11';
+    let bestCourse = 'THE HEAVEN CC';
+
+    let yearlyCount = 3;
+
     try {
       const recordsData = localStorage.getItem('bp_records_v1');
       if (recordsData) {
         const records = JSON.parse(recordsData);
         const sortedDates = Object.keys(records).sort((a, b) => new Date(b) - new Date(a));
+        
         if (sortedDates.length > 0) {
-          recentScore = records[sortedDates[0]].score || recentScore;
+          const r0 = records[sortedDates[0]];
+          if (r0 && typeof r0.score === 'number') {
+            recentScore = r0.score;
+            recentDiff = recentScore - 72;
+            recentCourse = r0.course || recentCourse;
+            const p = sortedDates[0].split('-');
+            if (p.length === 3) {
+              recentDate = `${p[0].slice(2)}.${p[1]}.${p[2]}`;
+            }
+          }
+
+          // 라베(Life Best) 찾기
+          let minScore = Infinity;
+          let minRec = null;
+          let minDateStr = '';
+          let thisYearRounds = 0;
+
+          sortedDates.forEach(d => {
+            const r = records[d];
+            if (r && typeof r.score === 'number') {
+              if (d.startsWith(String(currentYear))) {
+                thisYearRounds++;
+              }
+              if (r.score < minScore) {
+                minScore = r.score;
+                minRec = r;
+                minDateStr = d;
+              }
+            }
+          });
+
+          if (minScore !== Infinity && minRec) {
+            bestScore = minScore;
+            bestDiff = bestScore - 72;
+            bestCourse = minRec.course || bestCourse;
+            const bp = minDateStr.split('-');
+            if (bp.length === 3) {
+              bestDate = `${bp[0].slice(2)}.${bp[1]}.${bp[2]}`;
+            }
+          }
+
+          if (thisYearRounds > 0) {
+            yearlyCount = thisYearRounds;
+          }
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Record data parse warning:', e);
+    }
+
+    // 3. 포인트 & 광고 시청 카운트
+    const currentPoints = parseInt(localStorage.getItem('bp_points') || '0', 10);
+    const todayStr = new Date().toLocaleDateString('ko-KR');
+    const adCount = (localStorage.getItem('bp_ad_date') === todayStr) ? parseInt(localStorage.getItem('bp_ad_count') || '0', 10) : 0;
+
+    // 4. 주간 캘린더 날짜 계산 (일요일 ~ 토요일)
+    const currentDay = today.getDay(); // 0: 일요일
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - currentDay);
+
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      const isToday = d.toDateString() === today.toDateString();
+      const dateNum = d.getDate();
+      const dayName = dayNames[i];
+
+      const hasSchedule = (State.schedules || []).some(s => {
+        const sDate = s.date instanceof Date ? s.date : new Date(s.date);
+        return sDate.toDateString() === d.toDateString();
+      });
+
+      weekDays.push({
+        dayName,
+        dateNum,
+        isToday,
+        hasSchedule,
+        dayIdx: i
+      });
+    }
 
     el.innerHTML = `
       <div class="screen-scroll dash-scroll bg-light">
         
-        <!-- 1. Dashboard Stats (Points & Info) -->
-        <div style="padding: 4px var(--sp-4) 8px; display: flex; flex-direction: column; gap: 6px;">
-          <!-- Row 1: Points (Full Width) -->
-          <div class="stat-card" style="border:1.5px solid rgba(0,0,0,0.2); background:#fff; width: 100%; display: flex; align-items: center; justify-content: space-between; flex-direction: row; padding: 14px 18px; min-height: 52px; border-radius: 12px;">
-            <div style="display:flex; align-items:baseline; gap:8px;">
-              <div style="font-size:18px; color:#000; font-weight:800;">내 포인트</div>
-              <div style="font-size:18px; font-weight:800; color:var(--accent); font-family:'Montserrat', sans-serif;">${currentPoints.toLocaleString()} <span style="font-size:18px; color:#666666;">P</span></div>
+        <!-- 1. Top G Lounge Dark Section -->
+        <div class="home-glounge-wrapper">
+
+          <!-- Hero Banner Content (2-Column: Left Text+Timeline+Btn, Right 3D Golfer Figure) -->
+          <div class="home-glounge-hero">
+            <div class="glounge-hero-text">
+              <div class="hero-sub-tag">${subTag}</div>
+              <div class="hero-main-title">${mainHeading}</div>
+
+              <!-- Mini Timeline (출발 - 골프장 - 티오프, 위치: 타임라인 보기 바로 위) -->
+              <div class="hero-inline-timeline" onclick="${btnAction}">
+                <div class="mini-tl-node">
+                  <span class="mini-tl-tag tag-depart">출발</span>
+                  <span class="mini-tl-val">${departTime}</span>
+                </div>
+                <div class="mini-tl-arrow">
+                  <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                  </svg>
+                </div>
+                <div class="mini-tl-node">
+                  <span class="mini-tl-tag tag-arrival">골프장</span>
+                  <span class="mini-tl-val">${arrivalTime}</span>
+                </div>
+                <div class="mini-tl-arrow">
+                  <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                  </svg>
+                </div>
+                <div class="mini-tl-node highlight">
+                  <span class="mini-tl-tag tag-teeoff">티오프</span>
+                  <span class="mini-tl-val">${teeOffTime}</span>
+                </div>
+              </div>
+
+              <!-- 타임라인 보기 버튼 -->
+              <button class="glounge-pill-btn" onclick="${btnAction}">
+                ${btnText}
+                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
             </div>
-            <button class="ad-reward-btn" style="padding: 8px 12px; font-size: 12px; display: flex; align-items: center; gap: 4px;" onclick="Profile.watchAd()">
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 
-              시청 50P <span style="font-size:10px; opacity:0.9;">(${adCount}/20)</span>
-            </button>
+
+            <!-- 3D Golfer Figure (자연스러운 잔디 & 배경 블렌딩) -->
+            <div class="glounge-hero-figure">
+              <img src="img/glounge_hero_golfer.png" alt="Golfer 3D" />
+            </div>
           </div>
+        </div>
+
+        <!-- 2. White Curved Bottom Sheet -->
+        <div class="home-glounge-sheet">
           
-          <!-- Row 2: Schedule & Score (Asymmetric Grid) -->
-          <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 8px;">
-            <div class="stat-card" style="width: 100%; padding: 10px 12px;" onclick="App.navigate('calendar')">
-              <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:14px;">다음 라운딩 일정 <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
-              <div style="display:flex; flex-direction:column; gap:2px; margin-top:2px;">
-                ${schedsHtml}
+          <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
+          <div class="glounge-score-grid">
+            
+            <!-- Left Card: Recent Score (Soft Sky Blue + 3D Golfer) -->
+            <div class="glounge-score-card card-blue" onclick="App.navigate('record')">
+              <div class="card-label-blue">최근 스코어</div>
+              <div class="card-score-row">
+                <span class="card-score-num">${recentScore}</span>
+                <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
+              </div>
+              <div class="card-meta-info">
+                <span class="card-meta-date">${recentDate}</span>
+                <span class="card-meta-course">${recentCourse}</span>
+              </div>
+              <div class="card-corner-thumb">
+                <img src="img/glounge_thumb_golfer.jpg?v=restore" alt="Golfer Thumbnail" />
               </div>
             </div>
-            
-            <div class="stat-card" style="width: 100%; display: flex; flex-direction: column; padding: 10px 12px; justify-content: space-between;" onclick="App.navigate('record')">
-              <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; margin-top:-2px;">
-                <span class="stat-label" style="color:var(--text-100); font-weight:700; font-size:13px; margin-bottom:4px;">최근 스코어</span>
-                <span style="font-size:19px; font-weight:800; color:var(--text-100); line-height:1;">${recentScore}<span style="font-size:12px; font-weight:600;">타</span></span>
+
+            <!-- Right Card: Life Best (Soft Warm Cream Gold + 3D Trophy) -->
+            <div class="glounge-score-card card-gold" onclick="App.navigate('record')">
+              <div class="card-label-gold">라이프 베스트</div>
+              <div class="card-score-row">
+                <span class="card-score-num gold">${bestScore}</span>
+                <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
               </div>
-              <div onclick="App.navigate('record'); event.stopPropagation();" style="font-size:12px; color:#fff; background:var(--text-300); padding:3px 0; border-radius:6px; font-weight:600; display:flex; justify-content:center; align-items:center; gap:4px; width:100%; margin-top:4px;">
-                <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> 스코어등록
+              <div class="card-meta-info">
+                <span class="card-meta-date gold">${bestDate}</span>
+                <span class="card-meta-course gold">${bestCourse}</span>
+              </div>
+              <div class="card-corner-thumb">
+                <img src="img/glounge_gold_trophy.jpg" alt="Gold Trophy" />
               </div>
             </div>
           </div>
-        </div>        <!-- 2. Weekly Calendar -->
-        <div style="padding: 0 8px 12px;">
-          <div class="stat-card" style="padding: 12px; border: 1px solid #ddd; background: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('./img/golf_bg.png') center/cover no-repeat; border-radius:16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
-              <span style="font-size: 20px; font-weight: 800; color:var(--text-100);">${new Date().getMonth() + 1}월 일정</span>
-              <div style="display:flex; gap:8px;">
-                <div role="button" tabindex="0" style="font-size: 13px; font-weight:700; color:#fff; cursor:pointer; padding: 4px 12px; border-radius: 6px; background: var(--text-300); display:flex; align-items:center; justify-content:center;" onclick="App.navigate('register');">+ 일정등록</div>
+
+          <!-- Sleek Yearly Round Stat Card (가로 바 레이아웃 + 3D 원형 배지 아이콘) -->
+          <div class="glounge-round-stat-card" onclick="App.navigate('record')">
+            <div class="stat-left">
+              <div class="stat-3d-icon-wrap">
+                <img src="img/glounge_round_flag.jpg" alt="Round Icon" />
+              </div>
+              <div class="stat-text-wrap">
+                <div class="stat-title">올해 라운드</div>
+                <div class="stat-desc">올해 <strong>${yearlyCount}번</strong>의 라운드를 즐기고 계시네요.</div>
               </div>
             </div>
-            
-            <div style="display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px;" class="hide-scrollbar">
-              ${Array.from({length: 30}).map((_, i) => {
-                 let d = new Date();
-                 d.setDate(d.getDate() + i);
-                 let dayName = U.DAYS[d.getDay()];
-                 let isToday = i === 0;
-                 
-                 let hasSchedule = State.getSchedulesForDate(d.getFullYear(), d.getMonth(), d.getDate()).length > 0;
-                 let highlight = `background:transparent; border:none;`;
-                 let dateStyle = isToday 
-                   ? `color: #fff; background: var(--ios-blue); margin-top:2px; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:17px;` 
-                   : `color: var(--text-100); margin-top:2px; width:30px; height:30px; display:flex; align-items:center; justify-content:center; font-size:19px;`;
-                 let dayColor = d.getDay() === 0 ? 'var(--ios-red)' : d.getDay() === 6 ? 'var(--ios-blue)' : 'var(--text-400)';
-                 
-                 return `
-                   <div style="width: calc((100% - 24px) / 7); min-width: calc((100% - 24px) / 7); flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:10px 0 14px 0; border-radius:12px; cursor:pointer; box-sizing:border-box; ${highlight}" onclick="Calendar._selectedY=${d.getFullYear()}; Calendar._selectedM=${d.getMonth()}; Calendar._selectedD=${d.getDate()}; State.calYear=${d.getFullYear()}; State.calMonth=${d.getMonth()}; App.navigate('calendar'); setTimeout(()=>{ Calendar.selectDate(null, ${d.getFullYear()}, ${d.getMonth()}, ${d.getDate()}); const els=document.querySelectorAll('.cal-day-num'); for(let el of els){if(el.textContent.trim()==='${d.getDate()}' && !el.parentElement.classList.contains('empty')){el.parentElement.classList.add('selected'); break;}} }, 250);">
-                     <div style="font-size:12.5px; font-weight:700; color:${dayColor}; margin-bottom:2px;">${dayName}</div>
-                     <div style="font-size:19px; font-weight:800; ${dateStyle}">${d.getDate()}</div>
-                     <div style="height:12px; display:flex; align-items:center; justify-content:center; margin-top:2px;">
-                       ${hasSchedule ? `<div style="width:5px; height:5px; border-radius:50%; background:var(--accent);"></div>` : ''}
-                     </div>
-                   </div>
-                 `;
+            <div class="stat-right">
+              <div class="stat-badge-num">
+                <span class="num">${yearlyCount}</span><span class="unit">회</span>
+              </div>
+              <div class="stat-badge-year">${currentYear}년 누적</div>
+            </div>
+          </div>
+
+          <!-- Modern Weekly Calendar Strip Card (올해 라운드 바로 밑에 배치) -->
+          <div class="glounge-week-card">
+            <div class="week-card-head">
+              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
+              <button class="week-add-btn" onclick="App.navigate('register')">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                일정등록
+              </button>
+            </div>
+
+            <div class="week-card-grid" onclick="App.navigate('calendar')">
+              ${weekDays.map(item => {
+                let dayColor = '#94a3b8';
+                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
+                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
+                
+                return `
+                  <div class="week-day-col">
+                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
+                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
+                      ${item.dateNum}
+                    </div>
+                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
+                  </div>
+                `;
               }).join('')}
             </div>
-            <style>
-              .hide-scrollbar::-webkit-scrollbar { display: none; }
-            </style>
           </div>
+
+          <!-- Points & Ad Reward Card (Full Width Slim) -->
+          <div class="glounge-point-card" style="margin-bottom: 18px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; color: #64748b; font-weight: 700;">내 포인트</span>
+              <span style="font-size: 16px; font-weight: 800; color: var(--accent); font-family: 'Montserrat', sans-serif;">
+                ${currentPoints.toLocaleString()} <span style="font-size: 11px; color: #94a3b8;">P</span>
+              </span>
+            </div>
+            <button class="ad-reward-btn" style="padding: 6px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; border: none; cursor: pointer; width: auto; margin: 0;" onclick="Profile.watchAd()">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 
+              광고 시청 50P <span style="font-size: 10px; opacity: 0.85;">(${adCount}/20)</span>
+            </button>
+          </div>
+
+          <!-- Core Tool Quick Launch Grid -->
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">⛳</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">일정등록</span>
+            </div>
+            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">⏱️</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">타임라인</span>
+            </div>
+            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🍽️</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">추천맛집</span>
+            </div>
+            <div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">💬</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">커뮤니티</span>
+            </div>
+          </div>
+
+          <!-- Upcoming Schedule Mini Pass (If scheduled) -->
+          ${upcomingScheds.length > 0 ? `
+            <div class="glounge-upcoming-box">
+              <div class="upcoming-head">
+                <span class="upcoming-title">다가오는 라운딩</span>
+                <button class="upcoming-more-btn" onclick="App.navigate('calendar')">전체보기 &gt;</button>
+              </div>
+              ${upcomingScheds.slice(0, 2).map((sched, idx) => {
+                const cName = sched.course ? sched.course.name : (sched.courseName || '골프장');
+                const dObj = sched.date instanceof Date ? sched.date : new Date(sched.date);
+                const dStr = `${dObj.getMonth() + 1}월 ${dObj.getDate()}일 (${U.DAYS ? U.DAYS[dObj.getDay()] : '일'})`;
+                const tTime = sched.teeOff || sched.teeTime || '07:00';
+                const origIdx = State.schedules.indexOf(sched);
+                return `
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; font-size:16px;">⛳</div>
+                      <div>
+                        <div style="font-size:13.5px; font-weight:800; color:#0f172a;">${cName}</div>
+                        <div style="font-size:11.5px; color:#64748b;">${dStr} · ${tTime}</div>
+                      </div>
+                    </div>
+                    <div style="font-size:12px; font-weight:700; color:#059669; background:#ecfdf5; padding:4px 8px; border-radius:6px;">
+                      역산 확인
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+
         </div>
-
-
-        <!-- 4. Round Icon Grid (2 Rows) -->
-        <div class="round-menu-grid">
-          <style>
-            @keyframes floatAnim { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-            @keyframes pulseAnim { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-            @keyframes swayAnim { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(3deg); } 75% { transform: rotate(-3deg); } }
-            @keyframes bounceAnim { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-            .round-icon { border: 1px solid rgba(0,0,0,0.03) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-            .icon-diary { background: rgba(37, 99, 235, 0.05) !important; color: #2563eb; animation: floatAnim 4s ease-in-out infinite; }
-            .icon-market { background: rgba(234, 88, 12, 0.05) !important; color: #ea580c; animation: bounceAnim 3s ease-in-out infinite; }
-            .icon-event { background: rgba(217, 70, 239, 0.05) !important; color: #d946ef; animation: pulseAnim 2s ease-in-out infinite alternate; }
-            .icon-raffle { background: rgba(16, 185, 129, 0.05) !important; color: #10b981; animation: floatAnim 3.5s ease-in-out infinite; }
-          </style>
-
-          <!-- 1. 라운딩 일지 -->
-          <div class="round-menu-item" onclick="App.navigate('record')">
-            <div class="round-icon icon-diary" style="border:none;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-              <span style="position:absolute; top:-4px; right:-8px; background:#ef4444; color:#fff; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; line-height:1;">HOT</span>
-            </div>
-            <span style="font-weight:700;">라운딩 일지</span>
-          </div>
-
-          <!-- 2. 버디마켓 -->
-          <div class="round-menu-item" onclick="App.navigate('market')">
-            <div class="round-icon icon-market" style="border:none;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-            </div>
-            <span style="font-weight:700;">버디마켓</span>
-          </div>
-
-          <!-- 3. 이벤트 -->
-          <div class="round-menu-item" onclick="App.navigate('event')">
-            <div class="round-icon icon-event" style="border:none;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg>
-              <span style="position:absolute; top:-4px; right:-8px; background:#f59e0b; color:#fff; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; line-height:1;">EVENT</span>
-            </div>
-            <span style="font-weight:700;">이벤트</span>
-          </div>
-
-          <!-- 4. 럭키드로우 (포인트 응모) -->
-          <div class="round-menu-item" onclick="App.navigate('raffle')">
-            <div class="round-icon icon-raffle" style="border:none;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              <span style="position:absolute; top:-4px; right:-8px; background:#ef4444; color:#fff; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; line-height:1;">추첨</span>
-            </div>
-            <span style="font-weight:700;">럭키드로우</span>
-          </div>
-
-          <!-- 5. 홀인원보험 -->
-          <div class="round-menu-item" onclick="App.navigate('insurance')">
-            <div class="round-icon" style="background: rgba(71, 85, 105, 0.05); color: #475569; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 8px rgba(0,0,0,0.02); animation: pulseAnim 4s ease-in-out infinite alternate;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-              <span style="position:absolute; top:-4px; right:-12px; background:#6b7280; color:#fff; font-size:9px; font-weight:800; padding:2px 5px; border-radius:4px; line-height:1; white-space:nowrap;">준비중</span>
-            </div>
-            <span style="font-weight:700;">홀인원보험</span>
-          </div>
-
-          <!-- 6. 게임 -->
-          <div class="round-menu-item" onclick="App.navigate('profile')">
-            <div class="round-icon" style="background: rgba(190, 24, 93, 0.05); color: #be185d; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 8px rgba(0,0,0,0.02); animation: floatAnim 3.5s ease-in-out infinite;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-            </div>
-            <span style="font-weight:700;">게임</span>
-          </div>
-
-          <!-- 7. 조인양도 -->
-          <div class="round-menu-item" onclick="App.navigate('community')">
-            <div class="round-icon" style="background: rgba(3, 105, 161, 0.05); color: #0369a1; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 8px rgba(0,0,0,0.02); animation: bounceAnim 3s ease-in-out infinite;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            </div>
-            <span style="font-weight:700;">조인양도</span>
-          </div>
-
-          <!-- 8. 커뮤니티 -->
-          <div class="round-menu-item" onclick="App.navigate('timeline')">
-            <div class="round-icon" style="background: rgba(161, 98, 7, 0.05); color: #a16207; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 2px 8px rgba(0,0,0,0.02); animation: swayAnim 3.5s ease-in-out infinite;">
-              <svg viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="none"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            </div>
-            <span style="font-weight:700;">커뮤니티</span>
-          </div>
-        </div>
-
-        <div style="text-align:center; padding: 20px; margin-top: 40px;">
-          <button onclick="localStorage.clear(); location.reload();" style="background:#f1f5f9; color:#64748b; border:none; padding:8px 16px; border-radius:8px; font-size:12px; cursor:pointer;">
-            🔄 데이터 초기화 (로그아웃)
-          </button>
-        </div>
-
       </div>
     `;
   }

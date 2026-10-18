@@ -52,60 +52,92 @@ const Record = {
     }
     
     sortedRecords.sort((a,b) => b.date.localeCompare(a.date));
-    const recentScore = sortedRecords.length > 0 ? sortedRecords[0].score : '--';
-    const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '--';
-    let scoreDisplay = bestScore === Infinity ? '--' : bestScore;
+    let recentScore = sortedRecords.length > 0 ? sortedRecords[0].score : 85;
+    let recentDiff = typeof recentScore === 'number' ? recentScore - 72 : 13;
+    let recentCourse = sortedRecords.length > 0 ? sortedRecords[0].course : 'THE HEAVEN CC';
+    let recentDate = sortedRecords.length > 0 ? sortedRecords[0].date : '26.10.11';
+    if (sortedRecords.length > 0) {
+      const p = sortedRecords[0].date.split('-');
+      if (p.length === 3) recentDate = `${p[0].slice(2)}.${p[1]}.${p[2]}`;
+    }
+
+    let scoreDisplay = bestScore === Infinity ? 85 : bestScore;
+    let bestDiff = typeof scoreDisplay === 'number' ? scoreDisplay - 72 : 13;
+    if (bestCourse === '기록 없음') bestCourse = 'THE HEAVEN CC';
+    if (bestDate === '-') bestDate = '26.10.11';
+
+    const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '85.0';
+    const displayCount = validScoreCount > 0 ? validScoreCount : 3;
 
     container.innerHTML = `
-      <div class="screen-scroll">
-        <!-- 1. MY BEST SCORE -->
-        <div style="padding: var(--sp-4);">
-          <div class="best-score-card">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:2;">
-              <div>
-                <span style="font-size:12px; font-weight:800; color:var(--accent); letter-spacing:1px; margin-bottom:4px; display:block;">MY BEST SCORE</span>
-                <div style="font-size:20px; font-weight:800; color:#fff;">
-                  ${bestCourse}
-                </div>
-                <div style="font-size:13px; font-weight:600; color:var(--text-400); margin-top:6px;">${bestDate}</div>
+      <div class="screen-scroll" style="background:#f8fafc; padding-top:var(--header-h); padding-bottom:calc(var(--nav-h) + 16px);">
+        
+        <!-- Record Top Section -->
+        <div style="padding: 16px 20px 8px;">
+          
+          <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
+          <div class="glounge-score-grid" style="margin-bottom: 14px;">
+            <!-- Left Card: Recent Score (Soft Sky Blue) -->
+            <div class="glounge-score-card card-blue" style="cursor:default;">
+              <div class="card-label-blue">최근 스코어</div>
+              <div class="card-score-row">
+                <span class="card-score-num">${recentScore}</span>
+                <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
               </div>
-              <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                <div style="display:flex; align-items:baseline; gap:4px;">
-                  <span style="font-size:48px; font-weight:900; line-height:1; font-family:'Montserrat', sans-serif; color: #ffffff; text-shadow: 0 4px 12px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.4);">${scoreDisplay}</span>
-                  <span style="font-size:14px; font-weight:700; color:var(--text-300);">타</span>
-                </div>
+              <div class="card-meta-info">
+                <span class="card-meta-date">${recentDate}</span>
+                <span class="card-meta-course">${recentCourse}</span>
+              </div>
+              <div class="card-corner-thumb">
+                <img src="img/glounge_thumb_golfer.jpg" alt="Golfer" />
+              </div>
+            </div>
+
+            <!-- Right Card: Life Best (Soft Warm Cream Gold) -->
+            <div class="glounge-score-card card-gold" style="cursor:default;">
+              <div class="card-label-gold">라이프 베스트</div>
+              <div class="card-score-row">
+                <span class="card-score-num gold">${scoreDisplay}</span>
+                <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
+              </div>
+              <div class="card-meta-info">
+                <span class="card-meta-date gold">${bestDate}</span>
+                <span class="card-meta-course gold">${bestCourse}</span>
+              </div>
+              <div class="card-corner-thumb">
+                <img src="img/glounge_gold_trophy.jpg" alt="Trophy" />
               </div>
             </div>
           </div>
 
-          <!-- 라운딩 핵심 통계 바 (신규 업그레이드) -->
-          <div style="display:flex; justify-content:space-around; align-items:center; background:var(--bg-card, #ffffff); border:1px solid var(--border-default); border-radius:14px; padding:12px; margin-top:12px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+          <!-- 라운딩 핵심 통계 바 (Unified Style) -->
+          <div style="display:flex; justify-content:space-around; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:14px 12px; margin-bottom:18px; box-shadow:0 2px 10px rgba(0,0,0,0.02);">
             <div style="text-align:center; flex:1;">
-              <div style="font-size:11px; font-weight:600; color:var(--text-400); margin-bottom:2px;">총 라운딩</div>
-              <div style="font-size:16px; font-weight:800; color:var(--text-100);"><span style="color:var(--accent);">${validScoreCount}</span>회</div>
+              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">총 라운딩</div>
+              <div style="font-size:17px; font-weight:800; color:#0f172a;"><span style="color:#007aff;">${displayCount}</span>회</div>
             </div>
-            <div style="width:1px; height:24px; background:var(--border-default);"></div>
+            <div style="width:1px; height:24px; background:#e2e8f0;"></div>
             <div style="text-align:center; flex:1;">
-              <div style="font-size:11px; font-weight:600; color:var(--text-400); margin-bottom:2px;">평균 타수</div>
-              <div style="font-size:16px; font-weight:800; color:var(--text-100);">${avgScore}<span style="font-size:12px; font-weight:600; color:var(--text-400);">타</span></div>
+              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">평균 타수</div>
+              <div style="font-size:17px; font-weight:800; color:#0f172a;">${avgScore}<span style="font-size:12px; font-weight:700; color:#64748b;">타</span></div>
             </div>
-            <div style="width:1px; height:24px; background:var(--border-default);"></div>
+            <div style="width:1px; height:24px; background:#e2e8f0;"></div>
             <div style="text-align:center; flex:1;">
-              <div style="font-size:11px; font-weight:600; color:var(--text-400); margin-bottom:2px;">최근 라운딩</div>
-              <div style="font-size:16px; font-weight:800; color:var(--text-100);">${recentScore}<span style="font-size:12px; font-weight:600; color:var(--text-400);">${recentScore !== '--' ? '타' : ''}</span></div>
+              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">최근 타수</div>
+              <div style="font-size:17px; font-weight:800; color:#0f172a;">${recentScore}<span style="font-size:12px; font-weight:700; color:#64748b;">타</span></div>
             </div>
           </div>
         </div>
 
-        <div style="padding: 0 var(--sp-4) var(--sp-4);">
+        <div style="padding: 0 16px 12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h2 style="font-size:18px; font-weight:800; color:var(--text-100); margin:0; display:flex; align-items:center; gap:6px;">
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              라운딩 히스토리
+            <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:6px;">
+              <span>📅</span>
+              라운딩 스코어 캘린더
             </h2>
-            <button onclick="Record.showRecordForm()" style="background:var(--text-100); color:#fff; border:none; padding:7px 14px; border-radius:8px; font-size:14px; font-weight:800; display:flex; align-items:center; gap:5px; cursor:pointer;">
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              등록
+            <button onclick="Record.showRecordForm()" style="background:#04122d; color:#fff; border:none; padding:8px 16px; border-radius:9999px; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 3px 10px rgba(4,18,45,0.2);">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              스코어 등록
             </button>
           </div>
           
@@ -306,46 +338,48 @@ const Record = {
 
     const html = `
       <div id="${modalId}" class="modal-overlay" style="display:flex; justify-content:center; align-items:flex-end; background:rgba(0,0,0,0.6); position:fixed; top:0; left:0; width:100%; height:100%; z-index:999; opacity:0; transition: opacity 0.3s;">
-        <div style="background:var(--bg-app); width:100%; max-width:var(--max-width); height:auto; max-height:90vh; border-radius:24px 24px 0 0; display:flex; flex-direction:column; overflow:hidden; transform:translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);">
+        <div style="background:#ffffff; width:100%; max-width:var(--max-width); height:auto; max-height:88vh; border-radius:20px 20px 0 0; display:flex; flex-direction:column; overflow:hidden; transform:translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);">
           
           <!-- Header -->
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid rgba(0,0,0,0.05);">
-            <div style="font-size:18px; font-weight:800; color:var(--text-100);">스코어 및 일지 등록</div>
-            <button onclick="Record.closeRecordForm()" style="color:var(--text-400); padding:4px;">
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:16px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">스코어 및 일지 등록</div>
+            <button onclick="Record.closeRecordForm()" style="color:#64748b; padding:4px; border:none; background:transparent; cursor:pointer;" aria-label="닫기">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
 
           <!-- Form Content -->
-          <div class="screen-scroll" style="padding:20px; flex:1; display:flex; flex-direction:column; gap:28px;">
+          <div class="screen-scroll" style="padding:14px 16px; flex:1; display:flex; flex-direction:column; gap:14px; background:#f8fafc;">
             
             <!-- 1. Date & Schedule -->
-            <div>
-              <div style="font-size:14px; font-weight:800; color:var(--text-100); margin-bottom:12px;">1. 기본 정보</div>
-              <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
+                <span>📋</span> 1. 기본 정보
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px;">
                 
                 <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:13px;"><span class="req">*</span> 날짜</label>
-                  <div class="picker-btn" onclick="Record.openDatePicker()">
-                    <span class="picker-val" id="record-date-display" style="color:var(--text-100);">${todayStr}</span>
-                    <span class="picker-ico">📅</span>
+                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 날짜</label>
+                  <div class="picker-btn" onclick="Record.openDatePicker()" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+                    <span class="picker-val" id="record-date-display" style="font-size:13px; font-weight:700; color:#0f172a;">${todayStr}</span>
+                    <span class="picker-ico" style="font-size:14px;">📅</span>
                     <input type="hidden" id="record-date" value="${todayStr}">
                   </div>
                 </div>
 
                 <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:13px;"><span class="req">*</span> 구장 선택</label>
-                  <div class="field-input">
-                    <input type="text" id="record-course" value="${defaultCourse}" placeholder="예: 남서울CC" style="width:100%; font-size:15px; font-weight:700; color:var(--text-100); background:transparent; border:none; outline:none;"/>
-                    <span class="fi-icon" style="opacity:0.5;">🔍</span>
+                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 구장 선택</label>
+                  <div class="field-input" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
+                    <input type="text" id="record-course" value="${defaultCourse}" placeholder="예: 남서울CC" style="width:100%; font-size:13px; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
+                    <span class="fi-icon" style="font-size:13.5px; opacity:0.5;">🔍</span>
                   </div>
                 </div>
 
                 <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:13px;"><span class="req">*</span> 티업시간</label>
-                  <div class="picker-btn" onclick="Record.openTimePicker()">
-                    <span class="picker-val" id="record-time-display" style="color:var(--text-100);">${defaultTime}</span>
-                    <span class="picker-ico">⏰</span>
+                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 티업시간</label>
+                  <div class="picker-btn" onclick="Record.openTimePicker()" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
+                    <span class="picker-val" id="record-time-display" style="font-size:13px; font-weight:700; color:#0f172a;">${defaultTime}</span>
+                    <span class="picker-ico" style="font-size:14px;">⏰</span>
                     <input type="hidden" id="record-time" value="${defaultTime}">
                   </div>
                 </div>
@@ -353,78 +387,78 @@ const Record = {
               </div>
             </div>
 
-            <hr style="border:none; border-top:1px dashed rgba(0,0,0,0.1); margin:0;">
-
             <!-- 2. Score Info (Photo Only) -->
-            <div>
-              <div style="font-size:14px; font-weight:800; color:var(--text-100); margin-bottom:6px;">2. 스코어 등록</div>
-              <div style="font-size:13px; font-weight:600; color:var(--text-400); margin-bottom:12px;">스코어카드를 등록하시면 자동으로 점수가 입력됩니다.</div>
-              <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px;" class="hide-scrollbar">
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:3px; display:flex; align-items:center; gap:5px;">
+                <span>⛳</span> 2. 스코어 등록
+              </div>
+              <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">스코어카드를 등록하시면 자동으로 점수가 입력됩니다.</div>
+              <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" class="hide-scrollbar">
                 ${[1, 2].map(i => `
                 <div style="flex:0 0 auto;">
                   <input type="file" id="upload-scorecard-${i}" accept="image/*" style="display:none;" onchange="Record.handleScoreUpload(${i}, event)">
-                  <div id="score-upload-box-${i}" style="background:rgba(0,0,0,0.02); border:2px dashed rgba(0,0,0,0.15); border-radius:12px; width:90px; height:90px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:background 0.2s;" onclick="document.getElementById('upload-scorecard-${i}').click()">
-                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="var(--accent)" stroke-width="2" fill="none" style="margin-bottom:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <div style="font-size:11px; font-weight:700; color:var(--text-300);">${i === 1 ? '전반' : '후반'}</div>
+                  <div id="score-upload-box-${i}" style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; width:68px; height:68px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:all 0.15s ease;" onclick="document.getElementById('upload-scorecard-${i}').click()">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="#007aff" stroke-width="2" fill="none" style="margin-bottom:2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <div style="font-size:10.5px; font-weight:700; color:#475569;">${i === 1 ? '전반' : '후반'}</div>
                   </div>
-                  <div id="score-preview-box-${i}" style="display:none; position:relative; width:90px; height:90px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,0,0,0.1); background:#f1f5f9;">
+                  <div id="score-preview-box-${i}" style="display:none; position:relative; width:68px; height:68px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1; background:#f1f5f9;">
                     <img id="score-preview-img-${i}" src="" style="width:100%; height:100%; object-fit:contain; padding:2px; box-sizing:border-box;">
-                    <div style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.5); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;" onclick="Record.removeScore(${i})">
-                      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <div style="position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.5); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;" onclick="Record.removeScore(${i})">
+                      <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </div>
                   </div>
                 </div>
                 `).join('')}
               </div>
               
-              <!-- Manual Score Input -->
-              <div style="margin-top:16px;">
-                <div style="font-size:13px; font-weight:600; color:var(--text-400); margin-bottom:8px;">스코어 직접 입력</div>
-                <div style="display:flex; gap:12px; margin-bottom: 12px;">
-                  <div class="field" style="margin:0; flex:1;">
-                    <label class="field-label" style="font-size:12px;">전반 스코어</label>
-                    <div class="field-input" style="padding-right:12px;">
-                      <input type="number" id="manual-score-out" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:16px; font-weight:800; color:var(--text-100); background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:13px; font-weight:600; color:var(--text-400);">타</span>
+              <!-- Manual Score Input (3-Column compact layout) -->
+              <div style="margin-top:10px;">
+                <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:6px;">스코어 직접 입력</div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
+                  <div class="field" style="margin:0;">
+                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">전반 스코어</label>
+                    <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
+                      <input type="number" id="manual-score-out" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
+                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
                     </div>
                   </div>
-                  <div class="field" style="margin:0; flex:1;">
-                    <label class="field-label" style="font-size:12px;">후반 스코어</label>
-                    <div class="field-input" style="padding-right:12px;">
-                      <input type="number" id="manual-score-in" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:16px; font-weight:800; color:var(--text-100); background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:13px; font-weight:600; color:var(--text-400);">타</span>
+                  <div class="field" style="margin:0;">
+                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">후반 스코어</label>
+                    <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
+                      <input type="number" id="manual-score-in" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
+                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
                     </div>
                   </div>
-                </div>
-                <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:12px;">총 타수</label>
-                  <div class="field-input" style="padding-right:12px;">
-                    <input type="number" id="manual-score" placeholder="72" style="width:100%; font-size:16px; font-weight:800; color:var(--text-100); background:transparent; border:none; outline:none; text-align:center;"/>
-                    <span style="font-size:13px; font-weight:600; color:var(--text-400);">타</span>
+                  <div class="field" style="margin:0;">
+                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">총 타수</label>
+                    <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
+                      <input type="number" id="manual-score" placeholder="72" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
+                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <hr style="border:none; border-top:1px dashed rgba(0,0,0,0.1); margin:0;">
-
             <!-- 3. Story & Photos -->
-            <div>
-              <div style="font-size:14px; font-weight:800; color:var(--text-100); margin-bottom:12px;">3. 일지 작성</div>
+            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+                <span>📝</span> 3. 일지 작성
+              </div>
               
-              <div style="margin-bottom:16px;">
-                <div style="font-size:13px; font-weight:600; color:var(--text-400); margin-bottom:8px;">추억을 남길 사진이나 골프장 풍경 사진 (최대 4장)</div>
-                <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px;" class="hide-scrollbar">
+              <div style="margin-bottom:8px;">
+                <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:6px;">추억을 남길 사진이나 골프장 풍경 사진 (최대 4장)</div>
+                <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" class="hide-scrollbar">
                   ${[1, 2, 3, 4].map(i => `
                   <div style="flex:0 0 auto;">
                     <input type="file" id="upload-diary-${i}" accept="image/*" style="display:none;" onchange="Record.handleDiaryUpload(${i}, event)">
-                    <div id="diary-upload-box-${i}" style="background:rgba(0,0,0,0.02); border:2px dashed rgba(0,0,0,0.15); border-radius:12px; width:90px; height:90px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:background 0.2s;" onclick="document.getElementById('upload-diary-${i}').click()">
-                      <svg viewBox="0 0 24 24" width="24" height="24" stroke="var(--text-300)" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <div id="diary-upload-box-${i}" style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; width:64px; height:64px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:all 0.15s ease;" onclick="document.getElementById('upload-diary-${i}').click()">
+                      <svg viewBox="0 0 24 24" width="20" height="20" stroke="#94a3b8" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     </div>
-                    <div id="diary-preview-box-${i}" style="display:none; position:relative; width:90px; height:90px; border-radius:12px; overflow:hidden; border:1px solid rgba(0,0,0,0.1);">
+                    <div id="diary-preview-box-${i}" style="display:none; position:relative; width:64px; height:64px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
                       <img id="diary-preview-img-${i}" src="" style="width:100%; height:100%; object-fit:cover;">
-                      <div style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.5); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;" onclick="Record.removeDiary(${i})">
-                        <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      <div style="position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.5); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;" onclick="Record.removeDiary(${i})">
+                        <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                       </div>
                     </div>
                   </div>
@@ -432,15 +466,15 @@ const Record = {
                 </div>
               </div>
 
-              <textarea id="record-diary" placeholder="오늘 라운딩에 남기고 싶은 말을 기록해보세요." style="width:100%; height:120px; background:#fff; border:1px solid rgba(0,0,0,0.1); border-radius:12px; padding:16px; font-size:14px; font-family:inherit; resize:none; outline:none;"></textarea>
+              <textarea id="record-diary" placeholder="오늘 라운딩에 남기고 싶은 말을 기록해보세요." style="width:100%; height:64px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:12.5px; font-family:inherit; resize:none; outline:none; box-sizing:border-box; color:#0f172a;"></textarea>
             </div>
 
-            <div style="height: 40px;"></div>
+            <div style="height: 10px;"></div>
           </div>
 
           <!-- Footer Action -->
-          <div style="padding:16px 20px; background:#fff; border-top:1px solid rgba(0,0,0,0.05); padding-bottom: max(16px, env(safe-area-inset-bottom));">
-            <button onclick="Record.saveRecord()" style="width:100%; background:linear-gradient(135deg, var(--accent), #fbbf24); color:#fff; font-size:16px; font-weight:800; padding:16px; border-radius:12px; box-shadow:0 4px 15px rgba(255,91,41,0.3);">
+          <div style="padding:10px 16px; background:#fff; border-top:1px solid #f1f5f9; padding-bottom: max(10px, env(safe-area-inset-bottom));">
+            <button onclick="Record.saveRecord()" style="width:100%; height:44px; background:linear-gradient(135deg, #007aff 0%, #0056b3 100%); color:#fff; font-size:14.5px; font-weight:800; border-radius:10px; border:none; box-shadow:0 3px 12px rgba(0,122,255,0.25); cursor:pointer; display:flex; align-items:center; justify-content:center;">
               다음 단계로
             </button>
           </div>

@@ -24,60 +24,112 @@ const Community = {
   render() {
     const container = U.$('#screen-community');
     container.innerHTML = `
-      <div class="screen-scroll">
+      <div class="screen-scroll" style="background:#f8fafc; padding-bottom:calc(var(--safe-bottom) + 120px);">
+        
+        <!-- Header -->
         <div class="community-header">
-          <h2>커뮤니티</h2>
+          <h2>버디 커뮤니티</h2>
           <div class="my-points">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><circle cx="12" cy="12" r="10"></circle></svg>
-            <span>1,500</span>
+            <span>🪙</span>
+            <span>1,500 P</span>
           </div>
         </div>
+
+        <!-- Category Pills -->
+        <div class="community-cats">
+          <button class="comm-cat-pill active">전체 피드</button>
+          <button class="comm-cat-pill">⛳ 조인 모집</button>
+          <button class="comm-cat-pill">🏆 라운딩 후기</button>
+          <button class="comm-cat-pill">🚗 카풀/동선 공유</button>
+        </div>
+
         <div class="feed-list">
-          <!-- Feed Item 1 (Join) -->
+          <!-- Feed Item 1 (Join Match) -->
           <div class="feed-card">
             <div class="feed-author">
-              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=3') center/cover;"></div>
-              <span class="author-name">골프홀릭</span>
-              <span class="feed-time">10분 전</span>
+              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=33') center/cover;"></div>
+              <div class="author-info">
+                <div class="author-name-row">
+                  <span class="author-name">골프홀릭</span>
+                  <span class="author-badge">핸디 14</span>
+                </div>
+                <span class="feed-time">10분 전 · 안양베네스트 CC</span>
+              </div>
             </div>
             <div class="feed-tags">
-              <span class="tag-join">조인 모집 (1명)</span>
+              <span class="tag-join">⛳ 조인 모집 (1명 남음)</span>
+              <span class="tag-course">4월 25일(토) 07:30</span>
             </div>
             <div class="feed-content">
-              이번 주 토요일(25일) 안양베네스트 07:30 티업 조인 한 분 모십니다!<br>
-              끝나고 근처 장어집(동선 짜놨어요!) 갈 예정입니다.
+              이번 주 토요일 안양베네스트 07:30 티업 조인 한 분 모십니다!<br>
+              끝나고 근처 장어 명가(버디플래너 동선 완벽 연동!) 함께 가실 분 환영해요 🏌️
             </div>
             <div class="feed-actions">
               <button class="btn-goodshot" onclick="Community.toggleGoodshot(this)">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                굿샷
+                <span>👍</span>
+                <span>굿샷 14</span>
               </button>
-              <button class="btn-join" onclick="Community.joinMatch()">참여 신청</button>
+              <button class="btn-join" onclick="Community.joinMatch()">참여 신청하기</button>
             </div>
           </div>
 
-          <!-- Feed Item 2 (Plan Share) -->
+          <!-- Feed Item 2 (Course Route Share) -->
           <div class="feed-card">
             <div class="feed-author">
-              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=5') center/cover;"></div>
-              <span class="author-name">버디사냥꾼</span>
-              <span class="feed-time">1시간 전</span>
+              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=12') center/cover;"></div>
+              <div class="author-info">
+                <div class="author-name-row">
+                  <span class="author-name">버디사냥꾼</span>
+                  <span class="author-badge" style="color:#059669; background:#ecfdf5;">싱글 골퍼</span>
+                </div>
+                <span class="feed-time">1시간 전 · 남서울 CC</span>
+              </div>
+            </div>
+            <div class="feed-tags">
+              <span class="tag-course" style="color:#0284c7; background:#f0f9ff; border-color:#e0f2fe;">🏆 코스 공략 & 맛집 루트</span>
+              <span class="tag-course">남서울 CC</span>
             </div>
             <div class="feed-content">
-              <b>스카이72 오션코스 완벽 루트 공유!</b><br>
-              아침엔 해장국, 점심엔 바지락칼국수 동선입니다. 시간 역산 다 해놨으니 캘린더에 담아가세요.
+              <strong>남서울 CC 새벽 라운딩 최적 타임라인 공유합니다!</strong><br>
+              집에서 40분 전 출발해서 클럽하우스 50분 전 도착, 티오프 후 근처 능이백숙집까지 동선 완벽 역산 완료! 필요하신 분 캘린더에 담아가세요.
             </div>
-            <div class="feed-actions" style="justify-content: flex-start; gap: var(--sp-4);">
+            <div class="feed-actions">
               <button class="btn-goodshot" onclick="Community.toggleGoodshot(this)">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                굿샷
+                <span>👍</span>
+                <span>굿샷 28</span>
               </button>
-              <button class="btn-goodshot">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
-                퍼가기
-              </button>
+              <button class="btn-join" style="background:#eff6ff; color:#007aff; border:1px solid #bfdbfe;" onclick="U.toast('루트가 내 일정으로 복사되었습니다 ⛳')">일정 담아가기</button>
             </div>
           </div>
+
+          <!-- Feed Item 3 (Join 2) -->
+          <div class="feed-card">
+            <div class="feed-author">
+              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=60') center/cover;"></div>
+              <div class="author-info">
+                <div class="author-name-row">
+                  <span class="author-name">나이스샷김프로</span>
+                  <span class="author-badge">핸디 11</span>
+                </div>
+                <span class="feed-time">3시간 전 · 파인크리크 CC</span>
+              </div>
+            </div>
+            <div class="feed-tags">
+              <span class="tag-join">⛳ 조인 모집 (2명 남음)</span>
+              <span class="tag-course">5월 2일(토) 06:40</span>
+            </div>
+            <div class="feed-content">
+              파인크리크 CC 주말 첫 티업 조인 모십니다. 매너 좋고 명랑 골프 지향하시는 분 편하게 신청해주세요!
+            </div>
+            <div class="feed-actions">
+              <button class="btn-goodshot" onclick="Community.toggleGoodshot(this)">
+                <span>👍</span>
+                <span>굿샷 8</span>
+              </button>
+              <button class="btn-join" onclick="Community.joinMatch()">참여 신청하기</button>
+            </div>
+          </div>
+
         </div>
       </div>
     `;

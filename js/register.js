@@ -114,20 +114,23 @@ const Register = {
     const el = U.$('#screen-register');
     const isEdit = this.editIdx !== null;
     el.innerHTML = `
-      <div class="header">
-        <button class="header-btn" onclick="Register.editIdx=null; App.navigate('calendar')">
-          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <div class="header" style="height:52px; padding:0 var(--sp-4); background:#ffffff; border-bottom:1px solid #f1f5f9; box-shadow:none;">
+        <button class="header-btn" onclick="Register.editIdx=null; App.navigate('calendar')" aria-label="뒤로가기">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h1 class="header-title">${isEdit ? '라운딩 일정 수정' : '새 라운딩 등록'}</h1>
-        <div class="header-btn" style="visibility:hidden"></div>
+        <h1 class="header-title" style="font-size:17px; font-weight:800; color:var(--text-100); letter-spacing:-0.4px;">${isEdit ? '라운딩 일정 수정' : '새 라운딩 등록'}</h1>
+        <div class="header-btn" style="visibility:hidden; width:22px;"></div>
       </div>
 
-      <div class="screen-scroll" style="padding-top: 0;">
+      <div class="screen-scroll" style="padding-top: 0; background: #f8fafc;">
         <div class="reg-content">
           <div class="reg-form">
-            <!-- Golf Course -->
-            <div class="field">
-              <label class="field-label"><span class="req">*</span> 골프장 선택</label>
+            
+            <!-- 1. Golf Course Selection Card -->
+            <div class="reg-card">
+              <div class="reg-card-title">
+                <span>⛳</span> 골프장 선택 <span class="req" style="color:#ef4444;">*</span>
+              </div>
               <div class="search-wrap">
                 <div class="field-input">
                   <input type="text" id="r-search" placeholder="골프장 이름을 검색하세요" autocomplete="off"/>
@@ -135,107 +138,123 @@ const Register = {
                 </div>
                 <div class="search-drop" id="r-results"></div>
               </div>
-              <p class="field-hint" id="r-hint" style="margin-top:var(--sp-2)"></p>
+              <p class="field-hint" id="r-hint" style="margin-top:6px; font-size:11.5px;"></p>
+              
+              <!-- Quick Course Recommendation Chips -->
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+                <span style="font-size:11px; color:#64748b; font-weight:700; width:100%; margin-bottom:2px;">추천 골프장:</span>
+                <span onclick="U.$('#r-search').value='남서울 CC'; Register.onSearch('남서울 CC');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">남서울 CC</span>
+                <span onclick="U.$('#r-search').value='아난티남해 CC'; Register.onSearch('아난티남해 CC');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">아난티남해</span>
+                <span onclick="U.$('#r-search').value='파인크리크 CC'; Register.onSearch('파인크리크 CC');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">파인크리크</span>
+                <span onclick="U.$('#r-search').value='해슬리 나인브릿지'; Register.onSearch('해슬리 나인브릿지');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">해슬리</span>
+              </div>
             </div>
 
-            <!-- Date -->
-            <div class="field">
-              <label class="field-label"><span class="req">*</span> 라운딩 일시</label>
-              <button class="picker-btn" onclick="Register.openDatePicker()">
-                <span class="picker-val is-empty" id="r-date">날짜를 선택해주세요</span>
-                <span class="picker-ico">📅</span>
-              </button>
+            <!-- 2. Date & Time Dual Pickers Card -->
+            <div class="reg-card">
+              <div class="reg-card-title">
+                <span>📅</span> 라운딩 일시 & 티오프 <span class="req" style="color:#ef4444;">*</span>
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">날짜</label>
+                  <button class="picker-btn picker-date" onclick="Register.openDatePicker()">
+                    <span class="picker-val is-empty" id="r-date">날짜 선택</span>
+                    <span class="picker-ico">📅</span>
+                  </button>
+                </div>
+                <div>
+                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">티오프 시간</label>
+                  <button class="picker-btn picker-time" onclick="Register.openTimePicker()">
+                    <span class="picker-val ${this.timeH === null ? 'is-empty' : ''}" id="r-time">${this.timeH === null ? '시간 선택' : U.fmtTimeKo(String(this.timeH).padStart(2,'0')+':'+String(this.timeM).padStart(2,'0'))}</span>
+                    <span class="picker-ico">⏰</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <!-- Tee-off time -->
-            <div class="field">
-              <label class="field-label"><span class="req">*</span> 티오프(Tee-Off) 시간</label>
-              <button class="picker-btn" onclick="Register.openTimePicker()">
-                <span class="picker-val ${this.timeH === null ? 'is-empty' : ''}" id="r-time">${this.timeH === null ? '시간을 선택해주세요' : U.fmtTimeKo(String(this.timeH).padStart(2,'0')+':'+String(this.timeM).padStart(2,'0'))}</span>
-                <span class="picker-ico">⏰</span>
-              </button>
-            </div>
-
-            <!-- Prep time -->
-            <div class="field">
-              <label class="field-label"><span class="req">*</span> 나의 외출 준비 시간</label>
+            <!-- 3. Prep Time Card -->
+            <div class="reg-card">
+              <div class="reg-card-title">
+                <span>⏱️</span> 나의 외출 준비 시간 <span class="req" style="color:#ef4444;">*</span>
+              </div>
               <div class="pills" id="r-pills">
                 ${PREP_OPTIONS.map(t => `<button class="pill ${t===this.prep?'on':''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
               </div>
-              <p class="field-hint">샤워, 짐 챙기기 등 출발 전 준비 시간</p>
+              <p class="field-hint" style="margin-top:6px; font-size:11px; color:#94a3b8;">샤워, 골프백 챙기기 등 집에서 출발 전 소요 시간</p>
             </div>
 
-            <!-- Start Point -->
-            <div class="field">
-              <label class="field-label"><span class="req">*</span> 출발지 설정</label>
+            <!-- 4. Start Point Card -->
+            <div class="reg-card">
+              <div class="reg-card-title">
+                <span>🚗</span> 출발지 설정 <span class="req" style="color:#ef4444;">*</span>
+              </div>
               <div class="pills" id="r-startpoint-pills">
                 <button type="button" class="pill ${this.startPoint==='집'?'on':''}" onclick="Register.setStartPoint('집',this)">🏠 집</button>
                 <button type="button" class="pill ${this.startPoint==='회사'?'on':''}" onclick="Register.setStartPoint('회사',this)">🏢 회사</button>
                 <button type="button" class="pill ${this.startPoint==='직접 입력'?'on':''}" onclick="Register.setStartPoint('직접 입력',this)">📍 직접 입력</button>
               </div>
-              <div class="field-input" id="r-startpoint-custom-wrap" style="display:flex;margin-top:var(--sp-2)">
-                <div id="r-startpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:var(--bg); border:1px solid var(--border); padding:12px 16px; border-radius:var(--r-sm);" onclick="Register.searchMode='start';Register.searchCustomAddress()">
-                  <span id="r-startpoint-text" style="color:var(--text-400)">출발지 주소를 검색하세요</span>
-                  <span style="opacity:0.5;">🔍</span>
+              <div class="field-input" id="r-startpoint-custom-wrap" style="display:flex;margin-top:8px; height:40px;">
+                <div id="r-startpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#f8fafc; border:1px solid #e2e8f0; padding:6px 12px; border-radius:8px;" onclick="Register.searchMode='start';Register.searchCustomAddress()">
+                  <span id="r-startpoint-text" style="color:#64748b; font-size:12.5px;">출발지 주소를 검색하세요</span>
+                  <span style="opacity:0.6; font-size:13px;">🔍</span>
                 </div>
               </div>
             </div>
 
-            <!-- Meeting Point Toggle -->
+            <!-- 5. Meeting Point Toggle -->
             <div class="meal-section">
               <div class="meal-header">
-                <span class="meal-title">🤝 집결지 설정 (동반자 탑승)</span>
+                <span class="meal-title">🤝 동반자 픽업 / 집결지</span>
                 <div class="toggle ${this.hasMeetingPoint?'on':''}" id="meeting-toggle" onclick="Register.toggleMeetingPoint()"></div>
               </div>
               <div class="meal-body ${this.hasMeetingPoint?'show':''}" id="meeting-body">
                 <div class="field" style="margin-bottom:0">
-                  <label class="field-label">집결지 선택</label>
-                  <div class="field-input">
-                    <div id="r-meetingpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:var(--bg); border:1px solid var(--border); padding:12px 16px; border-radius:var(--r-sm);" onclick="Register.searchMode='meeting';Register.searchCustomAddress()">
-                      <span id="r-meetingpoint-text" style="color:${this.meetingPointObj ? 'var(--text-100)' : 'var(--text-400)'}">${this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명)를 검색하세요'}</span>
-                      <span style="opacity:0.5;">🔍</span>
+                  <div class="field-input" style="height:40px;">
+                    <div id="r-meetingpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#f8fafc; border:1px solid #e2e8f0; padding:6px 12px; border-radius:8px;" onclick="Register.searchMode='meeting';Register.searchCustomAddress()">
+                      <span id="r-meetingpoint-text" style="font-size:12.5px; color:${this.meetingPointObj ? 'var(--text-100)' : '#94a3b8'}">${this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명)를 검색하세요'}</span>
+                      <span style="opacity:0.6; font-size:13px;">🔍</span>
                     </div>
                   </div>
-                  <p class="field-hint" style="margin-top:var(--sp-2)">집결지에서 만나서 출발하는 데 약 10분의 대기/탑승 시간이 추가됩니다.</p>
+                  <p class="field-hint" style="margin-top:6px; font-size:11px; color:#94a3b8;">집결지에서 만나서 출발 시 약 10분의 대기/탑승 시간이 타임라인에 자동 추가됩니다.</p>
                 </div>
               </div>
             </div>
 
-            <!-- Meal Toggle -->
-            <div class="meal-section" style="margin-top:var(--sp-4);">
+            <!-- 6. Pre-Meal Toggle -->
+            <div class="meal-section">
               <div class="meal-header">
-                <span class="meal-title">🍽️ 라운딩 전 식사</span>
+                <span class="meal-title">🍽️ 라운딩 전 아침 식사</span>
                 <div class="toggle ${this.hasMeal?'on':''}" id="meal-toggle" onclick="Register.toggleMeal('pre')"></div>
               </div>
               <div class="meal-body ${this.hasMeal?'show':''}" id="meal-body">
                 <!-- Meal Duration -->
-                <div class="field" style="margin-bottom:var(--sp-3)">
-                  <label class="field-label">식사 시간</label>
+                <div class="field" style="margin-bottom:8px">
+                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">식사 소요 시간</label>
                   <div class="pills" id="meal-pills">
                     ${MEAL_TIME_OPTIONS.map(t => `<button class="pill ${t===this.mealDuration?'on':''}" data-t="${t}" onclick="Register.setMealTime(${t},this)">${t}분</button>`).join('')}
                   </div>
                 </div>
                 <!-- Restaurant Selection -->
                 <div class="field" style="margin-bottom:0">
-                  <label class="field-label">식당 선택</label>
+                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">아침 맛집 선택</label>
                   <button class="picker-btn" onclick="Register.openRestaurantPicker('pre')">
-                    <span class="picker-val ${!this.mealRestaurant?'is-empty':''}" id="r-restaurant">${this.mealRestaurant ? this.mealRestaurant.name : '식당을 선택하세요'}</span>
-                    <span class="picker-ico">🍽️</span>
+                    <span class="picker-val ${!this.mealRestaurant?'is-empty':''}" id="r-restaurant">${this.mealRestaurant ? this.mealRestaurant.name : '골프장 주변 맛집 선택하기'}</span>
+                    <span class="picker-ico">🍲</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            <!-- Post Meal Toggle -->
-            <div class="meal-section" style="margin-top:var(--sp-4);">
+            <!-- 7. Post Meal Toggle -->
+            <div class="meal-section">
               <div class="meal-header">
                 <span class="meal-title">🍻 라운딩 후 식사 (뒷풀이)</span>
                 <div class="toggle ${this.hasPostMeal?'on':''}" id="postmeal-toggle" onclick="Register.toggleMeal('post')"></div>
               </div>
               <div class="meal-body ${this.hasPostMeal?'show':''}" id="postmeal-body">
-                <!-- Post Restaurant Selection -->
                 <div class="field" style="margin-bottom:0">
-                  <label class="field-label">뒷풀이 식당 선택</label>
+                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">뒷풀이 식당 선택</label>
                   <button class="picker-btn" onclick="Register.openRestaurantPicker('post')">
                     <span class="picker-val ${!this.postMealRestaurant?'is-empty':''}" id="r-post-restaurant">${this.postMealRestaurant ? this.postMealRestaurant.name : '식당을 선택하세요 (반경 10km 검색)'}</span>
                     <span class="picker-ico">🍖</span>
@@ -244,19 +263,25 @@ const Register = {
               </div>
             </div>
 
-            <!-- Companions -->
-            <div class="field" style="margin-top:var(--sp-5)">
-              <label class="field-label">동반자 초대 (선택)</label>
+            <!-- 8. Companions Card -->
+            <div class="reg-card">
+              <div class="reg-card-title">
+                <span>👥</span> 동반자 초대 (선택)
+              </div>
               <button class="invite-btn" id="r-invite" onclick="Register.openCompanionModal()">
-                <span>+ 카카오톡 동반자 선택</span><span>👥</span>
+                <span>+ 카카오톡 동반자 선택 및 초대</span><span>🏌️</span>
               </button>
               <div class="invite-tags" id="r-tags"></div>
             </div>
           </div>
-        <!-- Submit -->
-      <div class="reg-submit">
-        <button class="btn btn-primary" id="r-submit" onclick="Register.createPlan()" style="width:100%">${isEdit ? '일정 수정하기' : '⛳ 자동으로 스마트 플랜 생성'}</button>
-      </div>
+
+          <!-- Submit Button -->
+          <div class="reg-submit">
+            <button class="btn btn-primary" id="r-submit" onclick="Register.createPlan()">
+              ${isEdit ? '라운딩 일정 수정 완료' : '⛳ 스마트 플랜 & 타임라인 생성'}
+            </button>
+          </div>
+        </div>
       </div>
     `;
   },

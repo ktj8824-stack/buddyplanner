@@ -1,237 +1,884 @@
-/* css/home.css */
+/* ========================================================
+   BuddyPlanner — Golfzon G Lounge Style Premium Home UI
+   ======================================================== */
+
 .dash-scroll.bg-light {
-  background: var(--bg-surface);
-  padding: var(--header-h) 0 120px;
+  background: #041432; /* Top navy hero background */
+  padding: 56px 0 calc(var(--nav-h) + 16px) 0;
 }
 
-/* 1. Stats Carousel */
-.stats-carousel-wrap {
-  padding: var(--sp-4) 0;
-  margin-bottom: var(--sp-2);
+/* ── 1. Top G Lounge Dark Header & Hero ── */
+.home-glounge-wrapper {
+  background: linear-gradient(180deg, #04132f 0%, #081e48 60%, #0b275c 100%);
+  color: #ffffff;
+  padding-top: max(6px, env(safe-area-inset-top));
+  position: relative;
+  overflow: hidden;
 }
-.stats-carousel {
+
+.home-glounge-header {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 0 var(--sp-4) 16px; /* 16px padding bottom for shadow */
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 8px;
+  position: relative;
+  z-index: 2;
 }
-.stats-carousel::-webkit-scrollbar { display: none; }
 
-.stat-card {
-  min-width: 130px;
-  background: #ffffff;
-  border-radius: var(--r-xl);
+.glounge-brand-logo {
+  font-size: 21px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.brand-logo-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.glounge-brand-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.glounge-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.glounge-icon-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: opacity 0.2s;
+}
+
+.glounge-icon-btn:active {
+  opacity: 0.7;
+}
+
+/* Hero Content Area (2-Column Layout matching Image 2) */
+.home-glounge-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 14px 20px 36px;
+  position: relative;
+  z-index: 2;
+}
+
+.glounge-hero-text {
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 2px;
+}
+
+.hero-sub-tag {
+  font-size: 13px;
+  font-weight: 700;
+  color: #93c5fd;
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+
+.hero-main-title {
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.32;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+
+.hero-main-title strong {
+  color: #ffffff;
+}
+
+/* ── Inline Mini Timeline Stepper (위치: 타임라인 보기 버튼 바로 위) ── */
+.hero-inline-timeline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 14px;
   padding: 8px 10px;
+  margin-bottom: 14px;
+  max-width: 230px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(4, 18, 45, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.hero-inline-timeline:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.mini-tl-node {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  box-shadow: none;
-  border: 1.5px solid rgba(0,0,0,0.2);
+  align-items: center;
+  text-align: center;
+  min-width: 0;
 }
-.stat-label {
+
+.mini-tl-tag {
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1.5px 5px;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  letter-spacing: -0.2px;
+}
+
+.mini-tl-tag.tag-depart {
+  background: rgba(147, 197, 253, 0.22);
+  color: #bfdbfe;
+}
+
+.mini-tl-tag.tag-arrival {
+  background: rgba(253, 230, 138, 0.22);
+  color: #fde68a;
+}
+
+.mini-tl-tag.tag-teeoff {
+  background: rgba(110, 231, 183, 0.25);
+  color: #6ee7b7;
+}
+
+.mini-tl-val {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: -0.3px;
+  line-height: 1.15;
+}
+
+.mini-tl-node.highlight .mini-tl-val {
+  color: #34d399;
+}
+
+.mini-tl-arrow {
+  color: rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+}
+
+.glounge-pill-btn {
+  background: #ffffff;
+  color: #04122d;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition: transform 0.15s, background 0.15s;
+}
+
+.glounge-pill-btn:active {
+  transform: scale(0.97);
+  background: #f1f5f9;
+}
+
+.glounge-hero-figure {
+  width: 168px;
+  height: 168px;
+  flex-shrink: 0;
+  position: relative;
+  margin-left: 4px;
+  margin-bottom: -16px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.glounge-hero-figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 0;
+  filter: none;
+}
+
+/* ── 2. White Curved Sheet Container ── */
+.home-glounge-sheet {
+  background: #ffffff;
+  border-radius: 26px 26px 0 0;
+  padding: 16px 18px 40px;
+  position: relative;
+  z-index: 3;
+  margin-top: -16px;
+  box-shadow: 0 -8px 26px rgba(4, 20, 50, 0.12);
+  min-height: calc(100vh - 220px);
+}
+
+.glounge-section-header {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+  margin-bottom: 14px;
+}
+
+.glounge-section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.glounge-section-header-row .section-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+}
+
+.glounge-section-header-row .section-more-btn {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+.glounge-section-header-row .section-more-btn:active {
+  background: rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+/* ── 3-Column Record Trio Grid (Modern Balanced Style) ── */
+.record-trio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.record-trio-card {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.035);
+  padding: 16px 6px 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  min-height: 108px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.record-trio-card:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.trio-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.trio-label .trio-emoji {
   font-size: 13px;
-  color: var(--text-400);
+  line-height: 1;
+}
+
+.trio-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin-bottom: 6px;
+  font-family: 'Montserrat', 'Pretendard', sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.trio-value .trio-num {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.trio-value .trio-diff {
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.trio-value .trio-unit {
+  font-size: 16px;
+  font-weight: 800;
+  margin-left: 1px;
+}
+
+/* Color Themes */
+.trio-value.trio-blue {
+  color: #0284c7;
+}
+
+.trio-value.trio-orange {
+  color: #ea580c;
+}
+
+.trio-value.trio-green {
+  color: #059669;
+}
+
+.trio-sub {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: -0.2px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+
+/* ── Sleek Yearly Round Horizontal Bar Card ── */
+.glounge-round-stat-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0fdf4;
+  border: 1px solid rgba(187, 247, 208, 0.9);
+  border-radius: 18px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.glounge-round-stat-card:active {
+  transform: scale(0.985);
+}
+
+.glounge-round-stat-card .stat-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.glounge-round-stat-card .stat-3d-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.16);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glounge-round-stat-card .stat-3d-icon-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.glounge-round-stat-card .stat-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #065f46;
+  margin-bottom: 2px;
+}
+
+.glounge-round-stat-card .stat-desc {
+  font-size: 12px;
+  font-weight: 500;
+  color: #047857;
+}
+
+.glounge-round-stat-card .stat-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.glounge-round-stat-card .stat-badge-num {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  color: #059669;
+  line-height: 1.1;
+}
+
+.glounge-round-stat-card .stat-badge-num .num {
+  font-size: 24px;
+}
+
+.glounge-round-stat-card .stat-badge-num .unit {
+  font-size: 15px;
+  font-weight: 700;
+  margin-left: 1px;
+}
+
+.glounge-round-stat-card .stat-badge-year {
+  font-size: 11px;
+  font-weight: 600;
+  color: #10b981;
+  margin-top: 2px;
+}
+
+/* ── Modern Weekly Calendar Strip Card (올해 라운드 밑에 배치) ── */
+.glounge-week-card {
+  background: #ffffff;
+  border: 1px solid #eef2f6;
+  border-radius: 20px;
+  padding: 18px 16px 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.week-card-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.stat-value {
-  font-size: 24px;
+
+.week-card-title {
+  font-size: 19px;
   font-weight: 800;
-  color: var(--text-100);
-}
-.stat-value.text-blue { color: #007aff; }
-
-/* 2. Hero Actions */
-.hero-actions-wrap {
-  display: flex;
-  gap: 12px;
-  padding: 0 var(--sp-4) var(--sp-4);
-}
-.hero-card {
-  flex: 1;
-  border-radius: var(--r-xl);
-  padding: 20px 16px 16px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: none;
-  border: 1.5px solid rgba(0,0,0,0.2);
-}
-.hero-green {
-  background: #ffffff;
-  border: 1.5px solid rgba(0,0,0,0.2);
-}
-.hero-purple {
-  background: #ffffff;
-  border: 1.5px solid rgba(0,0,0,0.2);
+  color: #0f172a;
+  letter-spacing: -0.4px;
 }
 
-.hero-bg-text {
-  position: absolute;
-  top: -15px; right: -15px;
-  font-size: 110px;
-  font-weight: 900;
+.week-add-btn {
+  background: #475569;
   color: #ffffff;
-  opacity: 0.15;
-  line-height: 1;
-  pointer-events: none;
-}
-.hero-bg-icon {
-  position: absolute;
-  top: 10px; right: 10px;
-  font-size: 80px;
-  opacity: 0.03;
-  pointer-events: none;
-}
-
-.hero-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 24px;
-  line-height: 1.3;
-  position: relative;
-  z-index: 1;
-}
-.hero-purple .hero-title {
-  color: var(--text-100);
-}
-.hero-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
-}
-.hero-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  border: none;
+  font-size: 12.5px;
   font-weight: 700;
-  text-align: center;
-  background: var(--bg-input);
-  color: var(--text-200);
-  border: 1px solid transparent;
-  transition: all var(--dur-fast);
-}
-.hero-btn:active { background: var(--bg-input-hover); }
-.hero-purple .hero-btn { background: var(--bg-input); color: var(--text-200); }
-
-.hero-btn.dark {
-  background: var(--text-100);
-  color: #ffffff;
-  box-shadow: none;
-}
-.hero-purple .hero-btn.dark {
-  background: var(--accent);
-  color: #ffffff;
+  padding: 6px 13px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
 }
 
-/* 3. Campaign Banner */
-.campaign-banner-wrap {
-  margin: 0 var(--sp-4) var(--sp-5);
-  position: relative;
-  border-radius: var(--r-md);
-  overflow: hidden;
-  box-shadow: none;
-  border: 1.5px solid rgba(0,0,0,0.2);
+.week-add-btn:active {
+  background: #334155;
+  transform: scale(0.97);
 }
-.campaign-banner-img {
-  width: 100%;
-  height: 90px;
-  object-fit: cover;
-  display: block;
-}
-.campaign-text {
-  background: rgba(255,255,255,0.95);
-  padding: 10px 12px;
-  font-size: 13px;
-  color: var(--text-200);
-  text-align: center;
-}
-.campaign-text strong { color: #007aff; }
 
-/* 4. Round Icon Grid */
-.round-menu-grid {
+.week-card-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  row-gap: 16px;
-  padding: 0 var(--sp-4) var(--sp-6);
-  margin-top: 30px;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-top: 18px;
+  text-align: center;
+  cursor: pointer;
 }
-.round-menu-item {
+
+.week-day-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: transform var(--dur-fast);
+  position: relative;
 }
-.round-menu-item:active {
-  transform: scale(0.95);
+
+.week-day-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
-.round-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 20px; /* Modern squircle shape */
+
+.week-day-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
-  color: var(--text-200);
-  box-shadow: none;
-  background: #ffffff;
-  border: 1.5px solid rgba(0,0,0,0.2);
-  position: relative;
-  transition: all var(--dur-fast);
-}
-.round-menu-item:hover .round-icon {
-  background: var(--bg-input-hover);
+  transition: background 0.15s;
 }
 
-/* Emulate the small red 'NEW' or 'HOT' badges from the screenshot */
-.round-menu-item:nth-child(1) .round-icon::after {
-  content: 'HOT';
-  position: absolute;
-  top: -4px; right: -8px;
-  background: #ff3b30;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 10px;
-  border: 1px solid #fff;
-}
-.round-menu-item:nth-child(5) .round-icon::after {
-  content: 'NEW';
-  position: absolute;
-  top: -4px; right: -8px;
+.week-day-num.is-today {
   background: #007aff;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 10px;
-  border: 1px solid #fff;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
 }
 
-.bg-navy { background: #ffffff; }
-.bg-blue { background: #ffffff; }
-.bg-green { background: #ffffff; }
-.bg-orange { background: #ffffff; }
-.bg-purple { background: #ffffff; }
-.bg-red { background: #ffffff; }
-.bg-teal { background: #ffffff; }
-.bg-yellow { background: #ffffff; }
+.week-sched-dot {
+  width: 4px;
+  height: 4px;
+  background: #10b981;
+  border-radius: 50%;
+  margin-top: 4px;
+}
 
-.round-menu-item span {
-  font-size: 13px;
-  color: var(--text-200);
+/* ── Dual Score Cards (Pastel Colors & 3D Characters — Compact) ── */
+.glounge-score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.glounge-score-card {
+  border-radius: 18px;
+  padding: 12px 12px 10px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.glounge-score-card:active {
+  transform: scale(0.98);
+}
+
+/* Left Card: Soft Sky Blue */
+.glounge-score-card.card-blue {
+  background: #edf5ff;
+  border: 1px solid rgba(191, 219, 254, 0.7);
+}
+
+.card-label-blue {
+  font-size: 12.5px;
   font-weight: 700;
+  color: #334155;
+  margin-bottom: 2px;
+  letter-spacing: -0.3px;
+}
+
+/* Right Card: Soft Warm Cream/Gold */
+.glounge-score-card.card-gold {
+  background: #fff8e7;
+  border: 1px solid rgba(254, 235, 200, 0.9);
+}
+
+.card-label-gold {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #78350f;
+  margin-bottom: 2px;
+  letter-spacing: -0.3px;
+}
+
+.card-score-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.card-score-num {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: 'Montserrat', 'Pretendard', sans-serif;
   letter-spacing: -0.5px;
+  color: #0f172a;
+  line-height: 1.05;
+}
+
+.card-score-num.gold {
+  color: #b45309;
+}
+
+.card-score-diff {
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.card-score-diff.gold {
+  color: #d97706;
+}
+
+.card-meta-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  position: relative;
+  z-index: 2;
+  max-width: 65%;
+}
+
+.card-meta-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: -0.2px;
+}
+
+.card-meta-date.gold {
+  color: #92400e;
+}
+
+.card-meta-course {
+  font-size: 11px;
+  font-weight: 800;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.2px;
+}
+
+.card-meta-course.gold {
+  color: #78350f;
+}
+
+.card-corner-thumb {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  border: 2px solid #ffffff;
+  pointer-events: none;
+}
+
+.card-corner-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── 4. Yearly Round & Tip Card ── */
+.glounge-summary-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  padding: 20px 18px 16px;
+  margin-bottom: 20px;
+}
+
+.summary-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-text-col {
+  flex: 1;
+  padding-right: 12px;
+}
+
+.summary-main-copy {
+  font-size: 19px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.38;
+  letter-spacing: -0.4px;
+}
+
+/* Donut Progress Ring */
+.glounge-donut-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: conic-gradient(#00e5a3 0%, #0099ff 75%, #e2e8f0 75%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px rgba(0, 153, 255, 0.16);
+}
+
+.glounge-donut-hole {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.donut-num {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.donut-year {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+/* Inline Tip Banner */
+.summary-tip-row {
+  border-top: 1px solid #edf2f7;
+  margin-top: 18px;
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.summary-tip-row:active {
+  opacity: 0.8;
+}
+
+.tip-phone-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  flex-shrink: 0;
+}
+
+.tip-content-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.tip-header-text {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2px;
+  letter-spacing: -0.2px;
+}
+
+.tip-sub-text {
+  font-size: 11.5px;
+  color: #64748b;
+  letter-spacing: -0.2px;
+}
+
+.tip-dots-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.tip-dot.active {
+  width: 14px;
+  height: 5px;
+  border-radius: 999px;
+  background: #007aff;
+}
+
+/* ── 5. Quick Actions & Points Bar ── */
+.glounge-quick-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.glounge-mini-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* ── 6. Upcoming Schedules Card ── */
+.glounge-upcoming-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.upcoming-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.upcoming-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.upcoming-more-btn {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #007aff;
+  cursor: pointer;
+  background: none;
+  border: none;
 }

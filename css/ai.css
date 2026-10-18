@@ -1,5 +1,5 @@
 /* =========================================
-   BuddyPlanner v2 — AI Golf Assistant Styles
+   BuddyPlanner v2 — AI Golf Assistant Styles (Premium)
    ========================================= */
 
 /* ── Center GNB Special Button ── */
@@ -12,25 +12,25 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #111827 0%, #1f2937 50%, #064e3b 100%);
+  background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #10b981 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #10b981;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4), 0 2px 6px rgba(0, 0, 0, 0.12);
   border: 2px solid #ffffff;
   transform: translateY(-8px);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .gnb-item.gnb-item-ai:active .gnb-ai-btn-bubble {
-  transform: translateY(-5px) scale(0.94);
+  transform: translateY(-5px) scale(0.92);
 }
 
 .gnb-item.gnb-item-ai.active .gnb-ai-btn-bubble {
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #ffffff;
-  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5), 0 0 0 3px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55), 0 0 0 3px rgba(16, 185, 129, 0.25);
   transform: translateY(-10px) scale(1.06);
 }
 
@@ -38,11 +38,11 @@
   margin-top: -6px;
   font-weight: 700;
   font-size: 11px;
-  color: #10b981;
+  color: #059669;
 }
 
 .gnb-item.gnb-item-ai.active .ai-label {
-  color: #059669;
+  color: #047857;
 }
 
 /* ── Screen AI Layout ── */
@@ -55,19 +55,22 @@
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
-  padding-bottom: calc(var(--nav-h) + 10px);
+  padding-bottom: calc(var(--nav-h) + 12px);
 }
 
-/* AI Header */
+/* ── AI Header (Glassmorphism) ── */
 .ai-header {
-  padding: calc(var(--safe-top, 0px) + 12px) 16px 12px 16px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--border-default);
+  padding: calc(var(--safe-top, 0px) + 10px) 16px 12px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+  z-index: 5;
 }
 
 .ai-header-left {
@@ -78,42 +81,76 @@
 
 .ai-avatar-wrap {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  background: linear-gradient(135deg, #059669 0%, #064e3b 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
 }
 
 .ai-status-dot {
   position: absolute;
   bottom: 0;
   right: 0;
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: #10b981;
   border: 2px solid #ffffff;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  animation: aiStatusPulse 2s infinite ease-in-out;
+}
+
+@keyframes aiStatusPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0);
+  }
 }
 
 .ai-header-title {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
   line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-pro-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.2px;
 }
 
 .ai-header-sub {
   font-size: 12px;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 3px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+}
+
+.ai-header-sub .online-indicator {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
 }
 
 .ai-header-actions {
@@ -124,51 +161,54 @@
 
 .ai-btn-icon {
   background: #f1f5f9;
-  border: none;
-  width: 34px;
-  height: 34px;
+  border: 1px solid #e2e8f0;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #475569;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-btn-icon:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 .ai-btn-icon:active {
-  background: #e2e8f0;
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
-/* AI Chat Body */
+/* ── AI Chat Body ── */
 .ai-chat-body {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 14px 140px 14px;
+  padding: 18px 16px 145px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
-/* Chat Message Row */
+/* ── Chat Message Row ── */
 .ai-msg-row {
   display: flex;
   gap: 10px;
-  max-width: 88%;
-  animation: aiMsgFadeIn 0.25s ease-out;
+  max-width: 92%;
+  animation: aiMsgFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes aiMsgFadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px) scale(0.98);
   }
-
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -182,77 +222,80 @@
 }
 
 .ai-msg-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #047857);
+  background: linear-gradient(135deg, #059669, #064e3b);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   font-size: 16px;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+  border: 1.5px solid #ffffff;
 }
 
 .ai-msg-bubble {
-  padding: 12px 15px;
-  border-radius: 18px;
-  font-size: 14px;
-  line-height: 1.55;
+  padding: 13px 16px;
+  border-radius: 20px;
+  font-size: 14.5px;
+  line-height: 1.6;
   word-break: break-word;
   position: relative;
+  letter-spacing: -0.2px;
 }
 
 .ai-msg-row.bot .ai-msg-bubble {
   background: #ffffff;
   color: #1e293b;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-top-left-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
 }
 
 .ai-msg-row.user .ai-msg-bubble {
-  background: linear-gradient(135deg, #0f172a, #1e293b);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color: #ffffff;
   border-top-right-radius: 4px;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.22);
 }
 
 .ai-msg-time {
-  font-size: 10px;
+  font-size: 11px;
   color: #94a3b8;
-  margin-top: 4px;
+  margin-top: 5px;
   display: block;
+  font-weight: 500;
 }
 
 .ai-msg-row.user .ai-msg-time {
   text-align: right;
-  color: #cbd5e1;
+  color: #94a3b8;
 }
 
-/* Quick Prompt Chips */
+/* ── Quick Prompt Chips ── */
 .ai-quick-chips-wrap {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .ai-chips-label {
   font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
+  font-weight: 700;
+  color: #475569;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .ai-quick-chips {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
@@ -265,119 +308,230 @@
   white-space: nowrap;
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  padding: 8px 13px;
+  padding: 8px 14px;
   border-radius: 20px;
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   color: #334155;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  transition: all 0.2s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
   flex-shrink: 0;
 }
 
-.ai-chip-btn:active {
-  background: #f1f5f9;
+.ai-chip-btn:hover {
+  background: #f8fafc;
   border-color: #10b981;
   color: #047857;
-  transform: scale(0.97);
 }
 
-/* Interactive Schedule Proposal Card inside Chat */
+.ai-chip-btn:active {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+  transform: scale(0.96);
+}
+
+/* ── Interactive Golf Ticket Card (Rich Card) ── */
 .ai-sched-card {
-  margin-top: 10px;
+  margin-top: 12px;
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 18px;
   border: 1px solid #e2e8f0;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.07);
+  transition: transform 0.2s;
 }
 
 .ai-sched-header {
-  background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
   color: #ffffff;
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-sched-header::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 90px;
+  height: 90px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.ai-sched-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .ai-sched-title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   letter-spacing: -0.3px;
+  color: #ffffff;
 }
 
-.ai-sched-badge {
+.ai-sched-subtitle {
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: 600;
+  color: #a7f3d0;
+  font-weight: 500;
+}
+
+.ai-sched-dday-badge {
+  font-size: 11.5px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .ai-sched-details {
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: #fafaf9;
+  gap: 10px;
+  background: #fdfdfd;
 }
 
 .ai-sched-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
   font-size: 13px;
   color: #334155;
 }
 
-.ai-sched-icon {
-  width: 20px;
+.ai-sched-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-sched-icon-pill {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
+  color: #0f172a;
+  flex-shrink: 0;
+}
+
+.ai-sched-row-val {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Companion Avatar Stack inside Schedule Card */
+.ai-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.ai-avatar-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #047857;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  margin-left: -6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.ai-avatar-circle:first-child {
+  margin-left: 0;
+}
+
+.ai-avatar-count {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin-left: 6px;
+}
+
+/* Weather & Estimate Mini Bar inside Card */
+.ai-sched-subbar {
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #475569;
+  margin-top: 2px;
+}
+
+.ai-subbar-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
 }
 
 .ai-sched-actions {
-  padding: 10px 14px 14px 14px;
+  padding: 12px 16px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 9px;
   background: #ffffff;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .ai-btn-register {
   width: 100%;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: #ffffff;
   border: none;
-  border-radius: 10px;
-  padding: 11px 16px;
-  font-size: 14px;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14.5px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.35);
-  transition: all 0.2s;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ai-btn-register:active {
   transform: scale(0.98);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
 }
 
 .ai-btn-register.registered {
-  background: #e2e8f0;
-  color: #0f766e;
+  background: #f1f5f9;
+  color: #047857;
+  border: 1px solid #a7f3d0;
   box-shadow: none;
-  cursor: default;
 }
 
 .ai-btn-notify {
@@ -385,25 +539,118 @@
   background: #fee500;
   color: #191919;
   border: none;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 13px;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  gap: 7px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.2s;
 }
 
 .ai-btn-notify:active {
-  background: #fada0a;
+  background: #f0d800;
   transform: scale(0.98);
 }
 
-/* Bottom Input Bar */
+/* ── Rich Weather Card ── */
+.ai-weather-card {
+  margin-top: 10px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0fdf4 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-weather-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ai-weather-course {
+  font-weight: 800;
+  font-size: 15px;
+  color: #0369a1;
+}
+
+.ai-weather-temp {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ai-weather-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+}
+
+.ai-weather-stat-label {
+  font-size: 10.5px;
+  color: #64748b;
+}
+
+.ai-weather-stat-val {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 2px;
+}
+
+/* ── Rich Golf Rule / Etiquette Card ── */
+.ai-rule-card {
+  margin-top: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #10b981;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.ai-rule-card.penalty-red {
+  border-left-color: #ef4444;
+}
+
+.ai-rule-card.penalty-yellow {
+  border-left-color: #f59e0b;
+}
+
+.ai-rule-card.penalty-white {
+  border-left-color: #94a3b8;
+}
+
+.ai-rule-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-rule-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 12.5px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+/* ── Bottom Input Bar Wrap (Floating Pill) ── */
 .ai-input-bar-wrap {
   position: absolute;
   bottom: calc(var(--nav-h) + 12px);
@@ -416,15 +663,21 @@
 
 .ai-input-bar {
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid #cbd5e1;
-  border-radius: 28px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 30px;
   padding: 6px 8px 6px 8px;
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1), 0 3px 8px rgba(15, 23, 42, 0.05);
+  transition: all 0.25s ease;
+}
+
+.ai-input-bar:focus-within {
+  border-color: #10b981;
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.18), 0 0 0 3px rgba(16, 185, 129, 0.15);
 }
 
 .ai-mic-btn {
@@ -439,29 +692,31 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.25s;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
 }
 
+.ai-mic-btn:hover {
+  background: #e2e8f0;
+}
+
 .ai-mic-btn:active {
-  transform: scale(0.92);
+  transform: scale(0.9);
 }
 
 .ai-mic-btn.listening {
   background: #ef4444;
   color: #ffffff;
-  animation: aiMicPulse 1.2s infinite;
+  animation: aiMicRadar 1.5s infinite ease-out;
 }
 
-@keyframes aiMicPulse {
+@keyframes aiMicRadar {
   0% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
   }
-
-  70% {
-    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+  50% {
+    box-shadow: 0 0 0 14px rgba(239, 68, 68, 0);
   }
-
   100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
@@ -475,6 +730,7 @@
   color: #0f172a;
   outline: none;
   padding: 6px 4px;
+  font-weight: 500;
 }
 
 .ai-text-input::placeholder {
@@ -483,8 +739,8 @@
 }
 
 .ai-send-btn {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   background: #0f172a;
@@ -494,7 +750,7 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .ai-send-btn:disabled {
@@ -503,29 +759,44 @@
   cursor: not-allowed;
 }
 
-.ai-send-btn:not(:disabled):active {
-  transform: scale(0.92);
+.ai-send-btn:not(:disabled):hover {
   background: #10b981;
 }
 
-/* Voice Listening Banner */
+.ai-send-btn:not(:disabled):active {
+  transform: scale(0.9);
+  background: #059669;
+}
+
+/* ── Voice Listening Overlay Banner ── */
 .ai-listening-overlay {
   display: none;
   position: absolute;
-  top: -46px;
+  top: -50px;
   left: 0;
   right: 0;
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(12px);
   color: #ffffff;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12.5px;
+  padding: 10px 16px;
+  border-radius: 22px;
+  font-size: 13px;
   font-weight: 600;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-  animation: aiMsgFadeIn 0.2s ease-out;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  animation: aiListeningSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes aiListeningSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ai-listening-overlay.active {
@@ -535,45 +806,54 @@
 .ai-wave-bars {
   display: flex;
   align-items: center;
-  gap: 3px;
-  height: 14px;
+  gap: 3.5px;
+  height: 18px;
 }
 
 .ai-wave-bar {
-  width: 3px;
+  width: 3.5px;
   height: 100%;
   background: #10b981;
-  border-radius: 2px;
-  animation: aiWave 0.8s ease-in-out infinite alternate;
+  border-radius: 3px;
+  animation: aiWave 0.7s ease-in-out infinite alternate;
 }
 
 .ai-wave-bar:nth-child(2) {
-  animation-delay: 0.2s;
+  animation-delay: 0.15s;
+  background: #34d399;
 }
 
 .ai-wave-bar:nth-child(3) {
-  animation-delay: 0.4s;
+  animation-delay: 0.35s;
+  background: #6ee7b7;
 }
 
 .ai-wave-bar:nth-child(4) {
-  animation-delay: 0.1s;
+  animation-delay: 0.2s;
+  background: #10b981;
+}
+
+.ai-wave-bar:nth-child(5) {
+  animation-delay: 0.45s;
+  background: #059669;
 }
 
 @keyframes aiWave {
   from {
     height: 4px;
+    opacity: 0.6;
   }
-
   to {
-    height: 14px;
+    height: 18px;
+    opacity: 1;
   }
 }
 
-/* Bot Typing Animation */
+/* ── Bot Typing Animation ── */
 .ai-typing-indicator {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 12px 16px;
 }
 
@@ -594,14 +874,10 @@
 }
 
 @keyframes aiTyping {
-
-  0%,
-  80%,
-  100% {
+  0%, 80%, 100% {
     transform: translateY(0);
-    opacity: 0.5;
+    opacity: 0.4;
   }
-
   40% {
     transform: translateY(-5px);
     opacity: 1;

@@ -41,42 +41,42 @@ const Timeline = {
       const dateStr = U.fmtDateShort(s.date);
 
     el.innerHTML = `
-      <div class="header">
-        <button class="header-btn" onclick="App.navigate('calendar')">
-          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <div class="header" style="height:52px; padding:0 var(--sp-4); background:#ffffff; border-bottom:1px solid #f1f5f9; box-shadow:none;">
+        <button class="header-btn" onclick="App.navigate('calendar')" aria-label="뒤로가기">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h1 class="header-title">스마트 타임라인</h1>
-        <button class="header-btn" onclick="U.downloadICS(State.schedules[${this.schedIdx}])">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <h1 class="header-title" style="font-size:17px; font-weight:800; color:var(--text-100); letter-spacing:-0.4px;">스마트 타임라인</h1>
+        <button class="header-btn" onclick="U.downloadICS(State.schedules[${this.schedIdx}])" aria-label="캘린더 저장">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
       </div>
 
       <!-- Sticky Event Banner -->
-      <div id="tl-sticky-banner" style="display:none; flex-shrink:0; z-index:90; background:var(--accent); color:#fff; padding:12px 16px; font-size:14px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:all 0.3s ease;">
+      <div id="tl-sticky-banner" style="display:none; flex-shrink:0; z-index:90; background:var(--accent); color:#fff; padding:10px 16px; font-size:13px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:all 0.3s ease;">
         <span style="font-weight:var(--fw-bold);" id="tl-banner-text">현재 진행 중인 일정 없음</span>
       </div>
 
       <div class="screen-scroll" style="padding-top:0;">
         <!-- Hero -->
         <div class="tl-hero">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <h2 class="tl-course" style="margin:0;"><span class="accent">${s.course.name}</span></h2>
-            <div class="tl-dday" style="display:inline-flex; align-items:center; gap:6px; font-size:15px; padding:6px 12px; margin:0;">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <div class="tl-dday" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:800; padding:3px 8px; border-radius:6px; margin:0;">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               <span>${dday}</span>
             </div>
           </div>
-          <div class="tl-meta" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+          <div class="tl-meta">
             <span style="display:inline-flex; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               ${dateStr}
             </span>
             <span style="display:inline-flex; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               ${U.fmtTimeKo(s.teeOff)}
             </span>
             <span style="display:inline-flex; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><path d="M12 2c3.866 0 7 3.134 7 7 0 5.25-7 13-7 13S5 14.25 5 9c0-3.866 3.134-7 7-7z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><path d="M12 2c3.866 0 7 3.134 7 7 0 5.25-7 13-7 13S5 14.25 5 9c0-3.866 3.134-7 7-7z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
               ${s.course.region}
             </span>
           </div>
@@ -85,19 +85,19 @@ const Timeline = {
 
         <!-- Timeline -->
         <div class="tl-section">
-          <div class="tl-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+          <div class="tl-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
             <div style="flex: 1; min-width: 0;">
-              <h3 class="tl-title" style="display:flex; align-items:center; gap:6px; margin-bottom: 4px;">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+              <h3 class="tl-title" style="display:flex; align-items:center; gap:6px; margin-bottom: 2px;">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 타임라인
               </h3>
               <p class="tl-sub">${tl.hasMeal ? '출발지 → 식당 → 골프코스 동선 연산' : '출발지 → 골프코스 최적 경로'}</p>
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
-              <button id="tl-alarm-btn" onclick="Timeline.toggleAlarm()" style="border:1px solid var(--accent); background:transparent; color:var(--accent); cursor:pointer; padding: 4px 12px; font-size: 13px; font-weight: bold; border-radius: 20px; line-height: 1.2; white-space: nowrap; transition:all 0.3s ease;">
+              <button id="tl-alarm-btn" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:#ffffff; color:#334155; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
                 🔔 알람 켜기
               </button>
-              <button style="border:1px solid var(--gold-500); background:var(--gold-dim); color:var(--gold-400); cursor:pointer; padding: 4px 12px; font-size: 13px; font-weight: bold; border-radius: 20px; line-height: 1.2; white-space: nowrap;" onclick="Register.edit(${this.schedIdx})">
+              <button style="border:1px solid rgba(217,119,6,0.25); background:#fffbeb; color:#b45309; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;" onclick="Register.edit(${this.schedIdx})">
                 ✏️ 일정 수정
               </button>
             </div>
@@ -428,11 +428,11 @@ const Timeline = {
     const kakaoIcon = `<svg width="15" height="15" viewBox="0 0 24 24" style="margin-top:-1px"><path fill="#191919" d="M12 3c-5.523 0-10 3.553-10 7.938 0 2.825 1.83 5.303 4.606 6.744l-1.01 3.7c-.053.195.166.353.332.227l4.316-2.82c.575.08 1.162.124 1.756.124 5.523 0 10-3.553 10-7.938C22 6.553 17.523 3 12 3z"/></svg>`;
     const ratingIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-top:-2px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
 
-    let startIconHtml = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-3px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+    let startIconHtml = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
     if (startPt.includes('회사') || startPt.includes('사무실')) {
-      startIconHtml = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-3px; margin-right:4px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`;
+      startIconHtml = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`;
     } else if (startPt.includes('집') || startPt.includes('자택')) {
-      startIconHtml = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-3px; margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
+      startIconHtml = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
     }
 
     // 1) 준비 시작

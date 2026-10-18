@@ -4,7 +4,16 @@
    ========================================= */
 
 const Calendar = {
-  init() { this.render(); },
+  init() {
+    this.render();
+    setTimeout(() => {
+      const grid = U.$('#cal-grid');
+      if (grid) {
+        const todayCell = grid.querySelector('.cal-day.today');
+        if (todayCell) todayCell.classList.add('selected');
+      }
+    }, 100);
+  },
 
   render() {
     const el = U.$('#screen-calendar');
@@ -17,42 +26,36 @@ const Calendar = {
       const courseName = nextSch ? (nextSch.course ? nextSch.course.name : (nextSch.courseName || '아난티남해 CC')) : '아난티남해 CC';
       const teeTime = nextSch ? (nextSch.teeTime || nextSch.teeOff || '08:30') : '08:30';
 
-    el.innerHTML = `
-      <div style="display:flex; flex-direction:column; height:100%; min-height:100vh; min-height:100dvh;">
+    const y = State.calYear !== undefined ? State.calYear : new Date().getFullYear();
+    const m = State.calMonth !== undefined ? State.calMonth : new Date().getMonth();
 
-        <!-- Scrollable calendar area -->
-        <div class="screen-scroll bg-light dash-scroll" style="padding-bottom: calc(var(--nav-h) + 100px);">
-          
-          <!-- Calendar Section (Full View) -->
-          <div class="cal-section full-cal" style="padding: 12px var(--sp-4) var(--sp-4);">
-            <div class="cal-card" style="box-shadow:none; border:none; background:transparent; padding: 0;">
-              <div class="cal-header">
-                <h3 class="cal-month">
-                  ${State.calMonth + 1}
-                </h3>
-                <div class="cal-nav">
-                  <button class="cal-today-btn" onclick="Calendar.initCal()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> TODAY
-                  </button>
-                  <button class="cal-arrow-btn" onclick="Calendar.prevMonth()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                  </button>
-                  <button class="cal-arrow-btn" onclick="Calendar.nextMonth()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                  </button>
-                </div>
-              </div>
-              <div class="cal-weekdays">
-                ${U.DAYS.map((d,i)=>`<div class="cal-wd ${i===0||i===6?'weekend':''}" style="${i===0?'color:var(--ios-red);':''}">${d}</div>`).join('')}
-              </div>
-              <div class="cal-days" id="cal-grid">
-                ${this.renderCalDays()}
-              </div>
-              <div id="cal-selected-area" style="margin-top: 16px; padding: 0 4px;">
-                ${this.getSelectedDateLabel(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())}
-              </div>
-              <!-- 새로운 일정 버튼은 캘린더 그리드 안으로 이동됨 -->
+    el.innerHTML = `
+      <div class="screen-scroll" style="padding-top: var(--header-h); padding-bottom: calc(var(--nav-h) + 16px); background:#f8fafc;">
+        <div class="cal-main-container">
+          <!-- 1. 화이트 캘린더 카드 컨테이너 -->
+          <div class="cal-card-box">
+            <div class="cal-nav-header">
+              <button class="cal-nav-arrow" onclick="Calendar.prevMonth()" aria-label="이전 달">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <div class="cal-nav-title">${y}년 ${m + 1}월</div>
+              <button class="cal-nav-arrow" onclick="Calendar.nextMonth()" aria-label="다음 달">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
             </div>
+            
+            <div class="cal-weekdays-row">
+              <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+            </div>
+            
+            <div class="cal-days-grid" id="cal-grid">
+              ${this.renderCalDays()}
+            </div>
+          </div>
+
+          <!-- 2. 선택된 날짜 상세 및 등록 목록 -->
+          <div id="cal-selected-area">
+            ${this.getSelectedDateLabel(y, m, new Date().getDate())}
           </div>
         </div>
       </div>
@@ -63,7 +66,7 @@ const Calendar = {
     }
   },
 
-  // 날짜 레이블 + 일정 목록만 (버튼 제외 — 버튼은 하단 고정)
+  // 날짜 레이블 + 일정 목록
   getSelectAreaHtml(y, m, d) {
     return this.getSelectedDateLabel(y, m, d);
   },
@@ -83,12 +86,12 @@ const Calendar = {
         const isPast = cellDate < todayDate;
 
         schedHtml += `
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; ${isPast ? 'opacity:0.55;' : ''}" onclick="App.viewTimeline(${idx})">
-            <div style="flex:1; background:var(--bg-input); border-radius:12px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-              <span style="font-size:16px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:8px;">${s.course ? s.course.name : (s.courseName || '골프장')}</span>
-              <span style="font-size:14px; font-weight:600; color:var(--text-300); white-space:nowrap;">${teeTime} <span style="color:var(--accent); font-size:12px; margin-left:2px;">${dday}</span></span>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; ${isPast ? 'opacity:0.6;' : ''}" onclick="App.viewTimeline(${idx})">
+            <div style="flex:1; background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <span style="font-size:15px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:8px;">${s.course ? s.course.name : (s.courseName || '골프장')}</span>
+              <span style="font-size:13px; font-weight:700; color:#64748b; white-space:nowrap;">${teeTime} <span style="color:#007aff; font-size:12px; font-weight:800; margin-left:4px;">${dday}</span></span>
             </div>
-            <button onclick="event.stopPropagation(); Calendar.deleteSchedule(${idx})" style="width:36px; height:36px; border-radius:50%; background:rgba(255,59,48,0.08); border:none; color:var(--danger); font-size:18px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">✕</button>
+            <button onclick="event.stopPropagation(); Calendar.deleteSchedule(${idx})" style="width:34px; height:34px; border-radius:50%; background:rgba(255,59,48,0.08); border:none; color:#ef4444; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;" aria-label="일정 삭제">✕</button>
           </div>
         `;
       });
@@ -98,10 +101,10 @@ const Calendar = {
     Calendar._selectedY = y; Calendar._selectedM = m; Calendar._selectedD = d;
 
     return `
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: ${scheds.length > 0 ? '12px' : '4px'};">
-        <div style="font-size: 20px; font-weight: 800; color: var(--text-100);">${dateStr}</div>
-        <button onclick="Calendar._addForSelected()" style="background:var(--gray-900); color:#fff; border:none; padding:10px 18px; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:6px;">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: ${scheds.length > 0 ? '10px' : '4px'}; padding: 0 4px;">
+        <div style="font-size: 17px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${dateStr}</div>
+        <button onclick="Calendar._addForSelected()" style="background:#04122d; color:#fff; border:none; padding:8px 14px; border-radius:9999px; font-size:12.5px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(4,18,45,0.15); display:flex; align-items:center; gap:5px;">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           새로운 일정
         </button>
       </div>
@@ -149,71 +152,50 @@ const Calendar = {
   },
 
   renderCalDays() {
-    const y = State.calYear, m = State.calMonth;
+    const y = State.calYear !== undefined ? State.calYear : new Date().getFullYear();
+    const m = State.calMonth !== undefined ? State.calMonth : new Date().getMonth();
     const firstDay = new Date(y, m, 1).getDay();
     const daysInMonth = new Date(y, m + 1, 0).getDate();
     const today = new Date();
+    const isThisMonth = today.getFullYear() === y && today.getMonth() === m;
 
     let html = '';
-    for (let i = 0; i < firstDay; i++) html += '<div class="cal-day empty"></div>';
+    for (let i = 0; i < firstDay; i++) {
+      html += '<div class="cal-day empty"></div>';
+    }
 
     for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = y === today.getFullYear() && m === today.getMonth() && d === today.getDate();
-      const dayOfWeek = new Date(y, m, d).getDay();
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const isToday = isThisMonth && today.getDate() === d;
+      const cellDate = new Date(y, m, d);
+      const dayOfWeek = cellDate.getDay();
       const scheds = State.getSchedulesForDate(y, m, d);
       const hasSched = scheds.length > 0;
 
-      const cellDate = new Date(y, m, d);
       const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const isPast = cellDate < todayDate;
 
       let cls = 'cal-day';
       if (isToday) cls += ' today';
-      if (isWeekend) cls += ' weekend';
-      if (hasSched) cls += ' has-event';
+      if (hasSched) cls += ' has-record';
       if (isPast) cls += ' past-date';
 
-      const isSunday = dayOfWeek === 0;
-      const isHoliday = U.isHoliday && U.isHoliday(y, m, d);
-      const isRedDay = isSunday || isHoliday;
+      let inner = `<div class="cal-day-num">${d}</div>`;
 
-      let numStyle = '';
-      if (isPast) {
-        numStyle = isRedDay ? 'color: rgba(255, 59, 48, 0.4);' : 'color: var(--text-500);';
-      } else if (isRedDay) {
-        numStyle = 'color: var(--danger);';
-      } else {
-        numStyle = 'color: var(--text-200);';
-      }
-
-      let inner = `<div class="cal-day-num" style="${numStyle}">${d}</div>`;
       if (hasSched) {
-        scheds.slice(0, 2).forEach((s, idx) => {
-          const rawName = s.course ? s.course.name : (s.courseName || '');
-          const cleanName = rawName.replace(/\s*(CC|GC|골프클럽|컨트리클럽|골프코스|하늘코스|GC\s*제주|CC\s*제주)\s*/gi, '').trim() || '일정';
-          const shortName = cleanName.length > 4 ? cleanName.slice(0, 3) + '..' : cleanName;
-          const bandColor = isPast ? 'rgba(255,255,255,0.2)' : 'var(--accent)';
-          
-          const tagStyle = isPast 
-            ? `color:var(--text-400); background: transparent; box-shadow: none; margin-top:${idx===0?'2px':'2px'}; padding-left:2px; line-height:1; font-size:12px; font-weight:800; width:100%;` 
-            : `color:var(--text-200); background: transparent; box-shadow: none; margin-top:${idx===0?'2px':'2px'}; padding-left:2px; line-height:1; font-size:12px; font-weight:800; width:100%;`;
-            
-          const barColor = idx === 0 ? '#007AFF' : '#FF3B30'; // 파란색, 빨간색
-            
-          inner += `
-            <div class="cal-course-tag" style="display:flex; align-items:center; justify-content:flex-start; gap:4px; ${tagStyle}">
-              <div style="width:2px; height:11px; background:${barColor}; border-radius:2px; flex-shrink:0;"></div>
-              <span style="overflow:hidden; text-overflow:ellipsis;">${shortName}</span>
-            </div>
-          `;
-        });
-        if (scheds.length > 2) {
-          inner += `<div style="font-size:8px; color:var(--text-500); margin-top:1px; line-height:1;">+${scheds.length - 2}</div>`;
-        }
+        const s = scheds[0];
+        const rawName = s.course ? s.course.name : (s.courseName || '');
+        const cleanName = rawName.replace(/\s*(CC|GC|골프클럽|컨트리클럽|골프코스|하늘코스|GC\s*제주|CC\s*제주)\s*/gi, '').trim() || '일정';
+        const shortName = cleanName.length > 4 ? cleanName.slice(0, 3) + '..' : cleanName;
+
+        inner += `
+          <div class="cal-event-chip">
+            <div class="cal-chip-bar"></div>
+            <span class="cal-chip-name">${shortName}</span>
+          </div>
+        `;
       }
 
-      html += `<div class="${cls}" onclick="Calendar.selectDate(event, ${y},${m},${d})">
+      html += `<div class="${cls}" onclick="Calendar.selectDate(event, ${y}, ${m}, ${d})">
         ${inner}
       </div>`;
     }
@@ -259,13 +241,13 @@ const Calendar = {
       grid.style.transform = 'scale(0.97)';
       setTimeout(() => {
         grid.innerHTML = this.renderCalDays();
-        grid.style.transition = 'all 0.3s cubic-bezier(0.22,1,0.36,1)';
+        grid.style.transition = 'all 0.25s cubic-bezier(0.22,1,0.36,1)';
         grid.style.opacity = '1';
         grid.style.transform = 'scale(1)';
-      }, 150);
+      }, 120);
     }
-    const label = U.$('.cal-month');
-    if (label) label.textContent = `${State.calMonth+1}`;
+    const label = U.$('.cal-nav-title');
+    if (label) label.textContent = `${State.calYear}년 ${State.calMonth + 1}월`;
   },
 
   selectDate(evt, y, m, d) {
