@@ -25,13 +25,13 @@ const Home = {
       return da - db;
     });
 
-    let subTag = '남서울 CC · D-Day';
-    let mainHeading = '<strong>남서울 CC</strong>에서<br>라운드를 즐겨보세요.';
-    let btnText = '타임라인 보기';
+    let subTag = '스마트 라운딩 플래너';
+    let mainHeading = '다음 라운딩 일정을 등록하고,<br>스마트 타임라인을 경험해 보세요.';
+    let btnText = '새 일정 등록하기';
     let btnAction = "App.navigate('register')";
-    let departTime = '05:20';
-    let arrivalTime = '06:20';
-    let teeOffTime = '07:00';
+    let departTime = '--:--';
+    let arrivalTime = '--:--';
+    let teeOffTime = '--:--';
 
     if (upcomingScheds.length > 0) {
       const s = upcomingScheds[0];
@@ -40,10 +40,26 @@ const Home = {
       const dateObj = s.date instanceof Date ? s.date : new Date(s.date);
       const dday = typeof U !== 'undefined' && U.dday ? U.dday(dateObj) : 'D-Day';
 
-      subTag = `${cName} · ${dday}`;
-      mainHeading = `<strong>${cName}</strong>에서<br>라운드를 즐겨보세요.`;
+      // 오늘과의 날짜 차이 계산
+      const t = new Date(); t.setHours(0,0,0,0);
+      const tg = new Date(dateObj); tg.setHours(0,0,0,0);
+      const diffDays = Math.ceil((tg - t) / 864e5);
+
       btnText = '타임라인 보기';
       btnAction = `App.viewTimeline(${originalIdx})`;
+
+      // D-Day 연동 동적 헤딩 문구 (상단 태그에 골프장명과 D-Day가 이미 표시되므로 중복 제거)
+      if (diffDays === 0 || dday === 'D-Day') {
+        subTag = `${cName} · D-Day`;
+        mainHeading = `티오프 전 여유로운 출발,<br>지금 시작해 보세요.`;
+        btnText = '출발 타임라인 확인';
+      } else if (diffDays >= 1 && diffDays <= 3) {
+        subTag = `${cName} · ${dday}`;
+        mainHeading = `티오프까지 완벽한<br>스마트 동선을 안내합니다.`;
+      } else {
+        subTag = `${cName} · ${dday}`;
+        mainHeading = `티오프 맞춤 역산과<br>최적 동선을 확인하세요.`;
+      }
 
       if (!s.timeline && typeof State !== 'undefined' && State.calculateTimeline) {
         try { State.calculateTimeline(originalIdx); } catch(e){}
