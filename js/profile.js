@@ -21,7 +21,7 @@ const Profile = {
     
     // 로그인된 사용자 정보 불러오기
     const userName = localStorage.getItem('bp_user_name') || '버디 골퍼';
-    const userEmail = localStorage.getItem('bp_user_email') || 'buddygolfer@example.com';
+    const userEmail = localStorage.getItem('bp_user_email') || '';
     const provider = localStorage.getItem('bp_provider');
     const avatarLetter = userName.charAt(0).toUpperCase();
     const currentPoints = parseInt(localStorage.getItem('bp_points') || '0', 10);
@@ -40,8 +40,8 @@ const Profile = {
       <div class="screen-scroll">
         <div class="profile-hero">
           <div class="profile-avatar">${avatarLetter}</div>
-          <div class="profile-name">${userName} <span style="font-size:10px; color:var(--text-400); font-weight:normal;">(${provider||'mock'})</span></div>
-          <div class="profile-email">${userEmail}</div>
+          <div class="profile-name">${U.esc(userName)}</div>
+          <div class="profile-email">${U.esc(userEmail)}</div>
           ${State.isPro ? '<div style="margin-top:8px; display:inline-block; padding:4px 12px; background:var(--gold-dim); color:var(--gold-500); border:1px solid rgba(217,119,6,0.3); border-radius:var(--r-full); font-size:12px; font-weight:bold;">👑 PRO 멤버</div>' : ''}
         </div>
         
@@ -250,8 +250,7 @@ const Profile = {
       // Update profile name display instantly
       const nameEl = document.querySelector('.profile-name');
       if (nameEl) {
-        const provider = localStorage.getItem('bp_provider') || 'mock';
-        nameEl.innerHTML = `${newVal} <span style="font-size:10px; color:var(--text-400); font-weight:normal;">(${provider})</span>`;
+        nameEl.textContent = newVal;
       }
       const avatarEl = document.querySelector('.profile-avatar');
       if (avatarEl) {

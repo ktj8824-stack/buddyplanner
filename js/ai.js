@@ -108,7 +108,7 @@ const AI = {
           id: 'welcome',
           sender: 'bot',
           time: this.formatCurrentTime(),
-          text: `안녕하세요, 대표님! 🏌️‍♂️<br>골프 전문 <strong>버디 AI 비서</strong>입니다.<br><br>말씀하시거나 채팅으로 <strong>라운딩 일정 자동 등록</strong>, <strong>골프 룰/에티켓 질문</strong>, <strong>동반자 알림톡 전송</strong>을 편하게 요청해 보세요!`,
+          text: `안녕하세요, ${this.userName()}님! 🏌️‍♂️<br>골프 전문 <strong>버디 AI 비서</strong>입니다.<br><br>말씀하시거나 채팅으로 <strong>라운딩 일정 자동 등록</strong>, <strong>골프 룰/에티켓 질문</strong>, <strong>동반자 알림톡 전송</strong>을 편하게 요청해 보세요!`,
           showChips: true
         }
       ];
@@ -437,7 +437,7 @@ const AI = {
         id: botMsgId,
         sender: 'bot',
         time: this.formatCurrentTime(),
-        text: `대표님 말씀에서 <strong>${scheduleData.course.name}</strong> 라운딩 일정을 감지했습니다! ⛳<br>아래 정보를 확인하시고 <strong>[즉시 등록]</strong> 버튼을 누르면 캘린더와 자동 이동 타임라인에 바로 반영됩니다.`,
+        text: `말씀하신 내용에서 <strong>${U.esc(scheduleData.course.name)}</strong> 라운딩 일정을 감지했습니다! ⛳<br>아래 정보를 확인하시고 <strong>[즉시 등록]</strong> 버튼을 누르면 캘린더와 자동 이동 타임라인에 바로 반영됩니다.`,
         schedCard: scheduleData
       };
       this.messages.push(botMsg);
@@ -461,7 +461,7 @@ const AI = {
           id: botMsgId,
           sender: 'bot',
           time: this.formatCurrentTime(),
-          text: `대표님의 가장 가까운 라운딩은 <strong>${dateStr} ${next.teeOff}</strong>, <strong>${next.course.name}</strong>입니다! ⛳`,
+          text: `${this.userName()}님의 가장 가까운 라운딩은 <strong>${dateStr} ${U.esc(next.teeOff)}</strong>, <strong>${U.esc(next.course.name)}</strong>입니다! ⛳`,
           weatherCard: {
             courseName: next.course.name,
             dateStr: dateStr,
@@ -601,7 +601,7 @@ const AI = {
     }
 
     // Default friendly assistant reply
-    const defaultReply = `대표님, "${text}"에 대해 확인했습니다! 🏌️‍♂️<br><br>
+    const defaultReply = `${this.userName()}님, "${U.esc(text)}"에 대해 확인했습니다! 🏌️‍♂️<br><br>
 제가 가장 잘하는 일은 <strong>"이번 주 토요일 7시 남서울CC 4명 일정 등록해줘"</strong>처럼 일정을 잡아드리거나, 골프 룰과 동반자 카톡 알림을 챙겨드리는 것입니다.<br><br>
 궁금하신 골프 규정이나 등록하고 싶은 라운딩이 있으시면 언제든 편하게 말씀해 주세요!`;
     this.addSimpleBotReply(botMsgId, defaultReply);
@@ -994,6 +994,11 @@ const AI = {
         chatBody.scrollTop = chatBody.scrollHeight;
       }
     }, 50);
+  },
+
+  /** 사용자 닉네임 (HTML 이스케이프 처리) */
+  userName() {
+    return U.esc(localStorage.getItem('bp_user_name') || '회원');
   },
 
   escapeHTML(str) {

@@ -148,7 +148,7 @@ const App = {
     }
     
     const adBanner = U.$('#adfit-banner-wrap');
-    const hideBannerScreens = ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai'];
+    const hideBannerScreens = ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai', 'upgrade'];
     // PRO 회원은 광고 제거
     const shouldHideBanner = hideBannerScreens.includes(name) || State.isPro;
 
