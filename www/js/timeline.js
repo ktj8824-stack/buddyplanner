@@ -335,7 +335,7 @@ const Timeline = {
     if (typeof Kakao !== 'undefined') {
       try {
         if (!Kakao.isInitialized()) {
-          Kakao.init('5729341d219d8cb6f0a189fa86c91456');
+          Kakao.init(Login.KAKAO_JS_KEY);
         }
         const s = Timeline._pendingShareS || {};
         const courseName = s.course ? s.course.name : '골프장';

@@ -2,3 +2,7 @@ node_modules/
 .DS_Store
 *.log
 base.apk
+
+# API 키 설정 (깃허브에 올리지 않음)
+js/config.js
+www/js/config.js

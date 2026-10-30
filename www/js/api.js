@@ -3,9 +3,8 @@
    ========================================= */
 
 const KakaoAPI = {
-  // 대표님이 발급받으신 카카오 REST API 키를 아래 빈칸에 붙여넣으세요.
-  // 예: 'abcdef1234567890abcdef1234567890'
-  REST_API_KEY: '0584e867024205fde01e6e0bee9f05f4',
+  // 키는 js/config.js(깃허브에 올라가지 않음)에서 읽어옵니다.
+  REST_API_KEY: (window.APP_CONFIG || {}).KAKAO_REST_API_KEY || '',
 
   /**
    * 카카오 로컬 API 장소 검색 (키워드)
@@ -59,7 +58,7 @@ const KakaoAPI = {
 };
 
 const TmapAPI = {
-  APP_KEY: 'aBQaawS7Sy5wtEfvogEbb8syJzjxNNFA4cr55qBO',
+  APP_KEY: (window.APP_CONFIG || {}).TMAP_APP_KEY || '',
 
   async searchPlace(keyword, isGolfCourse = true) {
     if (!keyword || keyword.trim() === '') return [];

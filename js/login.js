@@ -3,8 +3,8 @@
    ========================================= */
 
 const Login = {
-  // TODO: 대표님의 실제 발급받은 API 키로 교체해야 합니다!
-  KAKAO_JS_KEY: '5729341d219d8cb6f0a189fa86c91456',
+  // 키는 js/config.js(깃허브에 올라가지 않음)에서 읽어옵니다.
+  KAKAO_JS_KEY: (window.APP_CONFIG || {}).KAKAO_JS_KEY || 'YOUR_KAKAO_JS_KEY',
   GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
 
   init() {
@@ -16,7 +16,7 @@ const Login = {
         window.Capacitor.Plugins.CapacitorKakaoLogin = window.Capacitor.registerPlugin('CapacitorKakaoLogin');
       }
       if (window.Capacitor.Plugins.CapacitorKakaoLogin) {
-        window.Capacitor.Plugins.CapacitorKakaoLogin.initialize({ appKey: '023bb498015836d0a4a922373e48f39f' })
+        window.Capacitor.Plugins.CapacitorKakaoLogin.initialize({ appKey: (window.APP_CONFIG || {}).KAKAO_NATIVE_APP_KEY || '' })
           .catch(e => console.error('Kakao native init err', e));
       }
     }
