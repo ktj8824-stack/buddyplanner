@@ -12,6 +12,18 @@ public class AlarmReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        // 부팅 이벤트 등 알람 예약이 아닌 브로드캐스트는 무시합니다. (재등록은 BootReceiver 담당)
+        if (intent == null || intent.getAction() != null) {
+            Log.w(TAG, "Ignoring non-alarm broadcast: " + (intent == null ? "null" : intent.getAction()));
+            return;
+        }
+
+        // 울린 알람은 재부팅 시 재등록 대상에서 제외
+        int requestCode = intent.getIntExtra("requestCode", -1);
+        if (requestCode != -1) {
+            AlarmScheduler.forget(context, requestCode);
+        }
+
         Log.d(TAG, "Alarm triggered! Launching AlarmActivity via Full-Screen Intent...");
         
         android.app.NotificationManager notificationManager = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

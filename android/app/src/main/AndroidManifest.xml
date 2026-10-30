@@ -61,9 +61,14 @@
             android:excludeFromRecents="true"
         />
 
-        <receiver android:name=".AlarmReceiver" android:exported="true">
+        <!-- 앱 내부에서 예약한 알람만 받도록 외부 호출 차단 -->
+        <receiver android:name=".AlarmReceiver" android:exported="false" />
+
+        <!-- 재부팅/앱 업데이트 후 저장된 미래 알람 재등록 (알람을 울리지 않음) -->
+        <receiver android:name=".BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

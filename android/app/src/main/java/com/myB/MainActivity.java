@@ -1,7 +1,6 @@
 package com.myB;
 
 import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -115,53 +114,15 @@ public class MainActivity extends BridgeActivity {
                     }
                 }
 
-                Intent intent = new Intent(context, AlarmReceiver.class);
-                
-                int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    flags |= PendingIntent.FLAG_IMMUTABLE;
-                }
-                int reqCode = (int) (timeInMillis % Integer.MAX_VALUE);
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(context, reqCode, intent, flags);
-                
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        AlarmManager.AlarmClockInfo info = new AlarmManager.AlarmClockInfo(timeInMillis, pendingIntent);
-                        alarmManager.setAlarmClock(info, pendingIntent);
-                        Log.d("NativeApp", "AlarmClock set successfully via JSInterface");
-                    } else {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
-                        } else {
-                            alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
-                        }
-                    }
-                } catch (Exception e) {
-                    Log.e("NativeApp", "Failed to set alarm", e);
-                }
+                // 예약 + 재부팅 대비 기록을 AlarmScheduler에서 함께 처리
+                AlarmScheduler.schedule(context, AlarmScheduler.requestCodeFor(timeInMillis), timeInMillis, null);
             }
 
             @JavascriptInterface
             public void cancelAlarm(long timeInMillis) {
                 Log.d("NativeApp", "cancelAlarm called from JS: " + timeInMillis);
                 Context context = MainActivity.this;
-                AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                Intent intent = new Intent(context, AlarmReceiver.class);
-                
-                int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    flags |= PendingIntent.FLAG_IMMUTABLE;
-                }
-                int reqCode = (int) (timeInMillis % Integer.MAX_VALUE);
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(context, reqCode, intent, flags);
-                
-                try {
-                    alarmManager.cancel(pendingIntent);
-                    pendingIntent.cancel();
-                    Log.d("NativeApp", "Alarm cancelled successfully for reqCode: " + reqCode);
-                } catch (Exception e) {
-                    Log.e("NativeApp", "Failed to cancel alarm", e);
-                }
+                AlarmScheduler.cancel(context, AlarmScheduler.requestCodeFor(timeInMillis));
             }
 
             @JavascriptInterface
@@ -194,31 +155,8 @@ public class MainActivity extends BridgeActivity {
                     }
                 }
 
-                Intent intent = new Intent(context, AlarmReceiver.class);
-                intent.putExtra("timelineJson", timelineJson); // JSON 데이터 추가
-                
-                int flags = PendingIntent.FLAG_UPDATE_CURRENT;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    flags |= PendingIntent.FLAG_IMMUTABLE;
-                }
-                int reqCode = (int) (timeInMillis % Integer.MAX_VALUE);
-                PendingIntent pendingIntent = PendingIntent.getBroadcast(context, reqCode, intent, flags);
-                
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        AlarmManager.AlarmClockInfo info = new AlarmManager.AlarmClockInfo(timeInMillis, pendingIntent);
-                        alarmManager.setAlarmClock(info, pendingIntent);
-                        Log.d("NativeApp", "AlarmClock set successfully via JSInterface (with data)");
-                    } else {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
-                        } else {
-                            alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
-                        }
-                    }
-                } catch (Exception e) {
-                    Log.e("NativeApp", "Failed to set alarm", e);
-                }
+                // 예약 + 재부팅 대비 기록을 AlarmScheduler에서 함께 처리
+                AlarmScheduler.schedule(context, AlarmScheduler.requestCodeFor(timeInMillis), timeInMillis, timelineJson);
             }
 
 
