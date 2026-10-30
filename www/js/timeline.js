@@ -1039,7 +1039,9 @@ const Timeline = {
       ].filter(e => e.time !== Infinity).sort((a, b) => a.time - b.time);
 
       let currentEvent = null;
-      for (let i = events.length - 1; i >= 0; i--) {
+      const teeOffTime = parseTime(tl.teeOff);
+      const roundOver = teeOffTime !== Infinity && now > teeOffTime + 5 * 60 * 60 * 1000;
+      for (let i = roundOver ? -1 : events.length - 1; i >= 0; i--) {
         if (now >= events[i].time) {
           currentEvent = events[i].name;
           break;

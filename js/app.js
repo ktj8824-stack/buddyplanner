@@ -152,6 +152,9 @@ const App = {
     // PRO 회원은 광고 제거
     const shouldHideBanner = hideBannerScreens.includes(name) || State.isPro;
 
+    // 광고 배너가 보이는 화면은 하단 여백을 늘려 마지막 내용이 가려지지 않게
+    document.body.classList.toggle('ad-visible', !shouldHideBanner);
+
     // 웹 환경 (AdFit) 배너 토글
     if (adBanner) {
       if (shouldHideBanner) {
@@ -188,9 +191,9 @@ const App = {
     nav.innerHTML = `
       <div class="top-nav-left" style="display:flex; align-items:center; cursor:pointer;" onclick="App.navigate('home')">
         <div class="glounge-brand-logo">
-          <img src="img/buddybirdie_app_icon.png" class="brand-logo-icon" alt="BirdiePlanner" />
-          BirdiePlanner
-          <span class="glounge-brand-badge">PRO</span>
+          <img src="img/buddybirdie_app_icon.png" class="brand-logo-icon" alt="" />
+          버디플래너
+          <span class="glounge-brand-badge" id="nav-pro-badge" style="${State.isPro ? '' : 'display:none'}">PRO</span>
         </div>
       </div>
       <div class="top-nav-right glounge-nav-actions" style="display:flex; align-items:center; gap:16px; margin-left:auto;">
@@ -266,9 +269,12 @@ const App = {
 
   /** 구독 상태가 바뀌었을 때 광고 표시를 맞춤 (Billing에서 호출) */
   applyProStatus() {
+    const badge = U.$('#nav-pro-badge');
+    if (badge) badge.style.display = State.isPro ? '' : 'none';
     const adfit = U.$('#adfit-banner-wrap');
     const AdMob = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob;
     if (State.isPro) {
+      document.body.classList.remove('ad-visible');
       if (adfit) adfit.style.display = 'none';
       if (AdMob && this.adMobActive) {
         AdMob.removeBanner().catch(e => console.warn('AdMob remove Error', e));

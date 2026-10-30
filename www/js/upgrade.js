@@ -16,8 +16,8 @@ const Upgrade = {
 
     el.innerHTML = `
       <div class="header" style="background:transparent; border-bottom:none; position:absolute; width:100%; z-index:10;">
-        <button class="header-btn" onclick="App.navigate('profile')" style="background:rgba(0,0,0,0.3); border-color:rgba(255,255,255,0.1);">
-          <svg viewBox="0 0 24 24" style="stroke:#fff;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <button class="header-btn" onclick="App.navigate('profile')" aria-label="뒤로가기">
+          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
       </div>
 
@@ -34,14 +34,14 @@ const Upgrade = {
           <h3 class="upg-feature-title">PRO 멤버십 혜택</h3>
           <div class="feat-list">
             <div class="feat-item stag">
-              <div class="feat-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div>
+              <div class="feat-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
               <div class="feat-text">
                 <h4>무제한 라운딩 플랜</h4>
                 <p>일정 등록 개수 제한 없이 마음껏 라운딩을 계획하세요.</p>
               </div>
             </div>
             <div class="feat-item stag">
-              <div class="feat-icon blue"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19c-2.485 0-4.5-2.015-4.5-4.5v-1.043c0-1.802 1.34-3.327 3.125-3.488A4.502 4.502 0 0 1 22 14.5c0 2.485-2.015 4.5-4.5 4.5zM2 14.5c0 2.485 2.015 4.5 4.5 4.5h.5A4.5 4.5 0 0 0 11.5 14.5v-1.043C11.5 11.655 10.16 10.13 8.375 9.97A4.502 4.502 0 0 0 2 14.5z"></path></svg></div>
+              <div class="feat-icon blue"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"></path></svg></div>
               <div class="feat-text">
                 <h4>14일 초정밀 날씨 예보</h4>
                 <p>바람, 습도, 자외선 지수 등 골퍼를 위한 심층 날씨 정보를 제공합니다.</p>

@@ -156,3 +156,13 @@
   0% { background-position-x: 0%; }
   100% { background-position-x: -200%; }
 }
+
+/* 한글 앱 이름이 화면 폭을 넘지 않도록 */
+.splash-logo-title {
+  font-family: 'Pretendard', var(--font-sans), sans-serif;
+  font-style: normal;
+  font-weight: 800;
+  font-size: clamp(2.6rem, 13vw, 4rem);
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}

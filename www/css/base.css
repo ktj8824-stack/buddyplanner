@@ -30,6 +30,9 @@ body {
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* 한국어가 단어 중간에서 끊기지 않게 (긴 영문/URL은 줄바꿈 허용) */
+  word-break: keep-all;
+  overflow-wrap: break-word;
   overflow-x: hidden;
   min-height: 100vh;
   min-height: 100dvh;
@@ -155,7 +158,7 @@ img { max-width: 100%; display: block; }
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--app-w);
-  height: var(--nav-h);
+  height: calc(var(--nav-h) + var(--safe-bottom));
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -192,4 +195,12 @@ img { max-width: 100%; display: block; }
 .gnb-item .nav-label {
   font-size: 10px;
   font-weight: var(--fw-medium);
+}
+
+/* 하단 광고 배너(약 62px)가 보일 때 화면 맨 아래 내용이 가려지지 않도록 여백 추가 */
+body.ad-visible .screen.active::after {
+  content: '';
+  display: block;
+  flex: none;
+  height: 72px;
 }
