@@ -15,6 +15,8 @@ window.APP_CONFIG = {
   TMAP_APP_KEY: '',          // SK open API Tmap 앱키 (경로, 장소 검색)
   REVENUECAT_ANDROID_KEY: '', // RevenueCat 공개 SDK 키 (goog_로 시작, 구독 결제)
   GOOGLE_WEB_CLIENT_ID: '',   // 구글 클라우드 '웹 애플리케이션' OAuth 클라이언트 ID (비우면 구글 로그인 버튼 숨김)
+  SUPABASE_URL: '',           // Supabase 프로젝트 URL (예: https://abcd1234.supabase.co) — 비우면 기기에만 저장
+  SUPABASE_ANON_KEY: '',      // Supabase 공개 키 (Project Settings > API의 anon/publishable 키)
 
   // ── 빌드 모드 (출시 빌드에서는 둘 다 false) ──
   ADS_TEST_MODE: true,  // true: 테스트 광고 / false: 실제 광고(수익 발생)

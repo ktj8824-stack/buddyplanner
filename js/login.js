@@ -123,7 +123,7 @@ const Login = {
       let profile = r.profile || {};
       // 프로필이 비어 있으면 ID 토큰에서 이름·이메일을 읽음
       if ((!profile.name || !profile.email) && r.idToken) profile = Object.assign(this.decodeJwt(r.idToken) || {}, profile);
-      this.finishLogin('google', { name: profile.name || profile.givenName || '구글 유저', email: profile.email || '' });
+      this.finishLogin('google', { name: profile.name || profile.givenName || '구글 유저', email: profile.email || '' }, { idToken: r.idToken });
     } catch (e) {
       const msg = String((e && (e.message || e.code)) || e || '');
       console.error('Google native login err:', e);
@@ -171,15 +171,15 @@ const Login = {
                 success: (profileRes) => {
                   const name = profileRes.properties && profileRes.properties.nickname ? profileRes.properties.nickname : '카카오 유저';
                   const email = profileRes.kakao_account && profileRes.kakao_account.email ? profileRes.kakao_account.email : '';
-                  this.finishLogin('kakao', { name, email });
+                  this.finishLogin('kakao', { name, email }, { idToken: res.idToken });
                 },
                 fail: (err) => {
                   console.error('프로필 조회 실패:', err);
-                  this.finishLogin('kakao', { name: '카카오 유저', email: '' });
+                  this.finishLogin('kakao', { name: '카카오 유저', email: '' }, { idToken: res.idToken });
                 }
               });
             } else {
-              this.finishLogin('kakao', { name: '카카오(네이티브)', email: '' });
+              this.finishLogin('kakao', { name: '카카오 유저', email: '' }, { idToken: res.idToken });
             }
           })
           .catch(err => {
@@ -189,6 +189,12 @@ const Login = {
           });
         return;
       }
+    }
+
+    // 웹 + 클라우드 사용: Supabase의 카카오 로그인 페이지로 이동 (돌아오면 App.init에서 로그인 완료)
+    if (typeof Cloud !== 'undefined' && Cloud.isConfigured()) {
+      Cloud.startOAuth('kakao');
+      return;
     }
 
     if (typeof Kakao === 'undefined') {
@@ -237,23 +243,55 @@ const Login = {
       U.toast('구글 정보를 읽을 수 없습니다.');
       return;
     }
-    this.finishLogin('google', { name: payload.name || '구글 유저', email: payload.email || '' });
+    this.finishLogin('google', { name: payload.name || '구글 유저', email: payload.email || '' }, { idToken: response.credential });
   },
 
-  finishLogin(provider, user) {
+  /**
+   * 로그인 완료 처리.
+   * @param cloud {idToken} 이 있으면 Supabase에 로그인하고 서버 데이터를 받아온 뒤 화면을 엽니다.
+   *              {already:true} 는 이미 클라우드 세션이 있는 경우(웹 리디렉트 로그인).
+   */
+  async finishLogin(provider, user, cloud) {
     localStorage.setItem('bp_logged_in', 'true');
     localStorage.setItem('bp_provider', provider);
-    localStorage.setItem('bp_user_name', user.name);
-    localStorage.setItem('bp_user_email', user.email);
+    localStorage.setItem('bp_user_email', user.email || '');
+    // 닉네임: 기기에 이미 있으면(사용자가 바꾼 닉네임) 유지하고, 없을 때만 로그인 이름 사용.
+    // 서버에 저장된 닉네임이 있으면 아래 동기화에서 그 값으로 바뀜.
+    if (!localStorage.getItem('bp_user_name')) {
+      const setName = () => localStorage.setItem('bp_user_name', user.name);
+      if (typeof Cloud !== 'undefined') Cloud.withoutTracking(setName); else setName();
+    }
 
-    U.toast(`✅ ${U.esc(user.name)}님 환영합니다!`);
+    if (typeof Cloud !== 'undefined' && Cloud.isConfigured() && cloud && (cloud.idToken || cloud.already)) {
+      U.toast('☁️ 내 데이터를 불러오는 중...');
+      try {
+        if (cloud.idToken) await Cloud.signInWithIdToken(provider, cloud.idToken);
+        await Cloud.sync();
+        if (typeof State !== 'undefined') State.loadSchedules();
+        if (typeof App !== 'undefined') App.loadPreferences();
+      } catch (e) {
+        console.warn('[Login] 클라우드 연결 실패', e);
+        U.toast('클라우드에 연결하지 못했어요. 이 기기에만 저장되며, 연결되면 자동으로 동기화돼요.', 3500);
+      }
+    }
+
+    const name = localStorage.getItem('bp_user_name') || user.name;
+    U.toast(`✅ ${U.esc(name)}님 환영합니다!`);
 
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
-    if (hasOnboarded) {
-      App.navigate('home');
-    } else {
-      App.navigate('onboarding');
-    }
+    App.navigate(hasOnboarded ? 'home' : 'onboarding');
+  },
+
+  /** 웹: 카카오 OAuth 리디렉트로 돌아온 뒤 로그인 완료 */
+  async completeRedirectLogin(redirected) {
+    let name = '카카오 유저', email = '';
+    try {
+      const u = await Cloud.fetchUser();
+      const m = (u && u.user_metadata) || {};
+      name = m.name || m.full_name || m.nickname || m.preferred_username || name;
+      email = (u && u.email) || m.email || '';
+    } catch (e) { console.warn('[Login] 사용자 정보 조회 실패', e); }
+    await this.finishLogin(redirected.provider || 'kakao', { name, email }, { already: true });
   }
 };
 

@@ -119,6 +119,16 @@ const Profile = {
           <div class="profile-section-title">데이터 관리</div>
           
           <div class="setting-card">
+            ${(typeof Cloud !== 'undefined' && Cloud.isConfigured()) ? `
+            <div class="setting-item" style="cursor:pointer" onclick="Profile.syncNow()">
+              <div class="address-input-wrap" style="flex:1">
+                <span class="address-icon">☁️</span>
+                <div class="address-input" style="display:flex; flex-direction:column; align-items:flex-start; background:transparent; color:var(--text-800)">
+                  <span>클라우드 동기화 ${Cloud.isSignedIn() ? '<span style="font-size:12px; color:var(--accent);">지금 동기화</span>' : ''}</span>
+                  <span id="cloud-status-text" style="font-size:12px; color:var(--text-400); font-weight:400;">${Cloud.statusText()}</span>
+                </div>
+              </div>
+            </div>` : ''}
             <div class="setting-item" style="cursor:pointer" onclick="Profile.exportData()">
               <div class="address-input-wrap" style="flex:1">
                 <span class="address-icon">📤</span>
@@ -293,6 +303,16 @@ const Profile = {
     });
   },
 
+  async syncNow() {
+    if (!Cloud.isSignedIn()) { U.toast('로그인하면 데이터가 클라우드에 저장돼요.'); return; }
+    try {
+      await Cloud.sync();
+      U.toast('☁️ 동기화가 완료되었어요.');
+    } catch (e) {
+      U.toast('동기화에 실패했어요. 인터넷 연결을 확인해 주세요.');
+    }
+  },
+
   /**
    * 회원 탈퇴: 기기에 저장된 모든 데이터 삭제 + 소셜 로그인 연결 해제 + 예약된 알람 취소.
    * (버디플래너는 서버에 개인정보를 저장하지 않으므로 기기 데이터 삭제로 탈퇴가 완료됩니다)
@@ -305,6 +325,18 @@ const Profile = {
     if (!confirm('정말 모든 데이터를 삭제하고 탈퇴하시겠습니까?')) return;
 
     const provider = localStorage.getItem('bp_provider');
+
+    // 0) 클라우드에 저장된 사진·데이터·계정 삭제 (실패하면 중단: 서버에 데이터가 남지 않게)
+    if (typeof Cloud !== 'undefined' && Cloud.isSignedIn()) {
+      try {
+        U.toast('서버에 저장된 데이터를 삭제하는 중...');
+        await Cloud.deleteAccount();
+      } catch (e) {
+        console.error('[Profile] 서버 데이터 삭제 실패', e);
+        alert('서버 데이터를 삭제하지 못했어요. 인터넷 연결을 확인한 뒤 다시 시도해 주세요.');
+        return;
+      }
+    }
 
     // 1) 폰에 예약된 알람 취소
     try {
@@ -339,9 +371,21 @@ const Profile = {
     window.location.reload();
   },
 
-  logout() {
+  async logout() {
     if (confirm('정말 로그아웃 하시겠습니까?')) {
       const provider = localStorage.getItem('bp_provider');
+
+      // 클라우드 사용 중: 남은 변경을 올린 뒤, 다음 로그인 계정과 섞이지 않게 기기 데이터를 정리
+      if (typeof Cloud !== 'undefined' && Cloud.isSignedIn()) {
+        try { await Cloud.push(); } catch (e) { /* 오프라인 등 */ }
+        if (Cloud.pendingCount() > 0 &&
+            !confirm('아직 서버에 저장되지 않은 변경이 있어요. 지금 로그아웃하면 이 변경은 사라집니다. 그래도 로그아웃할까요?')) {
+          return;
+        }
+        await Cloud.signOut();
+        Cloud.clearLocalData();
+        State.schedules = [];
+      }
       
       // 카카오 로그아웃 처리
       if (provider === 'kakao' && typeof Kakao !== 'undefined' && Kakao.Auth) {

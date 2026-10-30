@@ -6,8 +6,13 @@ const App = {
   screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle','ai'],
 
   init() {
+    // 클라우드 동기화 준비 (설정이 없으면 아무 동작 안 함). 웹 카카오 로그인에서 돌아온 경우 그 정보를 받음
+    const cloudRedirect = (typeof Cloud !== 'undefined') ? Cloud.init() : null;
+
     if (!State.loadSchedules()) {
-      State.initDemo();
+      // 처음 설치 시 보여주는 예시 일정은 서버에 올리지 않음
+      if (typeof Cloud !== 'undefined') Cloud.withoutTracking(() => State.initDemo());
+      else State.initDemo();
     }
     this.loadPreferences();
     // PRO 여부를 먼저 복원해야 PRO 회원에게 광고가 뜨지 않음
@@ -46,7 +51,16 @@ const App = {
       hasShared = true;
     }
 
-    if (!hasShared) {
+    // 업데이트 전부터 로그인해 쓰던 사용자는 클라우드 세션이 없으므로 연결 안내 (하루 1회)
+    if (!cloudRedirect && typeof Cloud !== 'undefined' && Cloud.isConfigured() && !Cloud.isSignedIn()
+        && localStorage.getItem('bp_logged_in') === 'true') {
+      setTimeout(() => this.offerCloudConnect(), 5000);
+    }
+
+    if (cloudRedirect) {
+      // 웹 카카오 로그인 후 돌아옴 → 서버 데이터를 받아 로그인 완료
+      Login.completeRedirectLogin(cloudRedirect);
+    } else if (!hasShared) {
       // Start with splash screen
       this.navigate('splash');
     }
@@ -258,6 +272,22 @@ const App = {
   ADMOB_INTERSTITIAL_ID: 'ca-app-pub-6195996093323539/7047651850',
   // 구글 애드몹 보상형 동영상 광고 ID (실제 광고 단위)
   ADMOB_REWARD_ID: 'ca-app-pub-6195996093323539/4620360062',
+
+  /** 기존 사용자: 데이터를 지우지 않고 다시 로그인해 클라우드 백업을 켜도록 안내 */
+  offerCloudConnect() {
+    const today = new Date().toDateString();
+    if (localStorage.getItem('bp_cloud_offer_day') === today) return;
+    if (['splash', 'login', 'onboarding'].indexOf(State.screen) >= 0) return;
+    localStorage.setItem('bp_cloud_offer_day', today);
+    this.showModal('클라우드 백업을 켜세요', `
+      <div class="pay-success" style="padding-top:var(--sp-2);">
+        <p>이제 일정과 라운딩 기록을 클라우드에 안전하게 보관할 수 있어요.<br>
+        폰을 바꿔도 같은 계정으로 로그인하면 그대로 불러와요.<br><br>
+        한 번만 다시 로그인하면 이 기기의 데이터가 그대로 올라가요.</p>
+        <button class="btn-primary" style="width:100%; margin-bottom:var(--sp-2);" onclick="App.closeModal(); App.navigate('login');">다시 로그인하고 백업 켜기</button>
+        <button class="btn-ghost" style="width:100%;" onclick="App.closeModal();">나중에</button>
+      </div>`);
+  },
 
   /**
    * 테스트 광고 여부. 개발 중 실제 광고를 노출·클릭하면 애드몹 정책 위반이므로
