@@ -10,13 +10,16 @@ const App = {
       State.initDemo();
     }
     this.loadPreferences();
+    // PRO 여부를 먼저 복원해야 PRO 회원에게 광고가 뜨지 않음
+    Billing.loadCachedStatus();
     this.renderNav();
     this.renderAdBanner();
     this.initRewardedAd();
     this.prepareInterstitialAd();
     
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
-    State.isPro = localStorage.getItem('bp_pro') === 'true';
+    // 구글 플레이 결제(RevenueCat)로 실제 구독 상태 확인 (비동기)
+    Billing.init();
 
     // Automatically schedule alarms for today's events in the background
     Timeline.autoScheduleAllAlarms();
@@ -146,7 +149,8 @@ const App = {
     
     const adBanner = U.$('#adfit-banner-wrap');
     const hideBannerScreens = ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai'];
-    const shouldHideBanner = hideBannerScreens.includes(name);
+    // PRO 회원은 광고 제거
+    const shouldHideBanner = hideBannerScreens.includes(name) || State.isPro;
 
     // 웹 환경 (AdFit) 배너 토글
     if (adBanner) {
@@ -252,7 +256,24 @@ const App = {
   // 구글 애드몹 보상형 동영상 광고 ID (실제 광고 단위)
   ADMOB_REWARD_ID: 'ca-app-pub-6195996093323539/4620360062',
 
+  /** 구독 상태가 바뀌었을 때 광고 표시를 맞춤 (Billing에서 호출) */
+  applyProStatus() {
+    const adfit = U.$('#adfit-banner-wrap');
+    const AdMob = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob;
+    if (State.isPro) {
+      if (adfit) adfit.style.display = 'none';
+      if (AdMob && this.adMobActive) {
+        AdMob.removeBanner().catch(e => console.warn('AdMob remove Error', e));
+        this.adMobActive = false;
+      }
+    } else {
+      this.renderAdBanner();
+      this.prepareInterstitialAd();
+    }
+  },
+
   async prepareInterstitialAd() {
+    if (State.isPro) return;
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
       if (!window.Capacitor.Plugins.AdMob) {
         window.Capacitor.Plugins.AdMob = window.Capacitor.registerPlugin('AdMob');
@@ -272,6 +293,7 @@ const App = {
   },
 
   async showInterstitialAd() {
+    if (State.isPro) return; // PRO 회원은 전면 광고 없음
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
       if (!window.Capacitor.Plugins.AdMob) {
         window.Capacitor.Plugins.AdMob = window.Capacitor.registerPlugin('AdMob');
@@ -322,6 +344,7 @@ const App = {
   },
 
   async renderAdBanner() {
+    if (State.isPro) return; // PRO 회원은 배너 광고 없음
     // 모바일(Capacitor) 네이티브 환경인 경우 구글 애드몹 사용
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
       if (!window.Capacitor.Plugins.AdMob) {

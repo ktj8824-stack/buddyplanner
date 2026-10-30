@@ -3,6 +3,9 @@
    ========================================= */
 
 const Upgrade = {
+  selected: 'annual',
+  busy: false,
+
   init() {
     this.render();
   },
@@ -25,9 +28,6 @@ const Upgrade = {
           </div>
           <h2 class="upg-title">버디플래너 PRO</h2>
           <p class="upg-subtitle">프리미엄 혜택으로 골프 라이프를 완벽하게</p>
-          <div class="upg-price-box">
-            <div class="upg-price">₩4,900 <span>/ 월</span></div>
-          </div>
         </div>
 
         <div class="upg-content">
@@ -64,48 +64,223 @@ const Upgrade = {
           </div>
         </div>
 
-        <div class="upg-action">
-          <button class="btn-upg" onclick="Upgrade.startPayment()">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-            월 4,900원 결제하기
-          </button>
-          <p style="text-align:center; font-size:var(--fs-xs); color:var(--text-400); margin-top:var(--sp-4);">결제 후 즉시 프리미엄 혜택이 적용됩니다.<br>언제든 구독을 해지할 수 있습니다.</p>
-        </div>
+        <div class="upg-action" id="upg-action"></div>
       </div>
     `;
     
     // Trigger animations
     setTimeout(() => U.stagger(el, '.feat-item', 100), 50);
+    this.renderAction();
   },
 
-  startPayment() {
-    App.showModal('결제 진행', `
-      <div class="pay-loader">
-        <div class="pay-spinner"></div>
-        <div class="pay-msg">안전하게 결제를 진행 중입니다...</div>
-        <p style="font-size:var(--fs-sm); color:var(--text-400); margin-top:var(--sp-2);">창을 닫지 마세요.</p>
+  /* ── 하단 결제 영역: 상태에 따라 다르게 표시 ── */
+  async renderAction() {
+    const box = U.$('#upg-action');
+    if (!box) return;
+
+    // 1) 이미 PRO 회원
+    if (State.isPro) {
+      box.innerHTML = this.proStatusHTML();
+      return;
+    }
+
+    // 2) 웹(PWA): 결제는 앱에서만 가능
+    if (!Billing.isNative()) {
+      box.innerHTML = `
+        <div class="upg-notice">
+          <b>PRO 구독은 안드로이드 앱에서 할 수 있어요</b>
+          <p>구글 플레이 스토어에서 버디플래너 앱을 설치한 뒤 구독해 주세요.</p>
+        </div>
+        <button class="btn-upg" onclick="Billing.openStoreListing()">구글 플레이에서 앱 받기</button>`;
+      return;
+    }
+
+    // 3) 결제 키 미설정
+    if (!Billing.isAvailable()) {
+      box.innerHTML = `
+        <div class="upg-notice">
+          <b>결제 준비 중이에요</b>
+          <p>곧 PRO 구독을 시작할 수 있어요. 조금만 기다려 주세요.</p>
+        </div>`;
+      return;
+    }
+
+    // 4) 상품 불러오기
+    box.innerHTML = `<div class="upg-loading"><div class="pay-spinner"></div><span>구독 상품을 불러오는 중...</span></div>`;
+    try {
+      // 초기화가 아직 끝나지 않았으면 잠시 대기 (최대 5초)
+      for (let i = 0; i < 25 && !Billing.configured; i++) await new Promise(r => setTimeout(r, 200));
+      await Billing.loadPackages();
+    } catch (e) {
+      console.error('[Upgrade] 상품 조회 실패:', e);
+    }
+
+    // 상품 로딩 중 PRO로 바뀌었거나 화면을 벗어난 경우
+    if (State.isPro) { box.innerHTML = this.proStatusHTML(); return; }
+    if (!U.$('#upg-action')) return;
+
+    const { monthly, annual } = Billing.packages;
+    if (!monthly && !annual) {
+      box.innerHTML = `
+        <div class="upg-notice">
+          <b>구독 상품을 불러오지 못했어요</b>
+          <p>인터넷 연결을 확인한 뒤 다시 시도해 주세요.</p>
+        </div>
+        <button class="btn-upg" onclick="Upgrade.renderAction()">다시 시도</button>
+        ${this.footerHTML()}`;
+      return;
+    }
+
+    if (!Billing.packages[this.selected]) this.selected = annual ? 'annual' : 'monthly';
+    box.innerHTML = `
+      <div class="plan-list">
+        ${annual ? this.planCardHTML('annual', annual, monthly) : ''}
+        ${monthly ? this.planCardHTML('monthly', monthly, null) : ''}
       </div>
-    `);
-
-    // Simulate PG payment delay (3 seconds)
-    setTimeout(() => {
-      this.completePayment();
-    }, 2500);
+      <button class="btn-upg" id="upg-buy-btn" onclick="Upgrade.buy()">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+        <span>PRO 구독 시작하기</span>
+      </button>
+      ${this.footerHTML()}`;
   },
 
-  completePayment() {
-    // 1. Mark user as PRO in localStorage
-    localStorage.setItem('bp_pro', 'true');
-    State.isPro = true;
+  planCardHTML(kind, pkg, monthlyPkg) {
+    const p = pkg.product || {};
+    const isAnnual = kind === 'annual';
+    let sub = isAnnual ? '1년마다 결제' : '매월 결제';
+    let badge = '';
 
-    // 2. Show Success Modal
-    App.showModal('결제 완료', `
+    if (isAnnual && typeof p.price === 'number') {
+      sub = `월 ${this.formatPrice(p.price / 12, p.currencyCode)} 꼴 · 1년마다 결제`;
+      const m = monthlyPkg && monthlyPkg.product;
+      if (m && typeof m.price === 'number' && m.price > 0) {
+        const off = Math.round((1 - p.price / (m.price * 12)) * 100);
+        if (off > 0) badge = `<span class="plan-badge">${off}% 할인</span>`;
+      }
+    }
+
+    return `
+      <button class="plan-card ${this.selected === kind ? 'is-selected' : ''}" onclick="Upgrade.select('${kind}')" aria-pressed="${this.selected === kind}">
+        <span class="plan-radio"></span>
+        <span class="plan-info">
+          <span class="plan-name">${isAnnual ? '연간 구독' : '월간 구독'} ${badge}</span>
+          <span class="plan-sub">${sub}</span>
+        </span>
+        <span class="plan-price">${p.priceString || ''}</span>
+      </button>`;
+  },
+
+  footerHTML() {
+    return `
+      <p class="upg-terms">
+        결제는 구글 플레이 계정으로 진행되며, 해지하지 않으면 구독 기간이 끝날 때 자동으로 갱신돼요.
+        해지는 언제든 구글 플레이 &gt; 결제 및 정기 결제에서 할 수 있어요.
+      </p>
+      <div class="upg-links">
+        <button onclick="Upgrade.restore()">구매 복원</button>
+        <span>·</span>
+        <a href="./privacy.html">개인정보처리방침</a>
+      </div>`;
+  },
+
+  proStatusHTML() {
+    const ent = Billing.activeEntitlement;
+    let line = '모든 PRO 혜택을 이용하고 있어요.';
+    if (ent && ent.expirationDate) {
+      const d = new Date(ent.expirationDate);
+      const ds = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+      line = ent.willRenew === false ? `${ds}까지 이용할 수 있어요. (자동 갱신 해지됨)` : `다음 결제일은 ${ds}이에요.`;
+    }
+    return `
+      <div class="upg-notice is-pro">
+        <b>👑 PRO 이용 중</b>
+        <p>${line}</p>
+      </div>
+      ${Billing.isNative() ? `<button class="btn-upg btn-upg-outline" onclick="Billing.openManage()">구독 관리 (구글 플레이)</button>` : ''}`;
+  },
+
+  select(kind) {
+    if (this.busy) return;
+    this.selected = kind;
+    document.querySelectorAll('.plan-card').forEach(el => {
+      const on = el.getAttribute('onclick').includes(`'${kind}'`);
+      el.classList.toggle('is-selected', on);
+      el.setAttribute('aria-pressed', on);
+    });
+    U.haptic && U.haptic();
+  },
+
+  formatPrice(value, currency) {
+    try {
+      return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: currency || 'KRW', maximumFractionDigits: 0 }).format(value);
+    } catch (e) {
+      return Math.round(value).toLocaleString() + '원';
+    }
+  },
+
+  setBusy(busy, label) {
+    this.busy = busy;
+    const btn = U.$('#upg-buy-btn');
+    if (!btn) return;
+    btn.disabled = busy;
+    const span = btn.querySelector('span');
+    if (span) span.textContent = busy ? (label || '처리 중...') : 'PRO 구독 시작하기';
+  },
+
+  /* ── 구매 ── */
+  async buy() {
+    if (this.busy) return;
+    this.setBusy(true, '구글 플레이 결제창을 여는 중...');
+    try {
+      const result = await Billing.purchase(this.selected);
+      if (result === 'success') {
+        this.showSuccess();
+      } else if (result === 'pending') {
+        App.showModal('결제 승인 대기', `
+          <div class="pay-success">
+            <h3>결제 승인을 기다리고 있어요</h3>
+            <p>결제가 완료되면 PRO 혜택이 자동으로 적용돼요.<br>잠시 후 앱을 다시 열어 확인해 주세요.</p>
+            <button class="btn-primary" style="width:100%;" onclick="App.closeModal()">확인</button>
+          </div>`);
+      } else {
+        U.toast('결제를 취소했어요.');
+      }
+    } catch (e) {
+      console.error('[Upgrade] 결제 오류:', e);
+      U.toast('결제 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      this.setBusy(false);
+    }
+  },
+
+  async restore() {
+    if (this.busy) return;
+    if (!Billing.isAvailable()) {
+      U.toast('구매 복원은 안드로이드 앱에서 할 수 있어요.');
+      return;
+    }
+    this.busy = true;
+    U.toast('구매 내역을 확인하고 있어요...');
+    try {
+      const isPro = await Billing.restore();
+      U.toast(isPro ? '✅ PRO 구독이 복원되었어요.' : '복원할 구독 내역이 없어요.');
+      if (isPro) this.render();
+    } catch (e) {
+      console.error('[Upgrade] 복원 오류:', e);
+      U.toast('구매 복원에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      this.busy = false;
+    }
+  },
+
+  showSuccess() {
+    App.showModal('구독 완료', `
       <div class="pay-success">
         <div class="pay-success-icon">
           <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
-        <h3>결제 성공!</h3>
-        <p>이제 버디플래너 PRO 회원이십니다.<br>모든 프리미엄 혜택을 누려보세요.</p>
+        <h3>PRO 회원이 되셨어요!</h3>
+        <p>지금부터 모든 프리미엄 혜택이 적용돼요.</p>
         <button class="btn-primary" style="width:100%; margin-top:var(--sp-4);" onclick="App.closeModal(); App.navigate('profile');">확인</button>
       </div>
     `);

@@ -108,3 +108,43 @@
   80% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1); }
 }
+
+/* ── 구독 상품 선택 (구글 플레이 결제) ── */
+.plan-list { display: flex; flex-direction: column; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.plan-card {
+  display: flex; align-items: center; gap: var(--sp-3); width: 100%;
+  padding: var(--sp-4); text-align: left;
+  background: var(--bg-card); border: 2px solid var(--border-default); border-radius: var(--r-lg);
+  transition: border-color .15s, background .15s;
+}
+.plan-card.is-selected { border-color: var(--gold-warm); background: var(--gold-light); }
+.plan-radio {
+  flex: none; width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--border-strong); position: relative;
+}
+.plan-card.is-selected .plan-radio { border-color: var(--gold-warm); }
+.plan-card.is-selected .plan-radio::after {
+  content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--gold-warm);
+}
+.plan-info { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.plan-name { font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--text-100); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.plan-sub { font-size: var(--fs-xs); color: var(--text-500); }
+.plan-price { flex: none; font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text-100); }
+.plan-badge {
+  font-size: 11px; font-weight: var(--fw-bold); color: #fff;
+  background: var(--gold-warm); padding: 2px 8px; border-radius: 999px;
+}
+.btn-upg:disabled { opacity: .6; transform: none; cursor: default; }
+.btn-upg-outline { background: transparent !important; color: var(--text-100) !important; border: 1.5px solid var(--border-strong) !important; box-shadow: none !important; }
+.upg-loading { display: flex; flex-direction: column; align-items: center; gap: var(--sp-3); padding: var(--sp-6) 0; color: var(--text-400); font-size: var(--fs-sm); }
+.upg-loading .pay-spinner { width: 32px; height: 32px; margin: 0; }
+.upg-notice {
+  padding: var(--sp-4); margin-bottom: var(--sp-4);
+  background: var(--bg-input); border-radius: var(--r-lg); text-align: center;
+}
+.upg-notice b { display: block; font-size: var(--fs-base); color: var(--text-100); margin-bottom: 4px; }
+.upg-notice p { font-size: var(--fs-sm); color: var(--text-500); line-height: var(--lh-relaxed); }
+.upg-notice.is-pro { background: var(--gold-light); border: 1px solid rgba(217,119,6,0.3); }
+.upg-terms { font-size: var(--fs-xs); color: var(--text-400); line-height: var(--lh-relaxed); text-align: center; margin-top: var(--sp-4); }
+.upg-links { display: flex; justify-content: center; align-items: center; gap: var(--sp-2); margin-top: var(--sp-3); font-size: var(--fs-sm); color: var(--text-400); }
+.upg-links button, .upg-links a { color: var(--text-500); text-decoration: underline; background: none; border: none; font-size: inherit; }
