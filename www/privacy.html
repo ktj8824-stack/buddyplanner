@@ -125,6 +125,17 @@
     .footer { text-align: center; padding: 32px 24px; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 48px; }
     .footer p { font-size: 12px; color: #636366; }
     .footer a { color: #30d158; text-decoration: none; }
+
+    /* 좁은 화면: 표를 행별 카드로 표시 */
+    body { word-break: keep-all; overflow-wrap: break-word; }
+    @media (max-width: 560px) {
+      table, tbody, tr, td { display: block; width: 100%; }
+      thead { display: none; }
+      tr { border-bottom: 1px solid rgba(255,255,255,0.08); padding: 10px 0; }
+      tr:last-child { border-bottom: none; }
+      td { border: none; padding: 3px 0; }
+      td::before { content: attr(data-label); display: block; font-size: 11px; color: #30d158; font-weight: 600; }
+    }
   </style>
 </head>
 <body>
@@ -144,115 +155,160 @@
     <div class="hero">
       <span class="hero-icon">🔒</span>
       <h1>개인정보처리방침</h1>
-      <p>버디플래너는 이용자의 개인정보를 소중히 보호합니다.<br/>시행일: 2025년 1월 1일 &nbsp;|&nbsp; 최종 수정일: 2025년 7월 21일</p>
+      <p>시행일: 2026년 10월 30일 &nbsp;|&nbsp; 최종 수정일: 2026년 10월 30일</p>
     </div>
 
     <div class="section">
-      <h2><span class="section-num">1</span>수집하는 개인정보 항목</h2>
-      <p>버디플래너는 서비스 제공을 위해 아래와 같은 개인정보를 수집합니다.</p>
+      <h2><span class="section-num">1</span>기본 원칙</h2>
+      <p>버디플래너(이하 "서비스")는 별도의 회원 서버를 운영하지 않습니다. 이용자가 입력한 일정·기록·설정 등은 <b>이용자의 기기(앱 저장공간)에만 저장</b>되며, 서비스 운영자는 이를 열람하거나 보관하지 않습니다.</p>
+      <p>다만 경로 계산, 날씨 조회, 로그인, 구독 결제, 광고 등 일부 기능은 아래에 안내하는 외부 서비스를 통해 제공되며, 이때 기능 제공에 필요한 최소한의 정보가 해당 서비스로 전송됩니다.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">2</span>처리하는 개인정보 항목</h2>
       <table>
-        <thead><tr><th>수집 항목</th><th>수집 방법</th><th>목적</th></tr></thead>
+        <thead><tr><th>항목</th><th>수집 방법</th><th>목적</th><th>저장 위치</th></tr></thead>
         <tbody>
-          <tr><td>이름, 이메일</td><td>카카오·구글 소셜 로그인</td><td>회원 식별 및 서비스 제공</td></tr>
-          <tr><td>서비스 이용 기록</td><td>앱 사용 중 자동 수집</td><td>서비스 품질 개선</td></tr>
-          <tr><td>광고 식별자, 쿠키</td><td>Google AdSense 자동 수집</td><td>맞춤형 광고 제공</td></tr>
+          <tr><td data-label="항목">이름(닉네임), 이메일</td><td data-label="수집 방법">카카오·구글 로그인 시 해당 서비스로부터 제공</td><td data-label="목적">로그인, 앱 내 표시</td><td data-label="저장 위치">이용자 기기</td></tr>
+          <tr><td data-label="항목">집·회사 주소, 출발지</td><td data-label="수집 방법">이용자 직접 입력 (선택)</td><td data-label="목적">이동 경로·소요 시간 계산</td><td data-label="저장 위치">이용자 기기 (경로 계산 시 티맵·카카오로 전송)</td></tr>
+          <tr><td data-label="항목">라운딩 일정, 스코어, 일기, 사진(스코어카드 등), 포인트</td><td data-label="수집 방법">이용자 직접 입력</td><td data-label="목적">일정·기록 관리</td><td data-label="저장 위치">이용자 기기</td></tr>
+          <tr><td data-label="항목">구매 내역(구독 상태), 무작위 사용자 식별자</td><td data-label="수집 방법">PRO 구독 결제 시 자동 생성</td><td data-label="목적">구독 확인·관리, 구매 복원</td><td data-label="저장 위치">Google Play, RevenueCat</td></tr>
+          <tr><td data-label="항목">광고 식별자, IP 주소, 기기·앱 이용 정보(광고 조회·탭 등)</td><td data-label="수집 방법">광고 SDK가 자동 수집</td><td data-label="목적">광고 제공, 광고 성과 측정, 부정 이용 방지</td><td data-label="저장 위치">Google(AdMob·AdSense), 카카오(AdFit, 웹)</td></tr>
+          <tr><td data-label="항목">음성 (선택)</td><td data-label="수집 방법">AI 비서 음성 입력 사용 시</td><td data-label="목적">음성을 텍스트로 변환</td><td data-label="저장 위치">기기·브라우저의 음성 인식 서비스에서 처리되며 서비스는 저장하지 않음</td></tr>
         </tbody>
       </table>
-      <div class="highlight">📍 버디플래너는 위치 정보를 직접 수집하지 않습니다. 골프장 검색은 이용자가 직접 입력한 키워드를 사용합니다.</div>
+      <div class="highlight">📍 서비스는 기기의 GPS 위치 정보를 수집하지 않습니다. 경로 계산에는 이용자가 직접 입력·선택한 주소와 골프장 위치만 사용합니다.</div>
     </div>
 
     <div class="section">
-      <h2><span class="section-num">2</span>개인정보의 이용 목적</h2>
+      <h2><span class="section-num">3</span>개인정보의 이용 목적</h2>
       <ul>
-        <li>회원 가입 및 로그인 처리</li>
-        <li>골프 라운딩 일정 관리 서비스 제공</li>
-        <li>맞춤형 서비스 기능 제공 (타임라인, 맛집 추천 등)</li>
-        <li>서비스 개선 및 신규 서비스 개발</li>
-        <li>법적 의무 이행 및 분쟁 해결</li>
-        <li>Google AdSense를 통한 맞춤형 광고 표시</li>
+        <li>소셜 로그인 및 앱 내 이용자 표시</li>
+        <li>라운딩 일정·타임라인·알람·기록 관리 기능 제공</li>
+        <li>출발지에서 골프장·식당까지의 경로 및 소요 시간 계산</li>
+        <li>골프장 날씨 및 라운딩 당일 예보 제공</li>
+        <li>PRO 구독 결제, 구독 상태 확인 및 구매 복원</li>
+        <li>광고 제공 (PRO 회원은 광고 미표시)</li>
       </ul>
     </div>
 
     <div class="section">
-      <h2><span class="section-num">3</span>개인정보의 보유 및 이용 기간</h2>
-      <p>이용자의 개인정보는 수집·이용 목적이 달성된 후 즉시 파기합니다.</p>
+      <h2><span class="section-num">4</span>보유 기간 및 파기</h2>
       <table>
-        <thead><tr><th>보관 항목</th><th>보관 기간</th><th>근거</th></tr></thead>
+        <thead><tr><th>항목</th><th>보유 기간</th></tr></thead>
         <tbody>
-          <tr><td>회원 정보</td><td>회원 탈퇴 시까지</td><td>서비스 이용 계약</td></tr>
-          <tr><td>서비스 이용 기록</td><td>1년</td><td>통신비밀보호법</td></tr>
-          <tr><td>결제 기록</td><td>5년</td><td>전자상거래법</td></tr>
+          <tr><td data-label="항목">기기에 저장된 정보 (로그인 정보, 일정, 기록, 사진, 설정 등)</td><td data-label="보유 기간">회원 탈퇴(앱 내 데이터 삭제) 또는 앱 삭제 시 즉시 삭제</td></tr>
+          <tr><td data-label="항목">구독 결제 기록</td><td data-label="보유 기간">「전자상거래 등에서의 소비자보호에 관한 법률」에 따라 5년 (Google Play·RevenueCat 보관)</td></tr>
+          <tr><td data-label="항목">광고 관련 정보</td><td data-label="보유 기간">각 광고 사업자의 개인정보처리방침에 따름</td></tr>
+        </tbody>
+      </table>
+      <p>기기에 저장된 정보는 앱 내 삭제 기능으로 복구할 수 없게 삭제되며, 외부 서비스에 보관된 정보는 해당 사업자의 절차에 따라 파기됩니다.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">5</span>개인정보 처리 위탁 및 외부 서비스</h2>
+      <p>서비스는 기능 제공을 위해 아래 사업자의 서비스를 이용하며, 각 기능을 사용할 때 필요한 정보만 전송됩니다.</p>
+      <table>
+        <thead><tr><th>사업자</th><th>이용 목적</th><th>전송되는 정보</th></tr></thead>
+        <tbody>
+          <tr><td data-label="사업자">(주)카카오</td><td data-label="이용 목적">카카오 로그인, 골프장 검색, 카카오톡 공유, 웹 광고(AdFit)</td><td data-label="전송되는 정보">로그인 토큰, 검색어, 공유할 일정 정보, 광고 식별 정보</td></tr>
+          <tr><td data-label="사업자">SK텔레콤(티맵)</td><td data-label="이용 목적">경로·소요 시간 계산, 주변 장소 검색</td><td data-label="전송되는 정보">출발지·경유지·목적지 좌표, 검색어</td></tr>
+          <tr><td data-label="사업자">Google LLC</td><td data-label="이용 목적">구글 로그인, Google Play 결제, 광고(AdMob·AdSense)</td><td data-label="전송되는 정보">로그인 토큰, 결제 정보, 광고 식별자, IP 주소, 기기·앱 이용 정보</td></tr>
+          <tr><td data-label="사업자">RevenueCat, Inc.</td><td data-label="이용 목적">구독 결제 확인 및 구독 상태 관리</td><td data-label="전송되는 정보">구매 내역, 무작위 사용자 식별자</td></tr>
+          <tr><td data-label="사업자">Open-Meteo</td><td data-label="이용 목적">날씨 및 예보 조회</td><td data-label="전송되는 정보">골프장 좌표, 날짜 (개인을 식별할 수 있는 정보는 전송하지 않음)</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="section">
-      <h2><span class="section-num">4</span>개인정보의 제3자 제공</h2>
-      <p>버디플래너는 원칙적으로 이용자의 개인정보를 제3자에게 제공하지 않습니다.</p>
+      <h2><span class="section-num">6</span>개인정보의 국외 이전</h2>
+      <p>일부 외부 서비스는 국외에서 정보를 처리합니다. 이용자는 해당 기능(구독 결제, 광고 개인화 등)을 이용하지 않음으로써 국외 이전을 거부할 수 있으며, 이 경우 해당 기능 이용이 제한될 수 있습니다.</p>
       <table>
-        <thead><tr><th>서비스</th><th>제공 정보</th><th>목적</th></tr></thead>
+        <thead><tr><th>이전받는 자 (국가)</th><th>이전 항목</th><th>이전 시기·방법</th><th>보유 기간</th></tr></thead>
         <tbody>
-          <tr><td>카카오 (kakao.com)</td><td>OAuth 토큰</td><td>소셜 로그인</td></tr>
-          <tr><td>구글 (google.com)</td><td>OAuth 토큰</td><td>소셜 로그인</td></tr>
-          <tr><td>Google AdSense</td><td>쿠키, 광고 식별자</td><td>맞춤형 광고</td></tr>
-          <tr><td>SK Tmap API</td><td>검색 키워드</td><td>경로 및 장소 검색</td></tr>
+          <tr><td data-label="이전받는 자 (국가)">RevenueCat, Inc. (미국)<br>support@revenuecat.com</td><td data-label="이전 항목">구매 내역, 무작위 사용자 식별자</td><td data-label="이전 시기·방법">구독 결제·확인 시 네트워크로 전송</td><td data-label="보유 기간">구독 이용 기간 및 법정 보관 기간</td></tr>
+          <tr><td data-label="이전받는 자 (국가)">Google LLC (미국)</td><td data-label="이전 항목">로그인·결제 정보, 광고 식별자, IP 주소, 기기·앱 이용 정보</td><td data-label="이전 시기·방법">로그인·결제·광고 표시 시 네트워크로 전송</td><td data-label="보유 기간">Google 개인정보처리방침에 따름</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="section">
-      <h2><span class="section-num">5</span>쿠키 및 광고 관련 안내</h2>
-      <p>버디플래너는 Google AdSense를 통해 광고를 제공할 수 있습니다. Google은 쿠키를 사용하여 이용자의 관심사에 맞는 광고를 표시합니다.</p>
+      <h2><span class="section-num">7</span>광고 및 맞춤형 광고 거부</h2>
+      <p>무료 이용자에게는 Google AdMob(앱) 및 Google AdSense·카카오 AdFit(웹) 광고가 표시됩니다. 광고 사업자는 광고 식별자 등을 이용해 맞춤형 광고를 제공할 수 있습니다.</p>
       <ul>
-        <li>Google 개인정보처리방침: <a href="https://policies.google.com/privacy" target="_blank" style="color:#30d158;">policies.google.com/privacy</a></li>
-        <li>광고 개인화 해제: <a href="https://adssettings.google.com" target="_blank" style="color:#30d158;">adssettings.google.com</a></li>
-        <li>브라우저 설정에서 쿠키 수신을 거부할 수 있으나 일부 서비스 이용이 제한될 수 있습니다.</li>
+        <li>안드로이드: 기기 설정 &gt; Google &gt; 광고에서 광고 ID 삭제 또는 재설정</li>
+        <li>웹: <a href="https://adssettings.google.com" style="color:#30d158;">adssettings.google.com</a>에서 광고 개인화 해제</li>
+        <li>PRO 구독 시 모든 광고가 표시되지 않습니다.</li>
+      </ul>
+      <p>Google 개인정보처리방침: <a href="https://policies.google.com/privacy" style="color:#30d158;">policies.google.com/privacy</a></p>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">8</span>앱 접근 권한</h2>
+      <p>서비스는 필수 접근 권한 없이 이용할 수 있으며, 아래 선택 권한은 해당 기능을 처음 사용할 때 요청합니다. 허용하지 않아도 나머지 기능은 이용할 수 있습니다.</p>
+      <table>
+        <thead><tr><th>권한 (선택)</th><th>사용 목적</th></tr></thead>
+        <tbody>
+          <tr><td data-label="권한 (선택)">알림</td><td data-label="사용 목적">라운딩 준비·출발 알람 표시</td></tr>
+          <tr><td data-label="권한 (선택)">알람 및 리마인더 (정확한 알람)</td><td data-label="사용 목적">설정한 시각에 정확히 알람 울림</td></tr>
+          <tr><td data-label="권한 (선택)">전체 화면 알림</td><td data-label="사용 목적">잠금 화면에서도 알람 화면 표시</td></tr>
+          <tr><td data-label="권한 (선택)">다른 앱 위에 표시</td><td data-label="사용 목적">알람이 울릴 때 남은 동선을 팝업으로 표시</td></tr>
+        </tbody>
+      </table>
+      <p>권한은 기기 설정 &gt; 애플리케이션 &gt; 버디플래너에서 언제든 변경할 수 있습니다.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">9</span>이용자의 권리와 행사 방법</h2>
+      <ul>
+        <li>열람·수정: 앱의 마이 화면에서 닉네임, 주소 등 정보를 직접 확인·수정할 수 있습니다.</li>
+        <li>내보내기: 마이 화면의 데이터 백업 기능으로 저장된 정보를 파일로 받을 수 있습니다.</li>
+        <li>삭제: 아래 "회원 탈퇴 및 데이터 삭제" 방법으로 모든 정보를 삭제할 수 있습니다.</li>
+        <li>외부 서비스(구독 결제 기록 등)에 보관된 정보의 열람·삭제·처리 정지는 아래 이메일로 요청하시면 10일 이내에 처리해 드립니다.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="delete">
+      <h2><span class="section-num">10</span>회원 탈퇴 및 데이터 삭제</h2>
+      <p><b>앱에서 삭제하기:</b> 버디플래너 앱 &gt; 마이 &gt; 화면 하단 <b>"회원 탈퇴 및 데이터 삭제"</b>를 누르면 기기에 저장된 모든 정보(로그인 정보, 일정, 기록, 사진, 포인트, 설정)가 즉시 삭제되고 소셜 로그인 연결이 해제되며, 예약된 알람도 취소됩니다.</p>
+      <p><b>앱을 사용할 수 없는 경우:</b> 기기에서 앱을 삭제하면 앱에 저장된 정보가 모두 삭제됩니다. 카카오 연결은 카카오톡 &gt; 설정 &gt; 카카오계정 &gt; 연결된 서비스 관리에서, 구글 연결은 Google 계정 &gt; 보안 &gt; 타사 앱 및 서비스에서 해제할 수 있습니다.</p>
+      <p><b>구독 결제 기록 삭제 요청:</b> 아래 이메일로 요청하시면 RevenueCat에 보관된 구독 기록을 삭제해 드립니다. 단, 법령에 따라 보관해야 하는 결제 기록은 보관 기간이 끝난 뒤 삭제됩니다.</p>
+      <div class="highlight">PRO 구독은 탈퇴 시 자동으로 해지되지 않습니다. 구글 플레이 &gt; 결제 및 정기 결제에서 직접 해지해 주세요.</div>
+    </div>
+
+    <div class="section">
+      <h2><span class="section-num">11</span>개인정보의 안전성 확보 조치</h2>
+      <ul>
+        <li>개인정보를 서버에 저장하지 않고 이용자 기기에만 저장</li>
+        <li>모든 외부 통신에 HTTPS(TLS) 암호화 적용</li>
+        <li>비밀번호를 수집하지 않음 (소셜 로그인만 사용)</li>
+        <li>기능에 필요한 최소한의 정보만 외부 서비스로 전송</li>
       </ul>
     </div>
 
     <div class="section">
-      <h2><span class="section-num">6</span>이용자의 권리</h2>
-      <ul>
-        <li>개인정보 열람 요청</li>
-        <li>개인정보 수정·삭제 요청</li>
-        <li>개인정보 처리 정지 요청</li>
-        <li>서비스 탈퇴 및 개인정보 완전 삭제 요청</li>
-      </ul>
-      <div class="highlight">위 권리 행사는 아래 개인정보 보호 책임자에게 이메일로 요청하시면 10일 이내에 처리해 드립니다.</div>
+      <h2><span class="section-num">12</span>아동의 개인정보</h2>
+      <p>서비스는 만 14세 미만 아동을 대상으로 하지 않으며, 만 14세 미만 아동의 개인정보를 알면서 수집하지 않습니다.</p>
     </div>
 
     <div class="section">
-      <h2><span class="section-num">7</span>개인정보 보호를 위한 기술적 조치</h2>
-      <ul>
-        <li>HTTPS(SSL/TLS) 암호화 통신 적용</li>
-        <li>개인정보 접근 권한 최소화</li>
-        <li>비밀번호 미수집 (소셜 로그인만 사용)</li>
-        <li>개인정보를 서버에 직접 저장하지 않고 기기 내 로컬 스토리지 활용</li>
-      </ul>
-    </div>
-
-    <div class="section">
-      <h2><span class="section-num">8</span>아동·청소년 보호</h2>
-      <p>버디플래너는 만 14세 미만 아동의 개인정보를 수집하지 않습니다.</p>
-    </div>
-
-    <div class="section">
-      <h2><span class="section-num">9</span>개인정보처리방침의 변경</h2>
-      <p>본 방침은 관련 법령 또는 서비스 변경에 따라 개정될 수 있습니다. 변경 시 앱 내 공지사항 또는 이 페이지를 통해 사전 공지합니다.</p>
+      <h2><span class="section-num">13</span>개인정보처리방침의 변경</h2>
+      <p>이 방침은 법령이나 서비스 변경에 따라 개정될 수 있으며, 변경 시 시행 7일 전부터 앱 또는 이 페이지를 통해 알려드립니다. 이용자에게 불리한 중요한 변경은 30일 전에 알려드립니다.</p>
     </div>
 
     <div class="contact-box">
-      <h3>👤 개인정보 보호 책임자</h3>
-      <p><strong style="color:#fff;">버디플래너 운영팀</strong></p>
+      <h3>👤 개인정보 보호책임자</h3>
+      <p>버디플래너 운영팀</p>
       <p>서비스명: 버디플래너 (BuddyPlanner)</p>
       <p>웹사이트: <a href="https://buddyplanner.kr">buddyplanner.kr</a></p>
       <p>이메일: <a href="mailto:privacy@buddyplanner.kr">privacy@buddyplanner.kr</a></p>
+      <p style="margin-top:12px; font-size:12px;">개인정보 침해 신고·상담: 개인정보침해신고센터 (privacy.kisa.or.kr, 국번 없이 118)</p>
     </div>
 
   </div>
 
   <footer class="footer">
-    <p>© 2025 버디플래너. All rights reserved. &nbsp;|&nbsp; <a href="index.html">홈으로</a></p>
+    <p>© 2026 버디플래너. All rights reserved. &nbsp;|&nbsp; <a href="index.html">홈으로</a></p>
   </footer>
 
 </body>

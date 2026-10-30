@@ -125,7 +125,8 @@
 .logout-wrap {
   padding: var(--sp-4) var(--sp-5) var(--sp-8);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 .logout-btn {
   color: var(--danger);
@@ -224,4 +225,15 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+/* 회원 탈퇴 / 개인정보처리방침 링크 */
+.delete-account-btn {
+  display: block; margin-top: var(--sp-2);
+  background: none; border: none; padding: var(--sp-2);
+  font-size: var(--fs-sm); color: var(--text-400); text-decoration: underline;
+}
+.privacy-link {
+  display: block; text-align: center; margin-top: var(--sp-1);
+  font-size: var(--fs-xs); color: var(--text-400);
 }

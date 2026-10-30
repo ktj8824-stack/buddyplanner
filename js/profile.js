@@ -153,6 +153,8 @@ const Profile = {
           
           <div class="logout-wrap">
             <button class="logout-btn" onclick="Profile.logout()">로그아웃</button>
+            <button class="delete-account-btn" onclick="Profile.deleteAllData()">회원 탈퇴 및 데이터 삭제</button>
+            <a class="privacy-link" href="./privacy.html">개인정보처리방침</a>
           </div>
         </div>
       </div>
@@ -289,6 +291,52 @@ const Profile = {
       U.haptic();
       Profile.render(); // 화면 갱신
     });
+  },
+
+  /**
+   * 회원 탈퇴: 기기에 저장된 모든 데이터 삭제 + 소셜 로그인 연결 해제 + 예약된 알람 취소.
+   * (버디플래너는 서버에 개인정보를 저장하지 않으므로 기기 데이터 삭제로 탈퇴가 완료됩니다)
+   */
+  async deleteAllData() {
+    const proNote = State.isPro
+      ? '\n\n※ PRO 구독은 자동으로 해지되지 않습니다. 구글 플레이 > 결제 및 정기 결제에서 직접 해지해 주세요.'
+      : '';
+    if (!confirm('회원 탈퇴 시 기기에 저장된 일정, 라운딩 기록, 사진, 포인트, 설정이 모두 삭제되며 복구할 수 없습니다.' + proNote + '\n\n계속하시겠습니까?')) return;
+    if (!confirm('정말 모든 데이터를 삭제하고 탈퇴하시겠습니까?')) return;
+
+    const provider = localStorage.getItem('bp_provider');
+
+    // 1) 폰에 예약된 알람 취소
+    try {
+      if (window.NativeApp && typeof window.NativeApp.cancelAlarm === 'function' && typeof Timeline !== 'undefined') {
+        (State.schedules || []).forEach(s => Timeline.nativeAlarmTimes(s).forEach(t => window.NativeApp.cancelAlarm(t)));
+      }
+    } catch (e) { console.warn('alarm cancel', e); }
+
+    // 2) 소셜 로그인 연결 해제
+    try {
+      if (provider === 'kakao' && typeof Kakao !== 'undefined' && Kakao.isInitialized && Kakao.isInitialized() && Kakao.Auth.getAccessToken()) {
+        await new Promise(resolve => Kakao.API.request({ url: '/v1/user/unlink', success: resolve, fail: resolve }));
+      }
+      if (provider === 'google') {
+        const isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+        if (isNative && typeof Login !== 'undefined' && Login.socialLoginPlugin()) {
+          await Login.socialLoginPlugin().logout({ provider: 'google' }).catch(() => {});
+        } else if (typeof google !== 'undefined' && google.accounts) {
+          google.accounts.id.disableAutoSelect();
+        }
+      }
+    } catch (e) { console.warn('social unlink', e); }
+
+    // 3) 기기 데이터 전체 삭제
+    try {
+      Object.keys(localStorage).filter(k => k.startsWith('bp_')).forEach(k => localStorage.removeItem(k));
+    } catch (e) { localStorage.clear(); }
+    State.schedules = [];
+    State.isPro = false;
+
+    alert('탈퇴가 완료되었습니다. 그동안 버디플래너를 이용해 주셔서 감사합니다.');
+    window.location.reload();
   },
 
   logout() {
