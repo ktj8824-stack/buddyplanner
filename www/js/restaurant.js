@@ -247,7 +247,7 @@ const Restaurant = {
             🤖 AI 메뉴 추천 받기
           </button>
           <div class="pc-footer">
-            <div class="pc-rating">
+            <div class="pc-rating" data-rkey="${typeof Ratings !== 'undefined' ? Ratings.key(p.place_name) : ''}">
               ${ratingHtml}
             </div>
             <div class="pc-action" onclick="Restaurant.showDetail('${safeName}','${p.address_name}')">
@@ -276,6 +276,7 @@ const Restaurant = {
         ${listHtml}
       </div>
     `;
+    if (typeof Ratings !== 'undefined') Ratings.fillDom(el);
   },
 
   switchTab(tab) { this.tab = tab; this.render(); U.haptic(); },
@@ -353,7 +354,7 @@ const Restaurant = {
             🤖 AI 메뉴 추천 받기
           </button>
           <div class="pc-footer">
-            <div class="pc-rating">
+            <div class="pc-rating" data-rkey="${typeof Ratings !== 'undefined' ? Ratings.key(p.place_name) : ''}">
               ${ratingHtml}
             </div>
             <div class="pc-action" onclick="Restaurant.showDetail('${safeName}','${p.address_name || ''}')">
@@ -378,5 +379,6 @@ const Restaurant = {
         ${listHtml}
       </div>
     `;
+    if (typeof Ratings !== 'undefined') Ratings.fillDom(el);
   }
 };

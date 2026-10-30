@@ -267,7 +267,7 @@ const App = {
       { s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' },
       { s: 'market', icon: '🛒', name: '버디마켓', desc: '골프 용품 추천' },
       { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
-      { s: 'upgrade', icon: '👑', name: '버디플래너 PRO', desc: State.isPro ? 'PRO 이용 중' : '무제한 일정 · 당일 예보 · 광고 제거' }
+      { s: 'upgrade', icon: '👑', name: '버디플래너 PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 무제한 일정 · 당일 예보 · 광고 제거' }
     ];
     this.showModal('전체 메뉴', `
       <div class="menu-sheet">

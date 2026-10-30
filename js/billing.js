@@ -54,7 +54,9 @@ const Billing = {
       return;
     }
     try {
-      await this.plugin().configure({ apiKey: this.apiKey() });
+      // 클라우드 로그인 사용자는 Supabase 사용자 ID로 결제 계정을 연결 (서버가 PRO 여부를 확인할 수 있게)
+      const uid = (typeof Cloud !== 'undefined' && Cloud.userId()) || null;
+      await this.plugin().configure(uid ? { apiKey: this.apiKey(), appUserID: uid } : { apiKey: this.apiKey() });
       this.configured = true;
     } catch (e) {
       console.error('[Billing] configure 실패:', e);
@@ -148,6 +150,25 @@ const Billing = {
     const msg = String(e.message || e.errorMessage || '');
     // RevenueCat PURCHASE_CANCELLED_ERROR 코드는 '1'
     return e.userCancelled === true || code === '1' || code === 'PURCHASE_CANCELLED' || /cancel/i.test(msg);
+  },
+
+  /** 클라우드 로그인 직후: 결제 계정을 Supabase 사용자 ID에 연결 (기존 구매도 함께 이전됨) */
+  async linkCloudUser() {
+    const uid = (typeof Cloud !== 'undefined' && Cloud.userId()) || null;
+    if (!this.configured || !uid) return;
+    try {
+      const res = await this.plugin().logIn({ appUserID: uid });
+      this._applyCustomerInfo(res && (res.customerInfo || res));
+    } catch (e) { console.warn('[Billing] 결제 계정 연결 실패', e); }
+  },
+
+  /** 로그아웃: 결제 계정을 익명으로 되돌림 */
+  async unlinkCloudUser() {
+    if (!this.configured) return;
+    try {
+      const res = await this.plugin().logOut();
+      this._applyCustomerInfo(res && (res.customerInfo || res));
+    } catch (e) { /* 이미 익명 */ }
   },
 
   /* ── 무료 사용자 일정 개수 제한 ── */

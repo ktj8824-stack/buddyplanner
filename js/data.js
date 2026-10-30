@@ -492,8 +492,14 @@ const ReviewStore = {
 
     this.addReview(name, stars, comment, course);
     App.closeModal();
-    U.toast(`⭐ ${name}에 ${stars}점 평가를 남겼습니다!`);
+    U.toast(`⭐ ${U.esc(name)}에 ${stars}점 평가를 남겼습니다!`);
     U.haptic();
+    // 버디 평가: 서버에 모아 회원 평균 별점으로 공개 (개별 평가는 본인만 볼 수 있음)
+    if (typeof Ratings !== 'undefined' && Ratings.available()) {
+      Ratings.submit(name, stars, comment, course)
+        .then(() => Ratings.fillDom(document))
+        .catch(e => console.warn('[Ratings] 저장 실패', e));
+    }
   }
 };
 

@@ -266,6 +266,7 @@ const Login = {
       U.toast('☁️ 내 데이터를 불러오는 중...');
       try {
         if (cloud.idToken) await Cloud.signInWithIdToken(provider, cloud.idToken);
+        if (typeof Billing !== 'undefined') Billing.linkCloudUser();
         await Cloud.sync();
         if (typeof State !== 'undefined') State.loadSchedules();
         if (typeof App !== 'undefined') App.loadPreferences();

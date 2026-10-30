@@ -20,6 +20,38 @@ const AI = {
     } else {
       this.scrollToBottom();
     }
+    this.renderInputArea();
+  },
+
+  /** PRO가 아니거나 로그인 전이면 입력창 대신 안내 표시 (Claude 비서 사용 시) */
+  renderInputArea() {
+    const bar = U.$('#ai-input-bar');
+    const slot = U.$('#ai-lock-slot');
+    if (!bar || !slot) return;
+    const lock = (typeof AIAgent !== 'undefined') ? AIAgent.lockState() : null;
+    bar.style.display = lock ? 'none' : '';
+    slot.innerHTML = lock ? AIAgent.lockPanelHTML(lock) : '';
+  },
+
+  /** 스코어카드 사진 첨부 */
+  pickPhoto() {
+    const input = U.$('#ai-photo-input');
+    if (input) { input.value = ''; input.click(); }
+  },
+
+  async onPhotoSelected(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try {
+      // 숫자가 읽히도록 충분한 해상도로 압축
+      const dataUrl = await Record.compressImage(file, 1400, 1400, 0.8);
+      const textEl = U.$('#ai-input');
+      const text = textEl ? textEl.value.trim() : '';
+      if (textEl) textEl.value = '';
+      this.processUserMessage(text, dataUrl);
+    } catch (e) {
+      U.toast('사진을 불러오지 못했어요.');
+    }
   },
 
   renderLayout(container) {
@@ -40,7 +72,7 @@ const AI = {
             </div>
             <div class="ai-header-sub">
               <span class="online-indicator"></span>
-              <span>스마트 음성 & 골프 일정 비서</span>
+              <span>일정 · 스코어 · 맛집을 대화로</span>
             </div>
           </div>
         </div>
@@ -71,7 +103,12 @@ const AI = {
           <button onclick="AI.stopListening()" style="background:none;border:none;color:#94a3b8;font-size:11.5px;cursor:pointer;text-decoration:underline;">취소</button>
         </div>
 
-        <div class="ai-input-bar">
+        <div id="ai-lock-slot"></div>
+        <input type="file" id="ai-photo-input" accept="image/*" style="display:none" onchange="AI.onPhotoSelected(this)" />
+        <div class="ai-input-bar" id="ai-input-bar">
+          <button class="ai-mic-btn ai-photo-btn" onclick="AI.pickPhoto()" aria-label="스코어카드 사진 올리기" title="스코어카드 사진 올리기">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </button>
           <button class="ai-mic-btn" id="ai-mic-btn" onclick="AI.toggleListening()" aria-label="음성 인식" title="음성으로 말하기">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none">
               <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
@@ -80,7 +117,7 @@ const AI = {
               <line x1="8" y1="23" x2="16" y2="23"></line>
             </svg>
           </button>
-          <input type="text" id="ai-input" class="ai-text-input" placeholder="말씀하시거나 골프 일정을 입력하세요..." onkeydown="AI.handleKeyDown(event)" />
+          <input type="text" id="ai-input" class="ai-text-input" placeholder="일정, 스코어, 맛집... 무엇이든 물어보세요" onkeydown="AI.handleKeyDown(event)" />
           <button class="ai-send-btn" id="ai-send-btn" onclick="AI.sendFromInput()" aria-label="전송" title="전송">
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -108,7 +145,7 @@ const AI = {
           id: 'welcome',
           sender: 'bot',
           time: this.formatCurrentTime(),
-          text: `안녕하세요, ${this.userName()}님! 🏌️‍♂️<br>골프 전문 <strong>버디 AI 비서</strong>입니다.<br><br>말씀하시거나 채팅으로 <strong>라운딩 일정 자동 등록</strong>, <strong>골프 룰/에티켓 질문</strong>, <strong>동반자 알림톡 전송</strong>을 편하게 요청해 보세요!`,
+          text: `안녕하세요, ${this.userName()}님! 🏌️‍♂️<br>골프 전문 <strong>버디 AI 비서</strong>입니다.<br><br>편하게 말씀해 주세요. <strong>라운딩 일정 등록</strong>, <strong>스코어카드 사진으로 기록</strong>(📷 버튼), <strong>골프장 주변 맛집 추천</strong>, 골프 룰과 스윙 고민까지 도와드릴게요.`,
           showChips: true
         }
       ];
@@ -162,18 +199,21 @@ const AI = {
         <div style="display:flex;flex-direction:column;max-width:calc(100% - 44px);width:100%;">
           <div class="ai-msg-bubble">
             ${msg.text}
+            ${msg.agent && typeof AIAgent !== 'undefined' ? AIAgent.renderBotExtras(msg) : ''}
             ${msg.schedCard ? this.buildScheduleCardHTML(msg.schedCard, msg.id) : ''}
             ${msg.weatherCard ? this.buildWeatherCardHTML(msg.weatherCard) : ''}
             ${msg.ruleCard ? this.buildRuleCardHTML(msg.ruleCard) : ''}
           </div>
-          <span class="ai-msg-time">${msg.time}</span>
+          <span class="ai-msg-time">${msg.time}${msg.agent ? ` · <button class="ai-report-btn" onclick="AIAgent.report('${msg.id}')">답변 신고</button>` : ''}</span>
           ${msg.showChips ? this.buildQuickChipsHTML() : ''}
         </div>
       `;
     } else {
       row.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:flex-end;">
-          <div class="ai-msg-bubble">${this.escapeHTML(msg.text)}</div>
+          ${msg.image ? `<img class="ai-msg-photo" src="${msg.image}" alt="첨부한 사진" />` : ''}
+          ${msg.hadImage && !msg.image ? '<div class="ai-msg-photo-note">📷 사진</div>' : ''}
+          ${msg.text ? `<div class="ai-msg-bubble">${this.escapeHTML(msg.text)}</div>` : ''}
           <span class="ai-msg-time">${msg.time}</span>
         </div>
       `;
@@ -193,6 +233,12 @@ const AI = {
         <div class="ai-quick-chips">
           <button class="ai-chip-btn" onclick="AI.handleChipClick('이번 주 토요일 7시 남서울CC 4명 일정 잡아줘')">
             ⛳ 이번 주 토요일 7시 남서울CC 일정 등록
+          </button>
+          <button class="ai-chip-btn" onclick="AI.handleChipClick('다음 라운딩 끝나고 동반자들이랑 고기 먹을 맛집 추천해줘')">
+            🍽️ 라운딩 후 맛집 추천
+          </button>
+          <button class="ai-chip-btn" onclick="AI.pickPhoto()">
+            📷 스코어카드 사진으로 기록
           </button>
           <button class="ai-chip-btn" onclick="AI.handleChipClick('내 라운딩 일정 확인하고 날씨 알려줘')">
             🌤️ 다가오는 라운딩 날씨 확인
@@ -381,17 +427,31 @@ const AI = {
   },
 
   // Process user message & intelligent routing
-  processUserMessage(text) {
+  processUserMessage(text, image) {
     const userMsgId = 'u_' + Date.now();
     const userMsg = {
       id: userMsgId,
       sender: 'user',
       time: this.formatCurrentTime(),
-      text: text
+      text: text || '',
+      image: image || null
     };
     this.messages.push(userMsg);
     this.appendMessageToDOM(userMsg);
+    // 대화 기록에는 사진을 저장하지 않음 (용량 절약, 스코어 기록에는 함께 저장됨)
+    const saved = Object.assign({}, userMsg, { image: null, hadImage: !!image });
+    this.messages[this.messages.length - 1] = saved;
     this.saveMessages();
+
+    // Claude 비서 (클라우드 설정 시)
+    if (typeof AIAgent !== 'undefined' && AIAgent.enabled()) {
+      AIAgent.respond(text, image);
+      return;
+    }
+    if (image) {
+      this.addSimpleBotReply('img_' + Date.now(), '사진 분석은 AI 비서 연결 후 사용할 수 있어요.');
+      return;
+    }
 
     // Show typing indicator
     this.showTypingIndicator();

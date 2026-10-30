@@ -86,6 +86,42 @@ const Register = {
     App.navigate('register');
   },
 
+  /** AI 비서가 제안한 일정으로 등록 화면 채우기 (화면이 열린 뒤 호출) */
+  prefill({ course, date, h, m }) {
+    if (course) {
+      this.course = course;
+      const search = U.$('#r-search');
+      if (search) search.value = course.name;
+      const hint = U.$('#r-hint');
+      if (hint) { hint.innerHTML = `📍 ${U.esc(course.addr || '')}`; hint.style.color = 'var(--accent)'; }
+    }
+    if (date && !isNaN(date.getTime())) {
+      this.date = date;
+      const el = U.$('#r-date');
+      if (el) { el.textContent = U.fmtDate(date); el.classList.remove('is-empty'); }
+    }
+    if (Number.isFinite(h) && Number.isFinite(m)) {
+      this.timeH = h; this.timeM = m;
+      const t = U.$('#r-time');
+      if (t) { t.textContent = U.fmtTimeKo(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`); t.classList.remove('is-empty'); }
+    }
+  },
+
+  /** AI 비서가 제안한 식당을 식사 코스로 넣기 (일정 수정 화면이 열린 뒤 호출) */
+  setMealFromAI(timing, rest) {
+    if (timing === 'after') {
+      this.postMealRestaurant = rest;
+      if (!this.hasPostMeal) this.toggleMeal('post');
+      const d = U.$('#r-post-restaurant');
+      if (d) { d.textContent = rest.name; d.classList.remove('is-empty'); }
+    } else {
+      this.mealRestaurant = rest;
+      if (!this.hasMeal) this.toggleMeal('pre');
+      const d = U.$('#r-restaurant');
+      if (d) { d.textContent = rest.name; d.classList.remove('is-empty', 'empty'); }
+    }
+  },
+
   init() { 
     if (this.editIdx === null) this.reset(); // only reset if not editing
     this.render(); 

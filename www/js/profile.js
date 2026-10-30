@@ -376,6 +376,7 @@ const Profile = {
         }
         await Cloud.signOut();
         Cloud.clearLocalData();
+        if (typeof Billing !== 'undefined') Billing.unlinkCloudUser();
         State.schedules = [];
       }
       

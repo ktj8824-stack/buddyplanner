@@ -155,7 +155,7 @@
     <div class="hero">
       <span class="hero-icon">🔒</span>
       <h1>개인정보처리방침</h1>
-      <p>시행일: 2026년 10월 30일 &nbsp;|&nbsp; 최종 수정일: 2026년 10월 30일</p>
+      <p>시행일: 2026년 10월 30일 &nbsp;|&nbsp; 최종 수정일: 2026년 10월 30일 (AI 비서·버디 평가 추가)</p>
     </div>
 
     <div class="section">
@@ -172,7 +172,9 @@
           <tr><td data-label="항목">이름(닉네임), 이메일, 회원 식별자</td><td data-label="수집 방법">카카오·구글 로그인 시 해당 서비스로부터 제공</td><td data-label="목적">회원 식별, 로그인, 데이터 동기화, 앱 내 표시</td><td data-label="저장 위치">이용자 기기, 클라우드 서버</td></tr>
           <tr><td data-label="항목">집·회사 주소, 출발지</td><td data-label="수집 방법">이용자 직접 입력 (선택)</td><td data-label="목적">이동 경로·소요 시간 계산</td><td data-label="저장 위치">이용자 기기, 클라우드 서버 (경로 계산 시 티맵·카카오로 전송)</td></tr>
           <tr><td data-label="항목">라운딩 일정, 스코어, 일기, 사진(스코어카드 등), 포인트, AI 비서 대화, 화면 설정</td><td data-label="수집 방법">이용자 직접 입력</td><td data-label="목적">일정·기록 관리, 기기 간 동기화</td><td data-label="저장 위치">이용자 기기, 클라우드 서버</td></tr>
-          <tr><td data-label="항목">구매 내역(구독 상태), 무작위 사용자 식별자</td><td data-label="수집 방법">PRO 구독 결제 시 자동 생성</td><td data-label="목적">구독 확인·관리, 구매 복원</td><td data-label="저장 위치">Google Play, RevenueCat</td></tr>
+          <tr><td data-label="항목">AI 비서 대화 내용, AI 비서에 보낸 스코어카드 사진</td><td data-label="수집 방법">PRO 회원이 AI 비서를 사용할 때</td><td data-label="목적">답변 생성, 일정·스코어 등록 제안, 골프장 주변 맛집 추천</td><td data-label="저장 위치">대화 기록: 이용자 기기·클라우드 서버 / 처리: Anthropic (사진은 대화 기록에 저장하지 않음)</td></tr>
+          <tr><td data-label="항목">식당 평가 (별점, 한줄평)</td><td data-label="수집 방법">이용자가 '버디 평가'를 남길 때</td><td data-label="목적">회원 평균 별점 제공</td><td data-label="저장 위치">클라우드 서버 (다른 이용자에게는 평균 별점과 평가 수만 공개)</td></tr>
+          <tr><td data-label="항목">구매 내역(구독 상태), 회원 식별자</td><td data-label="수집 방법">PRO 구독 결제 시 자동 생성</td><td data-label="목적">구독 확인·관리, 구매 복원</td><td data-label="저장 위치">Google Play, RevenueCat</td></tr>
           <tr><td data-label="항목">광고 식별자, IP 주소, 기기·앱 이용 정보(광고 조회·탭 등)</td><td data-label="수집 방법">광고 SDK가 자동 수집</td><td data-label="목적">광고 제공, 광고 성과 측정, 부정 이용 방지</td><td data-label="저장 위치">Google(AdMob·AdSense), 카카오(AdFit, 웹)</td></tr>
           <tr><td data-label="항목">음성 (선택)</td><td data-label="수집 방법">AI 비서 음성 입력 사용 시</td><td data-label="목적">음성을 텍스트로 변환</td><td data-label="저장 위치">기기·브라우저의 음성 인식 서비스에서 처리되며 서비스는 저장하지 않음</td></tr>
         </tbody>
@@ -189,6 +191,9 @@
         <li>출발지에서 골프장·식당까지의 경로 및 소요 시간 계산</li>
         <li>골프장 날씨 및 라운딩 당일 예보 제공</li>
         <li>PRO 구독 결제, 구독 상태 확인 및 구매 복원</li>
+        <li>AI 비서 답변 생성, 일정·스코어 등록 제안, 맛집 추천 (PRO 회원)</li>
+        <li>회원들의 식당 평가를 모은 평균 별점 제공</li>
+        <li>부적절한 AI 답변 신고 처리 및 서비스 개선</li>
         <li>광고 제공 (PRO 회원은 광고 미표시)</li>
       </ul>
     </div>
@@ -200,6 +205,7 @@
         <tbody>
           <tr><td data-label="항목">클라우드 서버에 보관된 회원 정보와 데이터 (계정, 일정, 기록, 사진, 설정 등)</td><td data-label="보유 기간">회원 탈퇴 시 즉시 삭제</td></tr>
           <tr><td data-label="항목">기기에 저장된 정보</td><td data-label="보유 기간">회원 탈퇴, 로그아웃 또는 앱 삭제 시 삭제</td></tr>
+          <tr><td data-label="항목">식당 평가, AI 답변 신고 내용</td><td data-label="보유 기간">회원 탈퇴 시 즉시 삭제 (탈퇴하면 평균 별점에서도 제외)</td></tr>
           <tr><td data-label="항목">구독 결제 기록</td><td data-label="보유 기간">「전자상거래 등에서의 소비자보호에 관한 법률」에 따라 5년 (Google Play·RevenueCat 보관)</td></tr>
           <tr><td data-label="항목">광고 관련 정보</td><td data-label="보유 기간">각 광고 사업자의 개인정보처리방침에 따름</td></tr>
         </tbody>
@@ -214,10 +220,11 @@
         <thead><tr><th>사업자</th><th>이용 목적</th><th>전송되는 정보</th></tr></thead>
         <tbody>
           <tr><td data-label="사업자">Supabase, Inc.</td><td data-label="이용 목적">회원 인증, 데이터·사진 보관 및 동기화 (서버 위치: 대한민국 서울 리전)</td><td data-label="전송되는 정보">회원 식별자, 이름·이메일, 일정·기록·사진·설정 등 동기화 데이터</td></tr>
+          <tr><td data-label="사업자">Anthropic, PBC</td><td data-label="이용 목적">AI 비서 답변 생성 및 스코어카드 사진 인식</td><td data-label="전송되는 정보">대화 내용, 첨부한 사진, 닉네임, 다가오는 일정·스코어 요약</td></tr>
           <tr><td data-label="사업자">(주)카카오</td><td data-label="이용 목적">카카오 로그인, 골프장 검색, 카카오톡 공유, 웹 광고(AdFit)</td><td data-label="전송되는 정보">로그인 토큰, 검색어, 공유할 일정 정보, 광고 식별 정보</td></tr>
           <tr><td data-label="사업자">SK텔레콤(티맵)</td><td data-label="이용 목적">경로·소요 시간 계산, 주변 장소 검색</td><td data-label="전송되는 정보">출발지·경유지·목적지 좌표, 검색어</td></tr>
           <tr><td data-label="사업자">Google LLC</td><td data-label="이용 목적">구글 로그인, Google Play 결제, 광고(AdMob·AdSense)</td><td data-label="전송되는 정보">로그인 토큰, 결제 정보, 광고 식별자, IP 주소, 기기·앱 이용 정보</td></tr>
-          <tr><td data-label="사업자">RevenueCat, Inc.</td><td data-label="이용 목적">구독 결제 확인 및 구독 상태 관리</td><td data-label="전송되는 정보">구매 내역, 무작위 사용자 식별자</td></tr>
+          <tr><td data-label="사업자">RevenueCat, Inc.</td><td data-label="이용 목적">구독 결제 확인 및 구독 상태 관리</td><td data-label="전송되는 정보">구매 내역, 회원 식별자</td></tr>
           <tr><td data-label="사업자">Open-Meteo</td><td data-label="이용 목적">날씨 및 예보 조회</td><td data-label="전송되는 정보">골프장 좌표, 날짜 (개인을 식별할 수 있는 정보는 전송하지 않음)</td></tr>
         </tbody>
       </table>
@@ -229,7 +236,8 @@
       <table>
         <thead><tr><th>이전받는 자 (국가)</th><th>이전 항목</th><th>이전 시기·방법</th><th>보유 기간</th></tr></thead>
         <tbody>
-          <tr><td data-label="이전받는 자 (국가)">RevenueCat, Inc. (미국)<br>support@revenuecat.com</td><td data-label="이전 항목">구매 내역, 무작위 사용자 식별자</td><td data-label="이전 시기·방법">구독 결제·확인 시 네트워크로 전송</td><td data-label="보유 기간">구독 이용 기간 및 법정 보관 기간</td></tr>
+          <tr><td data-label="이전받는 자 (국가)">RevenueCat, Inc. (미국)<br>support@revenuecat.com</td><td data-label="이전 항목">구매 내역, 회원 식별자</td><td data-label="이전 시기·방법">구독 결제·확인 시 네트워크로 전송</td><td data-label="보유 기간">구독 이용 기간 및 법정 보관 기간</td></tr>
+          <tr><td data-label="이전받는 자 (국가)">Anthropic, PBC (미국)<br>privacy@anthropic.com</td><td data-label="이전 항목">AI 비서 대화 내용, 첨부한 사진, 닉네임, 일정·스코어 요약</td><td data-label="이전 시기·방법">AI 비서에 메시지를 보낼 때 네트워크로 전송</td><td data-label="보유 기간">Anthropic의 API 데이터 보관 정책에 따름</td></tr>
           <tr><td data-label="이전받는 자 (국가)">Google LLC (미국)</td><td data-label="이전 항목">로그인·결제 정보, 광고 식별자, IP 주소, 기기·앱 이용 정보</td><td data-label="이전 시기·방법">로그인·결제·광고 표시 시 네트워크로 전송</td><td data-label="보유 기간">Google 개인정보처리방침에 따름</td></tr>
         </tbody>
       </table>

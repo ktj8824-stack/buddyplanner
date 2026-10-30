@@ -885,3 +885,44 @@
     background: #007aff;
   }
 }
+/* ── Claude AI 비서: 잠금 안내, 사진, 확인 카드, 맛집 카드 ── */
+.ai-lock-panel { margin: 0 12px 10px; padding: 16px; border-radius: 16px; background: #fff; border: 1px solid var(--border-default); display: flex; flex-direction: column; gap: 6px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.ai-lock-panel b { font-size: 15px; color: var(--text-100); }
+.ai-lock-panel span { font-size: 13px; color: var(--text-400); line-height: 1.5; }
+.ai-lock-panel .btn-primary { margin-top: 6px; width: 100%; }
+.ai-photo-btn { margin-right: -4px; }
+.ai-msg-photo { max-width: 200px; max-height: 240px; border-radius: 14px; object-fit: cover; margin-bottom: 4px; border: 1px solid var(--border-default); }
+.ai-msg-photo-note { font-size: 12px; color: var(--text-400); background: #eef2f7; padding: 6px 10px; border-radius: 10px; margin-bottom: 4px; }
+.ai-report-btn { background: none; border: none; padding: 0; font-size: 11px; color: var(--text-400); text-decoration: underline; cursor: pointer; }
+
+.ai-rest-card, .ai-act-card { margin-top: 10px; padding: 12px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; text-align: left; }
+.ai-rest-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ai-rest-head b { font-size: 15px; color: var(--text-100); }
+.ai-rest-rating { font-size: 13px; font-weight: 700; color: #b45309; white-space: nowrap; }
+.ai-rest-rating small { font-size: 11px; font-weight: 500; color: var(--text-400); }
+.ai-rest-meta { font-size: 12.5px; color: var(--text-300); margin-top: 3px; }
+.ai-rest-addr { font-size: 12px; color: var(--text-400); margin-top: 2px; }
+.ai-rest-btns { display: flex; gap: 6px; margin-top: 10px; }
+.ai-rest-btns button { flex: 1; padding: 8px 0; border-radius: 10px; border: 1px solid #cbd5e1; background: #fff; font-size: 12.5px; font-weight: 700; color: var(--text-100); }
+
+.ai-act-card { background: #eff6ff; border-color: #bfdbfe; }
+.ai-act-title { font-size: 14px; font-weight: 800; color: #1e3a8a; margin-bottom: 8px; }
+.ai-act-body { display: flex; flex-direction: column; gap: 5px; }
+.ai-act-body div { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+.ai-act-body span { color: var(--text-400); }
+.ai-act-body b { color: var(--text-100); text-align: right; }
+.ai-act-note { font-size: 12px; color: #1e40af; margin: 8px 0 0; line-height: 1.5; }
+.ai-act-row { display: flex; gap: 8px; margin-top: 10px; }
+.ai-act-btn { flex: 1; padding: 10px 0; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-size: 14px; font-weight: 800; margin-top: 10px; width: 100%; }
+.ai-act-row .ai-act-btn { margin-top: 0; }
+.ai-act-btn.ghost { flex: 0 0 72px; background: #fff; color: var(--text-300); border: 1px solid #cbd5e1; }
+.ai-act-btn.is-done { background: #e2e8f0; color: var(--text-400); }
+.ai-holes { display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; margin-top: 10px; }
+.ai-holes span { display: flex; flex-direction: column; align-items: center; background: #fff; border-radius: 6px; padding: 3px 0; font-size: 13px; font-weight: 800; color: var(--text-100); }
+.ai-holes small { font-size: 9px; font-weight: 600; color: var(--text-400); }
+
+/* 카메라 버튼 추가에 따른 입력창 폭 조정 */
+.ai-input-bar { gap: 6px; }
+.ai-text-input { min-width: 0; }
+.ai-input-bar .ai-mic-btn { width: 38px; height: 38px; flex: none; }
+.ai-send-btn { flex: none; }

@@ -48,6 +48,13 @@ const Upgrade = {
               </div>
             </div>
             <div class="feat-item stag">
+              <div class="feat-icon purple"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+              <div class="feat-text">
+                <h4>버디 AI 비서</h4>
+                <p>말로 일정 등록, 스코어카드 사진으로 자동 기록, 골프장 주변 맛집 추천까지 대화로 해결하세요.</p>
+              </div>
+            </div>
+            <div class="feat-item stag">
               <div class="feat-icon green"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
               <div class="feat-text">
                 <h4>광고 완벽 제거</h4>
