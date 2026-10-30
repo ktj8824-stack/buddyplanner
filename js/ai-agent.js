@@ -278,14 +278,20 @@ const AIAgent = {
     if (!a) return;
     if (typeof Billing !== 'undefined' && !Billing.guardScheduleLimit()) return;
 
+    // 골프장 위치는 서버(AI)가 카드에 붙여서 보내줌 → 앱에는 카카오 키가 필요 없음
     let course = null;
-    try {
-      const found = await KakaoAPI.searchPlace(a.course_name);
-      if (found && found.length) {
-        const c = found[0];
-        course = { id: c.id, name: c.place_name, region: String(c.address_name || '').split(' ').slice(0, 2).join(' '), addr: c.address_name, lat: parseFloat(c.y), lng: parseFloat(c.x) };
-      }
-    } catch (e) { /* 검색 실패 시 사용자가 직접 선택 */ }
+    const sc = a.course;
+    if (sc && sc.name && isFinite(sc.lat) && isFinite(sc.lng)) {
+      course = { id: sc.id, name: sc.name, region: String(sc.addr || '').split(' ').slice(0, 2).join(' '), addr: sc.addr, lat: Number(sc.lat), lng: Number(sc.lng) };
+    } else {
+      try {
+        const found = await TmapAPI.searchPlace(a.course_name);
+        if (found && found.length) {
+          const c = found[0];
+          course = { id: c.id, name: c.place_name, region: String(c.address_name || '').split(' ').slice(0, 2).join(' '), addr: c.address_name, lat: parseFloat(c.y), lng: parseFloat(c.x) };
+        }
+      } catch (e) { /* 검색 실패 시 사용자가 직접 선택 */ }
+    }
 
     const [h, m] = String(a.tee_off || '07:00').split(':').map(Number);
     const [y, mo, d] = String(a.date).split('-').map(Number);

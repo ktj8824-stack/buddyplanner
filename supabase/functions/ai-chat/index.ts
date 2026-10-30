@@ -162,6 +162,17 @@ async function kakao(env: Env, path: string, params: Record<string, string>, f: 
   return (await res.json()).documents || [];
 }
 
+/** 골프장 이름 → 위치 (일정 제안 카드에 붙여서 앱이 따로 검색하지 않게 함) */
+export async function findCourse(env: Env, name: string, f: typeof fetch) {
+  let q = String(name || '').trim();
+  if (!q) return null;
+  if (!q.includes('골프') && !q.toLowerCase().includes('cc')) q += ' 골프장';
+  const docs = await kakao(env, 'keyword', { query: q, size: '1' }, f);
+  if (!docs.length) return null;
+  const d = docs[0];
+  return { id: String(d.id || ''), name: d.place_name, addr: d.road_address_name || d.address_name || '', lat: parseFloat(d.y), lng: parseFloat(d.x) };
+}
+
 async function searchRestaurants(env: Env, input: Json, f: typeof fetch) {
   let lat = Number(input.near_lat), lng = Number(input.near_lng);
   let courseLabel = input.course_name;
@@ -304,7 +315,11 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
               if (!knownRestaurants[r.id]) { knownRestaurants[r.id] = r; restaurants.push(r); }
             }
           } else if (u.name === 'propose_schedule' || u.name === 'propose_score_record') {
-            actions.push({ type: u.name.replace('propose_', ''), ...u.input });
+            const act: Json = { type: u.name.replace('propose_', ''), ...u.input };
+            if (u.name === 'propose_schedule') {
+              try { act.course = await findCourse(env, u.input?.course_name, f); } catch (_) { act.course = null; }
+            }
+            actions.push(act);
             result = { shown_to_user: true, note: '사용자 화면에 확인 카드를 표시했습니다. 사용자가 버튼을 눌러야 저장됩니다.' };
           } else if (u.name === 'propose_meal') {
             const r = knownRestaurants[String(u.input?.restaurant_id)];

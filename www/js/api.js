@@ -2,60 +2,7 @@
    BuddyPlanner v2 — API Module
    ========================================= */
 
-const KakaoAPI = {
-  // 키는 js/config.js(깃허브에 올라가지 않음)에서 읽어옵니다.
-  REST_API_KEY: (window.APP_CONFIG || {}).KAKAO_REST_API_KEY || '',
-
-  /**
-   * 카카오 로컬 API 장소 검색 (키워드)
-   * API 키가 없으면 기존 임시 데이터(COURSES)에서 검색합니다.
-   */
-  async searchPlace(keyword) {
-    if (!keyword || keyword.trim() === '') return [];
-
-    // Fallback: API 키가 없으면 가짜 데이터(Mock) 반환
-    if (!this.REST_API_KEY) {
-      console.log('API 키가 없어 Mock 데이터에서 검색합니다:', keyword);
-      return COURSES.filter(c => U.matchCho(c.name, keyword) || U.matchCho(c.region, keyword)).map(c => ({
-        id: c.id,
-        place_name: c.name,
-        address_name: c.addr || c.region,
-        x: c.lng,
-        y: c.lat
-      }));
-    }
-
-    try {
-      // 검색어에 '골프'나 'cc'가 포함되어 있지 않다면 자동으로 ' 골프장' 키워드 추가
-      let searchQuery = keyword;
-      if (!searchQuery.includes('골프') && !searchQuery.toLowerCase().includes('cc')) {
-        searchQuery += ' 골프장';
-      }
-      
-      const searchUrl = `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(searchQuery)}`;
-
-      const response = await fetch(searchUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': `KakaoAK ${this.REST_API_KEY}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        alert(`카카오 서버 에러: [${response.status}] ${errorText}`);
-        throw new Error('카카오 API 요청 실패');
-      }
-
-      const data = await response.json();
-      return data.documents; // 배열 형태의 장소 리스트
-    } catch (error) {
-      console.error('검색 오류:', error);
-      U.toast('API 검색 중 오류가 발생했습니다.');
-      return [];
-    }
-  }
-};
+// 카카오 장소 검색은 서버(Supabase Edge Function ai-chat)에서만 합니다. 앱에는 카카오 REST 키를 넣지 않습니다.
 
 const TmapAPI = {
   APP_KEY: (window.APP_CONFIG || {}).TMAP_APP_KEY || '',

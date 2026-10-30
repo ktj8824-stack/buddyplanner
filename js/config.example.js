@@ -9,7 +9,6 @@
      각 콘솔에서 반드시 사용처(패키지명/도메인) 제한을 걸어 두세요.
    ========================================= */
 window.APP_CONFIG = {
-  KAKAO_REST_API_KEY: '',    // 카카오 REST API 키 (골프장 검색)
   KAKAO_JS_KEY: '',          // 카카오 JavaScript 키 (웹 로그인, 공유)
   KAKAO_NATIVE_APP_KEY: '',  // 카카오 네이티브 앱 키 (안드로이드 로그인, strings.xml과 동일)
   TMAP_APP_KEY: '',          // SK open API Tmap 앱키 (경로, 장소 검색)
