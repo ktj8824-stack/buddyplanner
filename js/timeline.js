@@ -668,11 +668,11 @@ const Timeline = {
                 <div class="comp-info">
                   <div class="comp-avatar" style="background:linear-gradient(135deg,${c.color},${c.color}88)">${c.emoji}</div>
                   <div>
-                    <div class="comp-name">${c.name}</div>
+                    <div class="comp-name">${U.esc(c.name)}</div>
                     <div class="comp-status">대기 중</div>
                   </div>
                 </div>
-                <button class="status-btn" onclick="Timeline.toggleStatus(this,'${c.name}')">출발함</button>
+                <button class="status-btn" data-name="${U.esc(c.name)}" onclick="Timeline.toggleStatus(this,this.dataset.name)">출발함</button>
               </div>
             `).join('')}
           </div>
@@ -905,11 +905,11 @@ const Timeline = {
     const st = row.querySelector('.comp-status');
     if (btn.textContent.trim() === '출발함') {
       btn.textContent = '도착함'; st.textContent = '🚗 이동 중'; st.className = 'comp-status departed';
-      U.toast(`${name}님에게 출발 알림을 보냈습니다 🚗`);
+      U.toast(`${U.esc(name)}님에게 출발 알림을 보냈습니다 🚗`);
     } else {
       btn.textContent = '완료'; btn.disabled = true; btn.style.opacity = '0.4';
       st.textContent = '✅ 도착 완료'; st.className = 'comp-status arrived';
-      U.toast(`${name}님에게 도착 알림을 보냈습니다 ✅`);
+      U.toast(`${U.esc(name)}님에게 도착 알림을 보냈습니다 ✅`);
     }
     U.haptic();
   },

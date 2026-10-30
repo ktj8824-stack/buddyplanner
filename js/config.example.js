@@ -13,5 +13,9 @@ window.APP_CONFIG = {
   KAKAO_JS_KEY: '',          // 카카오 JavaScript 키 (웹 로그인, 공유)
   KAKAO_NATIVE_APP_KEY: '',  // 카카오 네이티브 앱 키 (안드로이드 로그인, strings.xml과 동일)
   TMAP_APP_KEY: '',          // SK open API Tmap 앱키 (경로, 장소 검색)
-  REVENUECAT_ANDROID_KEY: '' // RevenueCat 공개 SDK 키 (goog_로 시작, 구독 결제)
+  REVENUECAT_ANDROID_KEY: '', // RevenueCat 공개 SDK 키 (goog_로 시작, 구독 결제)
+
+  // ── 빌드 모드 (출시 빌드에서는 둘 다 false) ──
+  ADS_TEST_MODE: true,  // true: 테스트 광고 / false: 실제 광고(수익 발생)
+  ADMIN_MODE: false     // true: 마이 화면에 마켓 관리자 메뉴 표시
 };

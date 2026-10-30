@@ -90,7 +90,8 @@ const Chat = {
           const today = new Date();
           const t1 = new Date(today); t1.setDate(today.getDate() + 1);
           const t2 = new Date(today); t2.setDate(today.getDate() + 2);
-          this.addQuickReplies(['내일', '모레', `${today.getMonth()+1}월 ${today.getDate()+3}일`]);
+          const t3 = new Date(today); t3.setDate(today.getDate() + 3);
+          this.addQuickReplies(['내일', '모레', `${t3.getMonth()+1}월 ${t3.getDate()}일`]);
         } else {
           this.addBotMessage('등록되지 않은 골프장 이름입니다. 정확한 골프장 이름을 입력해주세요. (예: 남서울 CC)');
         }
@@ -103,8 +104,17 @@ const Chat = {
         } else if (text.includes('모레')) {
           targetDate.setDate(targetDate.getDate() + 2);
         } else {
-          // simple fallback, assume next week
-          targetDate.setDate(targetDate.getDate() + 7);
+          // "11월 2일" 형식 해석 (지난 날짜면 내년으로)
+          const md = text.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/);
+          if (md) {
+            const now = new Date();
+            targetDate = new Date(now.getFullYear(), parseInt(md[1], 10) - 1, parseInt(md[2], 10));
+            const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            if (targetDate < today0) targetDate.setFullYear(targetDate.getFullYear() + 1);
+          } else {
+            this.addBotMessage('날짜를 "11월 2일"처럼 입력하거나 아래에서 골라주세요.');
+            break;
+          }
         }
         this.roundData.date = targetDate;
         this.state = 'ASK_TIME';
@@ -181,7 +191,7 @@ const Chat = {
     const msg = document.createElement('div');
     msg.className = 'chat-msg user';
     msg.innerHTML = `
-      <div class="chat-bubble">${html}</div>
+      <div class="chat-bubble">${U.esc(html)}</div>
       <div class="chat-time">${this.getTimeStr()}</div>
     `;
     this.bodyEl.appendChild(msg);

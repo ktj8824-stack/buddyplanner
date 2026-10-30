@@ -260,7 +260,7 @@ const WeatherAPI = {
 
   async fetchWeather(lat, lng) {
     try {
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FTokyo`;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FSeoul`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('날씨 API 응답 실패');
       const data = await res.json();

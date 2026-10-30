@@ -256,6 +256,14 @@ const App = {
   // 구글 애드몹 보상형 동영상 광고 ID (실제 광고 단위)
   ADMOB_REWARD_ID: 'ca-app-pub-6195996093323539/4620360062',
 
+  /**
+   * 테스트 광고 여부. 개발 중 실제 광고를 노출·클릭하면 애드몹 정책 위반이므로
+   * 설정이 없으면 테스트 모드로 동작합니다. 출시 빌드는 config.js에서 ADS_TEST_MODE: false.
+   */
+  adsTestMode() {
+    return (window.APP_CONFIG || {}).ADS_TEST_MODE !== false;
+  },
+
   /** 구독 상태가 바뀌었을 때 광고 표시를 맞춤 (Billing에서 호출) */
   applyProStatus() {
     const adfit = U.$('#adfit-banner-wrap');
@@ -283,7 +291,7 @@ const App = {
         try {
           await AdMob.prepareInterstitial({
             adId: this.ADMOB_INTERSTITIAL_ID,
-            isTesting: true // 테스트 광고 모드
+            isTesting: App.adsTestMode()
           });
         } catch (e) {
           console.warn('AdMob Prepare Interstitial Warn:', e);
@@ -364,7 +372,7 @@ const App = {
             adSize: 'BANNER', // BannerAdSize.BANNER
             position: 'BOTTOM_CENTER', // BannerAdPosition.BOTTOM_CENTER
             margin: bottomMargin,
-            isTesting: true // 테스트 광고 모드
+            isTesting: App.adsTestMode()
           };
           await AdMob.showBanner(options);
           
@@ -690,10 +698,34 @@ const App = {
     return null;
   },
 
+  /**
+   * 공유 링크로 들어온 일정은 외부에서 조작될 수 있으므로,
+   * 문자열에서 HTML/스크립트에 쓰일 수 있는 문자를 제거하고 길이를 제한합니다.
+   */
+  sanitizeShared(data) {
+    if (!data) return null;
+    const clean = (v, depth = 0) => {
+      if (typeof v === 'string') return v.replace(/[<>"'`\\]/g, '').slice(0, 200);
+      if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+      if (v instanceof Date) return isNaN(v.getTime()) ? new Date() : v;
+      if (Array.isArray(v)) return depth > 3 ? [] : v.slice(0, 20).map(x => clean(x, depth + 1));
+      if (v && typeof v === 'object') {
+        if (depth > 3) return {};
+        const out = {};
+        Object.keys(v).forEach(k => { out[k] = clean(v[k], depth + 1); });
+        return out;
+      }
+      return v;
+    };
+    const out = clean(data);
+    if (!/^\d{1,2}:\d{2}$/.test(out.teeOff || '')) out.teeOff = '07:00';
+    return out;
+  },
+
   handleIncomingUrl(urlStr) {
     if (!urlStr) return null;
     console.log('🔗 DeepLink URL received:', urlStr);
-    const schedData = this.parseSharedPayload(urlStr);
+    const schedData = this.sanitizeShared(this.parseSharedPayload(urlStr));
     if (schedData) {
       State.incomingSchedule = schedData;
       console.log('✅ Shared schedule parsed successfully:', schedData);

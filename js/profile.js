@@ -138,6 +138,7 @@ const Profile = {
             </div>
           </div>
           
+          ${(window.APP_CONFIG || {}).ADMIN_MODE ? `
           <div class="setting-card" style="margin-top:20px;">
             <div class="setting-item" style="cursor:pointer" onclick="Profile.openAdmin()">
               <div class="address-input-wrap" style="flex:1">
@@ -148,6 +149,7 @@ const Profile = {
               </div>
             </div>
           </div>
+          ` : ''}
           
           <div class="logout-wrap">
             <button class="logout-btn" onclick="Profile.logout()">로그아웃</button>
@@ -180,7 +182,7 @@ const Profile = {
         // 보상형 광고 준비
         await AdMob.prepareRewardVideoAd({
           adId: App.ADMOB_REWARD_ID, // app.js에 선언된 ID 사용
-          isTesting: true // 테스트 광고 모드
+          isTesting: App.adsTestMode()
         });
         
         // 보상형 광고 재생 (재생 완료 시 app.js에 등록된 리스너에서 포인트 지급)
@@ -317,13 +319,10 @@ const Profile = {
   },
 
   openAdmin() {
-    const pw = prompt('관리자 비밀번호를 입력하세요 (0000)');
-    if (pw === '0000') {
-      U.toast('관리자 모드에 진입합니다.');
-      App.navigate('admin');
-    } else if (pw !== null) {
-      U.toast('비밀번호가 일치하지 않습니다.');
-    }
+    // 출시 빌드(config.js의 ADMIN_MODE: false)에서는 진입 불가
+    if (!(window.APP_CONFIG || {}).ADMIN_MODE) return;
+    U.toast('관리자 모드에 진입합니다.');
+    App.navigate('admin');
   },
 
   exportData() {

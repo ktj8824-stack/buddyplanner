@@ -74,6 +74,8 @@ const U = {
   /* ── DOM ── */
   $(sel,p=document){return p.querySelector(sel);},
   $$(sel,p=document){return p.querySelectorAll(sel);},
+  /** 사용자 입력·외부 데이터를 HTML에 넣기 전 이스케이프 */
+  esc(v){return String(v==null?'':v).replace(/[&<>"'`]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));},
   el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e;},
 
   /* ── Toast ── */

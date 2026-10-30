@@ -6,15 +6,14 @@ const Community = {
 
   toggleGoodshot(btn) {
     btn.classList.toggle('active');
-    if (btn.classList.contains('active')) {
-      U.toast('굿샷! 포인트가 지급되었습니다 🎾');
-      const pointEl = U.$('.my-points span');
-      if (pointEl) {
-        let pts = parseInt(pointEl.innerText.replace(/,/g, ''));
-        pts += 10;
-        pointEl.innerText = pts.toLocaleString();
-      }
-    }
+    const on = btn.classList.contains('active');
+    // 굿샷 취소 시 포인트도 회수 (반복 클릭으로 무한 적립 방지)
+    let pts = parseInt(localStorage.getItem('bp_points') || '0', 10) || 0;
+    pts = Math.max(0, pts + (on ? 10 : -10));
+    localStorage.setItem('bp_points', String(pts));
+    const pointEl = U.$('#comm-points');
+    if (pointEl) pointEl.textContent = `${pts.toLocaleString()} P`;
+    if (on) U.toast('굿샷! 10 포인트가 적립되었습니다 🎾');
   },
 
   joinMatch() {
@@ -31,7 +30,7 @@ const Community = {
           <h2>버디 커뮤니티</h2>
           <div class="my-points">
             <span>🪙</span>
-            <span>1,500 P</span>
+            <span id="comm-points">${(parseInt(localStorage.getItem('bp_points') || '0', 10) || 0).toLocaleString()} P</span>
           </div>
         </div>
 
