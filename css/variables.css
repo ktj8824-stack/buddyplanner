@@ -45,8 +45,9 @@
   --text-100: #0f172a; /* Rich sharp slate */
   --text-200: #334155; /* Dark gray */
   --text-300: #64748b; /* Medium gray */
-  --text-400: #94a3b8; /* Light gray */
-  --text-500: #cbd5e1; /* Muted */
+  /* 보조 글씨: 40~60대 사용자도 읽기 쉽도록 흰 배경 대비를 높임 (예전 #94a3b8 / #cbd5e1) */
+  --text-400: #64748b; /* Secondary text */
+  --text-500: #7b8798; /* Muted text */
 
   --accent: #007aff; /* Primary iOS blue accent */
   --accent-dim: rgba(0, 122, 255, 0.08);

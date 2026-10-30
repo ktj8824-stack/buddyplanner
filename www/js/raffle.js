@@ -59,11 +59,7 @@ const Raffle = {
             <li>응모 인원이 모두 차면 무작위로 1명의 당첨자를 선정합니다.</li>
             <li>당첨 시 입력하신 배송지로 영업일 기준 3일 이내에 발송됩니다.</li>
           </ul>
-          
-          <div style="background:#f1f5f9; padding:12px; border-radius:8px; font-size:11px; color:var(--text-400); text-align:center; line-height:1.4;">
-            <strong>Apple은 본 이벤트의 후원자가 아니며,<br>본 이벤트와 어떠한 관련도 없습니다.</strong><br>
-            (Apple is not a sponsor and is not involved in any way with this contest)
-          </div>
+
         </div>
 
       </div>

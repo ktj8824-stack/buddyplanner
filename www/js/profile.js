@@ -29,14 +29,6 @@ const Profile = {
     const adCount = (localStorage.getItem('bp_ad_date') === todayStr) ? parseInt(localStorage.getItem('bp_ad_count') || '0', 10) : 0;
 
     app.innerHTML = `
-      <div class="header">
-        <button class="header-btn" onclick="App.navigate('home')">
-          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        </button>
-        <h1 class="header-title">마이페이지</h1>
-        <div class="header-btn" style="visibility:hidden"></div>
-      </div>
-
       <div class="screen-scroll">
         <div class="profile-hero">
           <div class="profile-avatar">${avatarLetter}</div>

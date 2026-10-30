@@ -199,3 +199,8 @@
   transform: scale(0.96);
   opacity: 0.9;
 }
+
+/* 정식 오픈 전 예시 안내 */
+.comm-preview-notice { margin: 0 20px 14px; padding: 12px 14px; border-radius: 14px; background: #eff6ff; border: 1px solid #bfdbfe; display: flex; flex-direction: column; gap: 2px; }
+.comm-preview-notice b { font-size: 14px; color: #1e3a8a; }
+.comm-preview-notice span { font-size: 13px; color: #1e40af; }

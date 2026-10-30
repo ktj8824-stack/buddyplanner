@@ -52,7 +52,7 @@ const Record = {
     }
     
     sortedRecords.sort((a,b) => b.date.localeCompare(a.date));
-    let recentScore = sortedRecords.length > 0 ? sortedRecords[0].score : 85;
+    let recentScore = sortedRecords.length > 0 ? sortedRecords[0].score : '--';
     let recentDiff = typeof recentScore === 'number' ? recentScore - 72 : 13;
     let recentCourse = sortedRecords.length > 0 ? sortedRecords[0].course : 'THE HEAVEN CC';
     let recentDate = sortedRecords.length > 0 ? sortedRecords[0].date : '26.10.11';
@@ -66,8 +66,9 @@ const Record = {
     if (bestCourse === '기록 없음') bestCourse = 'THE HEAVEN CC';
     if (bestDate === '-') bestDate = '26.10.11';
 
-    const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '85.0';
-    const displayCount = validScoreCount > 0 ? validScoreCount : 3;
+    // 기록이 없으면 예시 숫자 대신 빈 값 표시
+    const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '--';
+    const displayCount = validScoreCount;
 
     container.innerHTML = `
       <div class="screen-scroll" style="background:#f8fafc; padding-top:var(--header-h); padding-bottom:calc(var(--nav-h) + 16px);">
@@ -75,41 +76,6 @@ const Record = {
         <!-- Record Top Section -->
         <div style="padding: 16px 20px 8px;">
           
-          <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
-          <div class="glounge-score-grid" style="margin-bottom: 14px;">
-            <!-- Left Card: Recent Score (Soft Sky Blue) -->
-            <div class="glounge-score-card card-blue" style="cursor:default;">
-              <div class="card-label-blue">최근 스코어</div>
-              <div class="card-score-row">
-                <span class="card-score-num">${recentScore}</span>
-                <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
-              </div>
-              <div class="card-meta-info">
-                <span class="card-meta-date">${recentDate}</span>
-                <span class="card-meta-course">${recentCourse}</span>
-              </div>
-              <div class="card-corner-thumb">
-                <img src="img/glounge_thumb_golfer.jpg" alt="Golfer" />
-              </div>
-            </div>
-
-            <!-- Right Card: Life Best (Soft Warm Cream Gold) -->
-            <div class="glounge-score-card card-gold" style="cursor:default;">
-              <div class="card-label-gold">라이프 베스트</div>
-              <div class="card-score-row">
-                <span class="card-score-num gold">${scoreDisplay}</span>
-                <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
-              </div>
-              <div class="card-meta-info">
-                <span class="card-meta-date gold">${bestDate}</span>
-                <span class="card-meta-course gold">${bestCourse}</span>
-              </div>
-              <div class="card-corner-thumb">
-                <img src="img/glounge_gold_trophy.jpg" alt="Trophy" />
-              </div>
-            </div>
-          </div>
-
           <!-- 라운딩 핵심 통계 바 (Unified Style) -->
           <div style="display:flex; justify-content:space-around; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:14px 12px; margin-bottom:18px; box-shadow:0 2px 10px rgba(0,0,0,0.02);">
             <div style="text-align:center; flex:1;">
@@ -265,13 +231,13 @@ const Record = {
         }
       }
       
-      const dummyScores = [82, 79, 85, 90, 88];
       let companionsHtml = '';
       if (companions.length > 0) {
-        companionsHtml = companions.map((name, idx) => `
+        // 동반자 스코어는 입력받지 않으므로 이름만 표시 (예전에는 임의 숫자를 표시했음)
+        companionsHtml = companions.map((c) => `
           <div class="record-stat-item">
-            <span class="record-stat-label" style="color:rgba(255,255,255,0.7); font-size:13px;">${name}</span>
-            <span class="record-stat-val" style="color:#60a5fa; font-size:14px; font-weight:800;">${dummyScores[idx % dummyScores.length]}타</span>
+            <span class="record-stat-label" style="color:rgba(255,255,255,0.85); font-size:13px;">${U.esc((c && c.name) || c)}</span>
+            <span class="record-stat-val" style="color:rgba(255,255,255,0.6); font-size:13px; font-weight:700;">함께한 동반자</span>
           </div>
         `).join('');
       } else {

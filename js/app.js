@@ -9,11 +9,8 @@ const App = {
     // 클라우드 동기화 준비 (설정이 없으면 아무 동작 안 함). 웹 카카오 로그인에서 돌아온 경우 그 정보를 받음
     const cloudRedirect = (typeof Cloud !== 'undefined') ? Cloud.init() : null;
 
-    if (!State.loadSchedules()) {
-      // 처음 설치 시 보여주는 예시 일정은 서버에 올리지 않음
-      if (typeof Cloud !== 'undefined') Cloud.withoutTracking(() => State.initDemo());
-      else State.initDemo();
-    }
+    // 처음 설치 시에는 빈 일정으로 시작 (예전에는 지난 날짜의 예시 일정 2개가 들어갔음)
+    if (!State.loadSchedules()) State.schedules = [];
     this.loadPreferences();
     // PRO 여부를 먼저 복원해야 PRO 회원에게 광고가 뜨지 않음
     Billing.loadCachedStatus();
@@ -140,9 +137,9 @@ const App = {
         case 'ai': AI.init(); break;
       }
     }
-    this.updateNav(name === 'timeline' ? 'home' : name);
+    this.updateNav(['timeline', 'register'].includes(name) ? 'calendar' : name);
     
-    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'profile', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade'];
+    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade'];
     const nav = U.$('#top-header');
     if (nav) {
       if (hideHeaderScreens.includes(name)) {
@@ -211,17 +208,8 @@ const App = {
         </div>
       </div>
       <div class="top-nav-right glounge-nav-actions" style="display:flex; align-items:center; gap:16px; margin-left:auto;">
-        <!-- Smile / Profile -->
-        <button class="glounge-icon-btn" onclick="App.navigate('profile')" aria-label="내 정보">
-          <svg viewBox="0 0 24 24" width="23" height="23" stroke="currentColor" stroke-width="2" fill="none">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-            <line x1="9" y1="9" x2="9.01" y2="9" stroke-width="3"></line>
-            <line x1="15" y1="9" x2="15.01" y2="9" stroke-width="3"></line>
-          </svg>
-        </button>
-        <!-- Hamburger Menu -->
-        <button class="glounge-icon-btn" onclick="State.screen === 'calendar' ? App.navigate('home') : App.navigate('calendar')" aria-label="메뉴">
+        <!-- 전체 메뉴: 하단 탭에 없는 화면(커뮤니티, 마켓, 맛집, PRO) -->
+        <button class="glounge-icon-btn" onclick="App.openMenu()" aria-label="전체 메뉴">
           <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.2" fill="none">
             <line x1="3" y1="7" x2="21" y2="7"></line>
             <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -235,13 +223,13 @@ const App = {
     const bottomNav = U.el('nav','bottom-nav');
     bottomNav.id = 'gnb';
     bottomNav.innerHTML = `
-      <button class="gnb-item" data-s="record" onclick="App.navigate('record')">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        <span class="nav-label">기록</span>
+      <button class="gnb-item" data-s="home" onclick="App.navigate('home')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
+        <span class="nav-label">홈</span>
       </button>
-      <button class="gnb-item" data-s="community" onclick="App.navigate('community')">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        <span class="nav-label">커뮤니티</span>
+      <button class="gnb-item" data-s="calendar" onclick="App.navigate('calendar')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="nav-label">일정</span>
       </button>
       <button class="gnb-item gnb-item-ai" data-s="ai" onclick="App.navigate('ai')">
         <div class="gnb-ai-btn-bubble">
@@ -251,9 +239,9 @@ const App = {
         </div>
         <span class="nav-label ai-label">버디 AI</span>
       </button>
-      <button class="gnb-item" data-s="market" onclick="App.navigate('market')">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-        <span class="nav-label">버디마켓</span>
+      <button class="gnb-item" data-s="record" onclick="App.navigate('record')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <span class="nav-label">기록</span>
       </button>
       <button class="gnb-item" data-s="profile" onclick="App.navigate('profile')">
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -272,6 +260,25 @@ const App = {
   ADMOB_INTERSTITIAL_ID: 'ca-app-pub-6195996093323539/7047651850',
   // 구글 애드몹 보상형 동영상 광고 ID (실제 광고 단위)
   ADMOB_REWARD_ID: 'ca-app-pub-6195996093323539/4620360062',
+
+  /** 상단 ≡ 전체 메뉴: 하단 탭에 없는 화면으로 이동 */
+  openMenu() {
+    const items = [
+      { s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' },
+      { s: 'market', icon: '🛒', name: '버디마켓', desc: '골프 용품 추천' },
+      { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
+      { s: 'upgrade', icon: '👑', name: '버디플래너 PRO', desc: State.isPro ? 'PRO 이용 중' : '무제한 일정 · 당일 예보 · 광고 제거' }
+    ];
+    this.showModal('전체 메뉴', `
+      <div class="menu-sheet">
+        ${items.map(i => `
+          <button class="menu-sheet-item" onclick="App.closeModal(); App.navigate('${i.s}')">
+            <span class="menu-sheet-icon">${i.icon}</span>
+            <span class="menu-sheet-text"><b>${i.name}</b><small>${i.desc}</small></span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+          </button>`).join('')}
+      </div>`);
+  },
 
   /** 기존 사용자: 데이터를 지우지 않고 다시 로그인해 클라우드 백업을 켜도록 안내 */
   offerCloudConnect() {

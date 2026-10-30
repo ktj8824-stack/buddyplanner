@@ -42,11 +42,16 @@ const Community = {
           <button class="comm-cat-pill">🚗 카풀/동선 공유</button>
         </div>
 
+        <div class="comm-preview-notice">
+          <b>커뮤니티 정식 오픈 준비 중이에요</b>
+          <span>아래 글은 기능을 보여드리기 위한 예시예요.</span>
+        </div>
+
         <div class="feed-list">
           <!-- Feed Item 1 (Join Match) -->
           <div class="feed-card">
             <div class="feed-author">
-              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=33') center/cover;"></div>
+              <div class="author-avatar" style="background:#0ea5e9; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px;">골</div>
               <div class="author-info">
                 <div class="author-name-row">
                   <span class="author-name">골프홀릭</span>
@@ -57,7 +62,7 @@ const Community = {
             </div>
             <div class="feed-tags">
               <span class="tag-join">⛳ 조인 모집 (1명 남음)</span>
-              <span class="tag-course">4월 25일(토) 07:30</span>
+              <span class="tag-course">이번 주 토요일 07:30</span>
             </div>
             <div class="feed-content">
               이번 주 토요일 안양베네스트 07:30 티업 조인 한 분 모십니다!<br>
@@ -75,7 +80,7 @@ const Community = {
           <!-- Feed Item 2 (Course Route Share) -->
           <div class="feed-card">
             <div class="feed-author">
-              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=12') center/cover;"></div>
+              <div class="author-avatar" style="background:#22c55e; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px;">버</div>
               <div class="author-info">
                 <div class="author-name-row">
                   <span class="author-name">버디사냥꾼</span>
@@ -104,7 +109,7 @@ const Community = {
           <!-- Feed Item 3 (Join 2) -->
           <div class="feed-card">
             <div class="feed-author">
-              <div class="author-avatar" style="background: url('https://i.pravatar.cc/100?img=60') center/cover;"></div>
+              <div class="author-avatar" style="background:#f59e0b; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px;">나</div>
               <div class="author-info">
                 <div class="author-name-row">
                   <span class="author-name">나이스샷김프로</span>
@@ -115,7 +120,7 @@ const Community = {
             </div>
             <div class="feed-tags">
               <span class="tag-join">⛳ 조인 모집 (2명 남음)</span>
-              <span class="tag-course">5월 2일(토) 06:40</span>
+              <span class="tag-course">다음 주 토요일 06:40</span>
             </div>
             <div class="feed-content">
               파인크리크 CC 주말 첫 티업 조인 모십니다. 매너 좋고 명랑 골프 지향하시는 분 편하게 신청해주세요!

@@ -66,9 +66,9 @@ const Market = {
         
         <!-- Highlight Banner -->
         <div class="market-banner">
-          <div class="market-banner-sub">이번 주 특가 기획전</div>
-          <div class="market-banner-title">라운딩 필수템<br>최대 50% 할인</div>
-          <div class="market-banner-btn" onclick="Market.openLink('https://link.coupang.com/a/f5P9X1fH8S')">기획전 보러가기</div>
+          <div class="market-banner-sub">버디 추천</div>
+          <div class="market-banner-title">라운딩 필수템<br>모아보기</div>
+          <div class="market-banner-btn" onclick="Market.openLink('https://link.coupang.com/a/f5P9X1fH8S')">쿠팡에서 보기</div>
         </div>
 
         <!-- Categories -->
@@ -93,7 +93,7 @@ const Market = {
       html += `
         <div class="market-card" onclick="Market.openLink('${p.link}')">
           <div class="market-img-wrap">
-            <img src="${p.image}" class="market-img" alt="${p.title}">
+            <img src="${p.image}" class="market-img" alt="${U.esc(p.title)}" onerror="this.onerror=null; this.src='img/buddybirdie_app_icon.png'; this.classList.add('is-fallback');">
             ${badgeHtml}
           </div>
           <div class="market-info">

@@ -167,3 +167,6 @@
   display: inline-block;
   cursor: pointer;
 }
+
+/* 상품 이미지를 불러오지 못했을 때 */
+.market-img.is-fallback { object-fit: contain; padding: 28%; opacity: 0.5; }

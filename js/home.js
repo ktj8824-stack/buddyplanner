@@ -71,17 +71,19 @@ const Home = {
     }
 
     // 2. 스코어 기록 데이터 조회
-    let recentScore = 85;
-    let recentDiff = 13;
-    let recentDate = '26.10.11';
-    let recentCourse = 'THE HEAVEN CC';
+    // 기록이 없으면 예시 숫자 대신 빈 화면 안내를 보여줌
+    let hasRecent = false, hasBest = false;
+    let recentScore = '--';
+    let recentDiff = null;
+    let recentDate = '';
+    let recentCourse = '';
 
-    let bestScore = 85;
-    let bestDiff = 13;
-    let bestDate = '26.10.11';
-    let bestCourse = 'THE HEAVEN CC';
+    let bestScore = '--';
+    let bestDiff = null;
+    let bestDate = '';
+    let bestCourse = '';
 
-    let yearlyCount = 3;
+    let yearlyCount = 0;
 
     try {
       const recordsData = localStorage.getItem('bp_records_v1');
@@ -92,9 +94,10 @@ const Home = {
         if (sortedDates.length > 0) {
           const r0 = records[sortedDates[0]];
           if (r0 && typeof r0.score === 'number') {
+            hasRecent = true;
             recentScore = r0.score;
             recentDiff = recentScore - 72;
-            recentCourse = r0.course || recentCourse;
+            recentCourse = r0.course || '';
             const p = sortedDates[0].split('-');
             if (p.length === 3) {
               recentDate = `${p[0].slice(2)}.${p[1]}.${p[2]}`;
@@ -122,9 +125,10 @@ const Home = {
           });
 
           if (minScore !== Infinity && minRec) {
+            hasBest = true;
             bestScore = minScore;
             bestDiff = bestScore - 72;
-            bestCourse = minRec.course || bestCourse;
+            bestCourse = minRec.course || '';
             const bp = minDateStr.split('-');
             if (bp.length === 3) {
               bestDate = `${bp[0].slice(2)}.${bp[1]}.${bp[2]}`;
@@ -230,6 +234,37 @@ const Home = {
         <!-- 2. White Curved Bottom Sheet -->
         <div class="home-glounge-sheet">
           
+          <!-- 다가오는 라운딩: 일정 앱의 핵심이라 상단 바로 아래에 배치 -->
+          ${upcomingScheds.length > 0 ? `
+            <div class="glounge-upcoming-box">
+              <div class="upcoming-head">
+                <span class="upcoming-title">다가오는 라운딩</span>
+                <button class="upcoming-more-btn" onclick="App.navigate('calendar')">전체보기 &gt;</button>
+              </div>
+              ${upcomingScheds.slice(0, 2).map((sched, idx) => {
+                const cName = sched.course ? sched.course.name : (sched.courseName || '골프장');
+                const dObj = sched.date instanceof Date ? sched.date : new Date(sched.date);
+                const dStr = `${dObj.getMonth() + 1}월 ${dObj.getDate()}일 (${U.DAYS ? U.DAYS[dObj.getDay()] : '일'})`;
+                const tTime = sched.teeOff || sched.teeTime || '07:00';
+                const origIdx = State.schedules.indexOf(sched);
+                return `
+                  <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; font-size:16px;">⛳</div>
+                      <div>
+                        <div style="font-size:13.5px; font-weight:800; color:#0f172a;">${cName}</div>
+                        <div style="font-size:11.5px; color:#64748b;">${dStr} · ${tTime}</div>
+                      </div>
+                    </div>
+                    <div style="font-size:12px; font-weight:700; color:#007aff; background:#eff6ff; padding:4px 8px; border-radius:6px;">
+                      타임라인 보기
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          ` : ''}
+
           <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
           <div class="glounge-score-grid">
             
@@ -238,11 +273,11 @@ const Home = {
               <div class="card-label-blue">최근 스코어</div>
               <div class="card-score-row">
                 <span class="card-score-num">${recentScore}</span>
-                <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
+                ${hasRecent ? `<span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>` : ''}
               </div>
               <div class="card-meta-info">
-                <span class="card-meta-date">${recentDate}</span>
-                <span class="card-meta-course">${recentCourse}</span>
+                ${hasRecent ? `<span class="card-meta-date">${recentDate}</span>
+                <span class="card-meta-course">${U.esc(recentCourse)}</span>` : `<span class="card-meta-date">첫 라운딩을<br>기록해 보세요</span>`}
               </div>
               <div class="card-corner-thumb">
                 <img src="img/glounge_thumb_golfer.jpg?v=restore" alt="Golfer Thumbnail" />
@@ -254,11 +289,11 @@ const Home = {
               <div class="card-label-gold">라이프 베스트</div>
               <div class="card-score-row">
                 <span class="card-score-num gold">${bestScore}</span>
-                <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
+                ${hasBest ? `<span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>` : ''}
               </div>
               <div class="card-meta-info">
-                <span class="card-meta-date gold">${bestDate}</span>
-                <span class="card-meta-course gold">${bestCourse}</span>
+                ${hasBest ? `<span class="card-meta-date gold">${bestDate}</span>
+                <span class="card-meta-course gold">${U.esc(bestCourse)}</span>` : `<span class="card-meta-date gold">최고 기록이<br>여기에 표시돼요</span>`}
               </div>
               <div class="card-corner-thumb">
                 <img src="img/glounge_gold_trophy.jpg" alt="Gold Trophy" />
@@ -274,7 +309,7 @@ const Home = {
               </div>
               <div class="stat-text-wrap">
                 <div class="stat-title">올해 라운드</div>
-                <div class="stat-desc">올해 <strong>${yearlyCount}번</strong>의 라운드를 즐기고 계시네요.</div>
+                <div class="stat-desc">${yearlyCount > 0 ? `올해 <strong>${yearlyCount}번</strong>의 라운드를 즐기고 계시네요.` : '라운딩 후 스코어를 남기면 여기에 쌓여요.'}</div>
               </div>
             </div>
             <div class="stat-right">
@@ -351,36 +386,6 @@ const Home = {
             </div>
           </div>
 
-          <!-- Upcoming Schedule Mini Pass (If scheduled) -->
-          ${upcomingScheds.length > 0 ? `
-            <div class="glounge-upcoming-box">
-              <div class="upcoming-head">
-                <span class="upcoming-title">다가오는 라운딩</span>
-                <button class="upcoming-more-btn" onclick="App.navigate('calendar')">전체보기 &gt;</button>
-              </div>
-              ${upcomingScheds.slice(0, 2).map((sched, idx) => {
-                const cName = sched.course ? sched.course.name : (sched.courseName || '골프장');
-                const dObj = sched.date instanceof Date ? sched.date : new Date(sched.date);
-                const dStr = `${dObj.getMonth() + 1}월 ${dObj.getDate()}일 (${U.DAYS ? U.DAYS[dObj.getDay()] : '일'})`;
-                const tTime = sched.teeOff || sched.teeTime || '07:00';
-                const origIdx = State.schedules.indexOf(sched);
-                return `
-                  <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                      <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; font-size:16px;">⛳</div>
-                      <div>
-                        <div style="font-size:13.5px; font-weight:800; color:#0f172a;">${cName}</div>
-                        <div style="font-size:11.5px; color:#64748b;">${dStr} · ${tTime}</div>
-                      </div>
-                    </div>
-                    <div style="font-size:12px; font-weight:700; color:#059669; background:#ecfdf5; padding:4px 8px; border-radius:6px;">
-                      역산 확인
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          ` : ''}
 
         </div>
       </div>

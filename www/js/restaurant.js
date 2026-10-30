@@ -219,8 +219,10 @@ const Restaurant = {
 
     const listHtml = currentList.map((p, idx) => {
       const review = ReviewStore.getReviews(p.place_name);
-      const rating = review.count > 0 ? review.avgRating : '4.8';
-      const count  = review.count > 0 ? review.count : Math.floor(Math.random()*100+50);
+      // 실제 사용자 평가가 있을 때만 별점 표시 (예전에는 4.8점과 임의 리뷰 수를 표시했음)
+      const ratingHtml = review.count > 0
+        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${review.avgRating} <span class="pc-review-cnt">(버디 평가 ${review.count})</span>`
+        : `<span class="pc-review-cnt">아직 버디 평가가 없어요</span>`;
       const safeName = p.place_name.replace(/'/g, "\\'");
       return `
         <div class="premium-card">
@@ -246,8 +248,7 @@ const Restaurant = {
           </button>
           <div class="pc-footer">
             <div class="pc-rating">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              ${rating} <span class="pc-review-cnt">(${count})</span>
+              ${ratingHtml}
             </div>
             <div class="pc-action" onclick="Restaurant.showDetail('${safeName}','${p.address_name}')">
               네이버 리뷰 보기
@@ -325,8 +326,9 @@ const Restaurant = {
     const sorted = rests.sort((a, b) => parseFloat(a.distance || 999) - parseFloat(b.distance || 999));
     const listHtml = sorted.map((p, idx) => {
       const review = ReviewStore.getReviews(p.place_name);
-      const avgRating = review.count > 0 ? review.avgRating : '4.5';
-      const count = review.count > 0 ? review.count : Math.floor(Math.random()*100+50);
+      const ratingHtml = review.count > 0
+        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${review.avgRating} <span class="pc-review-cnt">(버디 평가 ${review.count})</span>`
+        : `<span class="pc-review-cnt">아직 버디 평가가 없어요</span>`;
       const safeName = p.place_name.replace(/'/g, "\\'");
       return `
         <div class="premium-card">
@@ -352,8 +354,7 @@ const Restaurant = {
           </button>
           <div class="pc-footer">
             <div class="pc-rating">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              ${avgRating} <span class="pc-review-cnt">(${count})</span>
+              ${ratingHtml}
             </div>
             <div class="pc-action" onclick="Restaurant.showDetail('${safeName}','${p.address_name || ''}')">
               상세보기

@@ -64,7 +64,7 @@
 .feat-icon.purple { background: rgba(139,92,246,0.1); color: #8b5cf6; }
 .feat-text { flex: 1; }
 .feat-text h4 { font-size: var(--fs-base); font-weight: var(--fw-bold); margin-bottom: 2px; }
-.feat-text p { font-size: var(--fs-sm); color: var(--text-500); line-height: var(--lh-relaxed); }
+.feat-text p { font-size: var(--fs-sm); color: var(--text-400); line-height: var(--lh-relaxed); }
 
 .upg-action { padding: var(--sp-2) var(--sp-5) var(--sp-6); }
 

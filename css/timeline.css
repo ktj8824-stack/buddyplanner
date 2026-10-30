@@ -118,8 +118,8 @@
 .tl-event svg { width: 14px; height: 14px; color: var(--accent); }
 
 .tl-detail {
-  font-size: 12.5px; color: var(--text-300); line-height: 1.45; font-weight: 500;
-  padding: 6px 9px; background: #f8fafc;
+  font-size: 13.5px; color: #475569; line-height: 1.5; font-weight: 500;
+  padding: 7px 10px; background: #f8fafc;
   border-radius: 6px; border-left: 2.5px solid var(--accent); margin-top: 5px;
 }
 .tl-item.gold .tl-detail { border-left-color: var(--gold); }
