@@ -442,74 +442,70 @@ const App = {
     U.$$('.gnb-item').forEach(i => i.classList.toggle('active', i.dataset.s === name));
   },
 
-  async showWeather() {
-    // 1. 가장 가까운 라운딩 골프장 또는 현재 일정 위치 파악
+  /** @param {number} [schedIdx] 특정 일정의 골프장 날씨 (없으면 가장 가까운 예정 라운딩) */
+  async showWeather(schedIdx) {
     let targetName = '서울특별시 강남구';
     let targetLat = 37.4979;
     let targetLng = 127.0276;
-    
-    if (State.schedules && State.schedules.length > 0) {
+    let roundSched = null;
+    const picked = (typeof schedIdx === 'number') ? State.schedules[schedIdx] : null;
+
+    if (picked && picked.course && picked.course.lat && picked.course.lng) {
+      targetName = picked.course.name;
+      targetLat = picked.course.lat;
+      targetLng = picked.course.lng;
       const now = new Date();
-      // 미래 일정 중 가장 가까운 일정 우선 탐색
+      // 지난 일정이면 당일 예보는 표시하지 않음
+      if (new Date(picked.date) >= new Date(now.getFullYear(), now.getMonth(), now.getDate())) roundSched = picked;
+    } else if (State.schedules && State.schedules.length > 0) {
+      const now = new Date();
       const futureScheds = State.schedules
         .filter(s => s && s.date && new Date(s.date) >= new Date(now.getFullYear(), now.getMonth(), now.getDate()))
         .sort((a,b) => new Date(a.date) - new Date(b.date));
-      
-      const targetSched = futureScheds[0] || State.schedules[State.currentScheduleIdx] || State.schedules[0];
+      roundSched = futureScheds[0] || null;
+      const targetSched = roundSched || State.schedules[State.currentScheduleIdx] || State.schedules[0];
       if (targetSched && targetSched.course && targetSched.course.lat && targetSched.course.lng) {
         targetName = targetSched.course.name;
         targetLat = targetSched.course.lat;
         targetLng = targetSched.course.lng;
       }
     }
+    const safeName = U.esc(targetName);
 
-    this.showModal('실시간 골프장 날씨', `
+    this.showModal('골프장 날씨', `
       <div style="padding: 32px 16px; text-align: center; color: var(--text-300); font-weight:600;">
         <div style="font-size:28px; margin-bottom:12px; animation:spin 1s infinite linear;">📡</div>
-        <div style="font-size:15px; color:var(--text-100); margin-bottom:4px;">${targetName}</div>
-        <div style="font-size:13px; color:var(--text-400);">실시간 기상 데이터를 분석 중입니다...</div>
+        <div style="font-size:15px; color:var(--text-100); margin-bottom:4px;">${safeName}</div>
+        <div style="font-size:13px; color:var(--text-400);">기상 데이터를 불러오는 중입니다...</div>
       </div>
     `);
 
-    // 2. 실시간 날씨 데이터 조회
-    let weather = null;
-    if (typeof WeatherAPI !== 'undefined' && WeatherAPI.fetchWeather) {
-      weather = await WeatherAPI.fetchWeather(targetLat, targetLng);
-    }
-
-    // Fallback Mock 만약 API 실패 시
-    if (!weather) {
-      weather = {
-        temp: 22,
-        feelsLike: 23,
-        humidity: 48,
-        weatherText: '맑음, 시야 양호',
-        weatherIcon: '☀️',
-        windSpeed: 2.1,
-        advice: '"바람도 잔잔하고 라운딩 가기 딱 좋은 훌륭한 날씨입니다! ⛳"'
-      };
-    }
+    // 2. 현재 날씨 + (PRO) 라운딩 당일 예보를 함께 조회
+    const [weather, forecast] = await Promise.all([
+      WeatherAPI.fetchWeather(targetLat, targetLng),
+      (roundSched && State.isPro)
+        ? WeatherAPI.fetchRoundForecast(targetLat, targetLng, roundSched.date, roundSched.teeOff)
+        : Promise.resolve(null)
+    ]);
 
     const bg = U.$('#app-modal');
     if (!bg) return;
     const list = bg.querySelector('.modal-list');
-    if (list) {
-      list.innerHTML = `
-        <div style="padding: 16px; display:flex; flex-direction:column; align-items:center; gap:16px;">
-          <div style="font-size:13px; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.04); padding:6px 14px; border-radius:12px; display:flex; align-items:center; gap:6px;">
-            <span>📍</span> <span>${targetName}</span>
-          </div>
-          
+    if (!list) return;
+
+    // 조회 실패 시 가짜 날씨 대신 안내 표시
+    const currentHTML = weather ? `
           <div style="display:flex; align-items:center; gap:20px; margin-top:4px;">
             <div style="font-size:60px; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.15));">${weather.weatherIcon}</div>
             <div style="display:flex; flex-direction:column; align-items:flex-start;">
+              <div style="font-size:12px; font-weight:700; color:var(--text-400);">지금 날씨</div>
               <div style="font-size:38px; font-weight:900; color:var(--text-900); font-family:'Montserrat', sans-serif; line-height:1;">
                 ${weather.temp}<span style="font-size:22px; color:var(--text-300); font-weight:600;">°C</span>
               </div>
               <div style="font-size:16px; font-weight:700; color:var(--text-100); margin-top:4px;">${weather.weatherText}</div>
             </div>
           </div>
-          
+
           <div style="width:100%; display:flex; justify-content:space-around; background:var(--bg-sub, #f9fafb); border:1px solid var(--border-default); border-radius:16px; padding:16px 8px; margin-top:4px;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
               <span style="font-size:12px; color:var(--text-400); font-weight:600;">체감 온도</span>
@@ -525,16 +521,64 @@ const App = {
               <span style="font-size:12px; color:var(--text-400); font-weight:600;">습도</span>
               <span style="font-size:15px; color:var(--text-100); font-weight:800;">${weather.humidity}%</span>
             </div>
+          </div>` : `
+          <div class="wx-empty">날씨 정보를 불러오지 못했어요.<br>인터넷 연결을 확인한 뒤 다시 시도해 주세요.</div>`;
+
+    list.innerHTML = `
+        <div style="padding: 16px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+          <div style="font-size:13px; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.04); padding:6px 14px; border-radius:12px; display:flex; align-items:center; gap:6px;">
+            <span>📍</span> <span>${safeName}</span>
           </div>
-          
-          <div style="width:100%; background:linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(245,158,11,0.04) 100%); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:14px; margin-top:2px; text-align:center;">
-            <div style="font-size:13px; font-weight:700; color:var(--accent); line-height:1.4;">${weather.advice}</div>
-          </div>
-          
+          ${currentHTML}
+          ${roundSched ? this.roundForecastHTML(roundSched, forecast) : ''}
           <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="App.closeModal()">확인</button>
         </div>
       `;
+  },
+
+  /** 라운딩 당일 예보 영역 (PRO 전용) */
+  roundForecastHTML(sched, forecast) {
+    const d = new Date(sched.date);
+    const title = `⛳ 라운딩 당일 예보 · ${d.getMonth() + 1}/${d.getDate()} ${U.esc(sched.teeOff || '')} 티오프`;
+
+    if (!State.isPro) {
+      return `
+          <div class="wx-round is-locked">
+            <div class="wx-round-title">${title}</div>
+            <p>PRO 회원은 라운딩 당일 티오프 시간대의 기온·강수 확률·바람을<br>최대 ${WeatherAPI.FORECAST_DAYS}일 전부터 미리 볼 수 있어요.</p>
+            <button class="btn-primary" style="width:100%;" onclick="App.closeModal(); App.navigate('upgrade');">👑 PRO로 당일 예보 보기</button>
+          </div>`;
     }
+    if (forecast && forecast.tooFar) {
+      return `
+          <div class="wx-round">
+            <div class="wx-round-title">${title}</div>
+            <p>예보는 라운딩 ${WeatherAPI.FORECAST_DAYS}일 전부터 볼 수 있어요. (${forecast.daysLeft}일 뒤 공개)</p>
+          </div>`;
+    }
+    if (!forecast || !forecast.hours) {
+      return `
+          <div class="wx-round">
+            <div class="wx-round-title">${title}</div>
+            <p>예보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+          </div>`;
+    }
+    return `
+          <div class="wx-round">
+            <div class="wx-round-title">${title}</div>
+            <div class="wx-hours">
+              ${forecast.hours.map(h => `
+                <div class="wx-hour">
+                  <span class="wx-hour-label">${h.label}</span>
+                  <span class="wx-hour-time">${h.time}</span>
+                  <span class="wx-hour-icon">${h.icon}</span>
+                  <span class="wx-hour-temp">${h.temp}°</span>
+                  <span class="wx-hour-meta ${h.pop >= 60 ? 'is-warn' : ''}">☔ ${h.pop}%</span>
+                  <span class="wx-hour-meta ${h.wind >= 5 ? 'is-warn' : ''}">💨 ${h.wind}m/s</span>
+                </div>`).join('')}
+            </div>
+            <div class="wx-advice">${forecast.advice}</div>
+          </div>`;
   },
 
   showModal(title, content) {
@@ -787,6 +831,7 @@ const App = {
     document.getElementById('btn-accept-shared-sched').onclick = () => {
       const el = document.getElementById(modalId);
       if (el) el.remove();
+      if (!Billing.guardScheduleLimit()) return;
       State.addSchedule(schedData);
       State.currentScheduleIdx = State.schedules.length - 1;
       App.viewTimeline(State.currentScheduleIdx);

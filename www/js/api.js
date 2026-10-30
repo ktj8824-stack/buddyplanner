@@ -258,6 +258,60 @@ const WeatherAPI = {
     return '"바람도 잔잔하고 라운딩 가기 딱 좋은 최상의 날씨입니다! ⛳"';
   },
 
+  /** 예보 가능 기간 (Open-Meteo 무료 예보 최대 16일) */
+  FORECAST_DAYS: 16,
+
+  /**
+   * 라운딩 당일 티오프 시각부터 2시간 간격 3구간 예보
+   * @returns {{hours:Array, advice:string}|{tooFar:true}|{past:true}|null}
+   */
+  async fetchRoundForecast(lat, lng, date, teeOff) {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return null;
+    const pad = n => String(n).padStart(2, '0');
+    const ymd = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dayDiff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - today) / 86400000);
+    if (dayDiff < 0) return { past: true };
+    if (dayDiff >= this.FORECAST_DAYS) return { tooFar: true, daysLeft: dayDiff - this.FORECAST_DAYS + 1 };
+
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}`
+        + `&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m`
+        + `&wind_speed_unit=ms&timezone=Asia%2FSeoul&start_date=${ymd}&end_date=${ymd}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('예보 API 응답 실패');
+      const h = (await res.json()).hourly;
+      if (!h || !h.time) return null;
+
+      const startHour = parseInt(String(teeOff || '07:00').split(':')[0], 10) || 7;
+      const hours = [0, 2, 4].map(offset => {
+        const hr = Math.min(23, startHour + offset);
+        const i = h.time.indexOf(`${ymd}T${pad(hr)}:00`);
+        if (i < 0) return null;
+        const info = this.getWeatherDesc(h.weather_code[i]);
+        return {
+          label: offset === 0 ? '티오프' : `+${offset}시간`,
+          time: `${pad(hr)}:00`,
+          temp: Math.round(h.temperature_2m[i]),
+          pop: h.precipitation_probability[i] == null ? 0 : h.precipitation_probability[i],
+          wind: Math.round(h.wind_speed_10m[i] * 10) / 10,
+          icon: info.icon,
+          text: info.text
+        };
+      }).filter(Boolean);
+      if (!hours.length) return null;
+
+      const maxPop = Math.max(...hours.map(x => x.pop));
+      const maxWind = Math.max(...hours.map(x => x.wind));
+      return { hours, advice: this.getGolfAdvice(hours[0].temp, maxWind, maxPop) };
+    } catch (e) {
+      console.warn('WeatherAPI forecast error:', e);
+      return null;
+    }
+  },
+
   async fetchWeather(lat, lng) {
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FSeoul`;

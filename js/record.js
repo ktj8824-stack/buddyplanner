@@ -902,7 +902,7 @@ const Record = {
       ];
     }
 
-    const userName = localStorage.getItem('bp_user_name') || '버디 골퍼';
+    const userName = U.esc(localStorage.getItem('bp_user_name') || '버디 골퍼');
 
     const html = `
       <div id="${modalId}" class="modal-overlay" style="display:flex; justify-content:center; align-items:flex-end; background:rgba(0,0,0,0.8); position:fixed; top:0; left:0; width:100%; height:100%; z-index:10000; opacity:0; transition: opacity 0.3s;">
@@ -967,7 +967,7 @@ const Record = {
               <!-- 5. Story / Content -->
               <div style="padding:0 16px;">
                 <p style="font-size:14px; font-weight:500; color:var(--text-100); line-height:1.6; margin:0 0 12px 0;">
-                  <span style="font-weight:800; margin-right:4px;">${userName}</span>${rec.diary.replace(/\\n/g, '<br>')}
+                  <span style="font-weight:800; margin-right:4px;">${userName}</span>${U.esc(rec.diary).replace(/\\n/g, '<br>')}
                 </p>
                 <div style="font-size:13px; font-weight:600; color:#2563eb;">
                   #명랑골프 #버디플래너 #골프스타그램 #골프일지

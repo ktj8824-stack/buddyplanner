@@ -94,6 +94,9 @@ const Timeline = {
               <p class="tl-sub">${tl.hasMeal ? '출발지 → 식당 → 골프코스 동선 연산' : '출발지 → 골프코스 최적 경로'}</p>
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
+              <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
+                🌤️ 날씨
+              </button>
               <button id="tl-alarm-btn" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:#ffffff; color:#334155; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
                 🔔 알람 켜기
               </button>

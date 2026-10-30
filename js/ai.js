@@ -816,6 +816,8 @@ const AI = {
       meetingPointObj: null
     };
 
+    if (typeof Billing !== 'undefined' && !Billing.guardScheduleLimit()) return;
+
     if (typeof State !== 'undefined' && State.addSchedule) {
       State.addSchedule(newSched);
       msg.schedCard.isRegistered = true;

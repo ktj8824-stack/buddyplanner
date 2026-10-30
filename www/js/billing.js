@@ -150,6 +150,33 @@ const Billing = {
     return e.userCancelled === true || code === '1' || code === 'PURCHASE_CANCELLED' || /cancel/i.test(msg);
   },
 
+  /* ── 무료 사용자 일정 개수 제한 ── */
+  FREE_SCHEDULE_LIMIT: 3,
+
+  /** 오늘 이후(오늘 포함) 예정된 라운딩 수. 지난 라운딩은 제한에 포함하지 않음 */
+  upcomingScheduleCount() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    return (State.schedules || []).filter(s => s && s.date && new Date(s.date).getTime() >= today).length;
+  },
+
+  canAddSchedule() {
+    return State.isPro || this.upcomingScheduleCount() < this.FREE_SCHEDULE_LIMIT;
+  },
+
+  /** 새 일정을 추가할 수 있으면 true, 아니면 PRO 안내를 띄우고 false */
+  guardScheduleLimit() {
+    if (this.canAddSchedule()) return true;
+    App.showModal('예정된 라운딩이 가득 찼어요', `
+      <div class="pay-success" style="padding-top:var(--sp-2);">
+        <p>무료 회원은 예정된 라운딩을 <b>${this.FREE_SCHEDULE_LIMIT}개</b>까지 등록할 수 있어요.<br>
+        지난 라운딩은 개수에 포함되지 않아요.</p>
+        <button class="btn-primary" style="width:100%; margin-bottom:var(--sp-2);" onclick="App.closeModal(); App.navigate('upgrade');">PRO로 무제한 등록하기</button>
+        <button class="btn-ghost" style="width:100%;" onclick="App.closeModal();">닫기</button>
+      </div>`);
+    return false;
+  },
+
   /* ── 구독 관리 (해지·결제수단 변경은 구글 플레이에서) ── */
   openManage() {
     const sku = this.activeEntitlement && this.activeEntitlement.productIdentifier;

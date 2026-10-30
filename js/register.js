@@ -905,6 +905,8 @@ const Register = {
     if (this.timeH === null || this.timeM === null) { U.toast('⚠️ 시간을 선택해주세요'); return; }
     if (this.hasMeal && !this.mealRestaurant) { U.toast('⚠️ 식당을 선택하거나 식사를 끄세요'); return; }
     if (this.hasPostMeal && !this.postMealRestaurant) { U.toast('⚠️ 뒷풀이 식당을 선택하거나 기능을 끄세요'); return; }
+    // 무료 회원 일정 개수 제한 (수정은 제외)
+    if (this.editIdx === null && !Billing.guardScheduleLimit()) return;
 
     const btn = U.$('#r-submit');
     const originalText = btn.innerHTML;

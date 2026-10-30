@@ -14,6 +14,7 @@ window.APP_CONFIG = {
   KAKAO_NATIVE_APP_KEY: '',  // 카카오 네이티브 앱 키 (안드로이드 로그인, strings.xml과 동일)
   TMAP_APP_KEY: '',          // SK open API Tmap 앱키 (경로, 장소 검색)
   REVENUECAT_ANDROID_KEY: '', // RevenueCat 공개 SDK 키 (goog_로 시작, 구독 결제)
+  GOOGLE_WEB_CLIENT_ID: '',   // 구글 클라우드 '웹 애플리케이션' OAuth 클라이언트 ID (비우면 구글 로그인 버튼 숨김)
 
   // ── 빌드 모드 (출시 빌드에서는 둘 다 false) ──
   ADS_TEST_MODE: true,  // true: 테스트 광고 / false: 실제 광고(수익 발생)

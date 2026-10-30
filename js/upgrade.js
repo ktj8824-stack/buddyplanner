@@ -36,22 +36,15 @@ const Upgrade = {
             <div class="feat-item stag">
               <div class="feat-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
               <div class="feat-text">
-                <h4>무제한 라운딩 플랜</h4>
-                <p>일정 등록 개수 제한 없이 마음껏 라운딩을 계획하세요.</p>
+                <h4>무제한 라운딩 등록</h4>
+                <p>무료 회원은 예정된 라운딩을 ${Billing.FREE_SCHEDULE_LIMIT}개까지 등록할 수 있어요. PRO는 제한 없이 계획하세요.</p>
               </div>
             </div>
             <div class="feat-item stag">
               <div class="feat-icon blue"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"></path></svg></div>
               <div class="feat-text">
-                <h4>14일 초정밀 날씨 예보</h4>
-                <p>바람, 습도, 자외선 지수 등 골퍼를 위한 심층 날씨 정보를 제공합니다.</p>
-              </div>
-            </div>
-            <div class="feat-item stag">
-              <div class="feat-icon purple"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
-              <div class="feat-text">
-                <h4>AI 동반자 분석 & 매칭</h4>
-                <p>나의 스코어 및 플레이 성향을 분석하여 최적의 동반자를 추천합니다.</p>
+                <h4>라운딩 당일 날씨 예보</h4>
+                <p>티오프 시간대의 기온·강수 확률·바람을 최대 ${WeatherAPI.FORECAST_DAYS}일 전부터 미리 확인하세요.</p>
               </div>
             </div>
             <div class="feat-item stag">

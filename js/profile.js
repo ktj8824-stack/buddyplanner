@@ -23,7 +23,7 @@ const Profile = {
     const userName = localStorage.getItem('bp_user_name') || '버디 골퍼';
     const userEmail = localStorage.getItem('bp_user_email') || '';
     const provider = localStorage.getItem('bp_provider');
-    const avatarLetter = userName.charAt(0).toUpperCase();
+    const avatarLetter = U.esc(userName.charAt(0).toUpperCase());
     const currentPoints = parseInt(localStorage.getItem('bp_points') || '0', 10);
     const todayStr = new Date().toLocaleDateString('ko-KR');
     const adCount = (localStorage.getItem('bp_ad_date') === todayStr) ? parseInt(localStorage.getItem('bp_ad_count') || '0', 10) : 0;
@@ -77,7 +77,7 @@ const Profile = {
           <div class="setting-card">
             <div class="setting-item" style="flex-direction:column; align-items:flex-start; border-bottom:1px solid var(--border-default);">
               <div class="setting-item-header" style="margin-bottom:8px;">닉네임</div>
-              <input type="text" id="prof-nickname" class="form-input" value="${userName}" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:15px;" onchange="Profile.saveNickname(this.value)" />
+              <input type="text" id="prof-nickname" class="form-input" value="${U.esc(userName)}" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:15px;" onchange="Profile.saveNickname(this.value)" />
             </div>
             
             <div class="setting-item">
@@ -302,9 +302,14 @@ const Profile = {
         });
       }
       
-      // 구글 로그아웃 처리
-      if (provider === 'google' && typeof google !== 'undefined') {
-        google.accounts.id.disableAutoSelect();
+      // 구글 로그아웃 처리 (앱: 네이티브 계정 선택 상태 초기화 / 웹: 자동 로그인 해제)
+      if (provider === 'google') {
+        const isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+        if (isNative && typeof Login !== 'undefined' && Login.socialLoginPlugin()) {
+          Login.socialLoginPlugin().logout({ provider: 'google' }).catch(e => console.warn('Google logout', e));
+        } else if (typeof google !== 'undefined' && google.accounts) {
+          google.accounts.id.disableAutoSelect();
+        }
       }
 
       localStorage.removeItem('bp_logged_in');

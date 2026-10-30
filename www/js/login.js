@@ -5,7 +5,8 @@
 const Login = {
   // 키는 js/config.js(깃허브에 올라가지 않음)에서 읽어옵니다.
   KAKAO_JS_KEY: (window.APP_CONFIG || {}).KAKAO_JS_KEY || 'YOUR_KAKAO_JS_KEY',
-  GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+  // 구글 클라우드의 '웹 애플리케이션' 클라이언트 ID (안드로이드 네이티브 로그인에도 이 값을 사용)
+  GOOGLE_CLIENT_ID: (window.APP_CONFIG || {}).GOOGLE_WEB_CLIENT_ID || '',
 
   init() {
     this.render();
@@ -56,36 +57,91 @@ const Login = {
     }
 
     // 2. 구글 초기화
-    if (this.GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
-      // 임시 구글 로그인 버튼 (API 키 없을 때 테스트용)
-      const wrapper = document.getElementById('google_btn_wrapper');
-      if (wrapper) {
-        wrapper.innerHTML = `
-          <button class="btn-social" onclick="Login.doGoogleLoginMock()" style="background:#fff; color:#3c4043; border:1px solid #dadce0; width:300px; height:40px; border-radius:4px; padding:0; font-size:14px; font-weight:500; display:flex; align-items:center; justify-content:center; gap:8px;">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18" alt="Google">
-            Google 로그인
-          </button>
-        `;
+    this.initGoogle();
+  },
+
+  isNative() {
+    return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  },
+
+  socialLoginPlugin() {
+    const cap = window.Capacitor;
+    if (!cap) return null;
+    if (!cap.Plugins.SocialLogin && cap.registerPlugin) cap.Plugins.SocialLogin = cap.registerPlugin('SocialLogin');
+    return cap.Plugins.SocialLogin || null;
+  },
+
+  initGoogle() {
+    const wrapper = document.getElementById('google_btn_wrapper');
+    if (!wrapper) return;
+
+    // 클라이언트 ID가 없으면 구글 로그인 버튼을 표시하지 않음
+    if (!this.GOOGLE_CLIENT_ID) {
+      wrapper.style.display = 'none';
+      return;
+    }
+
+    // ① 안드로이드 앱: 웹뷰 안에서는 구글 로그인이 차단되므로 네이티브 로그인 사용
+    if (this.isNative()) {
+      const plugin = this.socialLoginPlugin();
+      if (!plugin) { wrapper.style.display = 'none'; return; }
+      if (!this._googleNativeReady) {
+        this._googleNativeReady = plugin.initialize({ google: { webClientId: this.GOOGLE_CLIENT_ID, mode: 'online' } })
+          .catch(e => { console.error('Google native init err', e); this._googleNativeReady = null; throw e; });
       }
-    } else if (typeof google !== 'undefined') {
+      wrapper.innerHTML = `
+        <button class="btn-social" onclick="Login.doGoogleLoginNative()" style="background:#fff; color:#3c4043; border:1px solid #dadce0; width:300px; height:40px; border-radius:4px; padding:0; font-size:14px; font-weight:500; display:flex; align-items:center; justify-content:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Google 로그인
+        </button>`;
+      return;
+    }
+
+    // ② 웹: 구글 공식 로그인 버튼 (스크립트가 늦게 로드되면 잠시 대기)
+    const render = (tries = 0) => {
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) {
+        if (tries < 25) return setTimeout(() => render(tries + 1), 200);
+        wrapper.style.display = 'none';
+        return;
+      }
       google.accounts.id.initialize({
         client_id: this.GOOGLE_CLIENT_ID,
         callback: this.handleGoogleResponse.bind(this)
       });
-      // 구글 공식 로그인 버튼 렌더링
-      google.accounts.id.renderButton(
-        document.getElementById('google_btn_wrapper'),
-        { theme: 'outline', size: 'large', type: 'standard', width: 300 }
-      );
+      google.accounts.id.renderButton(wrapper, { theme: 'outline', size: 'large', type: 'standard', width: 300 });
+    };
+    render();
+  },
+
+  async doGoogleLoginNative() {
+    const plugin = this.socialLoginPlugin();
+    if (!plugin) { U.toast('구글 로그인을 사용할 수 없습니다.'); return; }
+    try {
+      if (this._googleNativeReady) await this._googleNativeReady;
+      const res = await plugin.login({ provider: 'google', options: {} });
+      const r = (res && res.result) || {};
+      let profile = r.profile || {};
+      // 프로필이 비어 있으면 ID 토큰에서 이름·이메일을 읽음
+      if ((!profile.name || !profile.email) && r.idToken) profile = Object.assign(this.decodeJwt(r.idToken) || {}, profile);
+      this.finishLogin('google', { name: profile.name || profile.givenName || '구글 유저', email: profile.email || '' });
+    } catch (e) {
+      const msg = String((e && (e.message || e.code)) || e || '');
+      console.error('Google native login err:', e);
+      if (/cancel/i.test(msg)) { U.toast('구글 로그인을 취소했습니다.'); return; }
+      U.toast('구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     }
   },
 
-  doGoogleLoginMock() {
-    const inputId = prompt("[테스트용 가상 구글 로그인]\n구글 아이디(이메일 또는 이름)를 입력해주세요.\n\n* 실제 구글 로그인은 구글 개발자 센터에서 발급받은 클라이언트 ID를 입력해야 작동합니다.", "구글 유저");
-    if (inputId) {
-      this.finishLogin('google', { name: inputId, email: 'google@example.com' });
-    } else {
-      U.toast('구글 로그인을 취소했습니다.');
+  /** JWT payload 디코딩 (base64url + UTF-8, 한글 이름 깨짐 방지) */
+  decodeJwt(token) {
+    try {
+      let b64 = String(token).split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      while (b64.length % 4) b64 += '=';
+      const bin = atob(b64);
+      const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    } catch (e) {
+      return null;
     }
   },
 
@@ -176,16 +232,12 @@ const Login = {
       U.toast('구글 로그인에 실패했습니다.');
       return;
     }
-    // JWT 토큰 디코딩 (프론트엔드 전용 야매 파싱)
-    try {
-      const payload = JSON.parse(atob(response.credential.split('.')[1]));
-      const name = payload.name || '구글 유저';
-      const email = payload.email || '';
-      this.finishLogin('google', { name, email });
-    } catch (e) {
-      console.error(e);
+    const payload = this.decodeJwt(response.credential);
+    if (!payload) {
       U.toast('구글 정보를 읽을 수 없습니다.');
+      return;
     }
+    this.finishLogin('google', { name: payload.name || '구글 유저', email: payload.email || '' });
   },
 
   finishLogin(provider, user) {
@@ -194,7 +246,7 @@ const Login = {
     localStorage.setItem('bp_user_name', user.name);
     localStorage.setItem('bp_user_email', user.email);
 
-    U.toast(`✅ ${user.name}님 환영합니다!`);
+    U.toast(`✅ ${U.esc(user.name)}님 환영합니다!`);
 
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     if (hasOnboarded) {
