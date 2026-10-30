@@ -38,11 +38,15 @@ public final class AlarmScheduler {
 
         PendingIntent pendingIntent = buildPendingIntent(context, requestCode, timeInMillis, timelineJson);
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            boolean exactAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms();
+            if (exactAllowed) {
                 AlarmManager.AlarmClockInfo info = new AlarmManager.AlarmClockInfo(timeInMillis, pendingIntent);
                 alarmManager.setAlarmClock(info, pendingIntent);
             } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
+                // 정확한 알람 권한이 없으면 몇 분 오차가 있을 수 있는 일반 알람으로 예약
+                // (사용자가 나중에 권한을 허용하면 BootReceiver가 정확한 알람으로 다시 예약)
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
+                Log.w(TAG, "Exact alarm not permitted, scheduled inexact alarm " + requestCode);
             }
         } catch (Exception e) {
             // Android 12+에서 정확한 알람 권한이 없으면 SecurityException이 발생할 수 있습니다.

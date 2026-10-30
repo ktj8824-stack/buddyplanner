@@ -717,6 +717,16 @@ const Timeline = {
         this.alarmTimeouts.forEach(id => clearTimeout(id));
         this.alarmTimeouts = [];
       }
+
+      // 폰에 예약된 네이티브 알람도 취소하고, 꺼둔 상태를 저장 (앱 재실행 시 자동 예약 방지)
+      const s = State.schedules[this.schedIdx];
+      if (s) {
+        if (window.NativeApp && typeof window.NativeApp.cancelAlarm === 'function') {
+          this.nativeAlarmTimes(s).forEach(t => { try { window.NativeApp.cancelAlarm(t); } catch (e) {} });
+        }
+        s.alarmOff = true;
+        State.saveSchedules();
+      }
       
       U.toast('동선 타임라인 알람이 해제되었습니다.');
     } else {
@@ -726,7 +736,18 @@ const Timeline = {
       btn.style.color = '#fff';
       
       this.initAudioContext();
-      
+
+      const sched = State.schedules[this.schedIdx];
+      if (sched && sched.alarmOff) { sched.alarmOff = false; State.saveSchedules(); }
+
+      // 안드로이드 앱: 네이티브 알람 예약 (필요한 권한은 이때 처음 안내)
+      if (window.NativeApp) {
+        this.scheduleTimelineAlarms();
+        U.toast('타임라인 일정에 맞춰 알람이 예약되었습니다!');
+        setTimeout(() => this.offerOverlayPopup(), 1200);
+        return;
+      }
+
       if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
           if (permission === 'granted') {
@@ -743,6 +764,33 @@ const Timeline = {
     }
   },
 
+  /** 네이티브 알람으로 예약되는 시각 목록 (예약·취소에 같은 값을 사용) */
+  nativeAlarmTimes(s) {
+    if (!s || !s.timeline || !s.date) return [];
+    const tl = s.timeline;
+    return [tl.prepStart, tl.homeDepart, tl.restDepart].filter(Boolean).map(timeStr => {
+      const [hour, min] = timeStr.split(':').map(Number);
+      const d = new Date(s.date);
+      d.setHours(hour, min, 0, 0);
+      return d.getTime();
+    });
+  },
+
+  /** 출발 알림 팝업(다른 앱 위에 표시)은 원하는 사용자에게만, 최초 1회 안내 */
+  offerOverlayPopup() {
+    const na = window.NativeApp;
+    if (!na || typeof na.canDrawOverlays !== 'function' || na.canDrawOverlays()) return;
+    if (localStorage.getItem('bp_overlay_offered') === 'true') return;
+    localStorage.setItem('bp_overlay_offered', 'true');
+    App.showModal('출발 알림 팝업', `
+      <div class="pay-success" style="padding-top:var(--sp-2);">
+        <p>알람이 울릴 때 다른 앱을 쓰고 있어도<br>화면 위에 <b>남은 동선</b>을 작은 팝업으로 보여드릴 수 있어요.<br><br>
+        사용하시려면 다음 화면에서 <b>'다른 앱 위에 표시'</b>를 허용해 주세요.</p>
+        <button class="btn-primary" style="width:100%; margin-bottom:var(--sp-2);" onclick="App.closeModal(); window.NativeApp.openOverlaySettings();">팝업 사용하기</button>
+        <button class="btn-ghost" style="width:100%;" onclick="App.closeModal();">괜찮아요</button>
+      </div>`);
+  },
+
   autoScheduleAllAlarms() {
     this.alarmTimeouts = this.alarmTimeouts || [];
     this.alarmTimeouts.forEach(id => clearTimeout(id));
@@ -750,7 +798,7 @@ const Timeline = {
 
     const now = new Date();
     State.schedules.forEach((s) => {
-      if (!s.timeline || !s.date) return;
+      if (!s.timeline || !s.date || s.alarmOff) return;
       const sDate = new Date(s.date);
       if (sDate.getFullYear() === now.getFullYear() && 
           sDate.getMonth() === now.getMonth() && 

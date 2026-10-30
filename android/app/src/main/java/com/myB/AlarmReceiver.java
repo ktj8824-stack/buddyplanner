@@ -66,8 +66,10 @@ public class AlarmReceiver extends BroadcastReceiver {
             Log.e(TAG, "Direct startActivity blocked by Android background restrictions, relying on FullScreenIntent", e);
         }
 
-        // 플로팅 팝업창 서비스 실행 (배달의민족 스타일)
-        try {
+        // 플로팅 팝업창 서비스 실행 — 사용자가 '다른 앱 위에 표시'를 허용한 경우에만
+        boolean canOverlay = android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M
+                || android.provider.Settings.canDrawOverlays(context);
+        if (canOverlay) try {
             String timelineJson = intent.getStringExtra("timelineJson");
             Intent floatingIntent = new Intent(context, FloatingTrackerService.class);
             if (timelineJson != null) {

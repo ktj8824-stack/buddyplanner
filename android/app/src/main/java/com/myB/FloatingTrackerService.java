@@ -82,6 +82,13 @@ public class FloatingTrackerService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        // 권한 없이 오버레이를 띄우면 앱이 종료되므로 확인 후 중단
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !android.provider.Settings.canDrawOverlays(this)) {
+            Log.w("FloatingTracker", "Overlay permission not granted, stopping");
+            stopSelf();
+            return;
+        }
+
         // 뷰 팽창
         floatingView = LayoutInflater.from(this).inflate(R.layout.layout_floating_tracker, null);
 
@@ -104,7 +111,14 @@ public class FloatingTrackerService extends Service {
         params.y = 150; // 상단에서 약간 띄움
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        windowManager.addView(floatingView, params);
+        try {
+            windowManager.addView(floatingView, params);
+        } catch (Exception e) {
+            Log.e("FloatingTracker", "Failed to add overlay view", e);
+            floatingView = null;
+            stopSelf();
+            return;
+        }
 
         // UI 요소 연결
         TextView tvTime = floatingView.findViewById(R.id.tvPopupTime);
