@@ -4,16 +4,15 @@ const Community = {
     this.render();
   },
 
+  // 예시 글이라 포인트는 주지 않음 (정식 오픈 때 서버에서 처리)
   toggleGoodshot(btn) {
     btn.classList.toggle('active');
     const on = btn.classList.contains('active');
-    // 굿샷 취소 시 포인트도 회수 (반복 클릭으로 무한 적립 방지)
-    let pts = parseInt(localStorage.getItem('bp_points') || '0', 10) || 0;
-    pts = Math.max(0, pts + (on ? 10 : -10));
-    localStorage.setItem('bp_points', String(pts));
-    const pointEl = U.$('#comm-points');
-    if (pointEl) pointEl.textContent = `${pts.toLocaleString()} P`;
-    if (on) U.toast('굿샷! 10 포인트가 적립되었습니다 🎾');
+    const label = btn.querySelectorAll('span')[1];
+    if (label) {
+      const n = (parseInt(label.textContent.replace(/[^0-9]/g, ''), 10) || 0) + (on ? 1 : -1);
+      label.textContent = `굿샷 ${Math.max(0, n)}`;
+    }
   },
 
   joinMatch() {
@@ -30,7 +29,7 @@ const Community = {
           <h2>버디 커뮤니티</h2>
           <div class="my-points">
             <span>🪙</span>
-            <span id="comm-points">${(parseInt(localStorage.getItem('bp_points') || '0', 10) || 0).toLocaleString()} P</span>
+            <span id="comm-points"><span data-points>${Points.balance().toLocaleString()}</span> P</span>
           </div>
         </div>
 

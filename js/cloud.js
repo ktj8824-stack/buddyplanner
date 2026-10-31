@@ -12,7 +12,8 @@
 const Cloud = {
   /** 서버와 동기화하는 localStorage 키 */
   SYNC_KEYS: [
-    'bp_schedules_v2', 'bp_records_v1', 'bp_points', 'bp_raffle_entries', 'bp_ai_messages_v1',
+    // 포인트는 서버 장부(point_ledger)가 기준이라 여기서 동기화하지 않음 (js/points.js)
+    'bp_schedules_v2', 'bp_records_v1', 'bp_ai_messages_v1',
     'bp_user_name', 'bp_home', 'bp_office', 'bp_font', 'bp_size', 'bp_onboarded'
   ],
   SESSION_KEY: 'bp_cloud_session',
@@ -192,6 +193,21 @@ const Cloud = {
     }
   },
 
+  /** 로그인 없이도 되는 조회 (로그인했으면 내 정보까지 함께) — 럭키드로우 목록, 마켓 상품 */
+  async publicApi(path, opts = {}) {
+    if (this.isSignedIn()) {
+      try { return await this._api(path, opts); } catch (e) { if (e.status !== 401) throw e; }
+    }
+    const { url, key } = this.cfg();
+    const headers = { apikey: key, Authorization: `Bearer ${key}` };
+    let body = opts.body;
+    if (body !== undefined && typeof body !== 'string') { headers['Content-Type'] = 'application/json'; body = JSON.stringify(body); }
+    const res = await fetch(`${url}/${path}`, { method: opts.method || 'GET', headers, body });
+    if (!res.ok) { const err = new Error(`서버 오류 (${res.status})`); err.status = res.status; throw err; }
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  },
+
   /** 인증된 API 호출 (path 예: 'rest/v1/user_data') */
   async _api(path, opts = {}) {
     const { url, key } = this.cfg();
@@ -224,7 +240,7 @@ const Cloud = {
   clearLocalData() {
     this.withoutTracking(() => {
       this.SYNC_KEYS.forEach(k => localStorage.removeItem(k));
-      [this.META_KEY, this.DIRTY_KEY, this.LAST_KEY].forEach(k => localStorage.removeItem(k));
+      [this.META_KEY, this.DIRTY_KEY, this.LAST_KEY, 'bp_points', 'bp_points_meta'].forEach(k => localStorage.removeItem(k));
     });
   },
 
@@ -242,6 +258,7 @@ const Cloud = {
         this._raw(this.LAST_KEY, String(Date.now()));
         this.status = 'synced';
         if (applied.length) this._afterRemoteApplied(applied);
+        if (typeof Points !== 'undefined') Points.refresh();
         return true;
       } catch (e) {
         console.warn('[Cloud] 동기화 실패', e);

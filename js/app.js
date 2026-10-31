@@ -266,6 +266,7 @@ const App = {
     const items = [
       { s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' },
       { s: 'market', icon: '🛒', name: '버디마켓', desc: '골프 용품 추천' },
+      { s: 'raffle', icon: '🎁', name: '포인트 럭키드로우', desc: '무료 포인트로 응모' },
       { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
       { s: 'upgrade', icon: '👑', name: '버디플래너 PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 무제한 일정 · 당일 예보 · 광고 제거' }
     ];
@@ -372,20 +373,9 @@ const App = {
       if (AdMob) {
         try {
           // 리워드 지급 이벤트 리스너 등록
-          AdMob.addListener('onRewardedVideoAdReward', (reward) => {
-            console.log('Reward earned:', reward);
-            // Profile.js에 있는 보상 지급 로직을 여기서 호출하거나 전역에서 처리
-            let adCount = parseInt(localStorage.getItem('bp_ad_count') || '0', 10);
-            let pts = parseInt(localStorage.getItem('bp_points') || '0', 10);
-            pts += 50;
-            adCount++;
-            localStorage.setItem('bp_points', pts.toString());
-            localStorage.setItem('bp_ad_count', adCount.toString());
-            
-            U.toast(`🎉 50 포인트 적립! (오늘 ${adCount}/20회 완료)`);
-            U.haptic();
-            if (typeof Profile !== 'undefined') Profile.render();
-            if (typeof Home !== 'undefined') Home.render();
+          // 광고를 끝까지 보면 서버에 적립 요청 (포인트는 서버 장부가 기준)
+          AdMob.addListener('onRewardedVideoAdReward', () => {
+            if (typeof Points !== 'undefined') Points.onAdRewarded();
           });
         } catch (e) {
           console.error('AdMob Rewarded Listener Error:', e);

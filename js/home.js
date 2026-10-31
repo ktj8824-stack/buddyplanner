@@ -145,9 +145,8 @@ const Home = {
     }
 
     // 3. 포인트 & 광고 시청 카운트
-    const currentPoints = parseInt(localStorage.getItem('bp_points') || '0', 10);
-    const todayStr = new Date().toLocaleDateString('ko-KR');
-    const adCount = (localStorage.getItem('bp_ad_date') === todayStr) ? parseInt(localStorage.getItem('bp_ad_count') || '0', 10) : 0;
+    const currentPoints = Points.balance();
+    const pm = Points.meta();
 
     // 4. 주간 캘린더 날짜 계산 (일요일 ~ 토요일)
     const currentDay = today.getDay(); // 0: 일요일
@@ -357,12 +356,12 @@ const Home = {
             <div style="display: flex; align-items: center; gap: 10px;">
               <span style="font-size: 13px; color: #64748b; font-weight: 700;">내 포인트</span>
               <span style="font-size: 16px; font-weight: 800; color: var(--accent); font-family: 'Montserrat', sans-serif;">
-                ${currentPoints.toLocaleString()} <span style="font-size: 11px; color: #94a3b8;">P</span>
+                <span data-points>${currentPoints.toLocaleString()}</span> <span style="font-size: 11px; color: #94a3b8;">P</span>
               </span>
             </div>
             <button class="ad-reward-btn" style="padding: 6px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; border: none; cursor: pointer; width: auto; margin: 0;" onclick="Profile.watchAd()">
               <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 
-              광고 시청 50P <span style="font-size: 10px; opacity: 0.85;">(${adCount}/20)</span>
+              광고 시청 ${pm.ad_points}P <span data-ad-count style="font-size: 10px; opacity: 0.85;">${pm.ad_today}/${pm.ad_limit}</span>
             </button>
           </div>
 

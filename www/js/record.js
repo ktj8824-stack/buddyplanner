@@ -170,8 +170,8 @@ const Record = {
       if (hasRecord) {
         badgeHtml = `
           <div class="record-badge">
-            <div class="record-badge-course">${hasRecord.course}</div>
-            <div>${hasRecord.score}타</div>
+            <div class="record-badge-course">${U.esc(hasRecord.course || '')}</div>
+            <div>${typeof hasRecord.score === 'number' ? hasRecord.score + '타' : '기록'}</div>
           </div>
         `;
       } else if (State.aiGeneratingDate === dateKey) {
@@ -253,10 +253,10 @@ const Record = {
           <div class="record-card-top">
             <div style="display:flex; flex-direction:column; gap:4px;">
               <span class="record-date">${this.currentYear}. ${String(this.currentMonth+1).padStart(2,'0')}. ${String(d).padStart(2,'0')} (${dayStr})</span>
-              <span style="font-size:18px; font-weight:800; color:#fff;">${rec.course}</span>
+              <span style="font-size:18px; font-weight:800; color:#fff;">${U.esc(rec.course || '')}</span>
             </div>
             <div class="record-score-box">
-              <span class="score-num">${rec.score}</span>
+              <span class="score-num">${typeof rec.score === 'number' ? rec.score : '-'}</span>
               <span class="score-unit">타</span>
             </div>
           </div>
@@ -301,6 +301,8 @@ const Record = {
 
     let defaultCourse = existingRecord ? (existingRecord.course || '') : '';
     let defaultTime = existingRecord ? (existingRecord.time || '07:30') : '07:30';
+    // 수정할 때 원래 날짜를 기억 (날짜를 바꾸면 예전 날짜 기록은 옮겨짐)
+    this._editingKey = existingRecord ? (this.records[todayStr] ? todayStr : dateKeyOld) : null;
 
     const html = `
       <div id="${modalId}" class="modal-overlay" style="display:flex; justify-content:center; align-items:flex-end; background:rgba(0,0,0,0.6); position:fixed; top:0; left:0; width:100%; height:100%; z-index:999; opacity:0; transition: opacity 0.3s;">
@@ -336,7 +338,7 @@ const Record = {
                 <div class="field" style="margin:0;">
                   <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 구장 선택</label>
                   <div class="field-input" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                    <input type="text" id="record-course" value="${defaultCourse}" placeholder="예: 남서울CC" style="width:100%; font-size:13px; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
+                    <input type="text" id="record-course" value="${U.esc(defaultCourse)}" placeholder="예: 남서울CC" style="width:100%; font-size:13px; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
                     <span class="fi-icon" style="font-size:13.5px; opacity:0.5;">🔍</span>
                   </div>
                 </div>
@@ -358,7 +360,7 @@ const Record = {
               <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:3px; display:flex; align-items:center; gap:5px;">
                 <span>⛳</span> 2. 스코어 등록
               </div>
-              <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">스코어카드를 등록하시면 자동으로 점수가 입력됩니다.</div>
+              <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">스코어카드 사진을 함께 남겨 두세요. (PRO는 AI 비서에게 사진을 보내면 타수를 자동으로 읽어 드려요)</div>
               <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" class="hide-scrollbar">
                 ${[1, 2].map(i => `
                 <div style="flex:0 0 auto;">
@@ -439,9 +441,10 @@ const Record = {
           </div>
 
           <!-- Footer Action -->
-          <div style="padding:10px 16px; background:#fff; border-top:1px solid #f1f5f9; padding-bottom: max(10px, env(safe-area-inset-bottom));">
-            <button onclick="Record.saveRecord()" style="width:100%; height:44px; background:linear-gradient(135deg, #007aff 0%, #0056b3 100%); color:#fff; font-size:14.5px; font-weight:800; border-radius:10px; border:none; box-shadow:0 3px 12px rgba(0,122,255,0.25); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-              다음 단계로
+          <div style="padding:10px 16px; background:#fff; border-top:1px solid #f1f5f9; padding-bottom: max(10px, env(safe-area-inset-bottom)); display:flex; gap:8px;">
+            ${existingRecord ? `<button onclick="Record.deleteRecord()" style="flex:0 0 auto; height:44px; padding:0 16px; background:#fff; color:#ef4444; font-size:14px; font-weight:800; border-radius:10px; border:1px solid #fecaca; cursor:pointer;">삭제</button>` : ''}
+            <button onclick="Record.saveRecord()" style="flex:1; width:100%; height:44px; background:linear-gradient(135deg, #007aff 0%, #0056b3 100%); color:#fff; font-size:14.5px; font-weight:800; border-radius:10px; border:none; box-shadow:0 3px 12px rgba(0,122,255,0.25); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+              ${existingRecord ? '수정 완료' : '저장하기'}
             </button>
           </div>
 
@@ -454,12 +457,46 @@ const Record = {
 
     document.body.insertAdjacentHTML('beforeend', html);
     modal = U.$(`#${modalId}`);
+    if (existingRecord) this._fillForm(existingRecord);
     
     // Animate in
     setTimeout(() => {
       modal.style.opacity = '1';
       modal.children[0].style.transform = 'translateY(0)';
     }, 10);
+  },
+
+  /** 수정할 때 기존 타수·일지·사진을 폼에 채움 (예전에는 빈 폼이라 저장하면 내용이 지워졌음) */
+  _fillForm(rec) {
+    const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+    if (typeof rec.score === 'number') set('manual-score', rec.score);
+    if (Array.isArray(rec.holes) && rec.holes.length === 18) {
+      const sum = (a) => a.reduce((t, n) => t + (Number(n) || 0), 0);
+      set('manual-score-out', sum(rec.holes.slice(0, 9)));
+      set('manual-score-in', sum(rec.holes.slice(9)));
+    }
+    set('record-diary', rec.diary || '');
+    const show = (kind, i, src) => {
+      if (!src || !String(src).startsWith('data:image')) return;
+      document.getElementById(`${kind}-upload-box-${i}`).style.display = 'none';
+      document.getElementById(`${kind}-preview-box-${i}`).style.display = 'block';
+      document.getElementById(`${kind}-preview-img-${i}`).src = src;
+    };
+    show('score', 1, rec.scoreImg1); show('score', 2, rec.scoreImg2);
+    [rec.dImg1, rec.dImg2, rec.dImg3, rec.dImg4].forEach((src, i) => show('diary', i + 1, src));
+  },
+
+  deleteRecord() {
+    const key = this._editingKey;
+    if (!key || !this.records[key]) return;
+    if (!confirm('이 날의 기록을 삭제할까요? 사진과 일지도 함께 지워져요.')) return;
+    delete this.records[key];
+    localStorage.setItem('bp_records_v1', JSON.stringify(this.records));
+    this._editingKey = null;
+    this.closeRecordForm();
+    this.render();
+    if (this.selectedDate) this.selectDate(this.selectedDate);
+    U.toast('기록을 삭제했어요.');
   },
 
   closeRecordForm() {
@@ -753,80 +790,53 @@ const Record = {
   saveRecord() {
     try {
       const dateInput = document.getElementById('record-date').value;
-      const course = document.getElementById('record-course').value || '이름 모를 구장';
-      
-      // 수기 입력창에서 실제 데이터 가져오기 (비어있으면 기본값 72)
-      const manualScoreOut = document.getElementById('manual-score-out') ? document.getElementById('manual-score-out').value : '';
-      const manualScoreIn = document.getElementById('manual-score-in') ? document.getElementById('manual-score-in').value : '';
-      const manualScoreTotal = document.getElementById('manual-score') ? document.getElementById('manual-score').value : '';
-      
-      let finalScore = '72';
-      if (manualScoreTotal) {
-        finalScore = manualScoreTotal;
-      } else if (manualScoreOut && manualScoreIn) {
-        finalScore = (parseInt(manualScoreOut, 10) + parseInt(manualScoreIn, 10)).toString();
-      }
+      if (!dateInput) { U.toast('날짜를 선택해주세요.'); return; }
+      const course = (document.getElementById('record-course').value || '').trim();
+      if (!course) { U.toast('구장 이름을 입력해 주세요.'); return; }
+      const time = (document.getElementById('record-time') || {}).value || '';
 
-      const score = finalScore;
-      const putts = '0'; // 퍼트수 입력란 삭제에 따른 기본값 처리
-      const fairway = '70';
-      const green = '60';
-      const diary = document.getElementById('record-diary').value || '즐거운 라운딩이었습니다!';
+      const num = (id) => { const el = document.getElementById(id); const n = el ? parseInt(el.value, 10) : NaN; return isFinite(n) ? n : null; };
+      const total = num('manual-score'), out = num('manual-score-out'), inn = num('manual-score-in');
+      let score = total != null ? total : (out != null && inn != null ? out + inn : null);
 
-      if (!dateInput) {
-        U.toast('날짜를 선택해주세요.');
-        return;
-      }
+      const validDataUrl = (el) => el && el.src && el.src.startsWith('data:image') && el.closest('[id$="preview-box-1"],[id$="preview-box-2"],[id$="preview-box-3"],[id$="preview-box-4"]').style.display !== 'none' ? el.src : null;
+      const img = (id) => validDataUrl(document.getElementById(id));
+      const scoreImg1 = img('score-preview-img-1'), scoreImg2 = img('score-preview-img-2');
 
-      const validDataUrl = (el) => el && el.src && el.src.startsWith('data:image') ? el.src : null;
-      const scoreImg1 = validDataUrl(document.getElementById('score-preview-img-1'));
-      const scoreImg2 = validDataUrl(document.getElementById('score-preview-img-2'));
-      const dImg1 = validDataUrl(document.getElementById('diary-preview-img-1'));
-      const dImg2 = validDataUrl(document.getElementById('diary-preview-img-2'));
-      const dImg3 = validDataUrl(document.getElementById('diary-preview-img-3'));
-      const dImg4 = validDataUrl(document.getElementById('diary-preview-img-4'));
+      // 예전에는 타수를 비워 두면 72타로 저장됐음 → 타수나 스코어카드 사진 중 하나는 있어야 저장
+      if (score == null && !scoreImg1 && !scoreImg2) { U.toast('타수를 입력하거나 스코어카드 사진을 올려 주세요.'); return; }
+      if (score != null && (score < 18 || score > 200)) { U.toast('타수를 다시 확인해 주세요. (18~200타)'); return; }
 
-      // Save to this.records
-      this.records[dateInput] = {
-        course: course,
-        score: parseInt(score, 10),
-        putts: parseInt(putts, 10),
-        fairway: fairway + '%',
-        green: green + '%',
-        diary: diary,
-        scoreImg1, scoreImg2,
-        dImg1, dImg2, dImg3, dImg4
+      const prev = (this._editingKey && this.records[this._editingKey]) || this.records[dateInput] || {};
+      const rec = {
+        ...prev,
+        course, time, score, scoreImg1, scoreImg2,
+        diary: (document.getElementById('record-diary').value || '').trim(),
+        dImg1: img('diary-preview-img-1'), dImg2: img('diary-preview-img-2'),
+        dImg3: img('diary-preview-img-3'), dImg4: img('diary-preview-img-4'),
       };
+      // 입력하지 않은 값(퍼트·페어웨이·그린)을 지어서 저장하지 않음
+      delete rec.putts; delete rec.fairway; delete rec.green;
+      // 홀별 점수는 합계가 타수와 같을 때만 유지
+      if (Array.isArray(rec.holes) && rec.holes.reduce((t, n) => t + (Number(n) || 0), 0) !== score) delete rec.holes;
 
-      // Save to localStorage
+      if (this._editingKey && this._editingKey !== dateInput) {
+        if (this.records[dateInput] && !confirm(`${dateInput}에 이미 기록이 있어요. 덮어쓸까요?`)) return;
+        delete this.records[this._editingKey];
+      }
+      this.records[dateInput] = rec;
       localStorage.setItem('bp_records_v1', JSON.stringify(this.records));
+      this._editingKey = null;
 
-      U.toast('AI가 일지를 등록 중입니다...');
-      
-      // Set AI Generating State
-      State.aiGeneratingDate = dateInput;
+      const [yy, mm, dd] = dateInput.split('-').map(Number);
+      this.currentYear = yy; this.currentMonth = mm - 1; this.selectedDate = dd;
       this.closeRecordForm();
       this.render();
-
-      // Simulate AI loading delay (3.5 seconds)
-      setTimeout(() => {
-        if (State.aiGeneratingDate === dateInput) {
-          State.aiGeneratingDate = null;
-          U.toast('🎉 AI 라운딩 일지 작성이 완료되었습니다!');
-          
-          // If the user is currently viewing the generated date, re-render the card
-          if (this.selectedDate) {
-            const dStr = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2,'0')}-${String(this.selectedDate).padStart(2,'0')}`;
-            if (dStr === dateInput) {
-               this.selectDate(this.selectedDate);
-            }
-          }
-          this.renderCalendarGrid();
-        }
-      }, 3500);
+      this.selectDate(dd);
+      U.toast('라운딩 기록을 저장했어요 ⛳');
     } catch (e) {
-      alert("Error in saveRecord: " + e.message);
       console.error(e);
+      U.toast('저장 중 문제가 생겼어요. 사진 수를 줄여 다시 시도해 주세요.');
     }
   },
 
@@ -838,11 +848,9 @@ const Record = {
     const dateStr = `${y}. ${String(m + 1).padStart(2, '0')}. ${String(d).padStart(2, '0')}`;
     const dateKey = `${y}-${String(m + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dateKeyOld = `${y}-${m + 1}-${d}`;
-    const rec = this.records[dateKey] || this.records[dateKeyOld] || {
-      course: '이름 모를 구장',
-      score: 72,
-      diary: '즐거운 라운딩이었습니다!'
-    };
+    const rec = this.records[dateKey] || this.records[dateKeyOld];
+    if (!rec) return;
+    this._shareRec = { rec, dateStr };
 
     let teeTime = '';
     if (window.State && window.State.schedules) {
@@ -851,6 +859,7 @@ const Record = {
          teeTime = schedule.time;
       }
     }
+    if (!teeTime && rec.time) teeTime = rec.time;
     
 
     
@@ -861,11 +870,18 @@ const Record = {
     if (rec.dImg3) photos.push(rec.dImg3);
     if (rec.dImg4) photos.push(rec.dImg4);
 
-    // Fallback Unsplash dummy images for the carousel if no images were uploaded
-    if (photos.length === 0) {
-      photos = [
-        'https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=600&auto=format&fit=crop' // Default Golf course
-      ];
+    // 홀별 점수 (AI 비서가 스코어카드에서 읽은 경우)
+    let holesHtml = '';
+    if (Array.isArray(rec.holes) && rec.holes.length === 18) {
+      const row = (from) => rec.holes.slice(from, from + 9).map((n, k) => `<div style="text-align:center;"><div style="font-size:10px; color:var(--text-400); font-weight:700;">${from + k + 1}</div><div style="font-size:14px; font-weight:800; color:var(--text-100);">${Number(n) || '-'}</div></div>`).join('');
+      const sum = (a) => a.reduce((t, n) => t + (Number(n) || 0), 0);
+      holesHtml = `
+        <div style="margin-top:10px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px;">
+          <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:2px;">${row(0)}</div>
+          <div style="font-size:11px; font-weight:700; color:var(--text-400); text-align:right; margin:4px 0 8px;">전반 ${sum(rec.holes.slice(0, 9))}타</div>
+          <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:2px;">${row(9)}</div>
+          <div style="font-size:11px; font-weight:700; color:var(--text-400); text-align:right; margin-top:4px;">후반 ${sum(rec.holes.slice(9))}타</div>
+        </div>`;
     }
 
     const userName = U.esc(localStorage.getItem('bp_user_name') || '버디 골퍼');
@@ -880,7 +896,7 @@ const Record = {
               <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
             <div style="font-size:17px; font-weight:800; color:var(--text-100);">라운드 일지</div>
-            <button onclick="U.toast('공유 메뉴가 열립니다.')" style="color:var(--text-100); padding:4px;">
+            <button onclick="Record.shareRecord()" style="color:var(--text-100); padding:4px;" aria-label="공유">
               <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
             </button>
           </div>
@@ -895,16 +911,13 @@ const Record = {
                   <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, #fbbf24, #f59e0b); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;">${userName.charAt(0)}</div>
                   <div style="display:flex; flex-direction:column; gap:4px;">
                     <span style="font-size:16px; font-weight:800; color:var(--text-100);">${userName}</span>
-                    <span style="font-size:14px; font-weight:700; color:var(--text-300);">📍 ${rec.course} · ${dateStr} ${teeTime ? `· ⏰ ${teeTime}` : ''}</span>
+                    <span style="font-size:14px; font-weight:700; color:var(--text-300);">📍 ${U.esc(rec.course || '')} · ${dateStr} ${teeTime ? `· ⏰ ${U.esc(teeTime)}` : ''}</span>
                   </div>
                 </div>
-                <button style="color:var(--text-400);">
-                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
-                </button>
               </div>
 
               <!-- 2. Image Carousel -->
-              <div style="position:relative; width:100%; aspect-ratio:1/1.05; background:#eee; overflow:hidden;">
+              ${photos.length === 0 ? '' : `<div style="position:relative; width:100%; aspect-ratio:1/1.05; background:#eee; overflow:hidden;">
                 <div id="diary-img-scroll" style="display:flex; width:100%; height:100%; overflow-x:auto; scroll-snap-type: x mandatory;" class="hide-scrollbar">
                   ${photos.map((src, i) => `
                     <div style="flex-shrink:0; width:100%; height:100%; scroll-snap-align:start; position:relative;">
@@ -913,7 +926,7 @@ const Record = {
                     </div>
                   `).join('')}
                 </div>
-              </div>
+              </div>`}
 
               <!-- 4. Score Summary Box -->
               <div style="padding:0 16px; margin-bottom:16px; margin-top:16px;">
@@ -921,20 +934,19 @@ const Record = {
                 <div style="background:rgba(37,99,235,0.04); border:1px solid rgba(37,99,235,0.1); border-radius:12px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
                   <div style="display:flex; flex-direction:column; align-items:flex-start;">
                     <span style="font-size:13px; font-weight:700; color:var(--text-400); margin-bottom:4px;">${userName} (나)</span>
-                    <span style="font-size:28px; font-weight:800; color:#2563eb;">${rec.score}<span style="font-size:16px; font-weight:600; color:var(--text-300); margin-left:4px;">타</span></span>
+                    <span style="font-size:28px; font-weight:800; color:#2563eb;">${typeof rec.score === 'number' ? rec.score : '-'}<span style="font-size:16px; font-weight:600; color:var(--text-300); margin-left:4px;">타</span></span>
                   </div>
                   <div style="display:flex; gap:8px;">
                     ${rec.scoreImg1 ? `<img src="${rec.scoreImg1}" onclick="Record.showScorecardGallery(['${rec.scoreImg1 || ''}', '${rec.scoreImg2 || ''}'].filter(Boolean), 0)" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid rgba(0,0,0,0.1); cursor:pointer;">` : ''}
                     ${rec.scoreImg2 ? `<img src="${rec.scoreImg2}" onclick="Record.showScorecardGallery(['${rec.scoreImg1 || ''}', '${rec.scoreImg2 || ''}'].filter(Boolean), 1)" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid rgba(0,0,0,0.1); cursor:pointer;">` : ''}
                   </div>
                 </div>
+                ${holesHtml}
               </div>
 
               <!-- 5. Story / Content -->
               <div style="padding:0 16px;">
-                <p style="font-size:14px; font-weight:500; color:var(--text-100); line-height:1.6; margin:0 0 12px 0;">
-                  <span style="font-weight:800; margin-right:4px;">${userName}</span>${U.esc(rec.diary).replace(/\\n/g, '<br>')}
-                </p>
+                ${rec.diary ? `<p style="font-size:14px; font-weight:500; color:var(--text-100); line-height:1.6; margin:0 0 12px 0; white-space:pre-wrap;"><span style="font-weight:800; margin-right:4px;">${userName}</span>${U.esc(rec.diary)}</p>` : ''}
                 <div style="font-size:13px; font-weight:600; color:#2563eb;">
                   #명랑골프 #버디플래너 #골프스타그램 #골프일지
                 </div>
@@ -960,6 +972,20 @@ const Record = {
       modal.style.opacity = '1';
       modal.children[0].style.transform = 'translateY(0)';
     }, 10);
+  },
+
+  /** 기록 공유 (휴대폰 공유창 → 안 되면 복사) */
+  async shareRecord() {
+    const it = this._shareRec; if (!it) return;
+    const r = it.rec;
+    const text = `⛳ ${it.dateStr} ${r.course || ''}${typeof r.score === 'number' ? ` · ${r.score}타` : ''}${r.diary ? `\n${r.diary}` : ''}\n\n#버디플래너`;
+    try {
+      const Share = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share;
+      if (Share) { await Share.share({ title: '라운딩 기록', text }); return; }
+      if (navigator.share) { await navigator.share({ title: '라운딩 기록', text }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(text); U.toast('기록을 복사했어요. 원하는 곳에 붙여 넣으세요.'); }
+    catch (e) { U.toast('공유할 수 없어요.'); }
   },
 
   showScorecardGallery(images, startIndex = 0) {
