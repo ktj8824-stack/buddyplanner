@@ -22,51 +22,75 @@ const Record = {
     }
   },
 
+  /* ── 날짜별 여러 라운드 ──
+     키: 'YYYY-MM-DD'(첫 라운드), 'YYYY-MM-DD#2', '#3' … (같은 날 추가 라운드)
+     예전 형식 'YYYY-M-D' 키도 그대로 읽음 */
+  dateOf(key) {
+    const base = String(key).split('#')[0];
+    const p = base.split('-');
+    return p.length === 3 ? `${p[0]}-${String(p[1]).padStart(2, '0')}-${String(p[2]).padStart(2, '0')}` : base;
+  },
+  ymd(y, m, d) { return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; },
+  roundsOn(dateStr) {
+    return Object.keys(this.records)
+      .filter(k => this.records[k] && this.dateOf(k) === dateStr)
+      .sort((a, b) => {
+        const ta = this.records[a].time || '', tb = this.records[b].time || '';
+        return ta && tb && ta !== tb ? ta.localeCompare(tb) : a.localeCompare(b);
+      })
+      .map(k => ({ key: k, rec: this.records[k] }));
+  },
+  nextKey(dateStr) {
+    if (!this.records[dateStr]) return dateStr;
+    let n = 2;
+    while (this.records[`${dateStr}#${n}`]) n++;
+    return `${dateStr}#${n}`;
+  },
+  scoredList() {
+    return Object.keys(this.records)
+      .filter(k => this.records[k] && typeof this.records[k].score === 'number')
+      .map(k => ({ key: k, date: this.dateOf(k), ...this.records[k] }))
+      .sort((a, b) => a.date === b.date ? a.key.localeCompare(b.key) : a.date.localeCompare(b.date));
+  },
+
+  /** 최근 라운드 타수 추이 (작은 선 그래프) */
+  trendHtml(list) {
+    const pts = list.slice(-12);
+    if (pts.length < 2) return '';
+    const W = 320, H = 96, PADX = 14, PADY = 18;
+    const scores = pts.map(p => p.score);
+    let lo = Math.min(...scores), hi = Math.max(...scores);
+    if (hi - lo < 6) { const mid = (hi + lo) / 2; lo = mid - 3; hi = mid + 3; }
+    const x = i => PADX + (W - PADX * 2) * (i / (pts.length - 1));
+    const y = v => PADY + (H - PADY * 2) * ((v - lo) / (hi - lo));   // 타수가 낮을수록 위
+    const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(p.score).toFixed(1)}`).join(' ');
+    const best = Math.min(...scores);
+    const dots = pts.map((p, i) => {
+      const isBest = p.score === best, isLast = i === pts.length - 1;
+      const label = isBest || isLast || i === 0 ? `<text x="${x(i).toFixed(1)}" y="${(y(p.score) - 7).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="800" fill="${isBest ? '#d97706' : '#334155'}">${p.score}</text>` : '';
+      return `<circle cx="${x(i).toFixed(1)}" cy="${y(p.score).toFixed(1)}" r="${isLast ? 4 : 3}" fill="${isBest ? '#f59e0b' : '#007aff'}" stroke="#fff" stroke-width="1.5"/>${label}`;
+    }).join('');
+    const first = pts[0].date.slice(2).replace(/-/g, '.'), last = pts[pts.length - 1].date.slice(2).replace(/-/g, '.');
+    const delta = pts[pts.length - 1].score - pts[0].score;
+    const msg = delta < 0 ? `처음보다 <b style="color:#059669;">${-delta}타 줄었어요</b>` : delta > 0 ? `처음보다 ${delta}타 늘었어요` : '꾸준히 유지하고 있어요';
+    return `
+      <div class="rec-trend">
+        <div class="rec-trend-head"><span>최근 ${pts.length}라운드 타수</span><span class="rec-trend-msg">${msg}</span></div>
+        <svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" role="img" aria-label="최근 라운드 타수 추이">
+          <path d="${line}" fill="none" stroke="#007aff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+          ${dots}
+        </svg>
+        <div class="rec-trend-foot"><span>${first}</span><span>● 베스트</span><span>${last}</span></div>
+      </div>`;
+  },
+
   render() {
     const container = U.$('#screen-record');
+    const list = this.scoredList();
+    const validScoreCount = list.length;
+    const totalScore = list.reduce((t, r) => t + r.score, 0);
+    const recentScore = list.length ? list[list.length - 1].score : '--';
 
-    let bestScore = Infinity;
-    let bestCourse = '기록 없음';
-    let bestDate = '-';
-    let totalScore = 0;
-    let validScoreCount = 0;
-    let sortedRecords = [];
-    
-    for (const [date, rec] of Object.entries(this.records)) {
-      if (rec && typeof rec.score === 'number') {
-        totalScore += rec.score;
-        validScoreCount++;
-        sortedRecords.push({ date, ...rec });
-
-        if (rec.score < bestScore) {
-          bestScore = rec.score;
-          bestCourse = rec.course;
-          const parts = date.split('-');
-          if(parts.length === 3) {
-            bestDate = `${parts[0]}. ${String(parts[1]).padStart(2, '0')}. ${String(parts[2]).padStart(2, '0')}`;
-          } else {
-            bestDate = date;
-          }
-        }
-      }
-    }
-    
-    sortedRecords.sort((a,b) => b.date.localeCompare(a.date));
-    let recentScore = sortedRecords.length > 0 ? sortedRecords[0].score : '--';
-    let recentDiff = typeof recentScore === 'number' ? recentScore - 72 : 13;
-    let recentCourse = sortedRecords.length > 0 ? sortedRecords[0].course : 'THE HEAVEN CC';
-    let recentDate = sortedRecords.length > 0 ? sortedRecords[0].date : '26.10.11';
-    if (sortedRecords.length > 0) {
-      const p = sortedRecords[0].date.split('-');
-      if (p.length === 3) recentDate = `${p[0].slice(2)}.${p[1]}.${p[2]}`;
-    }
-
-    let scoreDisplay = bestScore === Infinity ? 85 : bestScore;
-    let bestDiff = typeof scoreDisplay === 'number' ? scoreDisplay - 72 : 13;
-    if (bestCourse === '기록 없음') bestCourse = 'THE HEAVEN CC';
-    if (bestDate === '-') bestDate = '26.10.11';
-
-    // 기록이 없으면 예시 숫자 대신 빈 값 표시
     const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '--';
     const displayCount = validScoreCount;
 
@@ -93,6 +117,7 @@ const Record = {
               <div style="font-size:17px; font-weight:800; color:#0f172a;">${recentScore}<span style="font-size:12px; font-weight:700; color:#64748b;">타</span></div>
             </div>
           </div>
+          ${this.trendHtml(list)}
         </div>
 
         <div style="padding: 0 16px 12px;">
@@ -152,140 +177,95 @@ const Record = {
   renderCalendarGrid() {
     const grid = U.$('#record-cal-grid');
     if (!grid) return;
-    
+
     const firstDay = new Date(this.currentYear, this.currentMonth, 1).getDay();
     const daysInMonth = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
-    
     let html = '';
-    
-    for (let i = 0; i < firstDay; i++) {
-      html += `<div class="record-cal-cell empty"></div>`;
-    }
-    
+    for (let i = 0; i < firstDay; i++) html += `<div class="record-cal-cell empty"></div>`;
+
     for (let d = 1; d <= daysInMonth; d++) {
-      const dateKey = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const hasRecord = this.records[dateKey] || this.records[`${this.currentYear}-${this.currentMonth + 1}-${d}`];
-      
+      const rounds = this.roundsOn(this.ymd(this.currentYear, this.currentMonth, d));
       let badgeHtml = '';
-      if (hasRecord) {
+      if (rounds.length) {
+        const r0 = rounds[0].rec;
         badgeHtml = `
           <div class="record-badge">
-            <div class="record-badge-course">${U.esc(hasRecord.course || '')}</div>
-            <div>${typeof hasRecord.score === 'number' ? hasRecord.score + '타' : '기록'}</div>
-          </div>
-        `;
-      } else if (State.aiGeneratingDate === dateKey) {
-        badgeHtml = `
-          <div style="position:absolute; bottom:4px; right:4px; display:flex; align-items:center; justify-content:center; background:rgba(251,191,36,0.15); color:#d97706; border:1px solid rgba(251,191,36,0.3); padding:1px 3px; border-radius:4px; font-size:8px; font-weight:800; box-shadow:0 1px 2px rgba(0,0,0,0.05); white-space:nowrap;">
-            <svg viewBox="0 0 24 24" width="8" height="8" stroke="currentColor" stroke-width="3" fill="none" style="margin-right:2px; animation: spin 2s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-            생성중
-          </div>
-        `;
+            <div class="record-badge-course">${U.esc(r0.course || '')}</div>
+            <div>${typeof r0.score === 'number' ? r0.score + '타' : '기록'}${rounds.length > 1 ? ` <span class="record-badge-more">+${rounds.length - 1}</span>` : ''}</div>
+          </div>`;
       }
-      
       const selectedClass = (this.selectedDate === d) ? 'selected' : '';
-      const clickable = `onclick="Record.selectDate(${d})"`;
-      const hasRecordClass = (hasRecord || State.aiGeneratingDate === dateKey) ? 'has-record' : '';
-      
       html += `
-        <div class="record-cal-cell ${hasRecordClass} ${selectedClass}" ${clickable} style="position:relative;">
+        <div class="record-cal-cell ${rounds.length ? 'has-record' : ''} ${selectedClass}" onclick="Record.selectDate(${d})" style="position:relative;">
           <span class="day-num">${d}</span>
           ${badgeHtml}
-        </div>
-      `;
+        </div>`;
     }
-    
     grid.innerHTML = html;
   },
-  
+
   selectDate(d) {
     this.selectedDate = d;
     this.renderCalendarGrid();
-    
-    const dateKeyOld = `${this.currentYear}-${this.currentMonth + 1}-${d}`;
-    const dateKeyNew = `${this.currentYear}-${String(this.currentMonth + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const rec = this.records[dateKeyOld] || this.records[dateKeyNew];
+    const dateStr = this.ymd(this.currentYear, this.currentMonth, d);
+    const rounds = this.roundsOn(dateStr);
     const detailContainer = U.$('#record-detail-container');
-    
-    if (State.aiGeneratingDate === dateKeyNew || State.aiGeneratingDate === dateKeyOld) {
-      detailContainer.innerHTML = `
-        <div class="record-card" style="animation: slideUp 0.3s ease; text-align:center; padding: 30px 20px;">
-          <div style="font-size:40px; margin-bottom:12px; animation: spin 2s linear infinite; display:inline-block;">⏳</div>
-          <div style="font-size:17px; font-weight:800; color:#fff; margin-bottom:6px;">일지 등록중...</div>
-          <div style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.6);">AI가 스코어카드를 분석하고 일지를 작성 중입니다.</div>
-        </div>
-        <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
-      `;
-      return;
-    }
+    const dayStr = ['일', '월', '화', '수', '목', '금', '토'][new Date(this.currentYear, this.currentMonth, d).getDay()];
+    const dateLabel = `${this.currentYear}. ${String(this.currentMonth + 1).padStart(2, '0')}. ${String(d).padStart(2, '0')} (${dayStr})`;
 
-    if (rec) {
-      const dayNames = ['일','월','화','수','목','금','토'];
-      const dayStr = dayNames[new Date(this.currentYear, this.currentMonth, d).getDay()];
-      
-      let companions = [];
-      if (window.State && window.State.schedules) {
-        const schedule = window.State.schedules.find(s => s.date === dateKeyNew || s.date === dateKeyOld);
-        if (schedule && schedule.companions) {
-           companions = schedule.companions;
-        }
-      }
-      
-      let companionsHtml = '';
-      if (companions.length > 0) {
-        // 동반자 스코어는 입력받지 않으므로 이름만 표시 (예전에는 임의 숫자를 표시했음)
-        companionsHtml = companions.map((c) => `
-          <div class="record-stat-item">
-            <span class="record-stat-label" style="color:rgba(255,255,255,0.85); font-size:13px;">${U.esc((c && c.name) || c)}</span>
-            <span class="record-stat-val" style="color:rgba(255,255,255,0.6); font-size:13px; font-weight:700;">함께한 동반자</span>
-          </div>
-        `).join('');
-      } else {
-        companionsHtml = `
-          <div class="record-stat-item">
-            <span class="record-stat-label" style="color:rgba(255,255,255,0.5); font-size:13px;">동반자 정보 없음</span>
-          </div>
-        `;
-      }
-
-      detailContainer.innerHTML = `
-        <div class="record-card" style="animation: slideUp 0.3s ease; cursor:pointer;" onclick="Record.showDiaryDetail(${this.currentYear}, ${this.currentMonth}, ${d})">
-          <div class="record-card-top">
-            <div style="display:flex; flex-direction:column; gap:4px;">
-              <span class="record-date">${this.currentYear}. ${String(this.currentMonth+1).padStart(2,'0')}. ${String(d).padStart(2,'0')} (${dayStr})</span>
-              <span style="font-size:18px; font-weight:800; color:#fff;">${U.esc(rec.course || '')}</span>
-            </div>
-            <div class="record-score-box">
-              <span class="score-num">${typeof rec.score === 'number' ? rec.score : '-'}</span>
-              <span class="score-unit">타</span>
-            </div>
-          </div>
-          <div class="record-card-bottom" style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="display:flex; flex-direction:column; gap:6px; flex:1;">
-              ${companionsHtml}
-            </div>
-            <button onclick="event.stopPropagation(); Record.showRecordForm()" style="background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:6px; padding:6px 16px; font-size:14px; font-weight:700; cursor:pointer; flex-shrink:0; margin-left:12px;">수정</button>
-          </div>
-        </div>
-      `;
-    } else {
+    if (!rounds.length) {
       detailContainer.innerHTML = `
         <div class="record-card" style="animation: slideUp 0.3s ease; display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:130px; gap:12px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <div style="font-size:24px;">⛳️</div>
-            <div style="font-size:15px; font-weight:700; color:rgba(255,255,255,0.7);">기록이 없는 날입니다</div>
+            <div style="font-size:15px; font-weight:700; color:#64748b;">기록이 없는 날입니다</div>
           </div>
-          <button class="record-action" onclick="Record.showRecordForm()" style="margin:0; width:100%; padding:10px; font-size:14px; background:rgba(255,255,255,0.15); color:#fff; border:none; border-radius:8px; font-weight:700;">+ 새 라운드 일지 작성하기</button>
-        </div>
-      `;
+          <button class="record-action" onclick="Record.showRecordForm()" style="margin:0; width:100%; padding:11px; font-size:14px; background:#04122d; color:#fff; border:none; border-radius:10px; font-weight:800;">+ 새 라운드 일지 작성하기</button>
+        </div>`;
+      return;
     }
+
+    // 그날 일정의 동반자 (일정이 하나일 때만 연결)
+    let companions = [];
+    if (window.State && window.State.schedules) {
+      const same = window.State.schedules.filter(s => {
+        const sd = s.date instanceof Date ? s.date : new Date(s.date);
+        return !isNaN(sd) && this.ymd(sd.getFullYear(), sd.getMonth(), sd.getDate()) === dateStr;
+      });
+      if (same.length === 1 && rounds.length === 1) companions = same[0].companions || [];
+    }
+    const companionsHtml = companions.length
+      ? companions.map(c => `<div class="record-stat-item"><span class="record-stat-label" style="color:#0f172a; font-size:13px; font-weight:700;">${U.esc((c && c.name) || c)}</span><span class="record-stat-val" style="color:#94a3b8; font-size:12px; font-weight:700;">함께한 동반자</span></div>`).join('')
+      : '';
+
+    detailContainer.innerHTML = rounds.map(({ key, rec }, idx) => `
+      <div class="record-card" style="animation: slideUp 0.3s ease; cursor:pointer; margin-bottom:10px;" onclick="Record.showDiaryDetail('${key}')">
+        <div class="record-card-top">
+          <div style="display:flex; flex-direction:column; gap:4px; min-width:0;">
+            <span class="record-date">${dateLabel}${rounds.length > 1 ? ` · ${idx + 1}라운드` : ''}${rec.time ? ` · ${U.esc(rec.time)}` : ''}</span>
+            <span style="font-size:18px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${U.esc(rec.course || '')}</span>
+          </div>
+          <div class="record-score-box">
+            <span class="score-num">${typeof rec.score === 'number' ? rec.score : '-'}</span>
+            <span class="score-unit">타</span>
+          </div>
+        </div>
+        <div class="record-card-bottom" style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; flex-direction:column; gap:6px; flex:1; min-width:0;">
+            ${companionsHtml || `<span style="color:#64748b; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${rec.diary ? U.esc(rec.diary.slice(0, 40)) : '눌러서 일지 자세히 보기 ›'}</span>`}
+          </div>
+          <button onclick="event.stopPropagation(); Record.showRecordForm('${key}')" style="background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; border-radius:8px; padding:6px 16px; font-size:13px; font-weight:800; cursor:pointer; flex-shrink:0; margin-left:12px;">수정</button>
+        </div>
+      </div>`).join('') + `
+      <button onclick="Record.showRecordForm()" class="rec-add-round">+ 이날 라운드 추가</button>`;
   },
 
   showDetail() {
     this.showRecordForm();
   },
 
-  showRecordForm() {
+  /** editKey가 있으면 그 라운드 수정, 없으면 선택한 날짜에 새 라운드 */
+  showRecordForm(editKey) {
     const modalId = 'modal-record-form';
     let modal = U.$(`#${modalId}`);
     if (modal) modal.remove();
@@ -295,14 +275,13 @@ const Record = {
     const m = this.currentMonth !== undefined ? this.currentMonth : new Date().getMonth();
     const d = this.selectedDate || new Date().getDate();
 
-    const todayStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const dateKeyOld = `${y}-${m + 1}-${d}`;
-    const existingRecord = this.records[todayStr] || this.records[dateKeyOld];
+    const existingRecord = editKey && this.records[editKey] ? this.records[editKey] : null;
+    const todayStr = existingRecord ? this.dateOf(editKey) : this.ymd(y, m, d);
 
     let defaultCourse = existingRecord ? (existingRecord.course || '') : '';
     let defaultTime = existingRecord ? (existingRecord.time || '07:30') : '07:30';
-    // 수정할 때 원래 날짜를 기억 (날짜를 바꾸면 예전 날짜 기록은 옮겨짐)
-    this._editingKey = existingRecord ? (this.records[todayStr] ? todayStr : dateKeyOld) : null;
+    // 수정할 때 원래 키를 기억 (날짜를 바꾸면 새 날짜로 옮겨짐)
+    this._editingKey = existingRecord ? editKey : null;
 
     const html = `
       <div id="${modalId}" class="modal-overlay" style="display:flex; justify-content:center; align-items:flex-end; background:rgba(0,0,0,0.6); position:fixed; top:0; left:0; width:100%; height:100%; z-index:999; opacity:0; transition: opacity 0.3s;">
@@ -310,7 +289,7 @@ const Record = {
           
           <!-- Header -->
           <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f1f5f9;">
-            <div style="font-size:16px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">스코어 및 일지 등록</div>
+            <div style="font-size:16px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">${existingRecord ? '라운드 기록 수정' : '스코어 및 일지 등록'}</div>
             <button onclick="Record.closeRecordForm()" style="color:#64748b; padding:4px; border:none; background:transparent; cursor:pointer;" aria-label="닫기">
               <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -406,6 +385,18 @@ const Record = {
                   </div>
                 </div>
               </div>
+
+              <!-- 홀별 직접 입력 (선택) -->
+              <details class="rec-holes" id="rec-holes" ${existingRecord && Array.isArray(existingRecord.holes) && existingRecord.holes.length === 18 ? 'open' : ''}>
+                <summary>홀별 스코어 입력 <span>(선택)</span></summary>
+                ${[0, 9].map(start => `
+                <div class="rec-holes-label">${start ? '후반 IN (10~18번)' : '전반 OUT (1~9번)'}</div>
+                <div class="rec-holes-grid">
+                  ${Array.from({ length: 9 }, (_, k) => start + k).map(h => `
+                  <label><span>${h + 1}</span><input type="number" inputmode="numeric" min="1" max="15" id="hole-${h}" oninput="Record.onHoleInput()"></label>`).join('')}
+                </div>`).join('')}
+                <div class="rec-holes-hint">18홀을 모두 입력하면 전반·후반·총 타수가 자동으로 채워져요.</div>
+              </details>
             </div>
 
             <!-- 3. Story & Photos -->
@@ -466,9 +457,29 @@ const Record = {
     }, 10);
   },
 
+  readHoles() {
+    const vals = Array.from({ length: 18 }, (_, h) => {
+      const el = document.getElementById(`hole-${h}`);
+      const n = el ? parseInt(el.value, 10) : NaN;
+      return isFinite(n) && n > 0 ? n : null;
+    });
+    return { vals, filled: vals.filter(v => v != null).length };
+  },
+
+  onHoleInput() {
+    const { vals } = this.readHoles();
+    const sum = a => a.reduce((t, n) => t + (n || 0), 0);
+    const out = vals.slice(0, 9), inn = vals.slice(9);
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+    if (out.every(v => v != null)) set('manual-score-out', sum(out));
+    if (inn.every(v => v != null)) set('manual-score-in', sum(inn));
+    if (vals.every(v => v != null)) set('manual-score', sum(vals));
+  },
+
   /** 수정할 때 기존 타수·일지·사진을 폼에 채움 (예전에는 빈 폼이라 저장하면 내용이 지워졌음) */
   _fillForm(rec) {
     const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+    if (Array.isArray(rec.holes) && rec.holes.length === 18) rec.holes.forEach((n, h) => set(`hole-${h}`, n));
     if (typeof rec.score === 'number') set('manual-score', rec.score);
     if (Array.isArray(rec.holes) && rec.holes.length === 18) {
       const sum = (a) => a.reduce((t, n) => t + (Number(n) || 0), 0);
@@ -489,7 +500,7 @@ const Record = {
   deleteRecord() {
     const key = this._editingKey;
     if (!key || !this.records[key]) return;
-    if (!confirm('이 날의 기록을 삭제할까요? 사진과 일지도 함께 지워져요.')) return;
+    if (!confirm('이 라운드 기록을 삭제할까요? 사진과 일지도 함께 지워져요.')) return;
     delete this.records[key];
     localStorage.setItem('bp_records_v1', JSON.stringify(this.records));
     this._editingKey = null;
@@ -798,6 +809,13 @@ const Record = {
       const num = (id) => { const el = document.getElementById(id); const n = el ? parseInt(el.value, 10) : NaN; return isFinite(n) ? n : null; };
       const total = num('manual-score'), out = num('manual-score-out'), inn = num('manual-score-in');
       let score = total != null ? total : (out != null && inn != null ? out + inn : null);
+      const holeInput = this.readHoles();
+      if (holeInput.filled && holeInput.filled < 18) { U.toast(`홀별 스코어는 18홀을 모두 입력하거나 비워 두세요. (${holeInput.filled}/18)`); return; }
+      if (holeInput.filled === 18) {
+        const hs = holeInput.vals.reduce((t, n) => t + n, 0);
+        if (score != null && score !== hs) { U.toast(`홀별 합계(${hs}타)와 총 타수(${score}타)가 달라요.`); return; }
+        score = hs;
+      }
 
       const validDataUrl = (el) => el && el.src && el.src.startsWith('data:image') && el.closest('[id$="preview-box-1"],[id$="preview-box-2"],[id$="preview-box-3"],[id$="preview-box-4"]').style.display !== 'none' ? el.src : null;
       const img = (id) => validDataUrl(document.getElementById(id));
@@ -807,7 +825,7 @@ const Record = {
       if (score == null && !scoreImg1 && !scoreImg2) { U.toast('타수를 입력하거나 스코어카드 사진을 올려 주세요.'); return; }
       if (score != null && (score < 18 || score > 200)) { U.toast('타수를 다시 확인해 주세요. (18~200타)'); return; }
 
-      const prev = (this._editingKey && this.records[this._editingKey]) || this.records[dateInput] || {};
+      const prev = (this._editingKey && this.records[this._editingKey]) || {};
       const rec = {
         ...prev,
         course, time, score, scoreImg1, scoreImg2,
@@ -817,14 +835,17 @@ const Record = {
       };
       // 입력하지 않은 값(퍼트·페어웨이·그린)을 지어서 저장하지 않음
       delete rec.putts; delete rec.fairway; delete rec.green;
+      if (holeInput.filled === 18) rec.holes = holeInput.vals;
       // 홀별 점수는 합계가 타수와 같을 때만 유지
       if (Array.isArray(rec.holes) && rec.holes.reduce((t, n) => t + (Number(n) || 0), 0) !== score) delete rec.holes;
 
-      if (this._editingKey && this._editingKey !== dateInput) {
-        if (this.records[dateInput] && !confirm(`${dateInput}에 이미 기록이 있어요. 덮어쓸까요?`)) return;
-        delete this.records[this._editingKey];
+      // 같은 날 여러 라운드: 새 기록은 비어 있는 키(날짜, 날짜#2 …)에 저장
+      let key = this._editingKey;
+      if (!key || this.dateOf(key) !== dateInput) {
+        if (key) delete this.records[key];
+        key = this.nextKey(dateInput);
       }
-      this.records[dateInput] = rec;
+      this.records[key] = rec;
       localStorage.setItem('bp_records_v1', JSON.stringify(this.records));
       this._editingKey = null;
 
@@ -840,25 +861,18 @@ const Record = {
     }
   },
 
-  showDiaryDetail(y, m, d) {
+  showDiaryDetail(key) {
     const modalId = 'modal-diary-detail';
     let modal = U.$(`#${modalId}`);
     if (modal) modal.remove();
 
-    const dateStr = `${y}. ${String(m + 1).padStart(2, '0')}. ${String(d).padStart(2, '0')}`;
-    const dateKey = `${y}-${String(m + 1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dateKeyOld = `${y}-${m + 1}-${d}`;
-    const rec = this.records[dateKey] || this.records[dateKeyOld];
+    const rec = this.records[key];
     if (!rec) return;
+    const dateKey = this.dateOf(key);
+    const dateStr = dateKey.replace(/-/g, '. ');
     this._shareRec = { rec, dateStr };
 
     let teeTime = '';
-    if (window.State && window.State.schedules) {
-      const schedule = window.State.schedules.find(s => s.date === dateKey || s.date === dateKeyOld);
-      if (schedule && schedule.time) {
-         teeTime = schedule.time;
-      }
-    }
     if (!teeTime && rec.time) teeTime = rec.time;
     
 

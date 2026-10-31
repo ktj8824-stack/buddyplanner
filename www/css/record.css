@@ -220,3 +220,29 @@
   font-size: 14px;
   border: none;
 }
+
+/* 타수 추이 */
+.rec-trend { background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 14px 8px; margin:-6px 0 6px; }
+.rec-trend-head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:12.5px; font-weight:800; color:#0f172a; margin-bottom:2px; }
+.rec-trend-msg { font-size:11.5px; font-weight:600; color:#64748b; }
+.rec-trend-foot { display:flex; justify-content:space-between; font-size:10.5px; font-weight:600; color:#94a3b8; }
+.rec-trend-foot span:nth-child(2) { color:#d97706; }
+
+/* 같은 날 라운드 추가 */
+.rec-add-round { width:100%; padding:12px; border-radius:12px; border:1.5px dashed #cbd5e1; background:#fff; color:#334155; font-size:14px; font-weight:800; cursor:pointer; }
+.record-badge-more { font-size:9px; font-weight:800; color:#2563eb; }
+
+/* 홀별 입력 */
+.rec-holes { margin-top:10px; border-top:1px dashed #e2e8f0; padding-top:8px; }
+.rec-holes summary { font-size:12px; font-weight:800; color:#2563eb; cursor:pointer; list-style:none; }
+.rec-holes summary::-webkit-details-marker { display:none; }
+.rec-holes summary::before { content:'＋ '; }
+.rec-holes[open] summary::before { content:'－ '; }
+.rec-holes summary span { color:#94a3b8; font-weight:600; }
+.rec-holes-label { font-size:10.5px; font-weight:700; color:#64748b; margin:8px 0 4px; }
+.rec-holes-grid { display:grid; grid-template-columns:repeat(9, 1fr); gap:3px; }
+.rec-holes-grid label { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.rec-holes-grid label span { font-size:9.5px; font-weight:700; color:#94a3b8; }
+.rec-holes-grid input { width:100%; height:32px; border:1px solid #e2e8f0; border-radius:6px; background:#f8fafc; text-align:center; font-size:13px; font-weight:800; color:#0f172a; padding:0; -moz-appearance:textfield; }
+.rec-holes-grid input::-webkit-outer-spin-button, .rec-holes-grid input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.rec-holes-hint { font-size:10.5px; color:#94a3b8; margin-top:6px; }

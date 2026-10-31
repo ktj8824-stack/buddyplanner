@@ -89,7 +89,9 @@ const Home = {
       const recordsData = localStorage.getItem('bp_records_v1');
       if (recordsData) {
         const records = JSON.parse(recordsData);
-        const sortedDates = Object.keys(records).sort((a, b) => new Date(b) - new Date(a));
+        // 키: 'YYYY-MM-DD' 또는 같은 날 추가 라운드 'YYYY-MM-DD#2' (Record.dateOf 참고)
+        const dOf = k => (typeof Record !== 'undefined' ? Record.dateOf(k) : String(k).split('#')[0]);
+        const sortedDates = Object.keys(records).sort((a, b) => dOf(b) === dOf(a) ? b.localeCompare(a) : dOf(b).localeCompare(dOf(a)));
         
         if (sortedDates.length > 0) {
           const r0 = records[sortedDates[0]];
@@ -98,7 +100,7 @@ const Home = {
             recentScore = r0.score;
             recentDiff = recentScore - 72;
             recentCourse = r0.course || '';
-            const p = sortedDates[0].split('-');
+            const p = dOf(sortedDates[0]).split('-');
             if (p.length === 3) {
               recentDate = `${p[0].slice(2)}.${p[1]}.${p[2]}`;
             }
@@ -129,7 +131,7 @@ const Home = {
             bestScore = minScore;
             bestDiff = bestScore - 72;
             bestCourse = minRec.course || '';
-            const bp = minDateStr.split('-');
+            const bp = dOf(minDateStr).split("-");
             if (bp.length === 3) {
               bestDate = `${bp[0].slice(2)}.${bp[1]}.${bp[2]}`;
             }

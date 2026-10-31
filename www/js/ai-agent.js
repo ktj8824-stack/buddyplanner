@@ -74,7 +74,7 @@ const AIAgent = {
       const list = Object.keys(all)
         .filter(k => all[k] && typeof all[k].score === 'number')
         .sort((a, b) => b.localeCompare(a))
-        .map(k => ({ date: k, course: all[k].course, score: all[k].score }));
+        .map(k => ({ date: Record.dateOf(k), course: all[k].course, score: all[k].score }));
       if (list.length) {
         const scores = list.map(r => r.score);
         records = {
@@ -312,10 +312,13 @@ const AIAgent = {
 
     let records = {};
     try { records = JSON.parse(localStorage.getItem('bp_records_v1') || '{}') || {}; } catch (e) { records = {}; }
-    if (records[date] && !confirm(`${date}에 이미 기록이 있어요. 새 스코어로 바꿀까요?`)) return;
-
-    const prev = records[date] || {};
-    records[date] = Object.assign({}, prev, {
+    // 같은 날 기록이 있으면 덮어쓰지 않고 그날의 다른 라운드로 추가
+    Record.records = records;
+    const exists = Record.roundsOn(date).length > 0;
+    if (exists && !confirm(`${date}에 이미 기록이 있어요. 같은 날 다른 라운드로 추가할까요?`)) return;
+    const key = Record.nextKey(date);
+    const prev = {};
+    records[key] = Object.assign({}, prev, {
       course: a.course_name,
       score: Number(a.total_score),
       putts: a.putts_total ? Number(a.putts_total) : (prev.putts || 0),
@@ -327,7 +330,7 @@ const AIAgent = {
       localStorage.setItem('bp_records_v1', JSON.stringify(records));
     } catch (e) {
       U.toast('저장 공간이 부족해 사진 없이 저장할게요.');
-      records[date].scoreImg1 = prev.scoreImg1 || null;
+      records[key].scoreImg1 = null;
       localStorage.setItem('bp_records_v1', JSON.stringify(records));
     }
     this._finish(msg, a, 'done');
