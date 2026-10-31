@@ -106,6 +106,7 @@ const App = {
 
   navigate(name) {
     if (!this.screens.includes(name)) return;
+    if (name === 'community' && !this.COMMUNITY_OPEN) { U.toast('커뮤니티는 곧 오픈해요!'); return; }
     this.screens.forEach(s => { const el=U.$(`#screen-${s}`); if(el)el.classList.remove('active'); });
     let target = U.$(`#screen-${name}`);
     if (!target) {
@@ -261,10 +262,13 @@ const App = {
   // 구글 애드몹 보상형 동영상 광고 ID (실제 광고 단위)
   ADMOB_REWARD_ID: 'ca-app-pub-6195996093323539/4620360062',
 
+  // 커뮤니티는 글쓰기·조인 신청을 실제로 만들 때까지 숨김 (예시 글만 있는 화면을 출시하지 않음)
+  COMMUNITY_OPEN: false,
+
   /** 상단 ≡ 전체 메뉴: 하단 탭에 없는 화면으로 이동 */
   openMenu() {
     const items = [
-      { s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' },
+      ...(this.COMMUNITY_OPEN ? [{ s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' }] : []),
       { s: 'market', icon: '🛒', name: '버디마켓', desc: '골프 용품 추천' },
       { s: 'raffle', icon: '🎁', name: '포인트 럭키드로우', desc: '무료 포인트로 응모' },
       { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },

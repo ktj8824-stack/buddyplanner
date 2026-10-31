@@ -118,18 +118,36 @@ const Login = {
     if (!plugin) { U.toast('구글 로그인을 사용할 수 없습니다.'); return; }
     try {
       if (this._googleNativeReady) await this._googleNativeReady;
-      const res = await plugin.login({ provider: 'google', options: {} });
+      // 일회용 확인값(nonce): 구글에는 해시값을, 서버(Supabase)에는 원래 값을 보내 토큰 재사용을 막음
+      const rawNonce = this.randomNonce();
+      const hashedNonce = await this.sha256Hex(rawNonce);
+      const res = await plugin.login({ provider: 'google', options: { nonce: hashedNonce } });
       const r = (res && res.result) || {};
+      const claims = (r.idToken && this.decodeJwt(r.idToken)) || {};
+      // 토큰에 넣은 nonce가 그대로 들어온 경우에만 서버에 원래 값을 함께 보냄 (없으면 생략)
+      const nonce = claims.nonce && claims.nonce === hashedNonce ? rawNonce : undefined;
+      if (claims.nonce && !nonce) console.warn('Google id_token nonce mismatch');
       let profile = r.profile || {};
       // 프로필이 비어 있으면 ID 토큰에서 이름·이메일을 읽음
       if ((!profile.name || !profile.email) && r.idToken) profile = Object.assign(this.decodeJwt(r.idToken) || {}, profile);
-      this.finishLogin('google', { name: profile.name || profile.givenName || '구글 유저', email: profile.email || '' }, { idToken: r.idToken });
+      this.finishLogin('google', { name: profile.name || profile.givenName || '구글 유저', email: profile.email || '' }, { idToken: r.idToken, nonce });
     } catch (e) {
       const msg = String((e && (e.message || e.code)) || e || '');
       console.error('Google native login err:', e);
       if (/cancel/i.test(msg)) { U.toast('구글 로그인을 취소했습니다.'); return; }
       U.toast('구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     }
+  },
+
+  randomNonce() {
+    const a = new Uint8Array(24);
+    crypto.getRandomValues(a);
+    return Array.from(a, b => b.toString(16).padStart(2, '0')).join('');
+  },
+
+  async sha256Hex(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
   },
 
   /** JWT payload 디코딩 (base64url + UTF-8, 한글 이름 깨짐 방지) */
@@ -265,7 +283,7 @@ const Login = {
     if (typeof Cloud !== 'undefined' && Cloud.isConfigured() && cloud && (cloud.idToken || cloud.already)) {
       U.toast('☁️ 내 데이터를 불러오는 중...');
       try {
-        if (cloud.idToken) await Cloud.signInWithIdToken(provider, cloud.idToken);
+        if (cloud.idToken) await Cloud.signInWithIdToken(provider, cloud.idToken, cloud.nonce);
         if (typeof Billing !== 'undefined') Billing.linkCloudUser();
         await Cloud.sync();
         if (typeof State !== 'undefined') State.loadSchedules();

@@ -379,10 +379,13 @@ const Home = {
               <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🍽️</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">추천맛집</span>
             </div>
-            <div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">💬</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">커뮤니티</span>
-            </div>
+            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🎁</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">럭키드로우</span>
+            </div>`}
           </div>
 
 
