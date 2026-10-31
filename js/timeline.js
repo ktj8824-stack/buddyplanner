@@ -75,10 +75,10 @@ const Timeline = {
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               ${U.fmtTimeKo(s.teeOff)}
             </span>
-            <span style="display:inline-flex; align-items:center; gap:4px;">
+            ${(s.course.region || s.course.addr) ? `<span style="display:inline-flex; align-items:center; gap:4px;">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><path d="M12 2c3.866 0 7 3.134 7 7 0 5.25-7 13-7 13S5 14.25 5 9c0-3.866 3.134-7 7-7z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
-              ${s.course.region}
-            </span>
+              ${U.esc(s.course.region || String(s.course.addr).split(' ').slice(0, 2).join(' '))}
+            </span>` : ''}
           </div>
         </div>
 
@@ -669,7 +669,7 @@ const Timeline = {
             ${companions.map(c => `
               <div class="comp-row">
                 <div class="comp-info">
-                  <div class="comp-avatar" style="background:linear-gradient(135deg,${c.color},${c.color}88)">${c.emoji}</div>
+                  <div class="comp-avatar" style="background:linear-gradient(135deg,${c.color || '#3b82f6'},${c.color || '#3b82f6'}88)">${c.emoji || U.esc(String(c.name || '?').charAt(0))}</div>
                   <div>
                     <div class="comp-name">${U.esc(c.name)}</div>
                     <div class="comp-status">대기 중</div>

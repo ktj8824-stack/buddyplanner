@@ -46,9 +46,18 @@ const Record = {
     while (this.records[`${dateStr}#${n}`]) n++;
     return `${dateStr}#${n}`;
   },
+  /** 9홀 라운드 여부: 직접 표시했거나, 표시가 없고 60타 미만(18홀 기록 없음)이면 9홀로 봄 */
+  isNine(rec) {
+    if (!rec) return false;
+    if (rec.nine === true) return true;
+    if (rec.nine === false) return false;
+    return typeof rec.score === 'number' && rec.score < 60 && !(Array.isArray(rec.holes) && rec.holes.length === 18);
+  },
+
+  /** 통계(평균·베스트·추이)용: 18홀 라운드만 */
   scoredList() {
     return Object.keys(this.records)
-      .filter(k => this.records[k] && typeof this.records[k].score === 'number')
+      .filter(k => this.records[k] && typeof this.records[k].score === 'number' && !this.isNine(this.records[k]))
       .map(k => ({ key: k, date: this.dateOf(k), ...this.records[k] }))
       .sort((a, b) => a.date === b.date ? a.key.localeCompare(b.key) : a.date.localeCompare(b.date));
   },
@@ -87,12 +96,13 @@ const Record = {
   render() {
     const container = U.$('#screen-record');
     const list = this.scoredList();
+    const roundCount = Object.keys(this.records).filter(k => this.records[k]).length;   // 9홀 포함 전체 라운드
     const validScoreCount = list.length;
     const totalScore = list.reduce((t, r) => t + r.score, 0);
     const recentScore = list.length ? list[list.length - 1].score : '--';
 
     const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '--';
-    const displayCount = validScoreCount;
+    const displayCount = roundCount;
 
     container.innerHTML = `
       <div class="screen-scroll" style="background:#f8fafc; padding-top:var(--header-h); padding-bottom:calc(var(--nav-h) + 16px);">
@@ -246,6 +256,7 @@ const Record = {
             <span style="font-size:18px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${U.esc(rec.course || '')}</span>
           </div>
           <div class="record-score-box">
+            ${this.isNine(rec) ? '<span class="rec-nine">9홀</span>' : ''}
             <span class="score-num">${typeof rec.score === 'number' ? rec.score : '-'}</span>
             <span class="score-unit">타</span>
           </div>
@@ -385,6 +396,8 @@ const Record = {
                   </div>
                 </div>
               </div>
+
+              <label class="rec-nine-check"><input type="checkbox" id="record-nine" ${existingRecord && this.isNine(existingRecord) ? 'checked' : ''}> 9홀 라운드예요 <span>(평균·베스트 계산에서 빠져요)</span></label>
 
               <!-- 홀별 직접 입력 (선택) -->
               <details class="rec-holes" id="rec-holes" ${existingRecord && Array.isArray(existingRecord.holes) && existingRecord.holes.length === 18 ? 'open' : ''}>
@@ -833,6 +846,10 @@ const Record = {
         dImg1: img('diary-preview-img-1'), dImg2: img('diary-preview-img-2'),
         dImg3: img('diary-preview-img-3'), dImg4: img('diary-preview-img-4'),
       };
+      const nineEl = document.getElementById('record-nine');
+      rec.nine = nineEl ? !!nineEl.checked : this.isNine(rec);
+      if (holeInput.filled === 18) rec.nine = false;
+      if (!rec.nine && score != null && score < 60 && !confirm(`${score}타는 9홀 기록 같아요. 18홀 라운드로 저장할까요?\n(취소하면 9홀로 저장해요)`)) rec.nine = true;
       // 입력하지 않은 값(퍼트·페어웨이·그린)을 지어서 저장하지 않음
       delete rec.putts; delete rec.fairway; delete rec.green;
       if (holeInput.filled === 18) rec.holes = holeInput.vals;

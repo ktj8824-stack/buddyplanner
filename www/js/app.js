@@ -423,6 +423,8 @@ const App = {
     }
 
     // 네이티브가 아닌 경우(웹)이거나 애드몹 초기화 실패 시 기존 카카오 AdFit 실행 (옵션)
+    // AdFit 광고 단위를 아직 발급받지 않았으면(예시 ID) 빈 검은 띠가 화면을 가리므로 표시하지 않음
+    if (!this.ADFIT_UNIT_ID || /X{4}/.test(this.ADFIT_UNIT_ID)) return;
     // 이미 광고 있으면 중복 생성 방지
     if (U.$('#adfit-banner-wrap')) return;
 

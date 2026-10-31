@@ -72,7 +72,7 @@ const AIAgent = {
     try {
       const all = JSON.parse(localStorage.getItem('bp_records_v1') || '{}');
       const list = Object.keys(all)
-        .filter(k => all[k] && typeof all[k].score === 'number')
+        .filter(k => all[k] && typeof all[k].score === 'number' && !Record.isNine(all[k]))   // 평균·베스트는 18홀만
         .sort((a, b) => b.localeCompare(a))
         .map(k => ({ date: Record.dateOf(k), course: all[k].course, score: all[k].score }));
       if (list.length) {

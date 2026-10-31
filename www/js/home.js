@@ -93,14 +93,17 @@ const Home = {
         const dOf = k => (typeof Record !== 'undefined' ? Record.dateOf(k) : String(k).split('#')[0]);
         const sortedDates = Object.keys(records).sort((a, b) => dOf(b) === dOf(a) ? b.localeCompare(a) : dOf(b).localeCompare(dOf(a)));
         
+        // 최근 스코어·라이프 베스트는 18홀 라운드만 (9홀 기록은 횟수에만 포함)
+        const isNine = r => (typeof Record !== 'undefined' ? Record.isNine(r) : false);
+        const full = sortedDates.filter(k => records[k] && typeof records[k].score === 'number' && !isNine(records[k]));
         if (sortedDates.length > 0) {
-          const r0 = records[sortedDates[0]];
+          const r0 = full.length ? records[full[0]] : null;
           if (r0 && typeof r0.score === 'number') {
             hasRecent = true;
             recentScore = r0.score;
             recentDiff = recentScore - 72;
             recentCourse = r0.course || '';
-            const p = dOf(sortedDates[0]).split('-');
+            const p = dOf(full[0]).split('-');
             if (p.length === 3) {
               recentDate = `${p[0].slice(2)}.${p[1]}.${p[2]}`;
             }
@@ -114,11 +117,11 @@ const Home = {
 
           sortedDates.forEach(d => {
             const r = records[d];
-            if (r && typeof r.score === 'number') {
+            if (r) {
               if (d.startsWith(String(currentYear))) {
                 thisYearRounds++;
               }
-              if (r.score < minScore) {
+              if (typeof r.score === 'number' && !isNine(r) && r.score < minScore) {
                 minScore = r.score;
                 minRec = r;
                 minDateStr = d;

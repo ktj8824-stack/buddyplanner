@@ -1,11 +1,11 @@
 /* =========================================
-   BuddyPlanner v2 — Premium Restaurant Discovery (AI Powered)
+   BuddyPlanner v2 — 골프장 주변 맛집 · 추천 메뉴 (메뉴는 미리 정리해 둔 목록이며 AI 분석이 아님)
    ========================================= */
 
 const Restaurant = {
   tab: 'after',
 
-  // ── AI 메뉴 추천 데이터베이스 ──
+  // ── 식당 종류별 추천 메뉴 (미리 정리해 둔 목록) ──
   AI_MENU_DB: {
     '한우': [
       { name:'한우 꽃등심 구이',    reason:'라운딩 후 부족한 단백질을 최고급 마블링으로 보충. 중불에 살짝 구워 육즙을 살리세요.', tag:'⭐ 시그니처', kcal:'420 kcal' },
@@ -23,7 +23,7 @@ const Restaurant = {
       { name:'냉삼겹 수육',          reason:'수육은 직화 구이보다 지방 흡수율이 20% 낮아 부담 없이 즐길 수 있습니다.', tag:'💚 건강 선택', kcal:'430 kcal' },
     ],
     '횟집': [
-      { name:'광어·우럭 모둠회',     reason:'DHA와 오메가3가 풍부. 라운딩으로 긴장된 근육 회복에 도움을 줍니다.', tag:'⭐ AI 1순위', kcal:'280 kcal' },
+      { name:'광어·우럭 모둠회',     reason:'DHA와 오메가3가 풍부. 라운딩으로 긴장된 근육 회복에 도움을 줍니다.', tag:'⭐ 대표 메뉴', kcal:'280 kcal' },
       { name:'전복 버터구이',        reason:'타우린이 풍부해 피로 해소 효과 탁월. 10홀 이상 라운딩 후 강력 추천!', tag:'💎 프리미엄', kcal:'220 kcal' },
       { name:'매운탕 (대)',          reason:'얼큰한 국물이 체온 회복을 도와줍니다. 생선 뼈 깊은 육수로 속을 든든하게.', tag:'🌶️ 마무리 국물', kcal:'310 kcal' },
     ],
@@ -34,7 +34,7 @@ const Restaurant = {
     ],
     '장어': [
       { name:'민물장어 소금구이',     reason:'스태미나 식품 1위. 비타민 A·E가 풍부해 라운딩 후 체력 회복에 탁월합니다.', tag:'💪 스태미나', kcal:'480 kcal' },
-      { name:'장어 양념구이',        reason:'달콤짭조름한 양념이 입맛을 살려줍니다. 처음 방문자에게 AI가 추천하는 입문 메뉴.', tag:'🌟 입문 추천', kcal:'520 kcal' },
+      { name:'장어 양념구이',        reason:'달콤짭조름한 양념이 입맛을 살려줍니다. 처음 방문했다면 무난하게 고르기 좋은 메뉴.', tag:'🌟 입문 추천', kcal:'520 kcal' },
       { name:'장어탕',              reason:'소화가 잘 되는 국물형. 연령대 높은 동반자와 함께라면 이 메뉴를 선택하세요.', tag:'🍵 소화 편안', kcal:'380 kcal' },
     ],
     '국밥': [
@@ -75,9 +75,9 @@ const Restaurant = {
   },
 
   DEFAULT_MENUS: [
-    { name:'오늘의 셰프 추천 메뉴',     reason:'AI가 이 식당의 리뷰 수천 건을 분석한 결과, 방문자 90% 이상이 만족한 메뉴입니다.', tag:'🤖 AI 선정', kcal:'520 kcal' },
-    { name:'인기 단체 코스 (4인 기준)', reason:'4명 이상 방문 시 이 코스를 선택한 골프 모임의 만족도가 가장 높게 측정되었습니다.', tag:'👥 단체 최적', kcal:'680 kcal' },
-    { name:'계절 특선 메뉴',           reason:'이 계절 제철 재료를 활용한 메뉴. 신선도와 영양 면에서 AI 분석 최상위권입니다.', tag:'🌱 제철 재료', kcal:'440 kcal' },
+    { name:'이 집 대표 메뉴',          reason:'처음 가는 식당이라면 간판 메뉴부터 드셔 보세요. 네이버 리뷰에서 많이 찾는 메뉴를 확인할 수 있어요.', tag:'⭐ 대표 메뉴', kcal:'약 500 kcal' },
+    { name:'단체 세트·코스 (4인 기준)', reason:'동반자 4명이 함께라면 세트나 코스 메뉴가 주문하기 편하고 가격도 합리적인 경우가 많아요.', tag:'👥 단체 추천', kcal:'약 650 kcal' },
+    { name:'계절 특선 메뉴',           reason:'제철 재료를 쓴 계절 메뉴가 있다면 함께 맛보세요.', tag:'🌱 제철 재료', kcal:'약 450 kcal' },
   ],
 
   init() { this.render(); },
@@ -125,9 +125,9 @@ const Restaurant = {
       ">
         <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 20px;"></div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🤖</div>
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🍽️</div>
           <div>
-            <div style="font-size:13px;color:#7c3aed;font-weight:600;">BuddyAI</div>
+            <div style="font-size:13px;color:#7c3aed;font-weight:600;">추천 메뉴</div>
             <div style="font-size:16px;font-weight:800;color:#fff;">${placeName}</div>
           </div>
         </div>
@@ -135,7 +135,7 @@ const Restaurant = {
 
         <div id="ai-loading" style="text-align:center;padding:32px 0;">
           <div style="width:48px;height:48px;margin:0 auto 16px;border:3px solid rgba(124,58,237,0.2);border-top-color:#7c3aed;border-radius:50%;animation:aiSpin 0.8s linear infinite;"></div>
-          <div style="color:#94a3b8;font-size:14px;font-weight:600;" id="ai-loading-text">맛집 데이터 분석 중...</div>
+          <div style="color:#94a3b8;font-size:14px;font-weight:600;" id="ai-loading-text">추천 메뉴를 고르는 중...</div>
         </div>
         <div id="ai-result" style="display:none;"></div>
 
@@ -163,21 +163,13 @@ const Restaurant = {
     });
     bg.addEventListener('click', e => { if (e.target === bg) bg.remove(); });
 
-    const loadTexts = ['맛집 데이터 분석 중...', '리뷰 패턴 학습 중...', '골퍼 선호도 계산 중...', 'AI 추천 생성 중...'];
-    let li = 0;
-    const ltInterval = setInterval(() => {
-      li = (li + 1) % loadTexts.length;
-      const ltEl = document.getElementById('ai-loading-text');
-      if (ltEl) ltEl.textContent = loadTexts[li];
-    }, 600);
-
+    // 미리 정리한 목록이라 오래 기다리게 하지 않음 (예전: 가짜 'AI 분석 중' 문구를 돌렸음)
     setTimeout(() => {
-      clearInterval(ltInterval);
       const key = this.findMenuKey(category);
       const menus = key ? this.AI_MENU_DB[key] : this.DEFAULT_MENUS;
       const contextNote = tab === 'before'
-        ? '🌅 라운딩 전 — 소화가 잘 되고 에너지를 채워줄 메뉴를 우선 추천했습니다.'
-        : '🏆 라운딩 후 — 피로 회복과 단체 회식에 최적화된 메뉴를 추천했습니다.';
+        ? '🌅 라운딩 전 — 식당 종류에 맞춰 부담 없이 먹기 좋은 메뉴를 골라 봤어요. 실제 메뉴는 식당마다 다를 수 있어요.'
+        : '🏆 라운딩 후 — 식당 종류에 맞춰 회식하기 좋은 메뉴를 골라 봤어요. 실제 메뉴는 식당마다 다를 수 있어요.';
 
       const resultHtml = `
         <div style="font-size:12px;color:#7c3aed;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;">${contextNote}</div>
@@ -192,7 +184,7 @@ const Restaurant = {
               <div style="font-size:11px;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);padding:3px 8px;border-radius:20px;white-space:nowrap;margin-left:8px;">${m.tag}</div>
             </div>
             <div style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:10px;">${m.reason}</div>
-            <div style="font-size:12px;color:#475569;">🔥 예상 칼로리: <span style="color:#30d158;font-weight:600;">${m.kcal}</span></div>
+            <div style="font-size:12px;color:#475569;">🔥 대략적인 칼로리: <span style="color:#30d158;font-weight:600;">${m.kcal}</span></div>
           </div>
         `).join('')}
       `;
@@ -201,7 +193,7 @@ const Restaurant = {
       const resultEl = document.getElementById('ai-result');
       if (loadEl) loadEl.style.display = 'none';
       if (resultEl) { resultEl.style.display = 'block'; resultEl.innerHTML = resultHtml; }
-    }, 2200);
+    }, 300);
   },
 
   render() {
@@ -240,11 +232,11 @@ const Restaurant = {
               width:100%;margin:12px 0 8px;padding:11px;
               background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(37,99,235,0.15));
               border:1px solid rgba(124,58,237,0.35);border-radius:12px;
-              color:#a78bfa;font-size:14px;font-weight:700;cursor:pointer;
+              color:#6d28d9;font-size:14px;font-weight:800;cursor:pointer;
               display:flex;align-items:center;justify-content:center;gap:6px;
               transition:background 0.2s;
             ">
-            🤖 AI 메뉴 추천 받기
+            🍽️ 추천 메뉴 보기
           </button>
           <div class="pc-footer">
             <div class="pc-rating" data-rkey="${typeof Ratings !== 'undefined' ? Ratings.key(p.place_name) : ''}">
@@ -261,8 +253,8 @@ const Restaurant = {
 
     el.innerHTML = `
       <div class="discovery-hero">
-        <h2 style="font-weight:400;font-size:16px;margin-bottom:8px;color:#94a3b8;">AI 기반 맛집 큐레이션</h2>
-        <h2>완벽한 라운딩을 위한<br><span class="gold-text">🤖 AI 추천 맛집</span></h2>
+        <h2 style="font-weight:400;font-size:16px;margin-bottom:8px;color:#94a3b8;">골퍼를 위한 맛집 큐레이션</h2>
+        <h2>완벽한 라운딩을 위한<br><span class="gold-text">🍽️ 버디 추천 맛집</span></h2>
         <div class="search-bar" onclick="Restaurant.searchArea()">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <span style="font-weight:600;">골프장 이름 또는 지역 검색...</span>
@@ -304,7 +296,7 @@ const Restaurant = {
       </div>
       <div class="screen-scroll" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding-top:100px;">
         <div style="width:40px;height:40px;border:4px solid rgba(124,58,237,0.2);border-top-color:#7c3aed;border-radius:50%;animation:aiSpin 0.8s linear infinite;"></div>
-        <p style="color:#94a3b8;font-weight:600;">🤖 AI가 주변 맛집을 분석 중입니다...</p>
+        <p style="color:#94a3b8;font-weight:600;">🔎 주변 맛집을 찾고 있어요...</p>
       </div>
     `;
 
@@ -348,10 +340,10 @@ const Restaurant = {
               width:100%;margin:12px 0 8px;padding:11px;
               background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(37,99,235,0.15));
               border:1px solid rgba(124,58,237,0.35);border-radius:12px;
-              color:#a78bfa;font-size:14px;font-weight:700;cursor:pointer;
+              color:#6d28d9;font-size:14px;font-weight:800;cursor:pointer;
               display:flex;align-items:center;justify-content:center;gap:6px;
             ">
-            🤖 AI 메뉴 추천 받기
+            🍽️ 추천 메뉴 보기
           </button>
           <div class="pc-footer">
             <div class="pc-rating" data-rkey="${typeof Ratings !== 'undefined' ? Ratings.key(p.place_name) : ''}">
