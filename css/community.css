@@ -250,3 +250,17 @@
 .cm-menu-item.muted { color:#94a3b8; text-align:center; border:none; }
 .cm-menu-item[disabled] { opacity:.5; }
 .cm-rules { margin:0; padding-left:20px; display:flex; flex-direction:column; gap:8px; font-size:13.5px; line-height:1.55; color:#334155; list-style:decimal; }
+
+/* ── 운영팀 글 ── */
+.feed-card.cm-official { border: 1.5px solid #e8c77a; background: linear-gradient(180deg, #fffdf6, #ffffff 60%); box-shadow: 0 6px 18px rgba(184, 145, 63, .12); }
+.cm-official-avatar { background: #111 url(../img/buddybirdie_app_icon.png) center/cover !important; }
+.author-badge.cm-staff { color: #7a5a12; background: #fbefd0; }
+.tag-pin { font-size: 12px; font-weight: 800; color: #7a5a12; background: #fbefd0; border-radius: 8px; padding: 4px 9px; }
+.cm-form label.cm-official-toggle, .cm-official-toggle { display: flex; flex-direction: row; flex: none; align-items: center; gap: 10px; border: 1.5px solid #e8c77a; background: #fffbef; border-radius: 14px; padding: 12px 14px; margin: 0 0 12px; cursor: pointer; text-align: left; }
+.cm-official-toggle b { font-size: 14px; color: #3b2a06; }
+.cm-official-toggle span:not(.cm-sw) { font-size: 12px; color: #8a6d2a; display: block; margin-top: 2px; line-height: 1.4; }
+.cm-sw-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.cm-sw { width: 44px; height: 26px; border-radius: 13px; background: #d6d3cc; position: relative; flex-shrink: 0; transition: background .2s; }
+.cm-sw::after { content: ''; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.cm-sw-input:checked + .cm-sw { background: #d4af37; }
+.cm-sw-input:checked + .cm-sw::after { transform: translateX(18px); }

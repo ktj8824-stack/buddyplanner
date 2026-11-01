@@ -22,7 +22,10 @@ const Community = {
   init() {
     this.render();
     this.load(true);
+    // 관리자면 글쓰기에 '운영팀 공지' 스위치를 보여 주려고 미리 확인
+    if (typeof Admin !== 'undefined' && Admin.isAdmin === null) Admin.checkAdmin();
   },
+  isAdmin() { return typeof Admin !== 'undefined' && Admin.isAdmin === true; },
 
   available() { return typeof Cloud !== 'undefined' && Cloud.isConfigured() && Cloud.isSignedIn(); },
   rpc(fn, body = {}) { return Cloud._api(`rest/v1/rpc/${fn}`, { method: 'POST', body }); },
@@ -34,11 +37,12 @@ const Community = {
     this.loading = true; this.error = null;
     if (reset) { this.posts = []; this.render(); }
     try {
-      const before = !reset && this.posts.length ? this.posts[this.posts.length - 1].id : null;
+      const normal = this.posts.filter(x => !x.pinned);
+      const before = !reset && normal.length ? normal[normal.length - 1].id : null;
       const rows = await this.rpc('community_feed', { p_category: this.cat || null, p_before: before, p_limit: 20 });
       const list = Array.isArray(rows) ? rows : [];
       this.posts = reset ? list : this.posts.concat(list);
-      this.hasMore = list.length === 20;
+      this.hasMore = list.filter(x => !x.pinned).length === 20;   // 고정 공지는 개수에서 뺌
     } catch (e) {
       console.warn('[Community] 피드 실패', e);
       this.error = navigator.onLine === false ? 'offline' : 'error';
@@ -113,7 +117,8 @@ const Community = {
   card(p) {
     const joinable = p.category === 'join' || p.category === 'carpool';
     const full = joinable && p.accepted_count >= (p.slots || 0);
-    let tags = `<span class="tag-join">${this.LABEL[p.category] || ''}${joinable ? ` (${p.accepted_count}/${p.slots}명)` : ''}</span>`;
+    let tags = p.pinned ? `<span class="tag-pin">📌 공지</span>` : '';
+    if (!p.pinned || joinable) tags += `<span class="tag-join">${this.LABEL[p.category] || ''}${joinable ? ` (${p.accepted_count}/${p.slots}명)` : ''}</span>`;
     if (p.course_name) tags += `<span class="tag-course">${U.esc(p.course_name)}</span>`;
     if (joinable && p.round_at) tags += `<span class="tag-when">${this.when(p.round_at)}</span>`;
     if (joinable && p.status === 'closed') tags += `<span class="tag-closed">모집 마감</span>`;
@@ -135,12 +140,14 @@ const Community = {
       }
     }
     return `
-      <div class="feed-card${p.hidden ? ' cm-hidden' : ''}">
+      <div class="feed-card${p.hidden ? ' cm-hidden' : ''}${p.is_official ? ' cm-official' : ''}">
         ${p.hidden ? `<div class="cm-hidden-note">신고가 누적되어 다른 회원에게는 보이지 않는 글이에요.</div>` : ''}
         <div class="feed-author">
-          <div class="author-avatar cm-avatar" style="background:${this.avatarColor(p.author_name)};">${U.esc(String(p.author_name).charAt(0))}</div>
+          ${p.is_official
+            ? `<div class="author-avatar cm-avatar cm-official-avatar" aria-label="BuddyPlanner 운영팀"></div>`
+            : `<div class="author-avatar cm-avatar" style="background:${this.avatarColor(p.author_name)};">${U.esc(String(p.author_name).charAt(0))}</div>`}
           <div class="author-info" style="flex:1; min-width:0;">
-            <div class="author-name-row"><span class="author-name">${U.esc(p.author_name)}</span>${p.is_mine ? '<span class="author-badge">내 글</span>' : ''}</div>
+            <div class="author-name-row"><span class="author-name">${U.esc(p.author_name)}</span>${p.is_official ? '<span class="author-badge cm-staff">운영팀</span>' : (p.is_mine ? '<span class="author-badge">내 글</span>' : '')}</div>
             <span class="feed-time">${this.ago(p.created_at)}</span>
           </div>
           <button class="cm-more-btn" onclick="Community.openPostMenu(${p.id})" aria-label="더보기">⋯</button>
@@ -175,6 +182,10 @@ const Community = {
     const cat = this.cat || 'join';
     App.showModal('글쓰기', `
       <div class="cm-form">
+        ${this.isAdmin() ? `<label class="cm-official-toggle">
+          <div style="flex:1"><b>운영팀 공지로 올리기</b><span>운영팀 이름·배지로 표시되고 피드 맨 위에 고정돼요 (관리자만 보임)</span></div>
+          <input type="checkbox" id="cm-official" class="cm-sw-input"><span class="cm-sw"></span>
+        </label>` : ''}
         <div class="cm-seg" id="cm-cat">
           ${['join', 'carpool', 'review', 'free'].map(k => `<button type="button" data-k="${k}" class="${k === cat ? 'on' : ''}" onclick="Community.pickCat('${k}')">${this.LABEL[k]}</button>`).join('')}
         </div>
@@ -216,9 +227,13 @@ const Community = {
       if (contact && !/^https:\/\/open\.kakao\.com\//.test(contact)) { U.toast('연락 링크는 카카오 오픈채팅 주소만 넣을 수 있어요.'); return; }
     }
     const btn = U.$('#cm-submit'); btn.disabled = true; btn.textContent = '올리는 중...';
-    const msg = { daily_limit: '오늘은 글을 더 올릴 수 없어요 (하루 10개).', invalid_date: '라운딩 날짜를 확인해 주세요.', invalid_contact: '오픈채팅 링크를 확인해 주세요.', name_required: '닉네임을 먼저 정해 주세요.' };
+    const msg = { daily_limit: '오늘은 글을 더 올릴 수 없어요 (하루 10개).', invalid_date: '라운딩 날짜를 확인해 주세요.', invalid_contact: '오픈채팅 링크를 확인해 주세요.', name_required: '닉네임을 확인해 주세요. (운영팀·관리자 같은 이름은 쓸 수 없어요)' };
+    const official = !!(U.$('#cm-official') || {}).checked;
     try {
-      const r = await this.rpc('community_create_post', { p_author: this.myName(), p_category: k, p_content: content, p_course: v('#cm-course') || null, p_round_at: roundAt, p_slots: slots, p_contact: contact });
+      const body = { p_category: k, p_content: content, p_course: v('#cm-course') || null, p_round_at: roundAt, p_slots: slots, p_contact: contact };
+      const r = official
+        ? await this.rpc('community_create_official_post', { ...body, p_pin: true })
+        : await this.rpc('community_create_post', { p_author: this.myName(), ...body });
       if (r && r.ok) { App.closeModal(); U.toast('글을 올렸어요.'); this.cat = ''; this.load(true); return; }
       U.toast(msg[r && r.error] || '글을 올리지 못했어요.');
     } catch (e) { U.toast('글을 올리지 못했어요. 인터넷 연결을 확인해 주세요.'); }
@@ -334,11 +349,22 @@ const Community = {
   /* ── 글 메뉴: 신고·차단·삭제 ── */
   openPostMenu(id) {
     const p = this.find(id); if (!p) return;
+    const pin = this.isAdmin() && p.is_official
+      ? `<button class="cm-menu-item" onclick="Community.setPin(${id}, ${!p.pinned})">${p.pinned ? '📌 고정 해제' : '📌 맨 위에 고정'}</button>` : '';
     const items = p.is_mine
-      ? `<button class="cm-menu-item danger" onclick="Community.deletePost(${id})">글 삭제</button>`
+      ? `${pin}<button class="cm-menu-item danger" onclick="Community.deletePost(${id})">글 삭제</button>`
       : `${p.reported ? '<div class="cm-menu-item muted">이미 신고한 글이에요</div>' : `<button class="cm-menu-item" onclick="Community.openReport(${id})">🚩 신고하기</button>`}
          <button class="cm-menu-item danger" onclick="Community.blockAuthor(${id})">🚫 이 사용자 차단</button>`;
     App.showModal('', `<div class="cm-menu">${items}<button class="cm-menu-item muted" onclick="App.closeModal()">닫기</button></div>`);
+  },
+
+  async setPin(id, on) {
+    App.closeModal();
+    try {
+      const r = await this.rpc('community_set_pin', { p_post: id, p_pinned: on });
+      if (r && r.ok) { U.toast(on ? '맨 위에 고정했어요.' : '고정을 해제했어요.'); this.load(true); return; }
+    } catch (e) { /* 아래 안내 */ }
+    U.toast('바꾸지 못했어요.');
   },
 
   openReport(id) {
