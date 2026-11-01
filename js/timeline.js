@@ -758,7 +758,7 @@ const Timeline = {
           this.scheduleTimelineAlarms();
         });
       } else {
-        U.toast('아이폰 푸시 알림은 지원하지 않지만 앱 내 알람은 정상 작동합니다!');
+        U.toast('앱이 켜져 있는 동안 타임라인 알람이 울려요.');
         this.scheduleTimelineAlarms();
       }
     }

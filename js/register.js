@@ -391,7 +391,7 @@ const Register = {
       restDisplay.classList.add('empty');
     }
     
-    U.toast(`⛳ ${c.name} 선택 완료`); U.haptic();
+    U.toast(`${this.course.name} 선택 완료`); U.haptic();
   },
 
   openDatePicker() {
