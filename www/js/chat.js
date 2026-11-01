@@ -19,7 +19,7 @@ const Chat = {
         <button class="chat-header-btn" onclick="App.navigate('home')">
           <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h1 class="chat-title">버디플래너 AI</h1>
+        <h1 class="chat-title">BuddyPlanner AI</h1>
         <div class="chat-header-btn" style="visibility:hidden"></div>
       </div>
       
@@ -61,7 +61,7 @@ const Chat = {
       travelTime: 60 // Mock travel time
     };
     
-    this.addBotMessage('안녕하세요! 버디플래너입니다. ⛳<br>새 라운딩 일정을 등록하시겠어요?<br>어느 골프장으로 가시나요?');
+    this.addBotMessage('안녕하세요! BuddyPlanner입니다. ⛳<br>새 라운딩 일정을 등록하시겠어요?<br>어느 골프장으로 가시나요?');
     this.addQuickReplies(['남서울 CC', '아난티남해 CC', '잭니클라우스 GC', '파인크리크 CC']);
   },
 

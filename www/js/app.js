@@ -204,7 +204,7 @@ const App = {
       <div class="top-nav-left" style="display:flex; align-items:center; cursor:pointer;" onclick="App.navigate('home')">
         <div class="glounge-brand-logo">
           <img src="img/buddybirdie_app_icon.png" class="brand-logo-icon" alt="" />
-          버디플래너
+          BuddyPlanner
           <span class="glounge-brand-badge" id="nav-pro-badge" style="${State.isPro ? '' : 'display:none'}">PRO</span>
         </div>
       </div>
@@ -272,7 +272,7 @@ const App = {
       { s: 'market', icon: '🛒', name: '버디마켓', desc: '골프 용품 추천' },
       { s: 'raffle', icon: '🎁', name: '포인트 럭키드로우', desc: '무료 포인트로 응모' },
       { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
-      { s: 'upgrade', icon: '👑', name: '버디플래너 PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 무제한 일정 · 당일 예보 · 광고 제거' }
+      { s: 'upgrade', icon: '👑', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 무제한 일정 · 당일 예보 · 광고 제거' }
     ];
     this.showModal('전체 메뉴', `
       <div class="menu-sheet">

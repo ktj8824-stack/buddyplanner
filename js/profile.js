@@ -59,7 +59,7 @@ const Profile = {
         <div style="margin: 0 var(--sp-5) var(--sp-6);">
           <div style="background:linear-gradient(135deg, #0f172a, #1e293b); border-radius:var(--r-xl); padding:var(--sp-4); color:#fff; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-md);">
             <div>
-              <div style="font-size:var(--fs-sm); color:var(--gold-300); font-weight:bold; margin-bottom:2px;">버디플래너 PRO</div>
+              <div style="font-size:var(--fs-sm); color:var(--gold-300); font-weight:bold; margin-bottom:2px;">BuddyPlanner PRO</div>
               <div style="font-size:var(--fs-lg); font-weight:800;">프리미엄 혜택 만나보기</div>
             </div>
             <button onclick="App.navigate('upgrade')" style="background:var(--gold-400); color:#fff; padding:8px 16px; border-radius:var(--r-full); font-weight:bold; font-size:var(--fs-sm); box-shadow:var(--glow-gold);">업그레이드</button>
@@ -191,7 +191,7 @@ const Profile = {
 
     // 웹(PC)에서는 실제 광고가 없음 → 개발용 테스트 모드에서만 흉내 내기
     if (!App.adsTestMode()) {
-      U.toast('광고 보상은 버디플래너 앱에서 받을 수 있어요.');
+      U.toast('광고 보상은 BuddyPlanner 앱에서 받을 수 있어요.');
       return;
     }
     const m = Points.meta();
@@ -286,7 +286,7 @@ const Profile = {
 
   /**
    * 회원 탈퇴: 기기에 저장된 모든 데이터 삭제 + 소셜 로그인 연결 해제 + 예약된 알람 취소.
-   * (버디플래너는 서버에 개인정보를 저장하지 않으므로 기기 데이터 삭제로 탈퇴가 완료됩니다)
+   * (BuddyPlanner는 서버에 개인정보를 저장하지 않으므로 기기 데이터 삭제로 탈퇴가 완료됩니다)
    */
   async deleteAllData() {
     const proNote = State.isPro
@@ -338,7 +338,7 @@ const Profile = {
     State.schedules = [];
     State.isPro = false;
 
-    alert('탈퇴가 완료되었습니다. 그동안 버디플래너를 이용해 주셔서 감사합니다.');
+    alert('탈퇴가 완료되었습니다. 그동안 BuddyPlanner를 이용해 주셔서 감사합니다.');
     window.location.reload();
   },
 

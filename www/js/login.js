@@ -28,8 +28,8 @@ const Login = {
     el.innerHTML = `
       <div class="login-wrap" style="padding-top: 15vh;">
         <div class="login-logo" style="display:flex; flex-direction:column; align-items:center;">
-          <img src="./img/buddybirdie_app_icon.png" style="width:80px; height:80px; border-radius:20px; box-shadow:var(--glow-accent); margin-bottom:16px; object-fit:cover;" alt="버디플래너 로고" />
-          <h1 class="login-title">버디플래너</h1>
+          <img src="./img/buddybirdie_app_icon.png" style="width:80px; height:80px; border-radius:20px; box-shadow:var(--glow-accent); margin-bottom:16px; object-fit:cover;" alt="BuddyPlanner 로고" />
+          <h1 class="login-title">BuddyPlanner</h1>
           <p class="login-subtitle">골프 일정 관리의 새로운 기준</p>
         </div>
         

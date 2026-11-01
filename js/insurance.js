@@ -18,7 +18,7 @@ const Insurance = {
           <div style="width:80px; height:80px; background:rgba(71, 85, 105, 0.05); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
             <svg viewBox="0 0 24 24" width="40" height="40" stroke="#475569" stroke-width="2" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
           </div>
-          <h2 style="font-size:22px; font-weight:800; color:var(--text-100); margin-bottom:12px;">버디플래너 홀인원 보험<br><span style="color:var(--accent);">출시 준비 중!</span></h2>
+          <h2 style="font-size:22px; font-weight:800; color:var(--text-100); margin-bottom:12px;">BuddyPlanner 홀인원 보험<br><span style="color:var(--accent);">출시 준비 중!</span></h2>
           <p style="font-size:15px; color:var(--text-400); line-height:1.6; margin-bottom:30px; word-break:keep-all;">
             합리적인 가격으로 필드에서의 짜릿한 순간을 든든하게 대비하세요.<br>다양한 혜택이 포함된 전용 상품이 곧 찾아옵니다.
           </p>

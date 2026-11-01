@@ -979,7 +979,7 @@ const Record = {
               <div style="padding:0 16px;">
                 ${rec.diary ? `<p style="font-size:14px; font-weight:500; color:var(--text-100); line-height:1.6; margin:0 0 12px 0; white-space:pre-wrap;"><span style="font-weight:800; margin-right:4px;">${userName}</span>${U.esc(rec.diary)}</p>` : ''}
                 <div style="font-size:13px; font-weight:600; color:#2563eb;">
-                  #명랑골프 #버디플래너 #골프스타그램 #골프일지
+                  #명랑골프 #BuddyPlanner #골프스타그램 #골프일지
                 </div>
               </div>
 
@@ -1009,7 +1009,7 @@ const Record = {
   async shareRecord() {
     const it = this._shareRec; if (!it) return;
     const r = it.rec;
-    const text = `⛳ ${it.dateStr} ${r.course || ''}${typeof r.score === 'number' ? ` · ${r.score}타` : ''}${r.diary ? `\n${r.diary}` : ''}\n\n#버디플래너`;
+    const text = `⛳ ${it.dateStr} ${r.course || ''}${typeof r.score === 'number' ? ` · ${r.score}타` : ''}${r.diary ? `\n${r.diary}` : ''}\n\n#BuddyPlanner`;
     try {
       const Share = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Share;
       if (Share) { await Share.share({ title: '라운딩 기록', text }); return; }

@@ -18,7 +18,7 @@ const Onboarding = {
       <div class="onboarding-container">
         <div class="ob-header">
           <h2 class="ob-title">기본 설정</h2>
-          <p class="ob-desc">버디플래너를 내 스타일에 맞게 설정해보세요.</p>
+          <p class="ob-desc">BuddyPlanner를 내 스타일에 맞게 설정해보세요.</p>
         </div>
 
         <div class="ob-section">

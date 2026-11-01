@@ -353,7 +353,7 @@ const Timeline = {
         Kakao.Share.sendDefault({
           objectType: 'feed',
           content: {
-            title: `⛳ [버디플래너] ${courseName} 라운딩 일정`,
+            title: `⛳ [BuddyPlanner] ${courseName} 라운딩 일정`,
             description: `📅 일시: ${dateStr} ${teeOff}\n📍 장소: ${courseName}\n\n아래 버튼을 눌러 일정을 추가하고 맞춤 편집해 보세요!`,
             imageUrl: 'https://files.catbox.moe/672ojg.png',
             link: shareLinkObj,
@@ -851,7 +851,7 @@ const Timeline = {
             const timeoutId = setTimeout(() => {
               try {
                 if ('Notification' in window && Notification.permission === 'granted') {
-                  new Notification('버디플래너 타임라인', {
+                  new Notification('BuddyPlanner 타임라인', {
                     body: ev.msg,
                     icon: 'assets/icons/icon-192x192.png'
                   });
@@ -930,7 +930,7 @@ const Timeline = {
         const timeoutId = setTimeout(() => {
           try {
             if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('버디플래너 타임라인', {
+              new Notification('BuddyPlanner 타임라인', {
                 body: ev.msg,
                 icon: 'assets/icons/icon-192x192.png'
               });

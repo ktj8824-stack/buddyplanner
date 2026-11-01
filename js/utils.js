@@ -256,7 +256,7 @@ const U = {
     if (!s || !s.timeline || !s.timeline.prepStart) return;
     
     const [h, m] = s.timeline.prepStart.split(':').map(Number);
-    const msg = encodeURIComponent(`버디플래너 기상 (${s.course.name})`);
+    const msg = encodeURIComponent(`BuddyPlanner 기상 (${s.course.name})`);
     
     const isAndroid = /Android/.test(navigator.userAgent);
     

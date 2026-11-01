@@ -1,5 +1,5 @@
 // =====================================================================
-// 버디플래너 AI 비서 — Supabase Edge Function (ai-chat)
+// BuddyPlanner AI 비서 — Supabase Edge Function (ai-chat)
 //
 // 앱 → 이 함수 → Claude API. API 키는 서버 비밀값으로만 보관합니다.
 //  1) 로그인 사용자 확인  2) PRO 구독 확인(RevenueCat)  3) 하루 사용 한도 확인
@@ -34,7 +34,7 @@ function json(status: number, body: Json): Response {
 const TOOLS = [
   {
     name: 'search_restaurants',
-    description: '골프장 주변의 실제 식당을 카카오 장소 검색으로 찾습니다. 맛집을 추천할 때는 반드시 이 도구 결과에 있는 식당만 추천하세요. 결과에는 버디플래너 회원 평균 별점(buddy_rating)이 있을 수 있습니다.',
+    description: '골프장 주변의 실제 식당을 카카오 장소 검색으로 찾습니다. 맛집을 추천할 때는 반드시 이 도구 결과에 있는 식당만 추천하세요. 결과에는 BuddyPlanner 회원 평균 별점(buddy_rating)이 있을 수 있습니다.',
     input_schema: {
       type: 'object',
       properties: {
@@ -94,7 +94,7 @@ const TOOLS = [
 ];
 
 function systemPrompt(ctx: Json): string {
-  return `당신은 골프 일정 앱 '버디플래너'의 AI 비서 '버디'입니다. 한국어로 친근하고 간결하게 답하세요.
+  return `당신은 골프 일정 앱 'BuddyPlanner'의 AI 비서 '버디'입니다. 한국어로 친근하고 간결하게 답하세요.
 
 [역할과 범위]
 - 골프에 관한 것이면 무엇이든 자유롭게 대화합니다: 라운딩 일정, 스코어, 골프장, 날씨, 준비물, 룰·에티켓, 스윙 고민, 골프장 주변 맛집.

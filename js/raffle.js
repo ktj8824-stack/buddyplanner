@@ -265,8 +265,8 @@ const Raffle = {
       ? `경품 시가가 5만 원을 넘어 제세공과금(22%)이 발생하며, 당첨자에게 개별 안내합니다.`
       : `경품 시가가 5만 원 이하라 제세공과금이 없습니다.`;
     const items = [
-      ['주최', '버디플래너 (문의: privacy@buddyplanner.kr)'],
-      ['응모 자격', '버디플래너에 로그인한 만 14세 이상 회원'],
+      ['주최', 'BuddyPlanner (문의: privacy@buddyplanner.kr)'],
+      ['응모 자격', 'BuddyPlanner에 로그인한 만 14세 이상 회원'],
       ['응모 방법', `광고 시청 등으로 무료로 받은 포인트로 응모합니다. 1회 ${r.entry_cost.toLocaleString()}P, 1인 최대 ${r.per_user_limit}회. 포인트는 돈으로 판매하지 않으며, 구매나 결제 없이 참여할 수 있습니다.`],
       ['기간', `${this.fmtDate(r.starts_at)} ~ ${this.fmtDate(r.ends_at)}. 응모가 ${r.max_entries.toLocaleString()}건에 도달하면 즉시 마감합니다.`],
       ['경품·당첨자 수', `${r.prize_name}${r.prize_value ? ` (시가 ${Number(r.prize_value).toLocaleString()}원)` : ''}, ${r.winners_count}명`],

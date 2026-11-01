@@ -26,7 +26,7 @@ const Upgrade = {
           <div class="upg-crown">
             <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M2 19h20v2H2v-2zm19-11c-.55 0-1 .45-1 1v4l-3-2-2 3-3-4-3 4-2-3-3 2v-4c0-.55-.45-1-1-1s-1 .45-1 1v7h20V9c0-.55-.45-1-1-1zM7 6c.83 0 1.5-.67 1.5-1.5S7.83 3 7 3s-1.5.67-1.5 1.5S6.17 6 7 6zm10 0c.83 0 1.5-.67 1.5-1.5S17.83 3 17 3s-1.5.67-1.5 1.5S16.17 6 17 6zm-5-2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
           </div>
-          <h2 class="upg-title">버디플래너 PRO</h2>
+          <h2 class="upg-title">BuddyPlanner PRO</h2>
           <p class="upg-subtitle">프리미엄 혜택으로 골프 라이프를 완벽하게</p>
         </div>
 
@@ -89,7 +89,7 @@ const Upgrade = {
       box.innerHTML = `
         <div class="upg-notice">
           <b>PRO 구독은 안드로이드 앱에서 할 수 있어요</b>
-          <p>구글 플레이 스토어에서 버디플래너 앱을 설치한 뒤 구독해 주세요.</p>
+          <p>구글 플레이 스토어에서 BuddyPlanner 앱을 설치한 뒤 구독해 주세요.</p>
         </div>
         <button class="btn-upg" onclick="Billing.openStoreListing()">구글 플레이에서 앱 받기</button>`;
       return;

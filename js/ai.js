@@ -252,8 +252,8 @@ const AI = {
           <button class="ai-chip-btn" onclick="AI.handleChipClick('골프 라운딩 필수 에티켓 3가지 알려줘')">
             🏌️ 벙커/디봇 골프 매너
           </button>
-          <button class="ai-chip-btn" onclick="AI.handleChipClick('버디플래너는 어떤 기능이 있어?')">
-            ❓ 버디플래너 스마트 기능
+          <button class="ai-chip-btn" onclick="AI.handleChipClick('BuddyPlanner는 어떤 기능이 있어?')">
+            ❓ BuddyPlanner 스마트 기능
           </button>
         </div>
       </div>
@@ -354,7 +354,7 @@ const AI = {
           <button class="ai-btn-register ${isRegistered ? 'registered' : ''}" 
                   id="btn-reg-${msgId}" 
                   onclick="AI.confirmRegister('${msgId}')">
-            ${isRegistered ? '✓ 캘린더 등록 완료 (타임라인 보기)' : '⛳ 버디플래너 캘린더 & 역산 타임라인에 등록'}
+            ${isRegistered ? '✓ 캘린더 등록 완료 (타임라인 보기)' : '⛳ BuddyPlanner 캘린더 & 역산 타임라인에 등록'}
           </button>
           <button class="ai-btn-notify" onclick="AI.notifyCompanions('${msgId}')">
             <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#191919" d="M12 3c-5.523 0-10 3.553-10 7.938 0 2.825 1.83 5.303 4.606 6.744l-1.01 3.7c-.053.195.166.353.332.227l4.316-2.82c.575.08 1.162.124 1.756.124 5.523 0 10-3.553 10-7.938C22 6.553 17.523 3 12 3z"/></svg>
@@ -640,7 +640,7 @@ const AI = {
     if (lower.includes('알림') || lower.includes('동반자') || lower.includes('카톡') || lower.includes('초대')) {
       const notiReply = `📱 <strong>동반자 알림톡 기능</strong><br><br>
 등록된 라운딩 카드에서 <strong>[동반자 카카오 알림톡/공유]</strong> 버튼을 누르면 동반자들에게 다음과 같은 정중한 초대 카톡이 자동 전송됩니다.<br><br>
-<em>"⛳ [버디플래너] 라운딩 일정 안내<br>
+<em>"⛳ [BuddyPlanner] 라운딩 일정 안내<br>
 • 일시: 5월 12일(일) 07:00 티오프<br>
 • 골프장: 남서울CC<br>
 • 이동 준비 및 타임라인 보기 링크 포함"</em><br><br>
@@ -649,8 +649,8 @@ const AI = {
       return;
     }
 
-    if (lower.includes('버디플래너') || lower.includes('기능') || lower.includes('도움')) {
-      const featReply = `💡 <strong>버디플래너 핵심 스마트 기능 안내</strong><br><br>
+    if (lower.includes('buddyplanner') || lower.includes('버디플래너') || lower.includes('기능') || lower.includes('도움')) {
+      const featReply = `💡 <strong>BuddyPlanner 핵심 스마트 기능 안내</strong><br><br>
 1. <strong>🎙️ 버디 AI 비서:</strong> 말이나 채팅으로 일정 자동 등록 & 골프 질의응답<br>
 2. <strong>🚗 역산 타임라인:</strong> 티오프 시간 기준 집 출발시간, 맛집 경유, 준비시간 자동 계산<br>
 3. <strong>🍲 라운딩 맛집 추천:</strong> 골프장 반경 캐디/골퍼 추천 조식 및 뒤풀이 맛집 안내<br>
@@ -904,7 +904,7 @@ const AI = {
 
     const s = msg.schedCard;
     const dateStr = `${s.date.getMonth() + 1}월 ${s.date.getDate()}일 (${this.getDayOfWeek(s.date)})`;
-    const shareTitle = `[버디플래너] ${s.course.name} 라운딩 일정 안내`;
+    const shareTitle = `[BuddyPlanner] ${s.course.name} 라운딩 일정 안내`;
     const shareDesc = `📅 일시: ${dateStr} ${s.teeOff} 티오프\n📍 장소: ${s.course.name} (${s.course.addr})\n🚗 준비시간 역산 타임라인을 확인해보세요!`;
 
     if (typeof Kakao !== 'undefined' && Kakao.isInitialized && Kakao.isInitialized()) {

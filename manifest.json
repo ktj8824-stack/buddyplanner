@@ -1,6 +1,6 @@
 {
-  "name": "버디플래너 — 골프 스마트 타임라인",
-  "short_name": "버디플래너",
+  "name": "BuddyPlanner — 골프 스마트 타임라인",
+  "short_name": "BuddyPlanner",
   "description": "골프 라운딩 전후 이동 및 식사 소요 시간을 계산해 주는 스마트 일정 플래너",
   "start_url": "./index.html",
   "display": "standalone",

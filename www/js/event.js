@@ -29,7 +29,7 @@ const EventPage = {
             <h3 style="font-size:16px; font-weight:700; color:var(--text-100); margin-bottom:12px;">참여 방법</h3>
             <ul style="font-size:14px; color:var(--text-400); line-height:1.6; padding-left:20px; margin-bottom:24px;">
               <li>앱 내 '커뮤니티' 게시판에 사진과 함께 가을 라운딩 후기 작성</li>
-              <li>해시태그 <strong>#버디플래너가을</strong> 필수 포함</li>
+              <li>해시태그 <strong>#BuddyPlanner가을</strong> 필수 포함</li>
               <li>작성 완료 시 자동 응모!</li>
             </ul>
             <button onclick="EventPage.participate()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:14px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer;">

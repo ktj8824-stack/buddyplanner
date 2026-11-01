@@ -1,5 +1,5 @@
 // =====================================================================
-// 버디플래너 광고 보상 서버 검증 — Supabase Edge Function (admob-reward)
+// BuddyPlanner 광고 보상 서버 검증 — Supabase Edge Function (admob-reward)
 //
 // 사용자가 보상형 광고를 끝까지 보면 Google AdMob 서버가 이 주소를 직접 호출합니다.
 // Google의 서명을 확인한 뒤에만 포인트를 적립하므로, 앱을 조작해도 포인트를 만들 수 없습니다.

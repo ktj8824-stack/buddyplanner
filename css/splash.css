@@ -166,3 +166,10 @@
   letter-spacing: -0.03em;
   white-space: nowrap;
 }
+
+/* ── 시작 로딩 영상 (블랙·골드) ── */
+#screen-splash { background-color: #080706; }
+.splash-video-wrap { position: absolute; inset: 0; z-index: 1; background: #080706; display: flex; align-items: center; justify-content: center; }
+.splash-video { width: 100%; height: 100%; object-fit: contain; background: #080706; pointer-events: none; }
+.splash-video::-webkit-media-controls,
+.splash-video::-webkit-media-controls-start-playback-button { display: none !important; -webkit-appearance: none; }
