@@ -11,7 +11,7 @@
 .home-glounge-wrapper {
   background: linear-gradient(180deg, #04132f 0%, #081e48 60%, #0b275c 100%);
   color: #ffffff;
-  padding-top: max(6px, env(safe-area-inset-top));
+  padding-top: 6px; /* 상단 안전영역은 .screen에서 처리 */
   position: relative;
   overflow: hidden;
 }
