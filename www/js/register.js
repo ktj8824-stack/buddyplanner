@@ -2,6 +2,26 @@
    BuddyPlanner v2 — Register Screen
    ========================================= */
 
+/* 화면 아이콘 (이모지 대신 메인 화면과 같은 선 아이콘) */
+const RI = (d, size = 16) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const REG_ICON = {
+  flag:     '<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>',
+  calendar: '<rect x="3" y="4.5" width="18" height="17" rx="2.5"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/>',
+  clock:    '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  timer:    '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9.5 2.5h5"/>',
+  car:      '<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+  pin:      '<path d="M12 21s-7-7.75-7-12a7 7 0 0 1 14 0c0 4.25-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+  meet:     '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6"/><circle cx="17" cy="10" r="2.5"/><path d="M13 20c0-2.8 1.8-5 4-5s4 2.2 4 5"/>',
+  meal:     '<path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10"/><path d="M17 21V3c-2 1-3 3.5-3 7h3"/>',
+  cheers:   '<path d="M7 3h5l-.5 7a2 2 0 0 1-4 0z"/><path d="M9.5 12v6M7 21h5"/><path d="M15 6h5l-.5 6a2 2 0 0 1-4 0z"/><path d="M17.5 14v4M15.5 21h4"/>',
+  users:    '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 13.8c2 .8 3.5 3 3.5 6.2"/>',
+  search:   '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  home:     '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+  office:   '<rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>',
+  plus:     '<path d="M12 5v14M5 12h14"/>',
+};
+const regTitleIcon = (k) => `<span class="reg-ico">${RI(REG_ICON[k], 15)}</span>`;
+
 const Register = {
   searchTimer: null,
   course: null,
@@ -93,7 +113,7 @@ const Register = {
       const search = U.$('#r-search');
       if (search) search.value = course.name;
       const hint = U.$('#r-hint');
-      if (hint) { hint.innerHTML = `📍 ${U.esc(course.addr || '')}`; hint.style.color = 'var(--accent)'; }
+      if (hint) { hint.innerHTML = `<span style="display:inline-flex;vertical-align:-2px;margin-right:3px;">${RI(REG_ICON.pin, 13)}</span>${U.esc(course.addr || '')}`; hint.style.color = 'var(--accent)'; }
     }
     if (date && !isNaN(date.getTime())) {
       this.date = date;
@@ -132,7 +152,7 @@ const Register = {
           U.$('#r-search').value = this.course.name;
           const hint = U.$('#r-hint');
           if(hint) {
-            hint.innerHTML = `📍 ${this.course.addr}`;
+            hint.innerHTML = `<span style="display:inline-flex;vertical-align:-2px;margin-right:3px;">${RI(REG_ICON.pin, 13)}</span>${U.esc(this.course.addr)}`;
             hint.style.color = 'var(--accent)';
           }
         }
@@ -165,12 +185,12 @@ const Register = {
             <!-- 1. Golf Course Selection Card -->
             <div class="reg-card">
               <div class="reg-card-title">
-                <span>⛳</span> 골프장 선택 <span class="req" style="color:#ef4444;">*</span>
+                ${regTitleIcon('flag')} 골프장 선택 <span class="req" style="color:#ef4444;">*</span>
               </div>
               <div class="search-wrap">
                 <div class="field-input">
                   <input type="text" id="r-search" placeholder="골프장 이름을 검색하세요" autocomplete="off"/>
-                  <span class="fi-icon">🔍</span>
+                  <span class="fi-icon">${RI(REG_ICON.search, 17)}</span>
                 </div>
                 <div class="search-drop" id="r-results"></div>
               </div>
@@ -189,21 +209,21 @@ const Register = {
             <!-- 2. Date & Time Dual Pickers Card -->
             <div class="reg-card">
               <div class="reg-card-title">
-                <span>📅</span> 라운딩 일시 & 티오프 <span class="req" style="color:#ef4444;">*</span>
+                ${regTitleIcon('calendar')} 라운딩 일시 & 티오프 <span class="req" style="color:#ef4444;">*</span>
               </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                 <div>
                   <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">날짜</label>
                   <button class="picker-btn picker-date" onclick="Register.openDatePicker()">
                     <span class="picker-val is-empty" id="r-date">날짜 선택</span>
-                    <span class="picker-ico">📅</span>
+                    <span class="picker-ico">${RI(REG_ICON.calendar)}</span>
                   </button>
                 </div>
                 <div>
                   <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">티오프 시간</label>
                   <button class="picker-btn picker-time" onclick="Register.openTimePicker()">
                     <span class="picker-val ${this.timeH === null ? 'is-empty' : ''}" id="r-time">${this.timeH === null ? '시간 선택' : U.fmtTimeKo(String(this.timeH).padStart(2,'0')+':'+String(this.timeM).padStart(2,'0'))}</span>
-                    <span class="picker-ico">⏰</span>
+                    <span class="picker-ico">${RI(REG_ICON.clock)}</span>
                   </button>
                 </div>
               </div>
@@ -212,7 +232,7 @@ const Register = {
             <!-- 3. Prep Time Card -->
             <div class="reg-card">
               <div class="reg-card-title">
-                <span>⏱️</span> 나의 외출 준비 시간 <span class="req" style="color:#ef4444;">*</span>
+                ${regTitleIcon('timer')} 나의 외출 준비 시간 <span class="req" style="color:#ef4444;">*</span>
               </div>
               <div class="pills" id="r-pills">
                 ${PREP_OPTIONS.map(t => `<button class="pill ${t===this.prep?'on':''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
@@ -223,17 +243,17 @@ const Register = {
             <!-- 4. Start Point Card -->
             <div class="reg-card">
               <div class="reg-card-title">
-                <span>🚗</span> 출발지 설정 <span class="req" style="color:#ef4444;">*</span>
+                ${regTitleIcon('car')} 출발지 설정 <span class="req" style="color:#ef4444;">*</span>
               </div>
               <div class="pills" id="r-startpoint-pills">
-                <button type="button" class="pill ${this.startPoint==='집'?'on':''}" onclick="Register.setStartPoint('집',this)">🏠 집</button>
-                <button type="button" class="pill ${this.startPoint==='회사'?'on':''}" onclick="Register.setStartPoint('회사',this)">🏢 회사</button>
-                <button type="button" class="pill ${this.startPoint==='직접 입력'?'on':''}" onclick="Register.setStartPoint('직접 입력',this)">📍 직접 입력</button>
+                <button type="button" class="pill ${this.startPoint==='집'?'on':''}" onclick="Register.setStartPoint('집',this)">${RI(REG_ICON.home, 14)} 집</button>
+                <button type="button" class="pill ${this.startPoint==='회사'?'on':''}" onclick="Register.setStartPoint('회사',this)">${RI(REG_ICON.office, 14)} 회사</button>
+                <button type="button" class="pill ${this.startPoint==='직접 입력'?'on':''}" onclick="Register.setStartPoint('직접 입력',this)">${RI(REG_ICON.pin, 14)} 직접 입력</button>
               </div>
               <div class="field-input" id="r-startpoint-custom-wrap" style="display:flex;margin-top:8px; height:40px;">
                 <div id="r-startpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#f8fafc; border:1px solid #e2e8f0; padding:6px 12px; border-radius:8px;" onclick="Register.searchMode='start';Register.searchCustomAddress()">
                   <span id="r-startpoint-text" style="color:#64748b; font-size:12.5px;">출발지 주소를 검색하세요</span>
-                  <span style="opacity:0.6; font-size:13px;">🔍</span>
+                  <span style="color:#94a3b8; display:inline-flex;">${RI(REG_ICON.search, 16)}</span>
                 </div>
               </div>
             </div>
@@ -241,7 +261,7 @@ const Register = {
             <!-- 5. Meeting Point Toggle -->
             <div class="meal-section">
               <div class="meal-header">
-                <span class="meal-title">🤝 동반자 픽업 / 집결지</span>
+                <span class="meal-title">${regTitleIcon('meet')} 동반자 픽업 / 집결지</span>
                 <div class="toggle ${this.hasMeetingPoint?'on':''}" id="meeting-toggle" onclick="Register.toggleMeetingPoint()"></div>
               </div>
               <div class="meal-body ${this.hasMeetingPoint?'show':''}" id="meeting-body">
@@ -249,7 +269,7 @@ const Register = {
                   <div class="field-input" style="height:40px;">
                     <div id="r-meetingpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#f8fafc; border:1px solid #e2e8f0; padding:6px 12px; border-radius:8px;" onclick="Register.searchMode='meeting';Register.searchCustomAddress()">
                       <span id="r-meetingpoint-text" style="font-size:12.5px; color:${this.meetingPointObj ? 'var(--text-100)' : '#94a3b8'}">${this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명)를 검색하세요'}</span>
-                      <span style="opacity:0.6; font-size:13px;">🔍</span>
+                      <span style="color:#94a3b8; display:inline-flex;">${RI(REG_ICON.search, 16)}</span>
                     </div>
                   </div>
                   <p class="field-hint" style="margin-top:6px; font-size:11px; color:#94a3b8;">집결지에서 만나서 출발 시 약 10분의 대기/탑승 시간이 타임라인에 자동 추가됩니다.</p>
@@ -260,7 +280,7 @@ const Register = {
             <!-- 6. Pre-Meal Toggle -->
             <div class="meal-section">
               <div class="meal-header">
-                <span class="meal-title">🍽️ 라운딩 전 아침 식사</span>
+                <span class="meal-title">${regTitleIcon('meal')} 라운딩 전 아침 식사</span>
                 <div class="toggle ${this.hasMeal?'on':''}" id="meal-toggle" onclick="Register.toggleMeal('pre')"></div>
               </div>
               <div class="meal-body ${this.hasMeal?'show':''}" id="meal-body">
@@ -276,7 +296,7 @@ const Register = {
                   <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">아침 맛집 선택</label>
                   <button class="picker-btn" onclick="Register.openRestaurantPicker('pre')">
                     <span class="picker-val ${!this.mealRestaurant?'is-empty':''}" id="r-restaurant">${this.mealRestaurant ? this.mealRestaurant.name : '골프장 주변 맛집 선택하기'}</span>
-                    <span class="picker-ico">🍲</span>
+                    <span class="picker-ico">${RI(REG_ICON.search)}</span>
                   </button>
                 </div>
               </div>
@@ -285,7 +305,7 @@ const Register = {
             <!-- 7. Post Meal Toggle -->
             <div class="meal-section">
               <div class="meal-header">
-                <span class="meal-title">🍻 라운딩 후 식사 (뒷풀이)</span>
+                <span class="meal-title">${regTitleIcon('cheers')} 라운딩 후 식사 (뒷풀이)</span>
                 <div class="toggle ${this.hasPostMeal?'on':''}" id="postmeal-toggle" onclick="Register.toggleMeal('post')"></div>
               </div>
               <div class="meal-body ${this.hasPostMeal?'show':''}" id="postmeal-body">
@@ -293,7 +313,7 @@ const Register = {
                   <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">뒷풀이 식당 선택</label>
                   <button class="picker-btn" onclick="Register.openRestaurantPicker('post')">
                     <span class="picker-val ${!this.postMealRestaurant?'is-empty':''}" id="r-post-restaurant">${this.postMealRestaurant ? this.postMealRestaurant.name : '식당을 선택하세요 (반경 10km 검색)'}</span>
-                    <span class="picker-ico">🍖</span>
+                    <span class="picker-ico">${RI(REG_ICON.search)}</span>
                   </button>
                 </div>
               </div>
@@ -302,10 +322,10 @@ const Register = {
             <!-- 8. Companions Card -->
             <div class="reg-card">
               <div class="reg-card-title">
-                <span>👥</span> 동반자 초대 (선택)
+                ${regTitleIcon('users')} 동반자 초대 (선택)
               </div>
               <button class="invite-btn" id="r-invite" onclick="Register.openCompanionModal()">
-                <span>+ 카카오톡 동반자 선택 및 초대</span><span>🏌️</span>
+                <span>카카오톡 동반자 선택 및 초대</span><span class="picker-ico">${RI(REG_ICON.plus)}</span>
               </button>
               <div class="invite-tags" id="r-tags"></div>
             </div>
@@ -314,7 +334,7 @@ const Register = {
           <!-- Submit Button -->
           <div class="reg-submit">
             <button class="btn btn-primary" id="r-submit" onclick="Register.createPlan()">
-              ${isEdit ? '라운딩 일정 수정 완료' : '⛳ 스마트 플랜 & 타임라인 생성'}
+              ${isEdit ? '라운딩 일정 수정 완료' : '스마트 플랜 & 타임라인 생성'}
             </button>
           </div>
         </div>
@@ -355,7 +375,7 @@ const Register = {
     
     drop.innerHTML = this.searchResults.map(c => `
       <div class="search-item" onclick="Register.selectCourse('${c.id}')">
-        <div class="search-item-icon">⛳</div>
+        <div class="search-item-icon">${RI(REG_ICON.flag, 16)}</div>
         <div class="search-item-info">
           <div class="search-item-name">${U.hlMatch(c.place_name, q)}</div>
           <div class="search-item-addr">${c.address_name}</div>
@@ -379,7 +399,7 @@ const Register = {
     U.$('#r-results').classList.remove('show');
     const hint = U.$('#r-hint');
     if (hint) {
-      hint.innerHTML = `📍 ${this.course.addr}`;
+      hint.innerHTML = `<span style="display:inline-flex;vertical-align:-2px;margin-right:3px;">${RI(REG_ICON.pin, 13)}</span>${U.esc(this.course.addr)}`;
       hint.style.color = 'var(--accent)';
     }
     
@@ -391,7 +411,7 @@ const Register = {
       restDisplay.classList.add('empty');
     }
     
-    U.toast(`⛳ ${c.name} 선택 완료`); U.haptic();
+    U.toast(`${this.course.name} 선택 완료`); U.haptic();
   },
 
   openDatePicker() {
@@ -431,7 +451,7 @@ const Register = {
       <button class="btn btn-gold" onclick="Register.confirmDatePicker()" style="width:100%">날짜 선택 완료</button>
     `;
     
-    App.showModal('📅 라운딩 날짜 선택', content);
+    App.showModal('라운딩 날짜 선택', content);
 
     setTimeout(() => {
       const hYear = U.$('#w-year');
@@ -511,7 +531,7 @@ const Register = {
       <button class="btn btn-gold" onclick="Register.confirmTimePicker()" style="width:100%">선택 완료</button>
     `;
 
-    App.showModal('⏰ 티오프 시간 선택', content);
+    App.showModal('티오프 시간 선택', content);
 
     setTimeout(() => {
       const hAmPm = U.$('#w-ampm');
@@ -602,12 +622,12 @@ const Register = {
   },
 
   searchCustomAddress() {
-    let title = '📍 출발지 주소 검색';
+    let title = '출발지 주소 검색';
     if (this.searchMode === 'meeting') {
-      title = '🤝 집결지 주소 검색';
+      title = '집결지 주소 검색';
     } else {
-      if (this.startPoint === '집') title = '🏠 집 주소 검색';
-      else if (this.startPoint === '회사') title = '🏢 회사 주소 검색';
+      if (this.startPoint === '집') title = '집 주소 검색';
+      else if (this.startPoint === '회사') title = '회사 주소 검색';
     }
 
     App.openAddressSearch(title, (selectedPlace) => {
@@ -658,11 +678,11 @@ const Register = {
   setMealTime(t, btn) { this.mealDuration=t; U.$$('#meal-pills .pill').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); U.haptic(); },
 
   async openRestaurantPicker(type = 'pre') {
-    if (!this.course || !this.course.lat) { U.toast('⚠️ 골프장을 먼저 선택해주세요'); return; }
+    if (!this.course || !this.course.lat) { U.toast('골프장을 먼저 선택해주세요'); return; }
     
     window._currentMealType = type;
     const isPost = type === 'post';
-    const title = isPost ? '🍻 뒷풀이 식당 선택' : '🍽️ 라운딩 전 식당 선택';
+    const title = isPost ? '뒷풀이 식당 선택' : '라운딩 전 식당 선택';
     const radius = isPost ? 10 : 5; // 뒷풀이는 10km
     
     // 모달을 띄우되, 로딩 상태로 먼저 보여줍니다.
@@ -680,20 +700,20 @@ const Register = {
     const isGolferPick = filterKeyword === '골퍼추천';
     
     // ── 필터 바 (⛳ 골퍼추천 탭 최상단) ──
-    const filters = ['⛳ 골퍼추천', '전체', '해장/국밥', '고기/구이', '한식', '중식'];
+    const filters = ['골퍼추천', '전체', '해장/국밥', '고기/구이', '한식', '중식'];
     const filterHtml = `
       <div style="display:flex; overflow-x:auto; gap:var(--sp-2); padding-bottom:var(--sp-3); margin-bottom:var(--sp-2); border-bottom:1px solid var(--border); scrollbar-width:none;">
         ${filters.map(f => {
-          const key = f === '⛳ 골퍼추천' ? '골퍼추천' : (f === '전체' ? '' : f);
-          const isOn = filterKeyword === key || (f === '⛳ 골퍼추천' && isGolferPick) || (f === '전체' && !filterKeyword && !isGolferPick);
-          const style = f === '⛳ 골퍼추천' 
+          const key = f === '골퍼추천' ? '골퍼추천' : (f === '전체' ? '' : f);
+          const isOn = filterKeyword === key || (f === '골퍼추천' && isGolferPick) || (f === '전체' && !filterKeyword && !isGolferPick);
+          const style = f === '골퍼추천' 
             ? `flex-shrink:0; padding:6px 12px; font-size:var(--text-sm); ${isOn ? 'background:linear-gradient(135deg,#22c987,#0c5c3f); color:#fff; border-color:transparent;' : 'border:1px solid #22c987; color:#22c987;'}`
             : `flex-shrink:0; padding:6px 12px; font-size:var(--text-sm);`;
           return `<button class="pill ${isOn?'on':''}" style="${style}" onclick="Register.renderRestaurantModalList('${title}', '${key}')">${f}</button>`;
         }).join('')}
       </div>
       <div class="list-item" style="cursor:pointer; background:var(--bg); border:1px solid var(--border); margin-bottom:var(--sp-3); display:flex; align-items:center; gap:var(--sp-2); padding:12px; border-radius:var(--r-md);" onclick="Register.searchCustomRestaurant()">
-        <span style="font-size:1.2rem;">🔍</span>
+        <span style="display:inline-flex;color:#94a3b8;">${RI(REG_ICON.search, 18)}</span>
         <div>
           <div style="color:var(--primary-600); font-weight:bold; font-size:var(--fs-md);">식당 이름 직접 검색하기</div>
           <div style="font-size:var(--text-sm); color:var(--text-400);">원하는 식당이 없다면 직접 찾아보세요</div>
@@ -801,13 +821,13 @@ const Register = {
     }
     
     App.closeModal(); 
-    U.toast(`${isPost?'🍻':'⛳'} ${restObj.name} 선택 완료`); 
+    U.toast(`${restObj.name} 선택 완료`); 
     U.haptic();
   },
 
   searchCustomRestaurant() {
     const isPost = window._currentMealType === 'post';
-    App.openAddressSearch('🔍 식당 직접 검색', (selectedPlace) => {
+    App.openAddressSearch('식당 직접 검색', (selectedPlace) => {
       const restObj = {
         name: selectedPlace.name || selectedPlace.place_name,
         lat: selectedPlace.lat || selectedPlace.y,
@@ -827,7 +847,7 @@ const Register = {
       }
       
       App.closeModal(); 
-      U.toast(`${isPost?'🍻':'🍽️'} ${restObj.name} 선택 완료`); 
+      U.toast(`${restObj.name} 선택 완료`); 
       U.haptic();
     });
   },
@@ -858,7 +878,7 @@ const Register = {
     }
     
     App.closeModal(); 
-    U.toast(`${isPost?'🍻':'🍽️'} ${restObj.name} 선택 완료`); 
+    U.toast(`${restObj.name} 선택 완료`); 
     U.haptic();
   },
 
@@ -936,11 +956,11 @@ const Register = {
   removeInvite(id) { this.invited=this.invited.filter(c=>c.id!==id); this.updateTags(); U.haptic(); },
 
   async createPlan() {
-    if (!this.course) { U.toast('⚠️ 골프장을 선택해주세요'); return; }
-    if (!this.date) { U.toast('⚠️ 날짜를 선택해주세요'); return; }
-    if (this.timeH === null || this.timeM === null) { U.toast('⚠️ 시간을 선택해주세요'); return; }
-    if (this.hasMeal && !this.mealRestaurant) { U.toast('⚠️ 식당을 선택하거나 식사를 끄세요'); return; }
-    if (this.hasPostMeal && !this.postMealRestaurant) { U.toast('⚠️ 뒷풀이 식당을 선택하거나 기능을 끄세요'); return; }
+    if (!this.course) { U.toast('골프장을 선택해주세요'); return; }
+    if (!this.date) { U.toast('날짜를 선택해주세요'); return; }
+    if (this.timeH === null || this.timeM === null) { U.toast('시간을 선택해주세요'); return; }
+    if (this.hasMeal && !this.mealRestaurant) { U.toast('식당을 선택하거나 식사를 끄세요'); return; }
+    if (this.hasPostMeal && !this.postMealRestaurant) { U.toast('뒷풀이 식당을 선택하거나 기능을 끄세요'); return; }
     // 무료 회원 일정 개수 제한 (수정은 제외)
     if (this.editIdx === null && !Billing.guardScheduleLimit()) return;
 
@@ -957,7 +977,7 @@ const Register = {
     else valObj = this.customStartObj;
     
     if (!valObj || !valObj.lat) {
-      U.toast('⚠️ 출발지 주소를 정확히 검색하여 등록해주세요.'); 
+      U.toast('출발지 주소를 정확히 검색하여 등록해주세요.'); 
       btn.innerHTML = originalText; btn.disabled = false;
       return;
     }
@@ -1036,7 +1056,7 @@ const Register = {
       }
     } catch (e) {
       console.error("TMAP 연동 중 에러 발생:", e);
-      U.toast('⚠️ 예측 경로 탐색 오류. 기본 소요시간으로 계산됩니다.');
+      U.toast('예측 경로 탐색 오류. 기본 소요시간으로 계산됩니다.');
     }
 
     const schedData = {
@@ -1063,7 +1083,7 @@ const Register = {
 
     if (this.editIdx !== null) {
       State.updateSchedule(this.editIdx, schedData);
-      U.toast('✅ 스마트 플랜이 수정되었습니다!');
+      U.toast('스마트 플랜이 수정되었습니다!');
       const idx = this.editIdx;
       this.editIdx = null;
       btn.innerHTML = originalText; btn.disabled = false;
@@ -1072,7 +1092,7 @@ const Register = {
       App.showInterstitialAd();
     } else {
       State.addSchedule(schedData);
-      U.toast('✅ 스마트 플랜이 생성되었습니다!');
+      U.toast('스마트 플랜이 생성되었습니다!');
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(State.schedules.length - 1);
       Timeline.toggleAlarm();

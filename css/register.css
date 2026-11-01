@@ -218,3 +218,17 @@
   transform: scale(0.98);
   opacity: 0.9;
 }
+
+/* ── 선 아이콘 (이모지 대체, 메인 화면 남색 톤) ── */
+.reg-ico {
+  width: 26px; height: 26px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #eef3fb; color: #0b3d91; flex-shrink: 0;
+}
+.reg-card-title, .meal-title { gap: 8px; }
+.picker-ico { display: inline-flex; align-items: center; color: #94a3b8; }
+.picker-btn.picker-date .picker-ico { color: #3b82f6; }
+.picker-btn.picker-time .picker-ico { color: #d97706; }
+#screen-register .field-input .fi-icon { display: inline-flex; color: #94a3b8; }
+#r-startpoint-pills .pill { display: inline-flex; align-items: center; gap: 5px; }
+.invite-btn .picker-ico { color: #64748b; }

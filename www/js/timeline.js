@@ -95,13 +95,13 @@ const Timeline = {
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
               <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
-                🌤️ 날씨
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px;"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>날씨
               </button>
               <button id="tl-alarm-btn" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:#ffffff; color:#334155; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
-                🔔 알람 켜기
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px;"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>알람 켜기
               </button>
               <button style="border:1px solid rgba(217,119,6,0.25); background:#fffbeb; color:#b45309; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;" onclick="Register.edit(${this.schedIdx})">
-                ✏️ 일정 수정
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>일정 수정
               </button>
             </div>
           </div>
@@ -250,7 +250,7 @@ const Timeline = {
     if (visibleItems.length === 0) {
       const list = U.$('.tl-list');
       if (list && !U.$('.tl-empty-msg')) {
-        list.innerHTML += `<div class="tl-empty-msg" style="text-align:center; padding:40px 20px; color:var(--text-400);">모든 일정이 종료되었습니다. 수고하셨습니다! 👏</div>`;
+        list.innerHTML += `<div class="tl-empty-msg" style="text-align:center; padding:40px 20px; color:var(--text-400);">모든 일정이 종료되었습니다. 수고하셨습니다!</div>`;
       }
     }
   },
@@ -260,7 +260,7 @@ const Timeline = {
       State.schedules.splice(this.schedIdx, 1);
       State.saveSchedules();
       App.navigate('home');
-      U.toast('🗑️ 일정이 삭제되었습니다.');
+      U.toast('일정이 삭제되었습니다.');
     }
   },
 
@@ -600,7 +600,7 @@ const Timeline = {
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 22V2l10 5-10 5"></path></svg>
             티오프!
           </div>
-          <div class="tl-detail">멋진 라운딩 되세요! 🏌️‍♂️</div>
+          <div class="tl-detail">멋진 라운딩 되세요!</div>
         </div>
       </div>`;
 
@@ -615,7 +615,7 @@ const Timeline = {
         <div class="tl-card">
           <div class="tl-time">${tl.postMealStart}</div>
           <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-            🍻 ${tl.postMealRestaurant.name} (뒷풀이)
+            ${tl.postMealRestaurant.name} (뒷풀이)
           </div>
           <div class="tl-detail">라운딩 후 식사 예정 (약 2시간)</div>
           ${postRatingHtml}
@@ -686,14 +686,14 @@ const Timeline = {
 
   openNav(app, destName, destLat, destLng, startName='', startLat=0, startLng=0) {
     if (app === 'tmap') {
-      U.toast(`🗺️ Tmap으로 길안내를 시작합니다: ${destName}`);
+      U.toast(`Tmap으로 길안내를 시작합니다: ${destName}`);
       if (startLat && startLng) {
         window.location.href = `tmap://route?startname=${encodeURIComponent(startName)}&startx=${startLng}&starty=${startLat}&goalname=${encodeURIComponent(destName)}&goalx=${destLng}&goaly=${destLat}`;
       } else {
         window.location.href = `tmap://route?goalname=${encodeURIComponent(destName)}&goalx=${destLng}&goaly=${destLat}`;
       }
     } else if (app === 'kakao') {
-      U.toast(`🚙 카카오맵/내비로 길안내를 시작합니다: ${destName}`);
+      U.toast(`카카오맵/내비로 길안내를 시작합니다: ${destName}`);
       if (startLat && startLng) {
         window.location.href = `kakaomap://route?sp=${startLat},${startLng}&ep=${destLat},${destLng}&by=CAR`;
       } else {
@@ -709,7 +709,7 @@ const Timeline = {
     const isAlarmOn = btn.classList.contains('alarm-on');
     if (isAlarmOn) {
       btn.classList.remove('alarm-on');
-      btn.innerHTML = '🔔 알람 켜기';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px;"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>알람 켜기';
       btn.style.background = 'transparent';
       btn.style.color = 'var(--accent)';
       
@@ -731,7 +731,7 @@ const Timeline = {
       U.toast('동선 타임라인 알람이 해제되었습니다.');
     } else {
       btn.classList.add('alarm-on');
-      btn.innerHTML = '🔔 알람 켜짐';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px;"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>알람 켜짐';
       btn.style.background = 'var(--accent)';
       btn.style.color = '#fff';
       
@@ -758,7 +758,7 @@ const Timeline = {
           this.scheduleTimelineAlarms();
         });
       } else {
-        U.toast('아이폰 푸시 알림은 지원하지 않지만 앱 내 알람은 정상 작동합니다!');
+        U.toast('앱이 켜져 있는 동안 타임라인 알람이 울려요.');
         this.scheduleTimelineAlarms();
       }
     }
@@ -1082,11 +1082,11 @@ const Timeline = {
 
       const events = [
         { time: parseTime(tl.prepStart), name: '준비 중 (짐 챙기기)' },
-        { time: parseTime(tl.homeDepart), name: '목적지로 이동 중 🚗' },
-        { time: parseTime(tl.mealStart), name: '식사 중 🍽️' },
-        { time: parseTime(tl.restDepart), name: '골프장으로 이동 중 🚙' },
-        { time: parseTime(tl.arrival), name: '환복 및 라운딩 준비 🏌️' },
-        { time: parseTime(tl.teeOff), name: '라운딩 진행 중 ⛳' },
+        { time: parseTime(tl.homeDepart), name: '목적지로 이동 중' },
+        { time: parseTime(tl.mealStart), name: '식사 중' },
+        { time: parseTime(tl.restDepart), name: '골프장으로 이동 중' },
+        { time: parseTime(tl.arrival), name: '환복 및 라운딩 준비' },
+        { time: parseTime(tl.teeOff), name: '라운딩 진행 중' },
       ].filter(e => e.time !== Infinity).sort((a, b) => a.time - b.time);
 
       let currentEvent = null;
