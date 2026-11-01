@@ -30,7 +30,7 @@ const Calendar = {
     const m = State.calMonth !== undefined ? State.calMonth : new Date().getMonth();
 
     el.innerHTML = `
-      <div class="screen-scroll" style="padding-top: var(--header-h); padding-bottom: calc(var(--nav-h) + 16px); background:#f8fafc;">
+      <div class="screen-scroll" style="padding-top: var(--header-h); padding-bottom: calc(var(--nav-h) + var(--safe-bottom, 0px) + 16px); background:#f8fafc;">
         <div class="cal-main-container">
           <!-- 1. 화이트 캘린더 카드 컨테이너 -->
           <div class="cal-card-box">

@@ -241,7 +241,7 @@
   background: #ffffff;
   border-radius: 26px 26px 0 0;
   /* 하단 여백은 흰 시트 안에 둬서 화면 아래에 남색 띠가 보이지 않게 함 */
-  padding: 16px 18px calc(var(--nav-h) + 40px);
+  padding: 16px 18px calc(var(--nav-h) + var(--safe-bottom, 0px) + 40px);
   position: relative;
   z-index: 3;
   margin-top: -16px;

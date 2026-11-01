@@ -2,7 +2,7 @@
    BuddyPlanner — 마켓 상품 관리 (관리자)
    ========================================= */
 
-.adm-wrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f8fafc; min-height: 100%; padding-bottom: calc(var(--nav-h, 64px) + 40px); }
+.adm-wrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f8fafc; min-height: 100%; padding-bottom: calc(var(--nav-h, 64px) + var(--safe-bottom, 0px) + 40px); }
 .adm-head {
   position: sticky; top: 0; z-index: 5; height: 56px; background: #0f172a; color: #fff;
   display: flex; align-items: center; justify-content: space-between; padding: 0 18px;

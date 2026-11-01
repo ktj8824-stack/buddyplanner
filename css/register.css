@@ -199,7 +199,7 @@
 
 /* ── Submit ── */
 .reg-submit {
-  padding: 8px 0 calc(var(--nav-h) + 16px);
+  padding: 8px 0 calc(var(--nav-h) + var(--safe-bottom, 0px) + 16px);
 }
 .reg-submit .btn-primary {
   width: 100%;

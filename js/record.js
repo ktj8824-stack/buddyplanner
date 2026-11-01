@@ -105,7 +105,7 @@ const Record = {
     const displayCount = roundCount;
 
     container.innerHTML = `
-      <div class="screen-scroll" style="background:#f8fafc; padding-top:var(--header-h); padding-bottom:calc(var(--nav-h) + 16px);">
+      <div class="screen-scroll" style="background:#f8fafc; padding-top:var(--header-h); padding-bottom:calc(var(--nav-h) + var(--safe-bottom, 0px) + 16px);">
         
         <!-- Record Top Section -->
         <div style="padding: 16px 20px 8px;">
