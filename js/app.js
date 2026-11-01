@@ -140,7 +140,7 @@ const App = {
     }
     this.updateNav(['timeline', 'register'].includes(name) ? 'calendar' : name);
     
-    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade'];
+    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade', 'admin'];
     const nav = U.$('#top-header');
     if (nav) {
       if (hideHeaderScreens.includes(name)) {

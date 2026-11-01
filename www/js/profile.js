@@ -10,6 +10,11 @@ const Profile = {
     const app = U.$('#screen-profile');
     if (!app) return;
 
+    // 관리자 계정인지 서버에 한 번 확인하고, 맞으면 메뉴를 보여 주려고 다시 그림
+    if (typeof Admin !== 'undefined' && Admin.isAdmin === null) {
+      Admin.checkAdmin().then(ok => { if (ok && State.screen === 'profile') this.render(); });
+    }
+
     // 현재 설정 불러오기
     const currentFont = localStorage.getItem('bp_font') || 'Pretendard';
     const currentSize = localStorage.getItem('bp_size') || 'medium';
@@ -139,7 +144,7 @@ const Profile = {
             </div>
           </div>
           
-          ${(window.APP_CONFIG || {}).ADMIN_MODE ? `
+          ${this.canAdmin() ? `
           <div class="setting-card" style="margin-top:20px;">
             <div class="setting-item" style="cursor:pointer" onclick="Profile.openAdmin()">
               <div class="address-input-wrap" style="flex:1">
@@ -381,9 +386,14 @@ const Profile = {
     }
   },
 
+  /** 관리자 메뉴 표시: 개발용 ADMIN_MODE 또는 서버가 확인한 관리자 계정 */
+  canAdmin() {
+    return !!(window.APP_CONFIG || {}).ADMIN_MODE || (typeof Admin !== 'undefined' && Admin.isAdmin === true);
+  },
+
   openAdmin() {
-    // 출시 빌드(config.js의 ADMIN_MODE: false)에서는 진입 불가
-    if (!(window.APP_CONFIG || {}).ADMIN_MODE) return;
+    // 실제 상품 변경 권한은 서버가 다시 확인함 (관리자 계정만)
+    if (!this.canAdmin()) return;
     U.toast('관리자 모드에 진입합니다.');
     App.navigate('admin');
   },
