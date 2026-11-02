@@ -149,6 +149,11 @@ const Cloud = {
 
   /** 웹: 카카오 등 OAuth 로그인 페이지로 이동 (돌아오면 init에서 세션 처리) */
   startOAuth(provider) {
+    // 앱(Capacitor) 안에서는 사용하지 않음 — 로그인 후 앱으로 돌아올 수 없어서 브라우저의 웹사이트로 가 버림
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) {
+      console.warn('[Cloud] 앱에서는 웹 OAuth를 쓰지 않습니다:', provider);
+      return;
+    }
     const { url } = this.cfg();
     const back = window.location.origin + window.location.pathname;
     window.location.href = `${url}/auth/v1/authorize?provider=${encodeURIComponent(provider)}&redirect_to=${encodeURIComponent(back)}`;

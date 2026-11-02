@@ -175,6 +175,14 @@ const Login = {
 
     // [추가] 모바일(Capacitor) 환경일 경우 네이티브 로그인 사용
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      // 앱 안에서는 웹(브라우저) 카카오 로그인을 쓰지 않음: 로그인 후 앱으로 돌아오지 못하고
+      // 브라우저의 웹사이트로 가 버리기 때문. 네이티브 카카오 로그인이 준비되지 않은 기기면 안내만 함.
+      const avail = typeof window.Capacitor.isPluginAvailable === 'function'
+        ? window.Capacitor.isPluginAvailable('CapacitorKakaoLogin') : true;
+      if (!avail) {
+        U.toast('이 기기에서는 카카오 로그인을 준비 중이에요. 구글 로그인을 이용해 주세요.', 3500);
+        return;
+      }
       if (!window.Capacitor.Plugins.CapacitorKakaoLogin && window.Capacitor.registerPlugin) {
         window.Capacitor.Plugins.CapacitorKakaoLogin = window.Capacitor.registerPlugin('CapacitorKakaoLogin');
       }
@@ -207,6 +215,8 @@ const Login = {
           });
         return;
       }
+      U.toast('카카오 로그인을 시작하지 못했어요. 앱을 최신 버전으로 업데이트해 주세요.', 3500);
+      return;
     }
 
     // 웹 + 클라우드 사용: Supabase의 카카오 로그인 페이지로 이동 (돌아오면 App.init에서 로그인 완료)
