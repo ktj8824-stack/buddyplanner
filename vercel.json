@@ -1,0 +1,5 @@
+{
+  "installCommand": "echo 'no install needed'",
+  "buildCommand": "node scripts/write-web-config.js && node build.js",
+  "outputDirectory": "www"
+}

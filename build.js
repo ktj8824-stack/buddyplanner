@@ -23,7 +23,9 @@ const excludeList = [
     'package',
     'team-lepisode-capacitor-kakao-login-8.0.0.tgz',
     'config.example.js',
-    'supabase'   // 서버 설정 SQL은 앱에 포함하지 않음
+    'supabase',  // 서버 설정 SQL은 앱에 포함하지 않음
+    'scripts',   // 배포용 도우미 스크립트
+    'vercel.json'
 ];
 
 // API 키 설정 파일이 없으면 키 없는 앱이 만들어지므로 빌드를 중단합니다.
