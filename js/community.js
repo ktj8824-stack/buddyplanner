@@ -23,7 +23,7 @@ const Community = {
     this.render();
     this.load(true);
     // 관리자면 글쓰기에 '운영팀 공지' 스위치를 보여 주려고 미리 확인
-    if (typeof Admin !== 'undefined' && Admin.isAdmin === null) Admin.checkAdmin();
+    if (typeof Admin !== 'undefined' && Admin.isAdmin !== true) Admin.checkAdmin().then(ok => { if (ok && State.screen === 'community') this.render(); });
   },
   isAdmin() { return typeof Admin !== 'undefined' && Admin.isAdmin === true; },
 

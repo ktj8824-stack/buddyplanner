@@ -11,7 +11,7 @@ const Profile = {
     if (!app) return;
 
     // 관리자 계정인지 서버에 한 번 확인하고, 맞으면 메뉴를 보여 주려고 다시 그림
-    if (typeof Admin !== 'undefined' && Admin.isAdmin === null) {
+    if (typeof Admin !== 'undefined' && Admin.isAdmin !== true) {
       Admin.checkAdmin().then(ok => { if (ok && State.screen === 'profile') this.render(); });
     }
 

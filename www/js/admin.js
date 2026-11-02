@@ -26,6 +26,9 @@ const Admin = {
   /** 서버에 관리자인지 물어봄 (프로필 메뉴 표시용) */
   async checkAdmin() {
     if (typeof Cloud === 'undefined' || !Cloud.isConfigured() || !Cloud.isSignedIn()) return false;
+    // 관리자가 아니라는 결과는 1분만 기억 (그 사이 관리자로 지정되면 새로고침 없이 반영)
+    if (this.isAdmin === false && Date.now() - (this._checkedAt || 0) < 60000) return false;
+    this._checkedAt = Date.now();
     try { this.isAdmin = (await this.rpc('is_app_admin')) === true; } catch (e) { this.isAdmin = false; }
     return this.isAdmin;
   },
