@@ -11,9 +11,18 @@ const Admin = {
   draft: null,      // 추가·수정 중인 상품
   isAdmin: null,    // 서버 확인 결과 캐시 (null = 아직 모름)
 
-  CATS: [['ball', '골프공'], ['wear', '골프웨어'], ['glove_cap', '장갑/모자'], ['shoes', '골프화'], ['club_bag', '클럽/백'], ['etc', '기타']],
+  // 상품이 보일 앱 (같은 마켓 서버를 세 앱이 같이 씀)
+  APPS: [['buddyplanner', 'BuddyPlanner'], ['myplanner', '마이플래너'], ['managerplanner', '매니저플래너']],
+  appFilter: 'all',
+  CATS: [['ball', '골프공'], ['wear', '골프웨어'], ['glove_cap', '장갑/모자'], ['shoes', '골프화'], ['club_bag', '클럽/백'],
+    ['car', '차량용품'], ['travel', '여행/이동'], ['charge', '충전/전자'], ['office', '사무/문구'], ['life', '생활용품'], ['etc', '기타']],
   // 상품명으로 카테고리 추측 (앞쪽 규칙이 우선)
   CAT_WORDS: [
+    ['charge', ['보조배터리', '충전기', '충전 케이블', '케이블', '거치대', '무선충전', '멀티탭', '이어폰', '블루투스']],
+    ['car', ['차량용', '차량 ', '자동차', '방향제', '블랙박스', '세차', '시트커버', '핸들']],
+    ['travel', ['캐리어', '여행', '목베개', '파우치', '수납', '우산', '양산']],
+    ['office', ['노트', '다이어리', '볼펜', '펜 ', '문구', '플래너', '스티커', '포스트잇', '사무']],
+    ['life', ['텀블러', '물병', '마스크', '손난로', '물티슈', '간식', '영양제']],
     ['shoes', ['골프화', '스파이크', '슈즈', '신발']],
     ['glove_cap', ['장갑', '글러브', '모자', '캡', '썬캡', '선캡', '바이저', '버킷햇']],
     ['ball', ['골프공', '볼', '공 ', '프로v1', 'pro v1', 'prov1']],
@@ -54,6 +63,8 @@ const Admin = {
   },
 
   catName(k) { const c = this.CATS.find(x => x[0] === k); return c ? c[1] : '기타'; },
+  appName(k) { const a = this.APPS.find(x => x[0] === k); return a ? a[1] : k; },
+  setAppFilter(k) { this.appFilter = k; this.render(); },
 
   render() {
     const screen = document.getElementById('screen-admin');
@@ -63,9 +74,14 @@ const Admin = {
     if (this.loading && !n) body = `<div class="adm-empty"><div class="spinner" style="margin:0 auto;"></div></div>`;
     else if (this.error) body = `<div class="adm-empty">${U.esc(this.error)}</div>`;
     else if (!n) body = `<div class="adm-empty">아직 등록된 상품이 없어요.<br>위 버튼으로 첫 상품을 추가해 보세요.</div>`;
-    else body = `
-      <div class="adm-count">등록된 상품 ${n}개 · 끌어서 순서 변경</div>
-      <div class="adm-list" id="adm-list">${this.items.map(p => this.itemHtml(p)).join('')}</div>`;
+    else {
+      const shown = this.appFilter === 'all' ? this.items : this.items.filter(p => (p.apps || ['buddyplanner']).includes(this.appFilter));
+      body = `
+      <div class="adm-apps-tabs">${[['all', '전체'], ...this.APPS].map(([k, l]) =>
+        `<button class="adm-chip ${this.appFilter === k ? 'on' : ''}" onclick="Admin.setAppFilter('${k}')">${l}</button>`).join('')}</div>
+      <div class="adm-count">${this.appFilter === 'all' ? '등록된 상품' : this.appName(this.appFilter) + ' 상품'} ${shown.length}개${this.appFilter === 'all' ? ' · 끌어서 순서 변경' : ''}</div>
+      <div class="adm-list" id="adm-list">${shown.map(p => this.itemHtml(p)).join('')}</div>`;
+    }
 
     screen.innerHTML = `
       <div class="adm-wrap">
@@ -78,7 +94,7 @@ const Admin = {
           ${body}
         </div>
       </div>`;
-    this.bindDrag();
+    if (this.appFilter === 'all') this.bindDrag();
   },
 
   imgHtml(src) {
@@ -93,7 +109,9 @@ const Admin = {
         ${this.imgHtml(p.image_url)}
         <div class="adm-info">
           <div class="adm-cat">${this.catName(p.category)} <span class="adm-state ${p.active ? '' : 'off'}">${p.active ? '노출 중' : '숨김'}</span></div>
+          <div class="adm-app-tags">${(p.apps || ['buddyplanner']).map(a => `<span>${this.appName(a)}</span>`).join('')}</div>
           <div class="adm-title">${U.esc(p.title)}</div>
+          ${typeof p.ref_price === 'number' ? `<div class="adm-price">${p.ref_price.toLocaleString()}원${p.ref_price_at ? ` · ${String(p.ref_price_at).slice(5).replace('-', '/')} 기준` : ''}${p.rocket ? ' · 로켓배송' : ''}</div>` : ''}
           <div class="adm-acts">
             <button class="adm-btn" onclick="Admin.openEditor(${p.id})">수정</button>
             <button class="adm-btn mute" onclick="Admin.toggle(${p.id})">${p.active ? '숨기기' : '보이기'}</button>
@@ -131,11 +149,15 @@ const Admin = {
   openEditor(id = null) {
     const p = id ? this.items.find(x => x.id === id) : null;
     this.draft = p
-      ? { id: p.id, link: p.link || '', image: p.image_url || '', title: p.title || '', category: p.category, brand: p.brand || '', autoCat: false }
-      : { id: null, link: '', image: '', title: '', category: 'etc', brand: '', autoCat: true };
+      ? { id: p.id, link: p.link || '', image: p.image_url || '', title: p.title || '', category: p.category, brand: p.brand || '', autoCat: false, apps: (p.apps || ['buddyplanner']).slice() }
+      : { id: null, link: '', image: '', title: '', category: 'etc', brand: '', autoCat: true, apps: [this.appFilter === 'all' ? 'buddyplanner' : this.appFilter] };
+    const curPrice = p && typeof p.ref_price === 'number' ? p.ref_price : '';
+    const curRocket = !!(p && p.rocket);
     App.showModal(id ? '상품 수정' : '쿠팡 상품 추가', `
       <div class="adm-sheet">
         <div class="adm-guide">쿠팡 파트너스 → 상품 링크 → <b>HTML 복사</b> 후 아래에 붙여넣으세요. 단축 URL만 붙여넣어도 돼요.</div>
+        <div class="adm-lab">⓪ 보일 앱 <span class="adm-auto" style="color:#94a3b8;">여러 개 선택 가능</span></div>
+        <div class="adm-chips" id="adm-apps"></div>
         <div class="adm-lab">① 붙여넣기</div>
         <textarea id="adm-paste" class="adm-paste" rows="3" placeholder="여기에 붙여넣기" oninput="Admin.onPaste()">${p ? U.esc(p.link || '') : ''}</textarea>
         <div id="adm-found" class="adm-found"></div>
@@ -144,6 +166,12 @@ const Admin = {
         <input id="adm-name" class="adm-input" maxlength="100" placeholder="예: 풋조이 남성 골프장갑" value="${p ? U.esc(p.title) : ''}" oninput="Admin.onName()">
         <div class="adm-lab">③ 카테고리 <span id="adm-auto" class="adm-auto"></span></div>
         <div class="adm-chips" id="adm-chips"></div>
+        <div class="adm-lab">④ 참고 가격 <span class="adm-auto" style="color:#94a3b8;">선택 · 저장한 날짜가 기준일로 표시돼요</span></div>
+        <div class="adm-price-row">
+          <input id="adm-price" class="adm-input" inputmode="numeric" placeholder="예: 29900" value="${curPrice}">
+          <span class="adm-won">원</span>
+          <label class="adm-rocket"><input type="checkbox" id="adm-rocket" ${curRocket ? 'checked' : ''}> 로켓배송</label>
+        </div>
         <button id="adm-save" class="adm-save" onclick="Admin.save()">${id ? '수정 완료' : '마켓에 등록'}</button>
       </div>`);
     this.refreshSheet();
@@ -167,6 +195,13 @@ const Admin = {
     this.refreshSheet();
   },
 
+  toggleApp(k) {
+    const d = this.draft; if (!d) return;
+    if (d.apps.includes(k)) { if (d.apps.length > 1) d.apps = d.apps.filter(x => x !== k); else U.toast('앱을 하나 이상 골라 주세요.'); }
+    else d.apps.push(k);
+    this.refreshSheet();
+  },
+
   pickCat(k) {
     if (!this.draft) return;
     this.draft.category = k; this.draft.autoCat = false;
@@ -187,6 +222,9 @@ const Admin = {
       <div class="adm-prev">${this.imgHtml(d.image)}<div class="adm-info"><div class="adm-cat">미리보기</div><div class="adm-title">${U.esc(d.title || '상품명을 입력하세요')}</div></div></div>` : '';
     const auto = U.$('#adm-auto');
     if (auto) auto.textContent = d.autoCat && d.title ? '자동 선택됨' : '';
+    const appsEl = U.$('#adm-apps');
+    if (appsEl) appsEl.innerHTML = this.APPS.map(([k, label]) =>
+      `<button class="adm-chip ${d.apps.includes(k) ? 'on' : ''}" onclick="Admin.toggleApp('${k}')">${d.apps.includes(k) ? '✓ ' : ''}${label}</button>`).join('');
     const chips = U.$('#adm-chips');
     if (chips) chips.innerHTML = this.CATS.map(([k, label]) =>
       `<button class="adm-chip ${d.category === k ? 'on' : ''}" onclick="Admin.pickCat('${k}')">${label}</button>`).join('');
@@ -199,11 +237,14 @@ const Admin = {
     if (!d.title) return U.toast('상품명을 입력해 주세요.');
     const btn = U.$('#adm-save'); if (btn) btn.disabled = true;
     try {
+      const priceTxt = String((U.$('#adm-price') || {}).value || '').replace(/[^0-9]/g, '');
       const r = await this.rpc('market_admin_save', {
-        p_id: d.id, p_category: d.category, p_title: d.title, p_link: d.link, p_image: d.image || null, p_brand: d.brand || null
+        p_id: d.id, p_category: d.category, p_title: d.title, p_link: d.link, p_image: d.image || null, p_brand: d.brand || null,
+        p_ref_price: priceTxt ? parseInt(priceTxt, 10) : null, p_rocket: !!(U.$('#adm-rocket') || {}).checked,
+        p_apps: d.apps
       });
       if (!r || !r.ok) {
-        const msg = { invalid_link: '쿠팡 링크만 등록할 수 있어요.', invalid_image: '사진 주소가 올바르지 않아요.', invalid_title: '상품명을 확인해 주세요.' }[r && r.error];
+        const msg = { invalid_link: '쿠팡 링크만 등록할 수 있어요.', invalid_image: '사진 주소가 올바르지 않아요.', invalid_title: '상품명을 확인해 주세요.', invalid_price: '가격을 확인해 주세요.', invalid_apps: '보일 앱을 골라 주세요.' }[r && r.error];
         U.toast(msg || '저장하지 못했어요.');
         if (btn) btn.disabled = false;
         return;

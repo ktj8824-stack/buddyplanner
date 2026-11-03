@@ -177,3 +177,7 @@
   font-weight: 700;
   color: var(--text-400);
 }
+
+/* 제휴 상품 참고 가격 · 로켓배송 */
+.market-ref-note { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.market-rocket { display: inline-block; align-self: flex-start; width: fit-content; font-size: 10.5px; font-weight: 800; color: #0073e9; background: #e8f3ff; border-radius: 4px; padding: 1px 5px; margin-bottom: 3px; }
