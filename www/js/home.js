@@ -380,9 +380,9 @@ const Home = {
               <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">⏱️</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">타임라인</span>
             </div>
-            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🍽️</div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">추천맛집</span>
+            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#ecfeff; color:#0891b2; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🛒</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">마켓</span>
             </div>
             ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">💬</div>
@@ -391,9 +391,9 @@ const Home = {
               <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🎁</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">럭키드로우</span>
             </div>`}
-            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#ecfeff; color:#0891b2; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🛒</div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">마켓</span>
+            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🍽️</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">추천맛집</span>
             </div>
           </div>
 
