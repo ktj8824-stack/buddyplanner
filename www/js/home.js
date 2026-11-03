@@ -370,32 +370,34 @@ const Home = {
             </button>
           </div>
 
-          <!-- Core Tool Quick Launch Grid -->
-          <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 20px;">
-            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">⛳</div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">일정등록</span>
+          <!-- Core Tool Quick Launch Grid: 위 2칸(일정등록·단체등록) + 아래 4칸 -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:40px; height:40px; border-radius:12px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;">⛳</div>
+              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">일정등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">내 라운딩 · 출발 알람</span></div>
             </div>
-            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#fef9c3; color:#a16207; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">👥</div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">단체일정</span>
+            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:40px; height:40px; border-radius:12px; background:#fef9c3; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;">👥</div>
+              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
             </div>
-            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px;">
+            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">⏱️</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">타임라인</span>
             </div>
-            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#ecfeff; color:#0891b2; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🛒</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">마켓</span>
             </div>
-            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">💬</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">커뮤니티</span>
-            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🎁</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">럭키드로우</span>
             </div>`}
-            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">🍽️</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">추천맛집</span>
             </div>
