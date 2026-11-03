@@ -3,7 +3,7 @@
    ========================================= */
 
 const Restaurant = {
-  tab: 'after',
+  tab: 'before',
 
   // ── 식당 종류별 추천 메뉴 (미리 정리해 둔 목록) ──
   AI_MENU_DB: {
@@ -80,7 +80,7 @@ const Restaurant = {
     { name:'계절 특선 메뉴',           reason:'제철 재료를 쓴 계절 메뉴가 있다면 함께 맛보세요.', tag:'🌱 제철 재료', kcal:'약 450 kcal' },
   ],
 
-  init() { this.render(); },
+  init() { this.view = this.view || 'start'; this.render(); },
 
   findMenuKey(category) {
     const cat = category || '';
@@ -196,181 +196,366 @@ const Restaurant = {
     }, 300);
   },
 
+  /* =========================================================
+     골프장 주변 맛집 (서버 food-nearby: 카카오 실시간 검색 → 카테고리·순위 정리)
+     ========================================================= */
+  view: 'start',      // start | loading | result | error
+  course: null,       // { name, lat, lng } 사용자가 고른 골프장
+  data: null,         // 서버 결과
+  cat: 'all',
+  open: {},           // 펼친 카테고리
+  errMsg: '',
+  RECENT_KEY: 'bp_food_recent_v1',
+
+  _today0() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; },
+  upcoming() {
+    const t0 = this._today0();
+    return (State.schedules || []).map((s, idx) => ({ s, idx }))
+      .filter(({ s }) => s && s.date && s.course && new Date(s.date) >= t0)
+      .sort((a, b) => new Date(a.s.date) - new Date(b.s.date));
+  },
+  _dateLabel(d) {
+    const x = new Date(d); const w = ['일', '월', '화', '수', '목', '금', '토'][x.getDay()];
+    return `${x.getMonth() + 1}월 ${x.getDate()}일(${w})`;
+  },
+  recent() { try { return JSON.parse(localStorage.getItem(this.RECENT_KEY) || '[]').slice(0, 5); } catch (e) { return []; } },
+  _saveRecent(c) {
+    try {
+      const list = this.recent().filter(x => x.name !== c.name);
+      list.unshift({ name: c.name, lat: c.lat, lng: c.lng });
+      localStorage.setItem(this.RECENT_KEY, JSON.stringify(list.slice(0, 5)));
+    } catch (e) { }
+  },
+
   render() {
     const el = U.$('#screen-restaurant');
+    if (!el) return;
+    if (this.view === 'result' && this.data) return this.renderResult(el);
+    if (this.view === 'loading') return this.renderLoading(el);
+    this.renderStart(el);
+  },
 
-    let allPicks = [];
-    Object.keys(GOLFER_PICKS).forEach(region => {
-      allPicks = allPicks.concat(GOLFER_PICKS[region]);
-    });
-    allPicks = allPicks.sort(() => 0.5 - Math.random());
-
-    const beforeList = allPicks.filter(p => p.tag.includes('아침') || p.category.includes('해장') || p.category.includes('국밥') || p.category.includes('탕'));
-    const afterList  = allPicks.filter(p => p.category.includes('고기') || p.category.includes('한우') || p.category.includes('갈비') || p.category.includes('회') || p.category.includes('장어'));
-    const currentList = (this.tab === 'before' ? beforeList : afterList).slice(0, 15);
-
-    const listHtml = currentList.map((p, idx) => {
-      const review = ReviewStore.getReviews(p.place_name);
-      // 실제 사용자 평가가 있을 때만 별점 표시 (예전에는 4.8점과 임의 리뷰 수를 표시했음)
-      const ratingHtml = review.count > 0
-        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${review.avgRating} <span class="pc-review-cnt">(버디 평가 ${review.count})</span>`
-        : `<span class="pc-review-cnt">아직 버디 평가가 없어요</span>`;
-      const safeName = p.place_name.replace(/'/g, "\\'");
-      return `
-        <div class="premium-card">
-          <div class="premium-rank">0${idx + 1}</div>
-          <div class="pc-header">
-            <div class="pc-title">${p.place_name}</div>
-          </div>
-          <div class="pc-meta">
-            <span>${p.category}</span>
-            <span class="pc-meta-dot"></span>
-            <span>${p.address_name.split(' ').slice(0,2).join(' ')}</span>
-          </div>
-          <button onclick="Restaurant.showAIRecommend('${safeName}','${p.category}','${this.tab}')"
-            style="
-              width:100%;margin:12px 0 8px;padding:11px;
-              background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(37,99,235,0.15));
-              border:1px solid rgba(124,58,237,0.35);border-radius:12px;
-              color:#6d28d9;font-size:14px;font-weight:800;cursor:pointer;
-              display:flex;align-items:center;justify-content:center;gap:6px;
-              transition:background 0.2s;
-            ">
-            🍽️ 추천 메뉴 보기
-          </button>
-          <div class="pc-footer">
-            <div class="pc-rating" data-rkey="${typeof Ratings !== 'undefined' ? Ratings.key(p.place_name) : ''}">
-              ${ratingHtml}
-            </div>
-            <div class="pc-action" onclick="Restaurant.showDetail('${safeName}','${p.address_name}')">
-              네이버 리뷰 보기
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
+  renderStart(el) {
+    const next = this.upcoming()[0];
+    const recent = this.recent();
+    const nextHtml = next ? `
+      <div class="fd-lab">📅 다음 라운딩</div>
+      <div class="fd-next" onclick="Restaurant.searchNext()">
+        <div class="fd-next-ic">⛳</div>
+        <div class="fd-next-info"><div class="fd-next-t">${U.esc(next.s.course.name)}</div>
+          <div class="fd-next-m">${this._dateLabel(next.s.date)} ${U.esc(next.s.teeOff || '')} 티오프</div></div>
+        <div class="fd-next-go">맛집 보기</div>
+      </div>` : '';
+    const recentHtml = recent.length ? `
+      <div class="fd-lab" style="margin-top:24px">최근 찾아본 골프장</div>
+      <div class="fd-recent">${recent.map((r, i) => `<button onclick="Restaurant.searchRecent(${i})">${U.esc(r.name)}</button>`).join('')}</div>` : '';
+    const err = this.view === 'error' ? `<div class="fd-err">${U.esc(this.errMsg)}</div>` : '';
     el.innerHTML = `
-      <div class="discovery-hero">
-        <h2 style="font-weight:400;font-size:16px;margin-bottom:8px;color:#94a3b8;">골퍼를 위한 맛집 큐레이션</h2>
-        <h2>완벽한 라운딩을 위한<br><span class="gold-text">🍽️ 버디 추천 맛집</span></h2>
-        <div class="search-bar" onclick="Restaurant.searchArea()">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <span style="font-weight:600;">골프장 이름 또는 지역 검색...</span>
+      <div class="fd-wrap">
+        <div class="discovery-hero">
+          <div class="fd-hero-s">골프장 주변 맛집 추천</div>
+          <h2>어느 골프장에 가세요?<br><span class="gold-text">주변 맛집을 찾아드릴게요</span></h2>
+          <div class="search-bar" onclick="Restaurant.searchArea()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span style="font-weight:600;">골프장 이름을 입력하세요</span>
+          </div>
         </div>
-      </div>
-      <div class="premium-tabs">
-        <div class="premium-tab ${this.tab === 'before' ? 'active' : ''}" onclick="Restaurant.switchTab('before')">라운딩 전 (식사)</div>
-        <div class="premium-tab ${this.tab === 'after'  ? 'active' : ''}" onclick="Restaurant.switchTab('after')">라운딩 후 (회식)</div>
-      </div>
-      <div class="screen-scroll premium-list" style="padding-bottom:100px;">
-        ${listHtml}
-      </div>
-    `;
-    if (typeof Ratings !== 'undefined') Ratings.fillDom(el);
+        <div class="fd-sec">
+          ${err}
+          ${nextHtml}
+          ${recentHtml}
+          <div class="fd-lab" style="margin-top:24px">이렇게 추천해요</div>
+          <div class="fd-how">· 골프장에서 <b>가까운 곳</b>부터, 카카오에서 <b>많이 찾는 곳</b>을 위로<br>· 우리 앱 사용자의 <b>버디 평가</b>가 높으면 더 위로<br>· <b>운영팀 추천</b> 집은 맨 위에 고정</div>
+        </div>
+      </div>`;
   },
 
-  switchTab(tab) { this.tab = tab; this.render(); U.haptic(); },
-
-  showDetail(name, addr) {
-    const regionQuery = addr ? addr.split(' ').slice(0, 2).join(' ') : '';
-    window.open(`https://m.search.naver.com/search.naver?query=${encodeURIComponent(name + ' ' + regionQuery)}`, '_blank');
+  renderLoading(el) {
+    el.innerHTML = `
+      <div class="fd-wrap">
+        <div class="fd-rh"><button class="fd-back" onclick="Restaurant.reset()">‹ 맛집</button><div class="fd-rh-t">${U.esc(this.course ? this.course.name : '')} 주변</div></div>
+        <div class="fd-loading"><div class="fd-spin"></div><p>🔎 골프장 주변 맛집을 찾고 있어요…</p></div>
+      </div>`;
   },
+
+  reset() { this.view = 'start'; this.data = null; this.render(); },
 
   searchArea() {
-    App.openAddressSearch('⛳ 맛집을 찾을 골프장/지역 검색', (selectedPlace) => {
-      const name = selectedPlace.name || selectedPlace.place_name || selectedPlace.address;
-      window.open(`https://m.search.naver.com/search.naver?query=${encodeURIComponent(name + ' 맛집')}`, '_blank');
+    App.openAddressSearch('⛳ 골프장 검색', (p) => {
+      this.search({ name: p.name || p.place_name, lat: parseFloat(p.lat), lng: parseFloat(p.lng) });
     });
   },
+  searchNext() {
+    const n = this.upcoming()[0];
+    if (n) this.search({ name: n.s.course.name, lat: n.s.course.lat, lng: n.s.course.lng });
+  },
+  searchRecent(i) { const r = this.recent()[i]; if (r) this.search(r); },
 
-  async fetchAndShowNearby(name, lat, lng, radius) {
-    App.closeModal();
-    const el = U.$('#screen-restaurant');
-    el.innerHTML = `
-      <div class="header" style="background:#0f172a;color:#fff;border-bottom:none;">
-        <button class="header-btn" onclick="Restaurant.render()" style="color:#fff;"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-        <h1 class="header-title">검색 중...</h1>
-        <div class="header-btn" style="visibility:hidden"></div>
-      </div>
-      <div class="screen-scroll" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding-top:100px;">
-        <div style="width:40px;height:40px;border:4px solid rgba(124,58,237,0.2);border-top-color:#7c3aed;border-radius:50%;animation:aiSpin 0.8s linear infinite;"></div>
-        <p style="color:#94a3b8;font-weight:600;">🔎 주변 맛집을 찾고 있어요...</p>
-      </div>
-    `;
-
-    const rests = await TmapAPI.searchNearbyPlaces(lat, lng, '맛집', radius);
-    if (!rests || rests.length === 0) {
-      el.innerHTML = `
-        <div class="header" style="background:#0f172a;color:#fff;">
-          <button class="header-btn" onclick="Restaurant.render()" style="color:#fff;"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-          <h1 class="header-title">${name} 주변</h1>
-          <div class="header-btn" style="visibility:hidden"></div>
-        </div>
-        <div class="screen-scroll" style="display:flex;align-items:center;justify-content:center;flex-direction:column;padding-top:100px;">
-          <p style="color:#94a3b8;font-weight:600;">주변 ${radius}km 이내에 검색된 맛집이 없습니다.</p>
-          <button class="btn btn-primary" style="margin-top:24px;padding:0 32px;" onclick="Restaurant.render()">돌아가기</button>
-        </div>
-      `;
+  async search(course) {
+    if (!course || !course.name) return;
+    if (typeof Cloud === 'undefined' || !Cloud.isConfigured() || !Cloud.isSignedIn()) {
+      this.view = 'error'; this.errMsg = '로그인하면 골프장 주변 맛집을 볼 수 있어요.'; this.render();
+      U.toast('로그인이 필요해요.');
       return;
     }
+    this.course = course; this.view = 'loading'; this.cat = 'all'; this.open = {};
+    this.render();
+    try {
+      const { url, key } = Cloud.cfg();
+      const token = await Cloud._freshToken();
+      const res = await fetch(`${url}/functions/v1/food-nearby`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course_name: course.name, lat: course.lat, lng: course.lng })
+      });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(d.message || '맛집을 찾지 못했어요. 잠시 후 다시 시도해 주세요.');
+      this.data = d; this.view = 'result';
+      this._saveRecent(course);
+      if (typeof Admin !== 'undefined' && Admin.checkAdmin) Admin.checkAdmin().then(() => { if (this.view === 'result') this.render(); }).catch(() => { });
+    } catch (e) {
+      this.view = 'error'; this.errMsg = e.message || '맛집을 찾지 못했어요.';
+    }
+    if (State.screen === 'restaurant' || U.$('#screen-restaurant.active')) this.render();
+  },
 
-    const sorted = rests.sort((a, b) => parseFloat(a.distance || 999) - parseFloat(b.distance || 999));
-    const listHtml = sorted.map((p, idx) => {
-      const review = ReviewStore.getReviews(p.place_name);
-      const ratingHtml = review.count > 0
-        ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> ${review.avgRating} <span class="pc-review-cnt">(버디 평가 ${review.count})</span>`
-        : `<span class="pc-review-cnt">아직 버디 평가가 없어요</span>`;
-      const safeName = p.place_name.replace(/'/g, "\\'");
-      return `
-        <div class="premium-card">
-          <div class="premium-rank">${idx + 1 < 10 ? '0'+(idx+1) : idx+1}</div>
-          <div class="pc-header">
-            <div class="pc-title">${p.place_name}</div>
-            <div class="pc-distance">${p.distance}km</div>
-          </div>
-          <div class="pc-meta">
-            <span>${p.category || '음식점'}</span>
-            <span class="pc-meta-dot"></span>
-            <span>${p.address_name || ''}</span>
-          </div>
-          <button onclick="Restaurant.showAIRecommend('${safeName}','${p.category || '음식점'}','after')"
-            style="
-              width:100%;margin:12px 0 8px;padding:11px;
-              background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(37,99,235,0.15));
-              border:1px solid rgba(124,58,237,0.35);border-radius:12px;
-              color:#6d28d9;font-size:14px;font-weight:800;cursor:pointer;
-              display:flex;align-items:center;justify-content:center;gap:6px;
-            ">
-            🍽️ 추천 메뉴 보기
-          </button>
-          <div class="pc-footer">
-            <div class="pc-rating" data-rkey="${typeof Ratings !== 'undefined' ? Ratings.key(p.place_name) : ''}">
-              ${ratingHtml}
-            </div>
-            <div class="pc-action" onclick="Restaurant.showDetail('${safeName}','${p.address_name || ''}')">
-              상세보기
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </div>
+  switchTab(tab) { this.tab = tab; this.cat = 'all'; this.render(); U.haptic(); },
+  setCat(k) { this.cat = k; this.render(); U.haptic(); },
+  toggleOpen(k) { this.open[k] = !this.open[k]; this.render(); },
+
+  _find(id) {
+    const d = this.data; if (!d) return null;
+    for (const t of ['before', 'after']) for (const g of d[t]) { const p = g.items.find(x => x.id === id); if (p) return { p, g, t }; }
+    return null;
+  },
+
+  _ratingHtml(p) {
+    return p.buddy_count ? `<b>★ ${U.esc(p.buddy_rating)}</b> 버디 평가 ${U.esc(p.buddy_count)}` : '아직 버디 평가가 없어요';
+  },
+
+  _card(p, label) {
+    const id = U.esc(p.id);
+    const admin = typeof Admin !== 'undefined' && Admin.isAdmin === true && this.data.course.id;
+    return `
+      <div class="fd-card">
+        <span class="fd-rank ${p.pick ? 'pick' : ''}">${p.pick ? '★ 운영팀 추천' : label}</span>
+        <div class="fd-ct"><span class="fd-n">${U.esc(p.name)}</span>${p.distance_km != null ? `<span class="fd-dist">${U.esc(p.distance_km)}km</span>` : ''}</div>
+        <div class="fd-meta">${U.esc(p.category || '음식점')}${p.address ? ` · ${U.esc(p.address.split(' ').slice(0, 2).join(' '))}` : ''}</div>
+        ${p.pick && p.note ? `<div class="fd-why pick">운영팀 한마디 · ${U.esc(p.note)}</div>` : (p.why ? `<div class="fd-why">${U.esc(p.why)}</div>` : '')}
+        <button class="fd-add" onclick="Restaurant.openAdd('${id}')">＋ 일정에 추가</button>
+        <div class="fd-foot">
+          <span class="fd-rate">${this._ratingHtml(p)}</span>
+          <div class="fd-btns">
+            <button class="fd-btn" onclick="Restaurant.openNaver('${id}')">네이버 리뷰</button>
+            <button class="fd-btn k" onclick="Restaurant.openRoute('${id}')">길찾기</button>
           </div>
         </div>
-      `;
-    }).join('');
+        ${admin ? `<button class="fd-admin" onclick="Restaurant.togglePick('${id}')">${p.pick ? '운영팀 추천 해제' : '☆ 운영팀 추천으로 고정'}</button>` : ''}
+      </div>`;
+  },
 
+  _mini(p, n) {
+    return `
+      <div class="fd-mini" onclick="Restaurant.openMini('${U.esc(p.id)}')">
+        <span class="fd-mini-r">${n}</span>
+        <div class="fd-mini-info"><div class="fd-mini-n">${U.esc(p.name)}</div><div class="fd-mini-m">${U.esc(p.category || '음식점')}</div></div>
+        ${p.distance_km != null ? `<span class="fd-mini-d">${U.esc(p.distance_km)}km</span>` : ''}
+      </div>`;
+  },
+
+  _group(g, single) {
+    if (!g.items.length) return '';
+    const big = single ? g.items : g.items.slice(0, 3);
+    const rest = single ? [] : g.items.slice(3);
+    let n = 0;
+    const bigHtml = big.map(p => this._card(p, p.pick ? '' : `${++n}순위`)).join('');
+    const restHtml = rest.length
+      ? (this.open[g.key] ? rest.map(p => this._mini(p, ++n)).join('') : rest.map(p => this._mini(p, ++n)).slice(0, 2).join(''))
+      : '';
+    return `
+      <div class="fd-gh"><span class="fd-g">${g.emoji} ${U.esc(g.label)}</span>
+        ${single ? `<span class="fd-more">가까운 곳·많이 찾는 곳 순</span>` : `<span class="fd-more" onclick="Restaurant.setCat('${g.key}')">${g.items.length}곳 ›</span>`}</div>
+      ${bigHtml}${restHtml}`;
+  },
+
+  renderResult(el) {
+    const d = this.data;
+    const groups = d[this.tab] || [];
+    const visible = groups.filter(g => g.items.length);
+    const chips = [{ key: 'all', label: '전체' }].concat(visible).map(g =>
+      `<button class="fd-chip ${this.cat === g.key ? 'on' : ''}" onclick="Restaurant.setCat('${g.key}')">${U.esc(g.label)}</button>`).join('');
+    const count = groups.reduce((n, g) => n + g.items.length, 0);
+    let body;
+    if (!visible.length) body = `<div class="fd-empty">반경 10km 안에서 ${this.tab === 'before' ? '라운딩 전' : '라운딩 후'}에 갈 만한 식당을 찾지 못했어요.</div>`;
+    else if (this.cat === 'all') body = visible.map(g => this._group(g, false)).join('');
+    else { const g = groups.find(x => x.key === this.cat); body = g ? this._group(g, true) : ''; }
     el.innerHTML = `
-      <div class="header" style="background:#0f172a;color:#fff;border-bottom:none;">
-        <button class="header-btn" onclick="Restaurant.render()" style="color:#fff;"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-        <h1 class="header-title">${name} 주변</h1>
-        <div class="header-btn" style="visibility:hidden"></div>
-      </div>
-      <div class="screen-scroll premium-list" style="padding-bottom:100px;">
-        <div style="margin-bottom:24px;">
-          <h2 style="font-size:18px;font-weight:800;color:#0f172a;line-height:1.4;">반경 ${radius}km<br><span style="color:#d4af37;">실시간 인기 식당 ${sorted.length}선</span></h2>
+      <div class="fd-wrap">
+        <div class="fd-rh">
+          <button class="fd-back" onclick="Restaurant.reset()">‹ 맛집</button>
+          <button class="fd-chg" onclick="Restaurant.searchArea()">골프장 변경</button>
+          <div class="fd-rh-t">${U.esc(d.course.name)} 주변</div>
+          <div class="fd-rh-m">반경 10km · ${count}곳 · 카카오 장소 검색 기준${d.curated_by === 'ai' ? ' · AI 정리' : ''}</div>
         </div>
-        ${listHtml}
-      </div>
-    `;
+        <div class="premium-tabs">
+          <div class="premium-tab ${this.tab === 'before' ? 'active' : ''}" onclick="Restaurant.switchTab('before')">🌅 라운딩 전</div>
+          <div class="premium-tab ${this.tab === 'after' ? 'active' : ''}" onclick="Restaurant.switchTab('after')">🏆 라운딩 후</div>
+        </div>
+        <div class="fd-chips">${chips}</div>
+        <div class="fd-list">
+          ${body}
+          <div class="fd-src">장소 정보: 카카오 · 버디 평가: BuddyPlanner 사용자${d.curated_by === 'ai' ? ' · 추천 이유는 AI가 음식 종류·거리로 작성' : ''}</div>
+        </div>
+      </div>`;
     if (typeof Ratings !== 'undefined') Ratings.fillDom(el);
+  },
+
+  openNaver(id) {
+    const f = this._find(id); if (!f) return;
+    const region = f.p.address ? f.p.address.split(' ').slice(0, 2).join(' ') : '';
+    window.open(`https://m.search.naver.com/search.naver?query=${encodeURIComponent(f.p.name + ' ' + region)}`, '_blank');
+  },
+  openRoute(id) {
+    const f = this._find(id); if (!f) return;
+    const p = f.p;
+    const url = (isFinite(p.lat) && isFinite(p.lng))
+      ? `https://map.kakao.com/link/to/${encodeURIComponent(p.name)},${p.lat},${p.lng}`
+      : (p.url || '');
+    if (/^https?:\/\//.test(url)) window.open(url, '_blank');
+  },
+
+  /** 4·5위 줄을 누르면: 행동 고르기 */
+  openMini(id) {
+    const f = this._find(id); if (!f) return;
+    App.closeModal();
+    const bg = U.el('div', 'modal-bg'); bg.id = 'app-modal';
+    const sid = U.esc(id);
+    bg.innerHTML = `
+      <div class="modal-panel">
+        <div class="modal-handle"></div>
+        <h3 class="modal-title">${U.esc(f.p.name)}</h3>
+        <div class="fd-sheet">
+          <div class="fd-meta" style="margin:0 0 14px">${U.esc(f.p.category || '음식점')}${f.p.distance_km != null ? ` · 골프장에서 ${U.esc(f.p.distance_km)}km` : ''}</div>
+          <button class="fd-sheet-btn main" onclick="App.closeModal();Restaurant.openAdd('${sid}')">＋ 일정에 추가</button>
+          <button class="fd-sheet-btn" onclick="Restaurant.openNaver('${sid}')">네이버 리뷰 보기</button>
+          <button class="fd-sheet-btn" onclick="Restaurant.openRoute('${sid}')">카카오맵 길찾기</button>
+        </div>
+      </div>`;
+    document.body.appendChild(bg);
+    bg.addEventListener('click', e => { if (e.target === bg) App.closeModal(); });
+    requestAnimationFrame(() => bg.classList.add('open'));
+  },
+
+  /* ── 일정에 추가 ── */
+  _addState: null,
+  openAdd(id) {
+    const f = this._find(id); if (!f) return;
+    U.haptic();
+    const course = this.data.course;
+    const near = (s) => {
+      const c = s.course || {};
+      if (c.name && course.name && c.name.replace(/\s+/g, '') === course.name.replace(/\s+/g, '')) return true;
+      if (isFinite(c.lat) && isFinite(c.lng) && isFinite(course.lat)) {
+        const dx = (c.lat - course.lat) * 111, dy = (c.lng - course.lng) * 88;
+        return Math.sqrt(dx * dx + dy * dy) < 3;
+      }
+      return false;
+    };
+    const list = this.upcoming().map(x => ({ ...x, same: near(x.s) }))
+      .sort((a, b) => (b.same - a.same) || (new Date(a.s.date) - new Date(b.s.date))).slice(0, 8);
+    const sel = list.find(x => x.same) || null;
+    this._addState = { id, timing: f.t, idx: sel ? sel.idx : null, list };
+    this._renderAdd();
+  },
+
+  _renderAdd() {
+    const st = this._addState; if (!st) return;
+    const f = this._find(st.id); if (!f) return;
+    App.closeModal();
+    const bg = U.el('div', 'modal-bg'); bg.id = 'app-modal';
+    const items = st.list.map(x => `
+      <div class="fd-sch ${st.idx === x.idx ? 'on' : ''}" onclick="Restaurant.pickSchedule(${x.idx})">
+        <div class="fd-sch-radio"></div>
+        <div class="fd-sch-info"><div class="fd-sch-t">${this._dateLabel(x.s.date)} ${U.esc(x.s.teeOff || '')}</div>
+          <div class="fd-sch-m">${U.esc(x.s.course.name)}${x.same ? ' <span class="fd-same">같은 골프장</span>' : ''}</div>
+          ${(st.timing === 'before' ? (x.s.hasMeal && x.s.mealRestaurant) : (x.s.hasPostMeal && x.s.postMealRestaurant))
+            ? `<div class="fd-sch-w">지금 넣어둔 '${U.esc((st.timing === 'before' ? x.s.mealRestaurant : x.s.postMealRestaurant).name)}' 대신 들어가요</div>` : ''}
+        </div>
+      </div>`).join('');
+    bg.innerHTML = `
+      <div class="modal-panel">
+        <div class="modal-handle"></div>
+        <h3 class="modal-title">🍽️ ${U.esc(f.p.name)} 일정에 추가</h3>
+        <div class="fd-sheet">
+          <div class="fd-lab">언제 가세요?</div>
+          <div class="fd-seg">
+            <button class="${st.timing === 'before' ? 'on' : ''}" onclick="Restaurant.pickTiming('before')">🌅 라운딩 전 식사</button>
+            <button class="${st.timing === 'after' ? 'on' : ''}" onclick="Restaurant.pickTiming('after')">🏆 라운딩 후 식사</button>
+          </div>
+          <div class="fd-lab" style="margin-top:16px">어느 라운딩에 넣을까요?</div>
+          ${st.list.length ? `<div class="fd-sch-list">${items}</div>` : `<div class="fd-empty" style="padding:18px 0">다가오는 라운딩 일정이 없어요.</div>`}
+          ${st.list.length ? `<button class="fd-sheet-btn main" ${st.idx === null ? 'disabled' : ''} onclick="Restaurant.confirmAdd()">이 일정에 넣기</button>` : ''}
+          <button class="fd-sheet-btn" onclick="Restaurant.addNewSchedule()">＋ ${U.esc(this.data.course.name)} 새 일정 만들기</button>
+          <div class="fd-note">일정 화면이 열리면 '저장'을 눌러야 반영돼요. 식당을 넣으면 출발 시간도 다시 계산돼요.</div>
+        </div>
+      </div>`;
+    document.body.appendChild(bg);
+    bg.addEventListener('click', e => { if (e.target === bg) { App.closeModal(); this._addState = null; } });
+    requestAnimationFrame(() => bg.classList.add('open'));
+  },
+  pickTiming(t) { if (this._addState) { this._addState.timing = t; this._renderAdd(); } },
+  pickSchedule(idx) { if (this._addState) { this._addState.idx = idx; this._renderAdd(); } },
+
+  _restObj(p) { return { name: p.name, tel: p.phone || '', lat: p.lat, lng: p.lng }; },
+
+  confirmAdd() {
+    const st = this._addState; if (!st || st.idx === null) return;
+    const f = this._find(st.id); if (!f) return;
+    if (!State.schedules[st.idx]) { U.toast('일정을 찾을 수 없어요.'); return; }
+    const rest = this._restObj(f.p), timing = st.timing;
+    App.closeModal(); this._addState = null;
+    Register.edit(st.idx);
+    setTimeout(() => {
+      Register.setMealFromAI(timing, rest);
+      U.toast(`🍽️ ${rest.name}을(를) 넣었어요. '스마트 플랜 수정'을 눌러 저장하세요.`, 3500);
+    }, 300);
+  },
+
+  addNewSchedule() {
+    const st = this._addState; if (!st) return;
+    const f = this._find(st.id); if (!f) return;
+    const c = this.data.course;
+    const course = { id: c.id, name: c.name, addr: c.addr || '', region: (c.addr || '').split(' ').slice(0, 2).join(' '), lat: c.lat, lng: c.lng };
+    const rest = this._restObj(f.p), timing = st.timing;
+    App.closeModal(); this._addState = null;
+    Register.editIdx = null;
+    App.navigate('register');
+    setTimeout(() => {
+      Register.prefill({ course });
+      Register.setMealFromAI(timing, rest);
+      U.toast(`🍽️ ${rest.name}을(를) 넣었어요. 날짜·티오프를 정하고 저장하세요.`, 3500);
+    }, 300);
+  },
+
+  /* ── 운영팀 추천 (관리자만) ── */
+  async togglePick(id) {
+    const f = this._find(id); if (!f || !this.data.course.id) return;
+    const p = f.p;
+    try {
+      if (p.pick) {
+        await Cloud._api('rest/v1/rpc/food_pick_remove', { method: 'POST', body: { p_course_id: this.data.course.id, p_place_id: p.id, p_timing: f.t } });
+        U.toast('운영팀 추천을 해제했어요.');
+      } else {
+        const note = prompt('운영팀 한마디 (40자 이내, 비워도 돼요)', '');
+        if (note === null) return;
+        const r = await Cloud._api('rest/v1/rpc/food_pick_add', { method: 'POST', body: { p_course_id: this.data.course.id, p_place_id: p.id, p_place_name: p.name, p_timing: f.t, p_note: note.slice(0, 40) } });
+        if (r && r.ok === false) throw new Error(r.error);
+        U.toast('운영팀 추천으로 고정했어요.');
+      }
+      this.search(this.course);
+    } catch (e) {
+      U.toast('저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    }
   }
+
 };
