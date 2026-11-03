@@ -52,8 +52,10 @@ const Market = {
   // 서버를 쓸 수 없으면 위 기본 목록을 보여 줍니다.
   CATEGORIES: [
     ['all', '전체'], ['ball', '골프공'], ['wear', '골프웨어'], ['glove_cap', '장갑/모자'],
-    ['shoes', '골프화'], ['club_bag', '클럽/백'], ['etc', '기타']
+    ['shoes', '골프화'], ['club_bag', '클럽/백'], ['car', '차량용품'], ['travel', '여행/이동'],
+    ['charge', '충전/전자'], ['office', '사무/문구'], ['life', '생활용품'], ['etc', '기타']
   ],
+  APP_ID: 'buddyplanner',   // 마켓 서버를 여러 앱이 같이 씀: 이 앱에 보일 상품만 읽음
   DEFAULT_CATS: { 1: 'ball', 2: 'wear', 3: 'ball', 4: 'glove_cap' },
   items: null,
   cat: 'all',
@@ -76,7 +78,7 @@ const Market = {
   async load() {
     if (typeof Cloud === 'undefined' || !Cloud.isConfigured()) return;
     try {
-      const rows = await Cloud.publicApi('rest/v1/market_products?select=id,kind,category,brand,title,image_url,link,price,list_price,badge,ref_price,ref_price_at,rocket&order=sort.asc,id.asc');
+      const rows = await Cloud.publicApi(`rest/v1/market_products?select=id,kind,category,brand,title,image_url,link,price,list_price,badge,ref_price,ref_price_at,rocket&apps=cs.%7B${this.APP_ID}%7D&order=sort.asc,id.asc`);
       if (Array.isArray(rows) && rows.length) {
         this.items = rows.map(r => ({ ...r, image: r.image_url }));
         if (State.screen === 'market') this.render();
