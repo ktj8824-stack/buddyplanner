@@ -371,10 +371,14 @@ const Home = {
           </div>
 
           <!-- Core Tool Quick Launch Grid -->
-          <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px;">
+          <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 20px;">
             <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">⛳</div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">일정등록</span>
+            </div>
+            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#fef9c3; color:#a16207; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">👥</div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">단체일정</span>
             </div>
             <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;">⏱️</div>
