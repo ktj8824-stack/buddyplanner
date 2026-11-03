@@ -228,9 +228,9 @@ const App = {
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
         <span class="nav-label">홈</span>
       </button>
-      <button class="gnb-item" data-s="calendar" onclick="App.navigate('calendar')">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span class="nav-label">일정</span>
+      <button class="gnb-item" data-s="market" onclick="App.navigate('market')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+        <span class="nav-label">마켓</span>
       </button>
       <button class="gnb-item gnb-item-ai" data-s="ai" onclick="App.navigate('ai')">
         <div class="gnb-ai-btn-bubble">
@@ -269,7 +269,7 @@ const App = {
   openMenu() {
     const items = [
       ...(this.COMMUNITY_OPEN ? [{ s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' }] : []),
-      { s: 'market', icon: '🛒', name: '버디마켓', desc: '골프 용품 추천' },
+      { s: 'calendar', icon: '📅', name: '일정 캘린더', desc: '월별 라운딩 일정 보기' },
       { s: 'raffle', icon: '🎁', name: '포인트 럭키드로우', desc: '무료 포인트로 응모' },
       { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
       { s: 'upgrade', icon: '👑', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 무제한 일정 · 당일 예보 · 광고 제거' }
