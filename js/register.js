@@ -29,6 +29,7 @@ const Register = {
 
   reset() {
     this.editIdx = null;
+    this.groupCode = null;
     this.searchTimer = null;
     this.course = null;
     this.date = window._selectedDateForRegister || null;
@@ -51,6 +52,7 @@ const Register = {
     const s = State.schedules[idx];
     if (!s) return;
     this.editIdx = idx;
+    this.groupCode = s.groupCode || null;
     this.course = s.course;
     this.date = s.date;
     const [th, tm] = s.teeOff.split(':').map(Number);
@@ -1058,7 +1060,8 @@ const Register = {
       startLng,
       hasMeetingPoint: this.hasMeetingPoint,
       meetingPointObj: this.meetingPointObj,
-      travelToMeeting
+      travelToMeeting,
+      groupCode: this.groupCode || null
     };
 
     if (this.editIdx !== null) {

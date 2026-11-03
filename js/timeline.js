@@ -82,6 +82,7 @@ const Timeline = {
           </div>
         </div>
 
+        ${s.groupCode ? `<div class="tl-group-link" onclick="Group.openCode('${U.esc(s.groupCode)}')">👥 단체 일정 · 우리 조 보기 <span>›</span></div>` : ''}
 
         <!-- Timeline -->
         <div class="tl-section">

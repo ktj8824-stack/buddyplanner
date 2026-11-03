@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle','ai'],
+  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle','ai','group'],
 
   init() {
     // 클라우드 동기화 준비 (설정이 없으면 아무 동작 안 함). 웹 카카오 로그인에서 돌아온 경우 그 정보를 받음
@@ -43,7 +43,10 @@ const App = {
     // Check for shared schedule link on direct startup (웹 & 앱 구동 시)
     let hasShared = false;
     const initialSched = this.handleIncomingUrl(window.location.href);
-    if (initialSched) {
+    if (initialSched === 'group') {
+      window.history.replaceState('', document.title, window.location.pathname);
+      hasShared = true;
+    } else if (initialSched) {
       window.history.replaceState('', document.title, window.location.pathname);
       hasShared = true;
     }
@@ -136,11 +139,12 @@ const App = {
         case 'event': EventPage.init(); break;
         case 'raffle': Raffle.init(); break;
         case 'ai': AI.init(); break;
+        case 'group': Group.init(); break;
       }
     }
     this.updateNav(['timeline', 'register'].includes(name) ? 'calendar' : name);
     
-    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade', 'admin'];
+    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade', 'admin', 'group'];
     const nav = U.$('#top-header');
     if (nav) {
       if (hideHeaderScreens.includes(name)) {
@@ -807,6 +811,12 @@ const App = {
 
   handleIncomingUrl(urlStr) {
     if (!urlStr) return null;
+    // 단체 일정 링크 (?g=코드) → 로그인 없이 바로 단체 일정 화면
+    const gm = /[?&]g=([0-9a-fA-F]{16})/.exec(urlStr);
+    if (gm && typeof Group !== 'undefined') {
+      setTimeout(() => { try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { } Group.openCode(gm[1]); }, 0);
+      return 'group';
+    }
     console.log('🔗 DeepLink URL received:', urlStr);
     const schedData = this.sanitizeShared(this.parseSharedPayload(urlStr));
     if (schedData) {
