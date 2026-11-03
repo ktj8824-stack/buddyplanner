@@ -13,6 +13,8 @@
 // 자동 제공: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 // =====================================================================
 
+import { resolveCourse, searchCandidates, groupByRule, placeKey, publicPlace } from '../_shared/food.ts';
+
 type Env = Record<string, string | undefined>;
 type Json = any;
 
@@ -105,6 +107,7 @@ function systemPrompt(ctx: Json): string {
 - 맛집 추천은 반드시 search_restaurants 결과에 있는 식당만 언급합니다. 결과에 없는 식당 이름, 평점, 리뷰, 영업시간을 지어내지 마세요. buddy_rating이 있으면 "버디 회원 평균 ★4.3(12명)"처럼 소개하고, 없으면 평점을 말하지 않습니다.
 - 라운딩 전 식사는 새벽 영업 가능성이 높은 해장국·국밥·백반을, 라운딩 후에는 고기·한정식·장어 등을 우선 고려합니다. 영업시간은 확인할 수 없으니 방문 전 확인을 권하세요.
 - 일정 등록·스코어 저장·식사 추가는 propose_* 도구로 '제안'만 합니다. 저장은 사용자가 카드의 버튼을 눌러야 완료되므로 "등록했어요"가 아니라 "아래 카드에서 확인해 주세요"라고 말합니다.
+- "○일 라운딩 끝나고 여기 가게 일정에 넣어줘"처럼 식당을 일정에 넣어 달라고 하면, 다가오는 일정 목록에서 날짜·골프장이 맞는 일정의 idx로 propose_meal을 씁니다. 라운딩 전 식사면 timing=before, 끝나고 가면 after입니다. 그 날짜에 일정이 없으면 없다고 말하고 일정 등록(propose_schedule)부터 제안합니다. 식당은 이번 대화에서 search_restaurants로 찾은 곳이어야 하니, 아직 검색하지 않았다면 먼저 검색합니다.
 - 필수 정보(골프장, 날짜, 티오프 시간)가 빠지면 추측하지 말고 짧게 물어봅니다. 날짜는 오늘 기준으로 계산합니다.
 - 스코어카드 사진: 골프장 이름, 날짜, 사용자 본인의 홀별 타수와 합계를 읽어 propose_score_record로 제안합니다. 동반자 줄이 여러 개면 사용자 이름(${ctx.userName || '사용자'})과 가장 가까운 줄을 쓰고, 애매하면 어느 줄인지 물어봅니다. 잘 안 보이는 값은 지어내지 말고 확인을 요청합니다.
 
@@ -149,9 +152,7 @@ async function rpc(env: Env, fn: string, body: Json, f: typeof fetch) {
   return res.json();
 }
 
-export function placeKey(name: string): string {
-  return 'n:' + String(name || '').replace(/\s+/g, '').toLowerCase().slice(0, 100);
-}
+export { placeKey };
 
 async function kakao(env: Env, path: string, params: Record<string, string>, f: typeof fetch) {
   const q = new URLSearchParams(params).toString();
@@ -174,30 +175,27 @@ export async function findCourse(env: Env, name: string, f: typeof fetch) {
 }
 
 async function searchRestaurants(env: Env, input: Json, f: typeof fetch) {
+  // 추천 맛집 메뉴와 같은 후보·같은 순위를 씁니다 (_shared/food.ts)
   let lat = Number(input.near_lat), lng = Number(input.near_lng);
-  let courseLabel = input.course_name;
-  if (!isFinite(lat) || !isFinite(lng) || !lat || !lng) {
-    const found = await kakao(env, 'keyword', { query: String(input.course_name || ''), size: '1' }, f);
-    if (!found.length) return { error: `'${input.course_name}' 골프장 위치를 찾지 못했어요.` };
-    lat = parseFloat(found[0].y); lng = parseFloat(found[0].x); courseLabel = found[0].place_name;
+  const hasPos = isFinite(lat) && isFinite(lng) && !!lat && !!lng;
+  const course = await resolveCourse(env, String(input.course_name || ''), hasPos ? lat : null, hasPos ? lng : null, f);
+  if (!course) return { error: `'${input.course_name}' 골프장 위치를 찾지 못했어요.` };
+  const cands = await searchCandidates(env, course.lat, course.lng, f);
+  const groups = groupByRule(cands);
+  const timing = input.timing === 'before' || input.timing === 'after' ? input.timing : null;
+  const kw = String(input.keyword || '').replace(/\s+/g, '');
+  let pool: Json[] = [];
+  for (const t of timing ? [timing] : ['before', 'after']) for (const g of groups[t]) pool.push(...g.items.map((p: Json) => ({ ...p, timing: t, group: g.label })));
+  if (kw) {
+    const hit = pool.filter(p => (p.kakao_category + p.name + p.group).replace(/\s+/g, '').includes(kw));
+    if (hit.length) pool = hit;
   }
-  const timing = input.timing || 'any';
-  const query = input.keyword || (timing === 'before' ? '해장국' : timing === 'after' ? '고기' : '맛집');
-  const base = { x: String(lng), y: String(lat), radius: '12000', category_group_code: 'FD6', sort: 'accuracy', size: '8' };
-  let docs = await kakao(env, 'keyword', { ...base, query }, f);
-  if (docs.length < 3 && query !== '맛집') docs = docs.concat(await kakao(env, 'keyword', { ...base, query: '맛집' }, f));
-
-  const seen = new Set<string>();
-  const list = docs.filter((d: Json) => !seen.has(d.id) && seen.add(d.id)).slice(0, 8).map((d: Json) => ({
-    id: String(d.id),
-    name: d.place_name,
-    category: String(d.category_name || '').split('>').pop()?.trim() || '',
-    address: d.road_address_name || d.address_name || '',
-    distance_km: d.distance ? Math.round(Number(d.distance) / 100) / 10 : null,
-    phone: d.phone || '',
-    url: d.place_url || '',
-    lat: parseFloat(d.y), lng: parseFloat(d.x),
-  }));
+  // 카테고리를 골고루: 각 카테고리 1순위부터 돌아가며
+  const byGroup: Record<string, Json[]> = {};
+  pool.forEach(p => { (byGroup[p.group] = byGroup[p.group] || []).push(p); });
+  const picked: Json[] = [];
+  for (let i = 0; picked.length < 8 && i < 5; i++) for (const g of Object.keys(byGroup)) if (byGroup[g][i] && picked.length < 8) picked.push(byGroup[g][i]);
+  const list = picked.map((p: Json) => ({ ...publicPlace(p), timing: p.timing, group: p.group }));
 
   // 버디 회원 평균 별점 결합
   if (list.length) {
@@ -211,7 +209,7 @@ async function searchRestaurants(env: Env, input: Json, f: typeof fetch) {
       }
     } catch (_) { /* 평점 조회 실패해도 검색 결과는 반환 */ }
   }
-  return { course: courseLabel, course_lat: lat, course_lng: lng, restaurants: list };
+  return { course: course.name, course_lat: course.lat, course_lng: course.lng, restaurants: list };
 }
 
 async function callClaude(env: Env, body: Json, f: typeof fetch) {
