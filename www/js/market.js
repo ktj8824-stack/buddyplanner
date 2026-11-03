@@ -76,7 +76,7 @@ const Market = {
   async load() {
     if (typeof Cloud === 'undefined' || !Cloud.isConfigured()) return;
     try {
-      const rows = await Cloud.publicApi('rest/v1/market_products?select=id,kind,category,brand,title,image_url,link,price,list_price,badge&order=sort.asc,id.asc');
+      const rows = await Cloud.publicApi('rest/v1/market_products?select=id,kind,category,brand,title,image_url,link,price,list_price,badge,ref_price,ref_price_at,rocket&order=sort.asc,id.asc');
       if (Array.isArray(rows) && rows.length) {
         this.items = rows.map(r => ({ ...r, image: r.image_url }));
         if (State.screen === 'market') this.render();
@@ -97,10 +97,17 @@ const Market = {
       price = `<div class="market-price-wrap">${off ? `<span class="market-discount">${off}%</span>` : ''}<span class="market-price">${p.price.toLocaleString()}원</span></div>
                ${off ? `<div class="market-original-price">${p.list_price.toLocaleString()}원</div>` : ''}
                <div class="market-soon">판매 준비 중</div>`;
+    } else if (typeof p.ref_price === 'number' && p.ref_price > 0) {
+      // 제휴 상품: 쿠팡 가격은 자주 바뀌므로 '참고 가격 + 기준 날짜'로 표시
+      const d = p.ref_price_at ? new Date(p.ref_price_at + 'T00:00:00') : null;
+      const when = d && !isNaN(d) ? `${d.getMonth() + 1}/${d.getDate()} 기준` : '참고 가격';
+      price = `<div class="market-price-wrap"><span class="market-price">${p.ref_price.toLocaleString()}원</span></div>
+               <div class="market-ref-note">${when} · 쿠팡에서 확인 ›</div>`;
     } else {
-      // 제휴 상품은 가격이 자주 바뀌어서 앱에 적지 않음 (틀린 가격 표시 방지)
+      // 가격 정보가 없는 제휴 상품
       price = `<div class="market-price-wrap"><span class="market-price" style="font-size:13px;">쿠팡에서 가격 확인 ›</span></div>`;
     }
+    const rocket = p.rocket ? `<div class="market-rocket">로켓배송</div>` : '';
     const click = p.kind === 'direct' ? `Market.soon()` : `Market.openLink('${U.esc(String(p.link || '').replace(/'/g, ''))}')`;
     return `
       <div class="market-card" onclick="${click}">
@@ -109,7 +116,7 @@ const Market = {
           ${badge}
         </div>
         <div class="market-info">
-          <div class="market-brand">${U.esc(p.brand || '')}</div>
+          ${rocket}<div class="market-brand">${U.esc(p.brand || '')}</div>
           <div class="market-title">${U.esc(p.title)}</div>
           ${price}
         </div>
@@ -147,7 +154,7 @@ const Market = {
           : `<div style="text-align:center; color:var(--text-400); padding:40px 0; font-size:14px;">이 분류에는 아직 상품이 없어요.</div>`}
 
         ${hasAffiliate ? `<div style="margin-top:30px; text-align:center; color:var(--text-400); font-size:12px; line-height:1.5;">
-          이 포스팅은 쿠팡 파트너스 활동의 일환으로,<br>이에 따른 일정액의 수수료를 제공받습니다.
+          이 포스팅은 쿠팡 파트너스 활동의 일환으로,<br>이에 따른 일정액의 수수료를 제공받습니다.<br>표시된 가격은 기준일의 참고 가격이며, 실제 가격은 쿠팡에서 확인해 주세요.
         </div>` : ''}
       </div>
     `;

@@ -56,3 +56,9 @@
 .adm-save:disabled { opacity: .5; }
 .adm-item .adm-img { pointer-events: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
 .adm-item { -webkit-touch-callout: none; }
+.adm-price { font-size: 12px; color: #0f172a; font-weight: 700; margin: -2px 0 6px; }
+.adm-price-row { display: flex; align-items: center; gap: 8px; }
+.adm-price-row .adm-input { flex: 1; }
+.adm-won { font-size: 14px; color: #334155; }
+.adm-rocket { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #0073e9; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.adm-rocket input { -webkit-appearance: checkbox; appearance: auto; width: 18px; height: 18px; accent-color: #0073e9; margin: 0; }

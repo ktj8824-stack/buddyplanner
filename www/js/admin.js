@@ -94,6 +94,7 @@ const Admin = {
         <div class="adm-info">
           <div class="adm-cat">${this.catName(p.category)} <span class="adm-state ${p.active ? '' : 'off'}">${p.active ? '노출 중' : '숨김'}</span></div>
           <div class="adm-title">${U.esc(p.title)}</div>
+          ${typeof p.ref_price === 'number' ? `<div class="adm-price">${p.ref_price.toLocaleString()}원${p.ref_price_at ? ` · ${String(p.ref_price_at).slice(5).replace('-', '/')} 기준` : ''}${p.rocket ? ' · 로켓배송' : ''}</div>` : ''}
           <div class="adm-acts">
             <button class="adm-btn" onclick="Admin.openEditor(${p.id})">수정</button>
             <button class="adm-btn mute" onclick="Admin.toggle(${p.id})">${p.active ? '숨기기' : '보이기'}</button>
@@ -133,6 +134,8 @@ const Admin = {
     this.draft = p
       ? { id: p.id, link: p.link || '', image: p.image_url || '', title: p.title || '', category: p.category, brand: p.brand || '', autoCat: false }
       : { id: null, link: '', image: '', title: '', category: 'etc', brand: '', autoCat: true };
+    const curPrice = p && typeof p.ref_price === 'number' ? p.ref_price : '';
+    const curRocket = !!(p && p.rocket);
     App.showModal(id ? '상품 수정' : '쿠팡 상품 추가', `
       <div class="adm-sheet">
         <div class="adm-guide">쿠팡 파트너스 → 상품 링크 → <b>HTML 복사</b> 후 아래에 붙여넣으세요. 단축 URL만 붙여넣어도 돼요.</div>
@@ -144,6 +147,12 @@ const Admin = {
         <input id="adm-name" class="adm-input" maxlength="100" placeholder="예: 풋조이 남성 골프장갑" value="${p ? U.esc(p.title) : ''}" oninput="Admin.onName()">
         <div class="adm-lab">③ 카테고리 <span id="adm-auto" class="adm-auto"></span></div>
         <div class="adm-chips" id="adm-chips"></div>
+        <div class="adm-lab">④ 참고 가격 <span class="adm-auto" style="color:#94a3b8;">선택 · 저장한 날짜가 기준일로 표시돼요</span></div>
+        <div class="adm-price-row">
+          <input id="adm-price" class="adm-input" inputmode="numeric" placeholder="예: 29900" value="${curPrice}">
+          <span class="adm-won">원</span>
+          <label class="adm-rocket"><input type="checkbox" id="adm-rocket" ${curRocket ? 'checked' : ''}> 로켓배송</label>
+        </div>
         <button id="adm-save" class="adm-save" onclick="Admin.save()">${id ? '수정 완료' : '마켓에 등록'}</button>
       </div>`);
     this.refreshSheet();
@@ -199,11 +208,13 @@ const Admin = {
     if (!d.title) return U.toast('상품명을 입력해 주세요.');
     const btn = U.$('#adm-save'); if (btn) btn.disabled = true;
     try {
+      const priceTxt = String((U.$('#adm-price') || {}).value || '').replace(/[^0-9]/g, '');
       const r = await this.rpc('market_admin_save', {
-        p_id: d.id, p_category: d.category, p_title: d.title, p_link: d.link, p_image: d.image || null, p_brand: d.brand || null
+        p_id: d.id, p_category: d.category, p_title: d.title, p_link: d.link, p_image: d.image || null, p_brand: d.brand || null,
+        p_ref_price: priceTxt ? parseInt(priceTxt, 10) : null, p_rocket: !!(U.$('#adm-rocket') || {}).checked
       });
       if (!r || !r.ok) {
-        const msg = { invalid_link: '쿠팡 링크만 등록할 수 있어요.', invalid_image: '사진 주소가 올바르지 않아요.', invalid_title: '상품명을 확인해 주세요.' }[r && r.error];
+        const msg = { invalid_link: '쿠팡 링크만 등록할 수 있어요.', invalid_image: '사진 주소가 올바르지 않아요.', invalid_title: '상품명을 확인해 주세요.', invalid_price: '가격을 확인해 주세요.' }[r && r.error];
         U.toast(msg || '저장하지 못했어요.');
         if (btn) btn.disabled = false;
         return;
