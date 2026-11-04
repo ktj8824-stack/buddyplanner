@@ -7,6 +7,50 @@ const Home = {
     this.render();
   },
 
+  /** 날짜·시각 기준으로 다음에 할 일을 알려 주는 큰 문구 */
+  heroMessage(s, tl, diffDays, dateObj, now = new Date()) {
+    const at = (hm) => {
+      const [h, m] = String(hm || '').split(':').map(Number);
+      if (!Number.isFinite(h)) return null;
+      const d = new Date(dateObj); d.setHours(h, m || 0, 0, 0); return d;
+    };
+    const left = (d) => {
+      const min = Math.max(0, Math.round((d - now) / 60000));
+      return min >= 60 ? `${Math.floor(min / 60)}시간 ${min % 60 ? (min % 60) + '분' : ''}`.trim() : `${min}분`;
+    };
+    const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+    const prep = tl.prepStart, dep = tl.homeDepart, tee = tl.teeOff || s.teeOff;
+
+    if (diffDays <= 0) {
+      const tPrep = at(prep), tDep = at(dep), tTee = at(tee);
+      const rl = (typeof ROUND_LENGTHS !== 'undefined' && (ROUND_LENGTHS[s.roundLength] || ROUND_LENGTHS['18'])) || { min: 300 };
+      const tEnd = tTee ? new Date(tTee.getTime() + rl.min * 60000) : null;
+      if (tPrep && now < tPrep) return { heading: `오늘 라운딩!<br>${prep} 준비 시작`, btnText: '출발 타임라인 확인' };
+      if (tDep && now < tDep) return { heading: `${tDep - now < 3600000 ? `출발까지 ${left(tDep)}` : `${dep} 출발`},<br>준비물 챙기셨나요?`, btnText: '출발 타임라인 확인' };
+      if (tTee && now < tTee) return { heading: `${tTee - now < 3600000 ? `티오프까지 ${left(tTee)}` : `티오프 ${tee}`},<br>안전 운전하세요.`, btnText: '타임라인 보기' };
+      if (tEnd && now < tEnd) return { heading: `즐거운 라운딩<br>되세요! ⛳`, btnText: '타임라인 보기' };
+      let rec = null;
+      try {
+        const all = JSON.parse(localStorage.getItem('bp_records_v1') || '{}');
+        const p = n => String(n).padStart(2, '0');
+        const ymd = `${dateObj.getFullYear()}-${p(dateObj.getMonth() + 1)}-${p(dateObj.getDate())}`;
+        const k = Object.keys(all).find(x => x.split('#')[0] === ymd);
+        rec = k ? all[k] : null;
+      } catch (e) {}
+      if (rec) return { heading: `${typeof rec.score === 'number' ? '오늘 ' + rec.score + '타,' : '오늘 라운딩,'}<br>수고하셨어요!`, btnText: '기록 보기', btnAction: "App.navigate('record')" };
+      return { heading: `오늘 라운딩<br>어떠셨어요?`, btnText: '스코어 기록하기', btnAction: "Home.openScoreForm()" };
+    }
+    if (diffDays === 1) return { heading: `내일 라운딩,<br>오늘은 일찍 쉬세요.` };
+    if (diffDays <= 6) return { heading: `${DAYS[dateObj.getDay()]}요일 라운딩,<br>준비물 미리 챙겨요.` };
+    return { heading: `라운딩까지 ${diffDays}일,<br>동선은 준비 완료!` };
+  },
+
+  /** 기록 화면을 열고 바로 스코어 입력창 (빈 카드·라운딩 후 안내에서 사용) */
+  openScoreForm() {
+    App.navigate('record');
+    setTimeout(() => { if (typeof Record !== 'undefined' && Record.showRecordForm) Record.showRecordForm(); }, 200);
+  },
+
   render() {
     const el = U.$('#screen-home');
     if (!el) return;
@@ -48,26 +92,19 @@ const Home = {
       btnText = '타임라인 보기';
       btnAction = `App.viewTimeline(${originalIdx})`;
 
-      // D-Day 연동 동적 헤딩 문구 (상단 태그에 골프장명과 D-Day가 이미 표시되므로 중복 제거)
-      if (diffDays === 0 || dday === 'D-Day') {
-        subTag = `${cName} · D-Day`;
-        mainHeading = `티오프 전 여유로운 출발,<br>지금 시작해 보세요.`;
-        btnText = '출발 타임라인 확인';
-      } else if (diffDays >= 1 && diffDays <= 3) {
-        subTag = `${cName} · ${dday}`;
-        mainHeading = `티오프까지 완벽한<br>스마트 동선을 안내합니다.`;
-      } else {
-        subTag = `${cName} · ${dday}`;
-        mainHeading = `티오프 맞춤 역산과<br>최적 동선을 확인하세요.`;
-      }
-
       if (!s.timeline && typeof State !== 'undefined' && State.calculateTimeline) {
         try { State.calculateTimeline(originalIdx); } catch(e){}
       }
       const tl = s.timeline || {};
-      departTime = tl.homeDepart || '05:20';
-      arrivalTime = tl.arrival || '06:20';
-      teeOffTime = tl.teeOff || s.teeOff || '07:00';
+      departTime = tl.homeDepart || '--:--';
+      arrivalTime = tl.arrival || '--:--';
+      teeOffTime = tl.teeOff || s.teeOff || '--:--';
+
+      // 큰 문구: 다음 라운딩까지 남은 시간과 '지금 할 일'에 맞춰 바뀜
+      const msg = this.heroMessage(s, tl, diffDays, dateObj);
+      subTag = `${cName} · ${diffDays <= 0 ? 'D-Day' : dday}`;
+      mainHeading = msg.heading;
+      if (msg.btnText) { btnText = msg.btnText; btnAction = msg.btnAction || btnAction; }
     }
 
     // 2. 스코어 기록 데이터 조회
@@ -273,32 +310,34 @@ const Home = {
           <div class="glounge-score-grid">
             
             <!-- Left Card: Recent Score (Soft Sky Blue + 3D Golfer) -->
-            <div class="glounge-score-card card-blue" onclick="App.navigate('record')">
+            <div class="glounge-score-card card-blue ${hasRecent ? '' : 'is-empty'}" onclick="${hasRecent ? "App.navigate('record')" : 'Home.openScoreForm()'}">
               <div class="card-label-blue">최근 스코어</div>
-              <div class="card-score-row">
+              ${hasRecent ? `<div class="card-score-row">
                 <span class="card-score-num">${recentScore}</span>
-                ${hasRecent ? `<span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>` : ''}
+                <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
               </div>
               <div class="card-meta-info">
-                ${hasRecent ? `<span class="card-meta-date">${recentDate}</span>
-                <span class="card-meta-course">${U.esc(recentCourse)}</span>` : `<span class="card-meta-date">첫 라운딩을<br>기록해 보세요</span>`}
-              </div>
+                <span class="card-meta-date">${recentDate}</span>
+                <span class="card-meta-course">${U.esc(recentCourse)}</span>
+              </div>` : `<div class="card-empty-cta">스코어 등록하기 ›</div>
+              <div class="card-meta-info"><span class="card-meta-date">라운딩 후 남겨 보세요</span></div>`}
               <div class="card-corner-thumb">
                 <img src="img/glounge_thumb_golfer.jpg?v=restore" alt="Golfer Thumbnail" />
               </div>
             </div>
 
             <!-- Right Card: Life Best (Soft Warm Cream Gold + 3D Trophy) -->
-            <div class="glounge-score-card card-gold" onclick="App.navigate('record')">
+            <div class="glounge-score-card card-gold ${hasBest ? '' : 'is-empty'}" onclick="${hasBest ? "App.navigate('record')" : 'Home.openScoreForm()'}">
               <div class="card-label-gold">라이프 베스트</div>
-              <div class="card-score-row">
+              ${hasBest ? `<div class="card-score-row">
                 <span class="card-score-num gold">${bestScore}</span>
-                ${hasBest ? `<span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>` : ''}
+                <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
               </div>
               <div class="card-meta-info">
-                ${hasBest ? `<span class="card-meta-date gold">${bestDate}</span>
-                <span class="card-meta-course gold">${U.esc(bestCourse)}</span>` : `<span class="card-meta-date gold">최고 기록이<br>여기에 표시돼요</span>`}
-              </div>
+                <span class="card-meta-date gold">${bestDate}</span>
+                <span class="card-meta-course gold">${U.esc(bestCourse)}</span>
+              </div>` : `<div class="card-empty-cta gold">첫 기록 남기기 ›</div>
+              <div class="card-meta-info"><span class="card-meta-date gold">최고 기록이 쌓여요</span></div>`}
               <div class="card-corner-thumb">
                 <img src="img/glounge_gold_trophy.jpg" alt="Gold Trophy" />
               </div>
@@ -306,21 +345,21 @@ const Home = {
           </div>
 
           <!-- Sleek Yearly Round Stat Card (가로 바 레이아웃 + 3D 원형 배지 아이콘) -->
-          <div class="glounge-round-stat-card" onclick="App.navigate('record')">
+          <div class="glounge-round-stat-card ${yearlyCount > 0 ? '' : 'is-empty'}" onclick="${yearlyCount > 0 ? "App.navigate('record')" : 'Home.openScoreForm()'}">
             <div class="stat-left">
               <div class="stat-3d-icon-wrap">
                 <img src="img/glounge_round_flag.jpg" alt="Round Icon" />
               </div>
               <div class="stat-text-wrap">
                 <div class="stat-title">올해 라운드</div>
-                <div class="stat-desc">${yearlyCount > 0 ? `올해 <strong>${yearlyCount}번</strong>의 라운드를 즐기고 계시네요.` : '라운딩 후 스코어를 남기면 여기에 쌓여요.'}</div>
+                <div class="stat-desc">${yearlyCount > 0 ? `올해 <strong>${yearlyCount}번</strong>의 라운드를 즐기고 계시네요.` : '스코어를 남기면 횟수가 쌓여요.'}</div>
               </div>
             </div>
             <div class="stat-right">
-              <div class="stat-badge-num">
+              ${yearlyCount > 0 ? `<div class="stat-badge-num">
                 <span class="num">${yearlyCount}</span><span class="unit">회</span>
               </div>
-              <div class="stat-badge-year">${currentYear}년 누적</div>
+              <div class="stat-badge-year">${currentYear}년 누적</div>` : `<span class="stat-empty-cta">기록하기 ›</span>`}
             </div>
           </div>
 

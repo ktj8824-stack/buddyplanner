@@ -19,6 +19,7 @@ const Register = {
   meetingPointObj: null,
   searchMode: 'start',
   editIdx: null,
+  roundLength: '18',
 
   getStartPointValue() {
     if (!State.userAddresses) State.userAddresses = { home: '', office: '' };
@@ -46,6 +47,8 @@ const Register = {
     this.hasMeetingPoint = false;
     this.meetingPointObj = null;
     this.searchMode = 'start';
+    this.roundLength = '18';
+    this.customStartObj = null;
   },
 
   edit(idx) {
@@ -68,6 +71,7 @@ const Register = {
     this.startPoint = s.startPoint || '집';
     this.hasMeetingPoint = s.hasMeetingPoint || false;
     this.meetingPointObj = s.meetingPointObj || null;
+    this.roundLength = s.roundLength || '18';
     
     if (s.startPoint === '직접 입력' && s.startAddress) {
       setTimeout(() => {
@@ -129,6 +133,7 @@ const Register = {
     this.render(); 
     setTimeout(() => {
       this.bind();
+      this.updateStartPointUI();
       if (this.editIdx !== null) {
         if (this.course) {
           U.$('#r-search').value = this.course.name;
@@ -163,7 +168,8 @@ const Register = {
       <div class="screen-scroll" style="padding-top: 0; background: #f8fafc;">
         <div class="reg-content">
           <div class="reg-form">
-            
+            ${isEdit ? '' : this.quickFillHTML()}
+
             <!-- 1. Golf Course Selection Card -->
             <div class="reg-card">
               <div class="reg-card-title">
@@ -178,14 +184,8 @@ const Register = {
               </div>
               <p class="field-hint" id="r-hint" style="margin-top:6px; font-size:11.5px;"></p>
               
-              <!-- Quick Course Recommendation Chips -->
-              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
-                <span style="font-size:11px; color:#64748b; font-weight:700; width:100%; margin-bottom:2px;">추천 골프장:</span>
-                <span onclick="U.$('#r-search').value='남서울 CC'; Register.onSearch('남서울 CC');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">남서울 CC</span>
-                <span onclick="U.$('#r-search').value='아난티남해 CC'; Register.onSearch('아난티남해 CC');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">아난티남해</span>
-                <span onclick="U.$('#r-search').value='파인크리크 CC'; Register.onSearch('파인크리크 CC');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">파인크리크</span>
-                <span onclick="U.$('#r-search').value='해슬리 나인브릿지'; Register.onSearch('해슬리 나인브릿지');" style="font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;">해슬리</span>
-              </div>
+              <!-- 최근·자주 간 골프장 (없으면 추천 골프장) -->
+              ${this.quickCoursesHTML()}
             </div>
 
             <!-- 2. Date & Time Dual Pickers Card -->
@@ -209,6 +209,11 @@ const Register = {
                   </button>
                 </div>
               </div>
+              <label style="font-size:11.5px; font-weight:700; color:#64748b; margin:10px 0 4px; display:block;">라운딩 길이 <span style="font-weight:600; color:#94a3b8;">(귀가 시간 계산)</span></label>
+              <div class="pills" id="r-round-pills">
+                ${Object.keys(ROUND_LENGTHS).map(k => `<button type="button" class="pill ${k === this.roundLength ? 'on' : ''}" onclick="Register.setRoundLength('${k}', this)">${ROUND_LENGTHS[k].label}</button>`).join('')}
+              </div>
+              <p class="field-hint" id="r-round-hint" style="margin-top:6px; font-size:11px; color:#94a3b8;">${(ROUND_LENGTHS[this.roundLength] || ROUND_LENGTHS['18']).desc}</p>
             </div>
 
             <!-- 3. Prep Time Card -->
@@ -575,6 +580,15 @@ const Register = {
     U.haptic();
   },
 
+  setRoundLength(k, btn) {
+    if (!ROUND_LENGTHS[k]) return;
+    this.roundLength = k;
+    U.$$('#r-round-pills .pill').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    const h = U.$('#r-round-hint'); if (h) h.textContent = ROUND_LENGTHS[k].desc;
+    U.haptic();
+  },
+
   setPrepTime(t, btn) { this.prep=t; U.$$('#r-pills .pill').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); U.haptic(); },
 
   setStartPoint(type, btn) {
@@ -594,13 +608,198 @@ const Register = {
     else if (this.startPoint === '회사') valObj = State.userAddresses?.office;
     else valObj = this.customStartObj; // directly inputted place
 
+    const box = U.$('#r-startpoint-custom');
+    const missingSaved = this.startPoint !== '직접 입력' && !(valObj && valObj.lat);
     if (valObj && valObj.name) {
       textEl.textContent = valObj.name;
       textEl.style.color = 'var(--text-800)';
     } else {
-      textEl.textContent = this.startPoint === '직접 입력' ? '출발지 주소를 검색하세요' : `${this.startPoint} 주소를 등록해주세요`;
-      textEl.style.color = 'var(--text-400)';
+      textEl.textContent = this.startPoint === '직접 입력' ? '출발지 주소를 검색하세요' : `${this.startPoint} 주소를 한 번만 등록해 주세요 (출발 시간 계산에 필요해요)`;
+      textEl.style.color = missingSaved ? '#c2410c' : 'var(--text-400)';
     }
+    if (box) {
+      box.style.background = missingSaved ? '#fff7ed' : '#f8fafc';
+      box.style.borderColor = missingSaved ? '#fdba74' : '#e2e8f0';
+    }
+  },
+
+  /* ── 빠르게 채우기: 지난번처럼 · 예약 문자 ── */
+  lastSchedule() {
+    const list = (State.schedules || []).filter(x => x && x.course && x.course.lat);
+    if (!list.length) return null;
+    return list.slice().sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+  },
+
+  quickFillHTML() {
+    const last = this.lastSchedule();
+    const btn = 'flex:1; min-width:0; display:flex; align-items:center; gap:8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px; cursor:pointer; text-align:left;';
+    return `
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        ${last ? `<button type="button" style="${btn}" onclick="Register.fillFromLast()">
+          <span style="font-size:18px;">↺</span>
+          <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">지난번처럼</b>
+          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
+        </button>` : ''}
+        <button type="button" style="${btn}" onclick="Register.openPasteBooking()">
+          <span style="font-size:18px;">📋</span>
+          <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">예약 문자로 채우기</b>
+          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
+        </button>
+      </div>`;
+  },
+
+  /** 지난 일정의 골프장·티오프·준비시간·출발지·동반자·식당을 그대로 (날짜만 새로 고르기) */
+  fillFromLast() {
+    const l = this.lastSchedule();
+    if (!l) return;
+    this.course = l.course;
+    const [h, m] = String(l.teeOff || '07:00').split(':').map(Number);
+    this.timeH = h; this.timeM = m;
+    this.prep = l.prepTime || 30;
+    this.invited = [...(l.companions || [])];
+    this.startPoint = ['집', '회사'].includes(l.startPoint) ? l.startPoint : '직접 입력';
+    if (this.startPoint === '직접 입력') this.customStartObj = { name: l.startAddress, lat: l.startLat, lng: l.startLng };
+    this.hasMeetingPoint = !!l.hasMeetingPoint; this.meetingPointObj = l.meetingPointObj || null;
+    this.hasMeal = !!l.hasMeal; this.mealDuration = l.mealDuration || 50; this.mealRestaurant = l.mealRestaurant || null;
+    this.hasPostMeal = !!l.hasPostMeal; this.postMealRestaurant = l.postMealRestaurant || null;
+    this.roundLength = l.roundLength || '18';
+    this.date = null;
+    this.render();
+    setTimeout(() => {
+      this.bind();
+      U.$('#r-search').value = this.course.name;
+      const hint = U.$('#r-hint'); if (hint) { hint.innerHTML = `📍 ${U.esc(this.course.addr || '')}`; hint.style.color = 'var(--accent)'; }
+      if (this.startPoint === '직접 입력') { const t = U.$('#r-startpoint-text'); if (t) t.textContent = l.startAddress || ''; }
+      this.updateStartPointUI();
+      this.updateTags();
+      U.toast('지난번 일정으로 채웠어요. 날짜만 골라 주세요.');
+      this.openDatePicker();
+    }, 60);
+  },
+
+  openPasteBooking() {
+    App.showModal('📋 예약 문자로 채우기', `
+      <p style="font-size:13px; color:#64748b; margin:0 0 8px;">골프장 예약 확정 문자나 카톡을 그대로 붙여넣으세요.</p>
+      <textarea id="r-paste" rows="6" style="width:100%; box-sizing:border-box; border:1px solid #e2e8f0; border-radius:10px; padding:10px; font-size:13px; line-height:1.5; resize:none;" placeholder="[레이크사이드CC] 예약 확정&#10;11/15(토) 07:12 남코스 4인"></textarea>
+      <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="Register.applyPastedBooking()">채우기</button>`);
+    setTimeout(async () => {
+      const ta = U.$('#r-paste'); if (!ta) return;
+      ta.focus();
+      // 클립보드에 예약 문자가 있으면 미리 넣어 둠 (권한이 없으면 그냥 빈 칸)
+      try {
+        const clip = navigator.clipboard && navigator.clipboard.readText ? await navigator.clipboard.readText() : '';
+        if (clip && !ta.value) { const p = Register.parseBookingText(clip); if (p.date || p.time || p.course) ta.value = clip; }
+      } catch (e) {}
+    }, 120);
+  },
+
+  /** 예약 문자에서 골프장·날짜·티오프 시각 뽑기 (못 찾은 것은 null) */
+  parseBookingText(text, now = new Date()) {
+    const t = String(text || '').replace(/\r/g, '');
+    const out = { course: null, date: null, time: null };
+
+    // 날짜: 2026-11-15 / 2026.11.15 / 2026년 11월 15일 / 11/15 / 11.15 / 11월 15일
+    let y = null, mo = null, d = null, mm;
+    if ((mm = t.match(/(20\d{2})\s*[.\-\/년]\s*(\d{1,2})\s*[.\-\/월]\s*(\d{1,2})/))) { y = +mm[1]; mo = +mm[2]; d = +mm[3]; }
+    else if ((mm = t.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/)) || (mm = t.match(/(?:^|[^\d:])(\d{1,2})\s*[\/.]\s*(\d{1,2})(?![\d:])/))) { mo = +mm[1]; d = +mm[2]; }
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
+      if (!y) {
+        y = now.getFullYear();
+        const cand = new Date(y, mo - 1, d);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        if (cand < today - 30 * 864e5) y += 1;   // 지난 날짜면 내년
+      }
+      const dt = new Date(y, mo - 1, d);
+      if (dt.getMonth() === mo - 1) out.date = dt;
+    }
+
+    // 시각: 07:12 / 7시 12분 / 오후 1시 / 13시20분
+    const re = /(오전|오후|AM|PM|am|pm)?\s*(\d{1,2})\s*(?::|시)\s*(\d{1,2})?\s*분?/g;
+    let best = null;
+    while ((mm = re.exec(t))) {
+      let h = +mm[2]; const mi = mm[3] ? +mm[3] : 0;
+      if (mi > 59 || h > 23) continue;
+      const ap = (mm[1] || '').toLowerCase();
+      if ((ap === '오후' || ap === 'pm') && h < 12) h += 12;
+      if ((ap === '오전' || ap === 'am') && h === 12) h = 0;
+      if (h >= 4 && h <= 17) { best = { h, m: mi }; break; }   // 티오프로 그럴듯한 시각
+      if (!best) best = { h, m: mi };
+    }
+    if (best) out.time = best;
+
+    // 골프장: [○○CC] 또는 '○○ CC / 컨트리클럽 / 골프클럽 / GC / 골프장 / 골프&리조트'
+    const SUF = '(?:CC|C\\.C|GC|cc|gc|컨트리\\s?클럽|골프\\s?클럽|골프장|골프\\s?[&앤]\\s?리조트|골프리조트)';
+    const named = t.match(new RegExp('[가-힣A-Za-z0-9]{2,}\\s?' + SUF));
+    if (named) out.course = named[0].replace(/^[\[(]/, '').trim();
+    else if ((mm = t.match(/\[([^\]]{2,20})\]/))) out.course = mm[1].replace(/(예약|확정|안내|알림|골프)$/g, '').trim() || null;
+    return out;
+  },
+
+  async applyPastedBooking() {
+    const ta = U.$('#r-paste');
+    const p = this.parseBookingText(ta ? ta.value : '');
+    if (!p.course && !p.date && !p.time) { U.toast('골프장·날짜·시간을 찾지 못했어요. 문자 내용을 확인해 주세요.'); return; }
+    App.closeModal();
+    const filled = [];
+    if (p.date) {
+      this.date = p.date;
+      const el = U.$('#r-date'); if (el) { el.textContent = U.fmtDate(p.date); el.classList.remove('is-empty'); }
+      filled.push('날짜');
+    }
+    if (p.time) {
+      this.timeH = p.time.h; this.timeM = p.time.m;
+      const el = U.$('#r-time'); if (el) { el.textContent = U.fmtTimeKo(`${String(p.time.h).padStart(2, '0')}:${String(p.time.m).padStart(2, '0')}`); el.classList.remove('is-empty'); }
+      filled.push('티오프');
+    }
+    if (p.course) {
+      const input = U.$('#r-search'); if (input) input.value = p.course;
+      try {
+        const res = await TmapAPI.searchPlace(p.course);
+        this.searchResults = res || [];
+        const key = p.course.replace(/\s|CC|cc|GC|gc|컨트리클럽|골프클럽|골프장/g, '');
+        const hit = this.searchResults.find(r => String(r.place_name || '').replace(/\s/g, '').includes(key)) || null;
+        if (hit) { this.selectCourse(hit.id); filled.push('골프장'); }
+        else if (input) this.search(p.course);   // 후보 목록에서 고르게
+      } catch (e) { if (input) this.search(p.course); }
+    }
+    U.toast(filled.length ? `${filled.join('·')}을(를) 채웠어요. 확인해 주세요.` : '골프장 이름으로 검색했어요. 목록에서 골라 주세요.');
+  },
+
+  /** 최근·자주 간 골프장 칩 (기록이 없으면 추천 골프장) */
+  recentCourses() {
+    const map = {};
+    (State.schedules || []).forEach(x => {
+      if (!x || !x.course || !x.course.lat) return;
+      const k = x.course.id || x.course.name;
+      const t = new Date(x.date).getTime() || 0;
+      if (!map[k]) map[k] = { course: x.course, n: 0, last: 0 };
+      map[k].n++; map[k].last = Math.max(map[k].last, t);
+    });
+    return Object.values(map).sort((a, b) => b.n - a.n || b.last - a.last).slice(0, 4).map(v => v.course);
+  },
+
+  quickCoursesHTML() {
+    const chip = 'font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;';
+    const recent = this.recentCourses();
+    this._recent = recent;
+    const items = recent.length
+      ? recent.map((c, i) => `<span onclick="Register.pickRecentCourse(${i})" style="${chip}">${U.esc(c.name)}</span>`).join('')
+      : [['남서울 CC', '남서울 CC'], ['아난티남해 CC', '아난티남해'], ['파인크리크 CC', '파인크리크'], ['해슬리 나인브릿지', '해슬리']]
+          .map(([q, l]) => `<span onclick="U.$('#r-search').value='${q}'; Register.search('${q}');" style="${chip}">${l}</span>`).join('');
+    return `
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
+                <span style="font-size:11px; color:#64748b; font-weight:700; width:100%; margin-bottom:2px;">${recent.length ? '최근 간 골프장:' : '추천 골프장:'}</span>
+                ${items}
+              </div>`;
+  },
+
+  pickRecentCourse(i) {
+    const c = (this._recent || [])[i]; if (!c) return;
+    this.course = c;
+    U.$('#r-search').value = c.name;
+    const hint = U.$('#r-hint'); if (hint) { hint.innerHTML = `📍 ${U.esc(c.addr || '')}`; hint.style.color = 'var(--accent)'; }
+    this.mealRestaurant = null;
+    U.haptic();
   },
 
   searchCustomAddress() {
@@ -959,8 +1158,11 @@ const Register = {
     else valObj = this.customStartObj;
     
     if (!valObj || !valObj.lat) {
-      U.toast('⚠️ 출발지 주소를 정확히 검색하여 등록해주세요.'); 
+      U.toast(this.startPoint === '직접 입력' ? '⚠️ 출발지 주소를 검색해 주세요.' : `⚠️ ${this.startPoint} 주소를 먼저 등록해 주세요.`);
       btn.innerHTML = originalText; btn.disabled = false;
+      this.updateStartPointUI();
+      this.searchMode = 'start';
+      this.searchCustomAddress();
       return;
     }
 
@@ -1061,7 +1263,8 @@ const Register = {
       hasMeetingPoint: this.hasMeetingPoint,
       meetingPointObj: this.meetingPointObj,
       travelToMeeting,
-      groupCode: this.groupCode || null
+      groupCode: this.groupCode || null,
+      roundLength: this.roundLength || '18'
     };
 
     if (this.editIdx !== null) {

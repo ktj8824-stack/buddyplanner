@@ -24,6 +24,12 @@ public class AlarmReceiver extends BroadcastReceiver {
             AlarmScheduler.forget(context, requestCode);
         }
 
+        String data = intent.getStringExtra("timelineJson");
+        if (AlarmScheduler.isReminder(data)) {
+            showReminder(context, data);
+            return;
+        }
+
         Log.d(TAG, "Alarm triggered! Launching AlarmActivity via Full-Screen Intent...");
         
         android.app.NotificationManager notificationManager = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -83,5 +89,44 @@ public class AlarmReceiver extends BroadcastReceiver {
 
         int notificationId = (int) System.currentTimeMillis();
         notificationManager.notify(notificationId, builder.build());
+    }
+
+    private static final String REMINDER_CHANNEL_ID = "buddyplanner_reminder_channel";
+
+    /** 전날 밤 안내·라운딩 후 기록 안내: 소리 알람 없이 일반 알림만 */
+    private void showReminder(Context context, String json) {
+        String title = "버디플래너";
+        String body = "";
+        try {
+            org.json.JSONObject o = new org.json.JSONObject(json);
+            title = o.optString("title", title);
+            body = o.optString("body", "");
+        } catch (Exception e) {
+            Log.e(TAG, "Bad reminder data", e);
+        }
+        android.app.NotificationManager nm = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            android.app.NotificationChannel ch = new android.app.NotificationChannel(
+                REMINDER_CHANNEL_ID, "일정 안내", android.app.NotificationManager.IMPORTANCE_DEFAULT);
+            ch.setDescription("라운딩 전날 안내, 라운딩 후 스코어 기록 안내");
+            nm.createNotificationChannel(ch);
+        }
+        Intent open = new Intent(context, MainActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        int flags = android.app.PendingIntent.FLAG_UPDATE_CURRENT;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            flags |= android.app.PendingIntent.FLAG_IMMUTABLE;
+        }
+        android.app.PendingIntent pi = android.app.PendingIntent.getActivity(context, 1, open, flags);
+        androidx.core.app.NotificationCompat.Builder b = new androidx.core.app.NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setStyle(new androidx.core.app.NotificationCompat.BigTextStyle().bigText(body))
+                .setPriority(androidx.core.app.NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pi)
+                .setAutoCancel(true);
+        nm.notify((int) System.currentTimeMillis(), b.build());
     }
 }

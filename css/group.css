@@ -105,3 +105,10 @@
 .gp-chat-in { display: flex; gap: 8px; padding: 10px 12px calc(var(--nav-h, 64px) + 14px); background: #fff; border-top: 1px solid #e2e8f0; }
 .gp-chat-in input { flex: 1; min-width: 0; border: 1px solid #cbd5e1; border-radius: 999px; padding: 10px 14px; font-size: 15px; }
 .gp-chat-in button { border: 0; border-radius: 999px; background: #0f172a; color: #d4af37; font-weight: 800; padding: 0 16px; font-size: 14px; cursor: pointer; }
+
+/* 변경 안내 */
+.gp-notice { background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin:0 0 12px; font-size:13px; color:#1e3a8a; line-height:1.55; }
+.gp-notice > b { display:block; font-size:13.5px; margin-bottom:4px; }
+.gp-notice button { margin-top:8px; border:none; background:#1d4ed8; color:#fff; font-weight:800; font-size:12.5px; border-radius:9px; padding:7px 12px; cursor:pointer; }
+.gp-notice.warn { background:#fff7ed; border-color:#fdba74; color:#7c2d12; }
+.gp-notice.warn button { background:#c2410c; }

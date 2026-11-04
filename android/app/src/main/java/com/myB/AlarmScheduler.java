@@ -39,7 +39,10 @@ public final class AlarmScheduler {
         PendingIntent pendingIntent = buildPendingIntent(context, requestCode, timeInMillis, timelineJson);
         try {
             boolean exactAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms();
-            if (exactAllowed) {
+            if (isReminder(timelineJson)) {
+                // 안내 알림은 몇 분 늦어도 괜찮으므로 알람 시계(상단 알람 아이콘)로 등록하지 않음
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeInMillis, pendingIntent);
+            } else if (exactAllowed) {
                 AlarmManager.AlarmClockInfo info = new AlarmManager.AlarmClockInfo(timeInMillis, pendingIntent);
                 alarmManager.setAlarmClock(info, pendingIntent);
             } else {
@@ -58,6 +61,11 @@ public final class AlarmScheduler {
         prefs(context).edit().putString(String.valueOf(requestCode), timeInMillis + SEP + json).apply();
         Log.d(TAG, "Scheduled alarm " + requestCode + " at " + timeInMillis);
         return true;
+    }
+
+    /** 울리지 않는 안내 알림인지 (MainActivity.setReminder에서 만든 데이터) */
+    public static boolean isReminder(String json) {
+        return json != null && json.startsWith("{\"reminder\":true");
     }
 
     /** 알람을 취소하고 기록에서도 지웁니다. */

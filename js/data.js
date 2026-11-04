@@ -137,6 +137,13 @@ const GOLFER_PICKS = {
   ],
 };
 
+/* ── 라운딩 길이 (귀가·뒷풀이 시간 계산용) ── */
+const ROUND_LENGTHS = {
+  '18': { label: '18홀', min: 300, desc: '라운딩·샤워 약 5시간' },
+  '9': { label: '9홀', min: 150, desc: '라운딩·샤워 약 2시간 30분' },
+  '18+': { label: '여유 있게', min: 330, desc: '그늘집·대기 포함 약 5시간 30분' },
+};
+
 /* ── App State ── */
 const State = {
   screen: 'home',
@@ -162,6 +169,10 @@ const State = {
 
   saveSchedules() {
     localStorage.setItem('bp_schedules_v2', JSON.stringify(this.schedules));
+    // 일정이 바뀌면 전날 밤·라운딩 후 안내 알림도 다시 맞춤 (앱에서만 동작)
+    if (typeof Timeline !== 'undefined' && Timeline.scheduleReminders) {
+      try { Timeline.scheduleReminders(); } catch (e) {}
+    }
   },
 
   loadSchedules() {
@@ -299,8 +310,13 @@ const State = {
       }
     }
 
+    // 라운딩 길이 (라운딩 + 샤워): 18홀 기본 5시간, 9홀 2시간 30분, 여유 있게 5시간 30분
+    const roundMin = ROUND_LENGTHS[s.roundLength] ? ROUND_LENGTHS[s.roundLength].min : ROUND_LENGTHS['18'].min;
+    tl.roundMin = roundMin;
+    tl.roundEnd = this.mToTime(teeTotal + roundMin);
+
     if (s.hasPostMeal && s.postMealRestaurant) {
-      const postMealStart = teeTotal + 300; // 티오프 + 5시간(라운딩 및 샤워)
+      const postMealStart = teeTotal + roundMin;
       const postMealEnd = postMealStart + 120; // 뒷풀이 2시간
       tl.hasPostMeal = true;
       tl.postMealRestaurant = s.postMealRestaurant;
@@ -310,7 +326,7 @@ const State = {
       tl.hasPostMeal = false;
     }
 
-    const returnStart = tl.hasPostMeal ? (teeTotal + 300 + 120) : (teeTotal + 300);
+    const returnStart = tl.hasPostMeal ? (teeTotal + roundMin + 120) : (teeTotal + roundMin);
     const returnTravel = s.travelTime || 60;
     tl.returnStart = this.mToTime(returnStart);
     tl.returnEnd = this.mToTime(returnStart + returnTravel);
