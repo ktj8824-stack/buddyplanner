@@ -2,7 +2,30 @@
    BuddyPlanner v2 — API Module
    ========================================= */
 
-// 카카오 장소 검색은 서버(Supabase Edge Function ai-chat)에서만 합니다. 앱에는 카카오 REST 키를 넣지 않습니다.
+// 카카오 장소 검색은 서버(Supabase Edge Function place-search)에서만 합니다. 앱에는 카카오 REST 키를 넣지 않습니다.
+// 골프장·주소·주변 식당 검색은 카카오가 먼저, 실패하면 TMAP으로 넘어갑니다. (길찾기·출발 시간은 TMAP)
+
+const PlaceAPI = {
+  /** 서버의 카카오 검색. 쓸 수 없거나 실패하면 null (그때는 TMAP으로) */
+  async call(body) {
+    if (typeof Cloud === 'undefined' || !Cloud.isConfigured || !Cloud.isConfigured() || !Cloud.isSignedIn()) return null;
+    try {
+      const { url, key } = Cloud.cfg();
+      const token = await Cloud._freshToken();
+      const res = await fetch(`${url}/functions/v1/place-search`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) return null;
+      const d = await res.json();
+      return Array.isArray(d.places) ? d.places : null;
+    } catch (e) {
+      console.warn('[PlaceAPI] 카카오 검색 실패, TMAP으로 대체', e);
+      return null;
+    }
+  }
+};
 
 const TmapAPI = {
   APP_KEY: (window.APP_CONFIG || {}).TMAP_APP_KEY || '',
@@ -14,6 +37,12 @@ const TmapAPI = {
       let searchQuery = keyword;
       
       const isChosungOnly = /^[ㄱ-ㅎ\s]+$/.test(keyword.trim());
+
+      // 1) 카카오 (초성만 입력한 경우는 카카오가 못 찾아서 바로 TMAP)
+      if (!isChosungOnly) {
+        const kakao = await PlaceAPI.call({ mode: 'keyword', q: keyword.trim(), golf: !!isGolfCourse });
+        if (kakao) return kakao;
+      }
 
       if (isGolfCourse && !isChosungOnly && !searchQuery.includes('골프') && !searchQuery.toLowerCase().includes('cc')) {
         searchQuery += ' 골프장';
@@ -27,8 +56,7 @@ const TmapAPI = {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        alert(`티맵 서버 에러: [${response.status}] ${errorText}`);
+        console.warn('[TmapAPI] 검색 실패', response.status, await response.text().catch(() => ''));
         throw new Error('티맵 API 요청 실패');
       }
 
@@ -54,7 +82,7 @@ const TmapAPI = {
       });
     } catch (error) {
       console.error('티맵 검색 오류:', error);
-      U.toast('티맵 API 검색 중 오류가 발생했습니다.');
+      U.toast('검색이 잠시 안 돼요. 잠시 후 다시 시도해 주세요.');
       return [];
     }
   },
@@ -152,6 +180,9 @@ const TmapAPI = {
 
   async searchNearbyPlaces(lat, lng, keyword = '맛집', radius = 3) {
     if (!lat || !lng) return [];
+    // 1) 카카오
+    const kakao = await PlaceAPI.call({ mode: 'nearby', lat, lng, radius_km: radius, q: keyword });
+    if (kakao) return kakao;
     try {
       // radius 단위는 km
       const searchUrl = `https://apis.openapi.sk.com/tmap/pois?version=1&searchKeyword=${encodeURIComponent(keyword)}&centerLon=${lng}&centerLat=${lat}&radius=${radius}&resCoordType=WGS84GEO&reqCoordType=WGS84GEO&count=60&appKey=${TmapAPI.APP_KEY}`;
