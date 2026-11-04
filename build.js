@@ -11,6 +11,7 @@ const excludeList = [
     '.vscode',
     '.agents',
     'android',
+    'ios',
     'www',
     'package.json',
     'package-lock.json',
