@@ -46,15 +46,16 @@ const Onboarding = {
 
         <div class="ob-section">
           <div class="ob-section-title">자주 출발하는 장소 등록</div>
+          <div class="ob-hint">집 주소를 넣으면 골프장까지 출발 시간을 자동으로 계산해요.</div>
           <div class="ob-input-group" style="display:flex; flex-direction:row; gap:8px;">
             <div class="setting-item" style="flex:1; min-width:0; cursor:pointer; background:var(--bg-input); padding:16px 8px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Onboarding.searchAddress('home')">
-              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏠</span>
+              <span class="address-icon ob-addr-ic home">🏠</span>
               <div id="ob-home-container" style="width:100%; overflow:hidden;">
                 <div style="font-size:14px; color:var(--text-400); font-weight:600;">집 주소 검색</div>
               </div>
             </div>
             <div class="setting-item" style="flex:1; min-width:0; cursor:pointer; background:var(--bg-input); padding:16px 8px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Onboarding.searchAddress('work')">
-              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏢</span>
+              <span class="address-icon ob-addr-ic work">🏢</span>
               <div id="ob-office-container" style="width:100%; overflow:hidden;">
                 <div style="font-size:14px; color:var(--text-400); font-weight:600;">회사 주소 검색</div>
               </div>

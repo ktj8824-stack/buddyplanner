@@ -717,8 +717,8 @@ const App = {
         <div class="modal-handle"></div>
         <h3 class="modal-title">${title}</h3>
         <div style="padding:0 var(--sp-4) var(--sp-4) var(--sp-4); display:flex; gap:var(--sp-2);">
-          <input type="text" id="addr-search-input" class="address-input" placeholder="정확한 주소 또는 건물명" style="flex:1" onkeypress="if(event.key==='Enter') window._searchAddress()" />
-          <button class="btn btn-primary" onclick="window._searchAddress()" style="width:auto; padding:0 var(--sp-4);">검색</button>
+          <input type="text" id="addr-search-input" class="address-input" placeholder="정확한 주소 또는 건물명" style="flex:1; min-width:0;" onkeypress="if(event.key==='Enter') window._searchAddress()" />
+          <button class="btn btn-primary" onclick="window._searchAddress()" style="width:auto; flex-shrink:0; min-width:72px; padding:0 18px; font-size:15px; white-space:nowrap;">검색</button>
         </div>
         <div id="addr-search-results" class="modal-list" style="flex:1; overflow-y:auto;">
           <div style="padding:var(--sp-4);text-align:center;color:var(--text-light)">검색어를 입력하고 검색 버튼을 누르세요.</div>

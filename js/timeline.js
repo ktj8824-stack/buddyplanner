@@ -92,7 +92,6 @@ const Timeline = {
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 타임라인
               </h3>
-              <p class="tl-sub">${['출발', tl.hasMeetingPoint ? '집결지' : '', tl.hasMeal ? '아침 식사' : '', '골프장', tl.hasPostMeal ? '뒷풀이' : '', '귀가'].filter(Boolean).join(' → ')}</p>
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
               <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
@@ -106,6 +105,7 @@ const Timeline = {
               </button>
             </div>
           </div>
+          <p class="tl-sub tl-route">${['출발', tl.hasMeetingPoint ? '집결지' : '', tl.hasMeal ? '아침 식사' : '', '골프장', tl.hasPostMeal ? '뒷풀이' : '', '귀가'].filter(Boolean).join(' → ')}</p>
 
           <div class="tl-list">
             ${this.renderTimelineItems(s, tl)}
@@ -511,7 +511,7 @@ const Timeline = {
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
               ${nextDestName}(으)로 출발
             </div>
-            <div class="tl-detail">예측 길찾기 기준 약 ${tl.meetTravelDur}분 소요</div>
+            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 약 ${tl.meetTravelDur}분으로 잡았어요 · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 약 ${tl.meetTravelDur}분 소요`}</div>
             <div class="tl-nav-btns">
               <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${tmapIcon} TMAP</button>
               <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${kakaoIcon} 카카오내비</button>
@@ -529,7 +529,7 @@ const Timeline = {
               ${startIconHtml}
               ${startPt}에서 출발하기
             </div>
-            <div class="tl-detail">예측 길찾기 기준 ${nextDestName}까지 약 ${tl.homeTravelDur}분 소요</div>
+            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 ${nextDestName}까지 약 ${tl.homeTravelDur}분으로 잡았어요 · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 ${nextDestName}까지 약 ${tl.homeTravelDur}분 소요`}</div>
             <div class="tl-nav-btns">
               <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
               <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>

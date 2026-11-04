@@ -1172,6 +1172,7 @@ const Register = {
 
     // TMAP 도착 목표 시간 기반 예측 경로 소요 시간 계산
     let travelTime = 60; // 총 이동 관련 소요 시간 (집결지 대기 포함)
+    let estimated = false; // 길찾기를 못 받아 기본값으로 잡은 구간이 있는지
     let travelToRest = 0; // 출발지(또는 집결지) -> 식당 소요시간
     let travelToMeeting = 0; // 출발지 -> 집결지 소요시간
     let restTravelDur = 0; // 식당 -> 골프장 소요시간
@@ -1194,7 +1195,7 @@ const Register = {
           const meetLat = this.meetingPointObj.lat;
           const meetLng = this.meetingPointObj.lng;
           let rtMeetToRest = await TmapAPI.getPredictiveRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat, restArrivalTime.toISOString(), "W02");
-          if (!rtMeetToRest) rtMeetToRest = await TmapAPI.getRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || 30;
+          if (!rtMeetToRest) rtMeetToRest = await TmapAPI.getRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || (estimated = true, 30);
           travelToRest = rtMeetToRest;
 
           const meetWaitTime = 10;
@@ -1202,14 +1203,14 @@ const Register = {
 
           // 출발지 -> 집결지
           let rtStartToMeet = await TmapAPI.getPredictiveRouteTime(startLng, startLat, meetLng, meetLat, meetArrivalTime.toISOString(), "W02");
-          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || 30;
+          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || (estimated = true, 30);
           travelToMeeting = rtStartToMeet;
 
           travelTime = travelToMeeting + meetWaitTime + travelToRest + restTravelDur;
         } else {
           // 출발지 -> 식당
           let rt = await TmapAPI.getPredictiveRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat, restArrivalTime.toISOString(), "W02");
-          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || 60;
+          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || (estimated = true, 60);
           travelToRest = rt;
           travelTime = travelToRest + restTravelDur;
         }
@@ -1220,26 +1221,27 @@ const Register = {
           const meetLat = this.meetingPointObj.lat;
           const meetLng = this.meetingPointObj.lng;
           let rtMeetToGolf = await TmapAPI.getPredictiveRouteTime(meetLng, meetLat, this.course.lng, this.course.lat, arrivalTime.toISOString(), "W02");
-          if (!rtMeetToGolf) rtMeetToGolf = await TmapAPI.getRouteTime(meetLng, meetLat, this.course.lng, this.course.lat) || 40;
+          if (!rtMeetToGolf) rtMeetToGolf = await TmapAPI.getRouteTime(meetLng, meetLat, this.course.lng, this.course.lat) || (estimated = true, 40);
           
           const meetWaitTime = 10;
           const meetArrivalTime = new Date(arrivalTime.getTime() - rtMeetToGolf * 60000 - meetWaitTime * 60000);
 
           // 출발지 -> 집결지
           let rtStartToMeet = await TmapAPI.getPredictiveRouteTime(startLng, startLat, meetLng, meetLat, meetArrivalTime.toISOString(), "W02");
-          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || 30;
+          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || (estimated = true, 30);
           travelToMeeting = rtStartToMeet;
 
           travelTime = travelToMeeting + meetWaitTime + rtMeetToGolf;
         } else {
           // 출발지 -> 골프장
           let rt = await TmapAPI.getPredictiveRouteTime(startLng, startLat, this.course.lng, this.course.lat, arrivalTime.toISOString(), "W02");
-          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.course.lng, this.course.lat) || 60;
+          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.course.lng, this.course.lat) || (estimated = true, 60);
           travelTime = rt;
         }
       }
     } catch (e) {
       console.error("TMAP 연동 중 에러 발생:", e);
+      estimated = true;
       U.toast('⚠️ 예측 경로 탐색 오류. 기본 소요시간으로 계산됩니다.');
     }
 
@@ -1264,7 +1266,8 @@ const Register = {
       meetingPointObj: this.meetingPointObj,
       travelToMeeting,
       groupCode: this.groupCode || null,
-      roundLength: this.roundLength || '18'
+      roundLength: this.roundLength || '18',
+      routeEstimated: estimated
     };
 
     if (this.editIdx !== null) {
