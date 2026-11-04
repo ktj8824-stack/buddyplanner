@@ -114,7 +114,7 @@ const TmapAPI = {
   },
 
   async getPredictiveRouteTime(startX, startY, endX, endY, targetTimeIso, predictionType = "W02") {
-    // W01: Departure time, W02: Arrival time
+    // W02: 이 시각에 도착하는 기준(기본) / W01: 이 시각에 출발하는 기준
     if (!startX || !startY || !endX || !endY || !targetTimeIso) return null;
 
     try {
@@ -150,7 +150,9 @@ const TmapAPI = {
         routesInfo: {
           departure: { name: "출발지", lon: startX.toString(), lat: startY.toString() },
           destination: { name: "도착지", lon: endX.toString(), lat: endY.toString() },
-          predictionType: predictionType,
+          // TMAP 값: 'departure' = 이 시각에 '도착'하려면 언제 출발? / 'arrival' = 이 시각에 '출발'하면 언제 도착?
+          // (2026-11 실제 호출로 확인. 예전 'W01'·'W02'는 TMAP이 거절해서 예측이 계속 실패했음)
+          predictionType: predictionType === 'W01' ? 'arrival' : 'departure',
           predictionTime: predictionTime
         }
       };
