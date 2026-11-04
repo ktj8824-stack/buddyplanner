@@ -75,12 +75,26 @@ export async function resolveCourse(env: Env, name: string, lat: number | null, 
   return { id: String(d.id || ''), name: d.place_name, addr: d.road_address_name || d.address_name || '', lat: parseFloat(d.y), lng: parseFloat(d.x) };
 }
 
+/** 음식 종류 표시: 마지막 단계가 브랜드명(예: '스타벅스', '얌샘김밥')이면 그 앞 단계(예: '커피전문점', '분식')를 씀.
+ *  '해장국'처럼 우리 분류 단어와 똑같은 일반 종류는 이름에 들어 있어도 그대로 둠 */
+const TYPE_WORDS = new Set<string>(ALL_CATS.flatMap((c: Json) => c.words));
+export function typeLabel(categoryName: string, placeName = ''): string {
+  const parts = String(categoryName || '').split('>').map(x => x.trim()).filter(Boolean);
+  const name = String(placeName || '').replace(/\s+/g, '');
+  while (parts.length > 2) {
+    const last = parts[parts.length - 1].replace(/\s+/g, '');
+    const generic = last.split(',').some(w => TYPE_WORDS.has(w));
+    if (last && !generic && name.includes(last)) parts.pop(); else break;
+  }
+  return parts[parts.length - 1] || '';
+}
+
 function toPlace(d: Json, rank: number) {
   return {
     id: String(d.id),
     name: String(d.place_name || ''),
     kakao_category: String(d.category_name || ''),
-    category: String(d.category_name || '').split('>').pop()?.trim() || '',
+    category: typeLabel(d.category_name, d.place_name),
     address: d.road_address_name || d.address_name || '',
     distance_km: d.distance ? Math.round(Number(d.distance) / 100) / 10 : null,
     phone: d.phone || '',
