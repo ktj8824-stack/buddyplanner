@@ -250,3 +250,8 @@
 .rec-nine-check { display:flex; align-items:center; gap:6px; margin-top:10px; font-size:12px; font-weight:700; color:#334155; }
 .rec-nine-check input { -webkit-appearance:checkbox; appearance:auto; width:16px; height:16px; accent-color:#007aff; }
 .rec-nine-check span { color:#94a3b8; font-weight:600; font-size:11px; }
+
+/* 기록 전 라운딩 일정: 예정(점선 파랑) / 지난 날 기록하기(주황) */
+.record-badge.plan { background: #ffffff; border: 1px dashed #93c5fd; box-shadow: none; color: #2563eb; font-size: 10.5px; }
+.record-badge.plan.past { background: #fff7ed; border: 1px solid #fdba74; color: #c2410c; }
+.record-badge.plan.past .record-badge-course { color: #ea580c; }

@@ -184,6 +184,14 @@ const Record = {
     this.render();
   },
   
+  /** 그날의 라운딩 일정 (YYYY-MM-DD) */
+  schedulesOn(dateStr) {
+    return ((typeof State !== 'undefined' && State.schedules) || []).filter(s => {
+      const sd = s && (s.date instanceof Date ? s.date : new Date(s.date));
+      return sd && !isNaN(sd) && this.ymd(sd.getFullYear(), sd.getMonth(), sd.getDate()) === dateStr;
+    });
+  },
+
   renderCalendarGrid() {
     const grid = U.$('#record-cal-grid');
     if (!grid) return;
@@ -204,9 +212,23 @@ const Record = {
             <div>${typeof r0.score === 'number' ? r0.score + '타' : '기록'}${rounds.length > 1 ? ` <span class="record-badge-more">+${rounds.length - 1}</span>` : ''}</div>
           </div>`;
       }
+      // 기록은 없지만 라운딩 일정이 있는 날: 예정(앞으로) / 기록하기(지난 날)
+      let plannedClass = '';
+      if (!rounds.length) {
+        const sch = this.schedulesOn(this.ymd(this.currentYear, this.currentMonth, d));
+        if (sch.length) {
+          const past = new Date(this.currentYear, this.currentMonth, d) <= new Date();
+          plannedClass = past ? 'has-plan past' : 'has-plan';
+          badgeHtml = `
+          <div class="record-badge plan ${past ? 'past' : ''}">
+            <div class="record-badge-course">${U.esc((sch[0].course && sch[0].course.name) || '')}</div>
+            <div>${past ? '기록하기' : '예정'}</div>
+          </div>`;
+        }
+      }
       const selectedClass = (this.selectedDate === d) ? 'selected' : '';
       html += `
-        <div class="record-cal-cell ${rounds.length ? 'has-record' : ''} ${selectedClass}" onclick="Record.selectDate(${d})" style="position:relative;">
+        <div class="record-cal-cell ${rounds.length ? 'has-record' : ''} ${plannedClass} ${selectedClass}" onclick="Record.selectDate(${d})" style="position:relative;">
           <span class="day-num">${d}</span>
           ${badgeHtml}
         </div>`;
@@ -223,6 +245,27 @@ const Record = {
     const dayStr = ['일', '월', '화', '수', '목', '금', '토'][new Date(this.currentYear, this.currentMonth, d).getDay()];
     const dateLabel = `${this.currentYear}. ${String(this.currentMonth + 1).padStart(2, '0')}. ${String(d).padStart(2, '0')} (${dayStr})`;
 
+    const planned = rounds.length ? [] : this.schedulesOn(dateStr);
+    if (!rounds.length && planned.length) {
+      const sc = planned[0];
+      const idx = State.schedules.indexOf(sc);
+      const past = new Date(this.currentYear, this.currentMonth, d) <= new Date();
+      detailContainer.innerHTML = `
+        <div class="record-card" style="animation: slideUp 0.3s ease; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div style="min-width:0;">
+              <div class="record-date">${dateLabel} · ${U.esc(sc.teeOff || '')} 티오프</div>
+              <div style="font-size:17px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${U.esc((sc.course && sc.course.name) || '')}</div>
+            </div>
+            <span style="flex-shrink:0; font-size:11.5px; font-weight:800; padding:4px 9px; border-radius:999px; ${past ? 'background:#fff7ed; color:#c2410c;' : 'background:#eff6ff; color:#1d4ed8;'}">${past ? '기록 전' : '예정'}</span>
+          </div>
+          ${past
+            ? `<button class="record-action" onclick="Record.showRecordForm()" style="margin:0; width:100%; padding:11px; font-size:14px; background:#04122d; color:#fff; border:none; border-radius:10px; font-weight:800;">⛳ 이날 스코어 기록하기</button>`
+            : `<button onclick="App.viewTimeline(${idx})" style="margin:0; width:100%; padding:11px; font-size:14px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:10px; font-weight:800; cursor:pointer;">타임라인 보기</button>`}
+        </div>`;
+      return;
+    }
+
     if (!rounds.length) {
       detailContainer.innerHTML = `
         <div class="record-card" style="animation: slideUp 0.3s ease; display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:130px; gap:12px;">
@@ -237,8 +280,8 @@ const Record = {
 
     // 그날 일정의 동반자 (일정이 하나일 때만 연결)
     let companions = [];
-    if (window.State && window.State.schedules) {
-      const same = window.State.schedules.filter(s => {
+    if (typeof State !== 'undefined' && State.schedules) {
+      const same = State.schedules.filter(s => {
         const sd = s.date instanceof Date ? s.date : new Date(s.date);
         return !isNaN(sd) && this.ymd(sd.getFullYear(), sd.getMonth(), sd.getDate()) === dateStr;
       });
@@ -291,6 +334,11 @@ const Record = {
 
     let defaultCourse = existingRecord ? (existingRecord.course || '') : '';
     let defaultTime = existingRecord ? (existingRecord.time || '07:30') : '07:30';
+    // 새 기록: 그날 라운딩 일정이 있으면 골프장·티오프를 미리 채움
+    if (!existingRecord) {
+      const sc = this.schedulesOn(todayStr)[0];
+      if (sc) { defaultCourse = (sc.course && sc.course.name) || ''; defaultTime = sc.teeOff || defaultTime; }
+    }
     // 수정할 때 원래 키를 기억 (날짜를 바꾸면 새 날짜로 옮겨짐)
     this._editingKey = existingRecord ? editKey : null;
 

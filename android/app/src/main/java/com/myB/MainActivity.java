@@ -86,6 +86,20 @@ public class MainActivity extends BridgeActivity {
             scheduleFromJs(timeInMillis, timelineJson);
         }
 
+        /** 울리지 않는 일반 알림 (전날 밤 안내, 라운딩 후 스코어 기록 안내 등) */
+        @JavascriptInterface
+        public void setReminder(long timeInMillis, String title, String body) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject();
+                o.put("reminder", true);
+                o.put("title", title == null ? "" : title);
+                o.put("body", body == null ? "" : body);
+                AlarmScheduler.schedule(MainActivity.this, AlarmScheduler.requestCodeFor(timeInMillis), timeInMillis, o.toString());
+            } catch (Exception e) {
+                Log.e("NativeApp", "setReminder failed", e);
+            }
+        }
+
         @JavascriptInterface
         public void cancelAlarm(long timeInMillis) {
             Log.d("NativeApp", "cancelAlarm called from JS: " + timeInMillis);

@@ -304,8 +304,13 @@ const Group = {
     }).join('');
     const needRide = e.members.filter(m => m.transport === 'ride' && !m.car_driver_id && m.status !== 'no');
 
+    // 총무가 바꾼 내용 / 내 일정과 다른 점 안내
+    const notices = this._noticesHTML(e, me);
+
     // 내 응답 패널 (총무가 아닐 때)
-    let myPanel = owner ? `<button class="gp-btn line" style="margin:0 0 12px" onclick="Group.addToMine()">📅 내 일정에도 등록 (출발 시간·알람 계산)</button>` : '';
+    const pending = e.members.filter(m => !m.is_owner && m.status !== 'yes' && m.status !== 'no');
+    let myPanel = owner ? `${pending.length ? `<button class="gp-btn navy" style="margin:0 0 8px" onclick="Group.share('remind')">🔔 아직 답 안 한 ${pending.length}명에게 다시 알리기</button>` : ''}
+      <button class="gp-btn line" style="margin:0 0 12px" onclick="Group.addToMine()">📅 내 일정에도 등록 (출발 시간·알람 계산)</button>` : '';
     if (!owner) {
       if (!me) {
         const choices = e.members.filter(m => !m.is_owner);
@@ -349,6 +354,7 @@ const Group = {
             ${e.meal_after ? `<div class="gp-meet-s">🍻 뒤풀이 ${U.esc(e.meal_after.name)}</div>` : ''}
             ${e.memo ? `<div class="gp-memo">📢 ${U.esc(e.memo)}</div>` : ''}
           </div>
+          ${notices}
           ${myPanel}
           <div class="gp-lab">우리 조 <span>참석 ${yes}/${e.members.length}</span></div>
           ${membersHtml}
@@ -359,6 +365,68 @@ const Group = {
           <button class="gp-btn line" onclick="Group.openChat()">👥 단체 톡방${e.chat_count ? ` (${e.chat_count})` : ''}</button>
         </div>
       </div>`;
+  },
+
+  /* ── 변경 안내 ── */
+  /** 참석자가 마지막으로 본 내용 (기기에 저장): 날짜·티오프·집결·아침 식당·내 조·내 차 */
+  _snapshot(e, me) {
+    const driver = me && me.car_driver_id ? this._member(me.car_driver_id) : null;
+    return {
+      date: e.round_date, tee: e.tee_off, meet: e.meet_time || this._minus(e.tee_off, 30),
+      meal: e.meal_before ? e.meal_before.name : '', team: me ? (me.team_no || 0) : null,
+      car: me ? (driver ? driver.name : (me.transport === 'self' ? '직접 운전' : '')) : null,
+    };
+  },
+  _linkedSchedule() {
+    return (State.schedules || []).find(s => s && s.groupCode === this.code) || null;
+  },
+  _noticesHTML(e, me) {
+    let html = '';
+    // 1) 총무가 바꾼 것 (참석자만, 처음 볼 때는 저장만)
+    if (!e.i_am_owner) {
+      const all = this._store('bp_ge_seen');
+      const now = this._snapshot(e, me);
+      const was = all[this.code];
+      if (!was) { all[this.code] = now; this._save('bp_ge_seen', all); }
+      else {
+        const L = [];
+        if (was.date !== now.date) L.push(`날짜 ${this._date(was.date)} → <b>${this._date(now.date)}</b>`);
+        if (was.tee !== now.tee) L.push(`티오프 ${U.esc(was.tee)} → <b>${U.esc(now.tee)}</b>`);
+        if (was.meet !== now.meet) L.push(`집결 ${U.esc(was.meet)} → <b>${U.esc(now.meet)}</b>`);
+        if (was.meal !== now.meal) L.push(now.meal ? `아침 식당 <b>${U.esc(now.meal)}</b>` : '아침 식사 취소');
+        if (me && was.team !== null && was.team !== now.team) L.push(now.team ? `내 조 <b>${now.team}조</b>` : '내 조 미정으로 바뀜');
+        if (me && was.car !== null && was.car !== now.car && now.car) L.push(`내 차 <b>${U.esc(now.car)}${now.car === '직접 운전' ? '' : ' 차'}</b>`);
+        if (L.length) html += `<div class="gp-notice"><b>📢 총무가 바꿨어요</b><div>${L.join('<br>')}</div><button onclick="Group.seenChanges()">확인했어요</button></div>`;
+        else if (JSON.stringify(was) !== JSON.stringify(now)) { all[this.code] = now; this._save('bp_ge_seen', all); }
+      }
+    }
+    // 2) 내 일정(출발 알람)이 단체 일정과 다를 때
+    const mine = this._linkedSchedule();
+    if (mine) {
+      const d = new Date(mine.date); const p = n => String(n).padStart(2, '0');
+      const ymd = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      if (ymd !== e.round_date || mine.teeOff !== e.tee_off) {
+        html += `<div class="gp-notice warn"><b>⏰ 내 일정은 아직 예전 시간이에요</b><div>내 일정: ${this._date(ymd)} ${U.esc(mine.teeOff)} → 단체 일정: <b>${this._date(e.round_date)} ${U.esc(e.tee_off)}</b></div><button onclick="Group.syncMine()">내 일정 맞추기</button></div>`;
+      }
+    }
+    return html;
+  },
+  seenChanges() {
+    const all = this._store('bp_ge_seen');
+    all[this.code] = this._snapshot(this.ev, this.pickId ? this._member(this.pickId) : null);
+    this._save('bp_ge_seen', all);
+    this.render();
+  },
+  /** 내 일정의 날짜·티오프를 단체 일정에 맞추고 출발 시간·알람을 다시 계산 */
+  syncMine() {
+    const e = this.ev; const mine = this._linkedSchedule(); if (!e || !mine) return;
+    const idx = State.schedules.indexOf(mine);
+    mine.date = new Date(e.round_date + 'T00:00:00');
+    mine.teeOff = e.tee_off;
+    State.updateSchedule(idx, mine);
+    try { if (typeof Timeline !== 'undefined') Timeline.autoScheduleAllAlarms(); } catch (err) {}
+    U.toast('내 일정을 단체 일정에 맞췄어요. 출발 시간도 다시 계산했어요.');
+    this.render();
   },
 
   pickMe(id) {
@@ -492,10 +560,11 @@ const Group = {
     const e = this.ev; const meet = e.meet_time || this._minus(e.tee_off, 30);
     return `⛳ ${e.title}\n${this._date(e.round_date)} ${e.course.name} · 티오프 ${e.tee_off}\n${meet} 클럽하우스 집결${e.meal_before ? `\n아침 ${e.meal_before.name}` : ''}\n\n아래 링크에서 내 이름을 골라 참석을 눌러 주세요 👇\n${this.shareUrl()}`;
   },
-  async share() {
+  async share(kind) {
     const e = this.ev; if (!e) return;
     const url = this.shareUrl();
     const meet = e.meet_time || this._minus(e.tee_off, 30);
+    if (kind === 'remind') return this.shareRemind();
     try {
       if (typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
         if (!Kakao.isInitialized()) Kakao.init(Login.KAKAO_JS_KEY);
@@ -518,6 +587,37 @@ const Group = {
     } catch (err) { if (err && err.name === 'AbortError') return; }
     try { await navigator.clipboard.writeText(this.shareText()); U.toast('공지 내용과 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.'); }
     catch (err) { prompt('아래 링크를 복사해 단톡방에 보내 주세요', url); }
+  },
+
+  /** 아직 답하지 않은 사람에게 다시 알리기 (카톡 공유 · 안 되면 복사) */
+  async shareRemind() {
+    const e = this.ev; if (!e) return;
+    const url = this.shareUrl();
+    const names = e.members.filter(m => !m.is_owner && m.status !== 'yes' && m.status !== 'no').map(m => m.name);
+    if (!names.length) { U.toast('모두 답했어요 👍'); return; }
+    const who = names.length > 6 ? `${names.slice(0, 6).join(', ')} 외 ${names.length - 6}명` : names.join(', ');
+    const text = `🙋 ${e.title} 참석 확인 부탁드려요\n${this._date(e.round_date)} ${e.course.name} · 티오프 ${e.tee_off}\n\n아직 답하지 않으신 분: ${who}\n아래 링크에서 내 이름을 골라 참석/불참을 눌러 주세요 👇\n${url}`;
+    try {
+      if (typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
+        if (!Kakao.isInitialized()) Kakao.init(Login.KAKAO_JS_KEY);
+        const link = { mobileWebUrl: url, webUrl: url };
+        Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: {
+            title: `🙋 참석 확인 부탁드려요 · ${e.title}`,
+            description: `${this._date(e.round_date)} ${e.tee_off} ${e.course.name}\n아직 답하지 않으신 분: ${who}`,
+            imageUrl: 'https://files.catbox.moe/672ojg.png',
+            link
+          },
+          buttons: [{ title: '참석 확인하기', link }]
+        });
+        return;
+      }
+    } catch (err) { console.warn('kakao share', err); }
+    try { if (navigator.share) { await navigator.share({ title: e.title, text }); return; } }
+    catch (err) { if (err && err.name === 'AbortError') return; }
+    try { await navigator.clipboard.writeText(text); U.toast('알림 문구를 복사했어요. 단톡방에 붙여 넣어 주세요.'); }
+    catch (err) { prompt('아래 내용을 복사해 단톡방에 보내 주세요', text); }
   },
 
   /* ── 단체 톡방 ── */

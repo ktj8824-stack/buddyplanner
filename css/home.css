@@ -883,3 +883,17 @@
   background: none;
   border: none;
 }
+
+/* ── 스코어 카드: 더 낮게 + 기록이 없을 때 '등록하기' 안내 ── */
+.glounge-score-card { padding: 10px 12px 8px; }
+.glounge-score-card .card-score-num { font-size: 25px; }
+.glounge-score-card .card-score-row { margin-bottom: 3px; }
+.glounge-score-card .card-corner-thumb { width: 38px; height: 38px; right: 6px; bottom: 6px; }
+.glounge-score-card.is-empty .card-corner-thumb { width: 34px; height: 34px; opacity: 0.85; }
+.card-empty-cta { font-size: 15px; font-weight: 800; color: #1d4ed8; letter-spacing: -0.3px; margin: 3px 0 2px; }
+.card-empty-cta.gold { color: #b45309; }
+.glounge-round-stat-card { padding: 10px 14px; margin-bottom: 14px; }
+.glounge-round-stat-card .stat-3d-icon-wrap { width: 36px; height: 36px; }
+.glounge-round-stat-card .stat-title { font-size: 13.5px; }
+.glounge-round-stat-card .stat-badge-num .num { font-size: 21px; }
+.stat-empty-cta { display: inline-block; font-size: 12.5px; font-weight: 800; color: #047857; background: #ffffff; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 11px; white-space: nowrap; }

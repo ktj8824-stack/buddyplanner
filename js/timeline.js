@@ -92,7 +92,7 @@ const Timeline = {
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                 타임라인
               </h3>
-              <p class="tl-sub">${tl.hasMeal ? '출발지 → 식당 → 골프코스 동선 연산' : '출발지 → 골프코스 최적 경로'}</p>
+              <p class="tl-sub">${['출발', tl.hasMeetingPoint ? '집결지' : '', tl.hasMeal ? '아침 식사' : '', '골프장', tl.hasPostMeal ? '뒷풀이' : '', '귀가'].filter(Boolean).join(' → ')}</p>
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
               <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
@@ -394,7 +394,7 @@ const Timeline = {
           <div class="route-arrow"><span class="route-time">${tl.homeTravelDur}분</span></div>
           <div class="route-node gold">
             <div class="route-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <svg viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>
             </div>
             <span class="route-label">${tl.restaurantName.slice(0, 5)}</span>
           </div>
@@ -426,6 +426,7 @@ const Timeline = {
   },
 
   renderTimelineItems(s, tl) {
+    const roundOver = Timeline.isRoundOver(s);
     let items = '';
     const startPt = s.startPoint || '집';
     const tmapIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top:-1px"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`;
@@ -549,12 +550,12 @@ const Timeline = {
           <div class="tl-card">
             <div class="tl-time">${tl.mealStart}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>
               ${tl.restaurantName} 식사
             </div>
             <div class="tl-detail">식사 시간 약 ${tl.mealDuration}분</div>
             ${mealRatingHtml}
-            <button class="tl-nav-btn rating" style="margin-top:6px;" onclick="ReviewStore.openRatingModal('${tl.restaurantName}', '${s.course.name}')">${ratingIcon} 식당 평가하기</button>
+            ${roundOver ? `<button class="tl-nav-btn rating" style="margin-top:6px;" onclick="ReviewStore.openRatingModal('${tl.restaurantName}', '${s.course.name}')">${ratingIcon} 식당 평가하기</button>` : ''}
           </div>
         </div>`;
 
@@ -587,7 +588,7 @@ const Timeline = {
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>
             클럽하우스 도착
           </div>
-          <div class="tl-detail">조식 및 환복 여유 시간 (${tl.mannerTime}분)</div>
+          <div class="tl-detail">${tl.hasMeal ? '환복·몸풀기' : '조식·환복'} 여유 시간 (${tl.mannerTime}분)</div>
         </div>
       </div>`;
 
@@ -602,6 +603,21 @@ const Timeline = {
             티오프!
           </div>
           <div class="tl-detail">멋진 라운딩 되세요! 🏌️‍♂️</div>
+        </div>
+      </div>`;
+
+    // 라운딩 종료 (귀가·뒷풀이 시간의 기준)
+    const rl = ROUND_LENGTHS[s.roundLength] || ROUND_LENGTHS['18'];
+    items += `
+      <div class="tl-item stag">
+        <div class="tl-dot"></div>
+        <div class="tl-card">
+          <div class="tl-time">${tl.roundEnd || ''}</div>
+          <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l-2 4 2 4H5"></path></svg>
+            라운딩 종료
+          </div>
+          <div class="tl-detail">${rl.label} 기준 · ${rl.desc}</div>
         </div>
       </div>`;
 
@@ -623,7 +639,7 @@ const Timeline = {
           <div class="tl-nav-btns">
             <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${tl.postMealRestaurant.name}',${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},'${s.course.name}',${s.course.lat},${s.course.lng})">${tmapIcon} TMAP</button>
             <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${tl.postMealRestaurant.name}',${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},'${s.course.name}',${s.course.lat},${s.course.lng})">${kakaoIcon} 카카오내비</button>
-            <button class="tl-nav-btn rating" onclick="ReviewStore.openRatingModal('${tl.postMealRestaurant.name}', '${s.course.name}')">${ratingIcon} 식당 평가하기</button>
+            ${roundOver ? `<button class="tl-nav-btn rating" onclick="ReviewStore.openRatingModal('${tl.postMealRestaurant.name}', '${s.course.name}')">${ratingIcon} 식당 평가하기</button>` : ''}
           </div>
         </div>
       </div>`;
@@ -792,7 +808,72 @@ const Timeline = {
       </div>`);
   },
 
+  /** 라운딩이 끝났는지 (식당 평가·스코어 기록은 끝난 뒤에만 권함) */
+  isRoundOver(s) {
+    if (!s || !s.date) return false;
+    const d = new Date(s.date);
+    const [h, m] = String(s.teeOff || '07:00').split(':').map(Number);
+    const rl = ROUND_LENGTHS[s.roundLength] || ROUND_LENGTHS['18'];
+    d.setHours(h || 0, m || 0, 0, 0);
+    return Date.now() > d.getTime() + rl.min * 60000;
+  },
+
+  /**
+   * 울리지 않는 안내 알림 예약 (앱에서만):
+   *  - 라운딩 전날 밤 9시: 준비 시작·출발 시각과 날씨 확인 안내
+   *  - 귀가 도착 1시간 뒤(늦어도 밤 10시): 스코어 기록 안내 (이미 기록했으면 생략)
+   */
+  scheduleReminders() {
+    const N = window.NativeApp;
+    if (!N || typeof N.setReminder !== 'function') return;
+    const KEY = 'bp_reminders_v1';
+    let prev = [];
+    try { prev = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) {}
+    prev.forEach(t => { try { N.cancelAlarm(t); } catch (e) {} });
+
+    let records = {};
+    try { records = JSON.parse(localStorage.getItem('bp_records_v1') || '{}'); } catch (e) {}
+    const pad = n => String(n).padStart(2, '0');
+    const now = Date.now();
+    const next = [];
+    (State.schedules || []).forEach((s, idx) => {
+      if (!s || !s.date || s.alarmOff) return;
+      if (!s.timeline) { try { State.calculateTimeline(idx); } catch (e) { return; } }
+      const tl = s.timeline || {};
+      const day = new Date(s.date); day.setHours(0, 0, 0, 0);
+      const name = (s.course && s.course.name) || '라운딩';
+
+      const eve = new Date(day); eve.setDate(eve.getDate() - 1); eve.setHours(21, 0, 0, 0);
+      if (eve.getTime() > now) {
+        try {
+          N.setReminder(eve.getTime(), `내일 ${name} 라운딩`,
+            `${U.fmtTimeKo(tl.prepStart)} 준비 시작, ${U.fmtTimeKo(tl.homeDepart)} 출발이에요. 날씨와 준비물을 확인하고 일찍 쉬세요.`);
+          next.push(eve.getTime());
+        } catch (e) {}
+      }
+
+      const ymd = `${day.getFullYear()}-${pad(day.getMonth() + 1)}-${pad(day.getDate())}`;
+      const recorded = Object.keys(records).some(k => k.split('#')[0] === ymd);
+      const [rh, rm] = String(tl.returnEnd || '').split(':').map(Number);
+      if (!recorded && Number.isFinite(rh)) {
+        const home = new Date(day); home.setHours(rh, rm || 0, 0, 0);
+        if (home.getTime() < day.getTime() + 6 * 3600000) home.setDate(home.getDate() + 1); // 자정 넘긴 귀가
+        // 집에 도착하고 1시간 뒤. 단, 밤 10시는 넘기지 않음 (귀가가 더 늦으면 도착 10분 뒤)
+        const cap = new Date(day); cap.setHours(22, 0, 0, 0);
+        const when = Math.min(home.getTime() + 3600000, Math.max(cap.getTime(), home.getTime() + 600000));
+        if (when > now) {
+          try {
+            N.setReminder(when, '오늘 라운딩 어떠셨어요? ⛳', `${name} 스코어를 남겨 두면 기록과 라이프 베스트가 쌓여요.`);
+            next.push(when);
+          } catch (e) {}
+        }
+      }
+    });
+    try { localStorage.setItem(KEY, JSON.stringify(next)); } catch (e) {}
+  },
+
   autoScheduleAllAlarms() {
+    try { this.scheduleReminders(); } catch (e) { console.warn('reminders', e); }
     this.alarmTimeouts = this.alarmTimeouts || [];
     this.alarmTimeouts.forEach(id => clearTimeout(id));
     this.alarmTimeouts = [];
@@ -818,7 +899,7 @@ const Timeline = {
         const events = [];
         const iPrep = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
         const iHome = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
-        const iMeal = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+        const iMeal = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>`;
         const iRest = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>`;
         const iArrive = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>`;
         const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
@@ -896,7 +977,7 @@ const Timeline = {
     const events = [];
     const iPrep = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
     const iHome = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
-    const iMeal = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+    const iMeal = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>`;
     const iRest = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>`;
     const iArrive = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>`;
     const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
