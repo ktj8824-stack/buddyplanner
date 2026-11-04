@@ -253,6 +253,10 @@
   transition: opacity var(--dur-normal) var(--ease-out);
 }
 .modal-bg.open { opacity:1; pointer-events:all; }
+/* 아이폰 키보드가 올라온 동안: 보이는 영역 안에 창을 맞춤 (App._fitKeyboard) */
+.modal-bg.kb { padding: 8px 12px; align-items: flex-start; }
+.modal-bg.kb .modal-panel { max-height: 100% !important; }
+.modal-bg.kb .addr-panel { height: 100% !important; }
 .modal-panel {
   width:100%; max-width:360px;
   max-height:80vh; overflow-y:auto;

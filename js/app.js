@@ -5,7 +5,33 @@
 const App = {
   screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle','ai','group'],
 
+  /**
+   * 아이폰 키보드: 키보드가 올라오면 보이는 영역이 줄어드는데, 가운데 뜨는 창은 그대로라
+   * 입력칸이 화면 위로 밀려 사라짐 → 창을 '보이는 영역'에 맞춤
+   */
+  _fitKeyboard() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const kb = (window.innerHeight - vv.height) > 120;   // 키보드가 올라온 상태
+    document.querySelectorAll('.modal-bg').forEach(bg => {
+      if (kb) {
+        bg.classList.add('kb');
+        bg.style.top = vv.offsetTop + 'px';
+        bg.style.height = vv.height + 'px';
+        bg.style.bottom = 'auto';
+      } else if (bg.classList.contains('kb')) {
+        bg.classList.remove('kb');
+        bg.style.top = ''; bg.style.height = ''; bg.style.bottom = '';
+      }
+    });
+  },
+
   init() {
+    if (window.visualViewport) {
+      const fit = () => this._fitKeyboard();
+      window.visualViewport.addEventListener('resize', fit);
+      window.visualViewport.addEventListener('scroll', fit);
+    }
     // 클라우드 동기화 준비 (설정이 없으면 아무 동작 안 함). 웹 카카오 로그인에서 돌아온 경우 그 정보를 받음
     const cloudRedirect = (typeof Cloud !== 'undefined') ? Cloud.init() : null;
 
@@ -624,6 +650,7 @@ const App = {
     bg.id = 'app-modal';
     bg.innerHTML = `<div class="modal-panel"><div class="modal-handle"></div><h3 class="modal-title">${title}</h3><div class="modal-list">${content}</div></div>`;
     document.body.appendChild(bg);
+    this._fitKeyboard();
     bg.addEventListener('click', e => { if (e.target===bg && !bg.dataset.busy) this.closeModal(); });
     requestAnimationFrame(() => bg.classList.add('open'));
     return bg;
@@ -713,7 +740,7 @@ const App = {
     };
 
     bg.innerHTML = `
-      <div class="modal-panel" style="display:flex; flex-direction:column; height:80vh;">
+      <div class="modal-panel addr-panel" style="display:flex; flex-direction:column; height:80vh;">
         <div class="modal-handle"></div>
         <h3 class="modal-title">${title}</h3>
         <div style="padding:0 var(--sp-4) var(--sp-4) var(--sp-4); display:flex; gap:var(--sp-2);">
@@ -727,6 +754,7 @@ const App = {
     `;
     
     document.body.appendChild(bg);
+    this._fitKeyboard();
     bg.addEventListener('click', e => { if (e.target===bg) this.closeModal(); });
     requestAnimationFrame(() => {
       bg.classList.add('open');
