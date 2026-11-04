@@ -243,6 +243,8 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
 
   let body: Json;
   try { body = await req.json(); } catch (_) { return json(400, { error: 'bad_request' }); }
+  // 화면이 '이 사용자 AI 써도 되나'만 확인 (횟수 차감 없음)
+  if (body && body.probe === true) return json(200, { ok: true, allowed: true });
   const text = String(body.message || '').slice(0, 2000);
   const image = body.image && typeof body.image.data === 'string' ? body.image : null;
   if (!text && !image) return json(400, { error: 'empty_message' });

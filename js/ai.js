@@ -31,6 +31,7 @@ const AI = {
     const lock = (typeof AIAgent !== 'undefined') ? AIAgent.lockState() : null;
     bar.style.display = lock ? 'none' : '';
     slot.innerHTML = lock ? AIAgent.lockPanelHTML(lock) : '';
+    if (lock === 'pro') AIAgent.checkServerAccess();
   },
 
   /** 스코어카드 사진 첨부 */

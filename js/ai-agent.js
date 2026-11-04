@@ -19,8 +19,37 @@ const AIAgent = {
   lockState() {
     if (!this.enabled()) return null;
     if (!Cloud.isSignedIn()) return 'login';
-    if (!State.isPro) return 'pro';
+    if (!State.isPro && this.serverAllowed !== true) return 'pro';
     return null;
+  },
+
+  /**
+   * 서버가 이 사용자에게 AI를 허용하는지 확인 (PRO가 아니어도).
+   * 출시 전 테스트 설정(AI_ALLOW_ALL_USERS=true)이 켜져 있으면 허용, 꺼지면 지금처럼 PRO 안내.
+   * 사용 횟수는 차감하지 않으며, 로그인 사용자당 한 번만 물어봅니다.
+   */
+  serverAllowed: null,
+  _checkedFor: null,
+  async checkServerAccess() {
+    if (!this.enabled() || !Cloud.isSignedIn() || State.isPro) return;
+    const uid = Cloud.userId && Cloud.userId();
+    if (this._checkedFor === uid) return;
+    this._checkedFor = uid;
+    try {
+      const { url, key } = Cloud.cfg();
+      const token = await Cloud._freshToken();
+      const res = await fetch(`${url}/functions/v1/ai-chat`, {
+        method: 'POST',
+        headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ probe: true })
+      });
+      const data = await res.json().catch(() => ({}));
+      this.serverAllowed = res.ok && data.allowed === true;
+    } catch (e) {
+      this._checkedFor = null;   // 네트워크 오류면 다음에 다시 확인
+      return;
+    }
+    if (this.serverAllowed && typeof AI !== 'undefined') AI.renderInputArea();
   },
 
   lockPanelHTML(kind) {
@@ -142,7 +171,7 @@ const AIAgent = {
       AI.hideTypingIndicator();
 
       if (!res.ok) {
-        if (data.error === 'pro_required') { State.isPro = false; AI.renderInputArea(); }
+        if (data.error === 'pro_required') { State.isPro = false; this.serverAllowed = false; AI.renderInputArea(); }
         AI.addSimpleBotReply('err_' + Date.now(), U.esc(data.message || 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.'));
         return;
       }
