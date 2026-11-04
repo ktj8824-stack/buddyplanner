@@ -1136,6 +1136,22 @@ const Register = {
 
   removeInvite(id) { this.invited=this.invited.filter(c=>c.id!==id); this.updateTags(); U.haptic(); },
 
+  /**
+   * 길찾기(TMAP)를 못 받았을 때 쓰는 어림 이동 시간(분).
+   * 직선거리 × 1.4(도로가 돌아가는 정도) → 거리별 평균 속도로 나눔 + 출발·주차 5분.
+   * 예: 시흥 → 동두천 직선 약 65km → 도로 약 94km → 약 92분 (실제 TMAP 1시간 35분)
+   */
+  estimateDriveMin(x1, y1, x2, y2) {
+    const lat1 = Number(y1), lng1 = Number(x1), lat2 = Number(y2), lng2 = Number(x2);
+    if (![lat1, lng1, lat2, lng2].every(isFinite)) return 60;
+    const R = 6371, rad = d => d * Math.PI / 180;
+    const a = Math.sin(rad(lat2 - lat1) / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(rad(lng2 - lng1) / 2) ** 2;
+    const km = 2 * R * Math.asin(Math.sqrt(a));
+    const road = km * (km > 100 ? 1.25 : 1.4) + 2;        // 먼 길일수록 고속도로라 덜 돌아감
+    const speed = road < 15 ? 30 : road < 50 ? 50 : road < 150 ? 65 : 85;   // 시내 / 근교 / 수도권 외곽 / 장거리 고속도로
+    return Math.max(10, Math.round(road / speed * 60 + 5));
+  },
+
   async createPlan() {
     if (!this.course) { U.toast('⚠️ 골프장을 선택해주세요'); return; }
     if (!this.date) { U.toast('⚠️ 날짜를 선택해주세요'); return; }
@@ -1195,7 +1211,7 @@ const Register = {
           const meetLat = this.meetingPointObj.lat;
           const meetLng = this.meetingPointObj.lng;
           let rtMeetToRest = await TmapAPI.getPredictiveRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat, restArrivalTime.toISOString(), "W02");
-          if (!rtMeetToRest) rtMeetToRest = await TmapAPI.getRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || (estimated = true, 30);
+          if (!rtMeetToRest) rtMeetToRest = await TmapAPI.getRouteTime(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || (estimated = true, this.estimateDriveMin(meetLng, meetLat, this.mealRestaurant.lng, this.mealRestaurant.lat));
           travelToRest = rtMeetToRest;
 
           const meetWaitTime = 10;
@@ -1203,14 +1219,14 @@ const Register = {
 
           // 출발지 -> 집결지
           let rtStartToMeet = await TmapAPI.getPredictiveRouteTime(startLng, startLat, meetLng, meetLat, meetArrivalTime.toISOString(), "W02");
-          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || (estimated = true, 30);
+          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || (estimated = true, this.estimateDriveMin(startLng, startLat, meetLng, meetLat));
           travelToMeeting = rtStartToMeet;
 
           travelTime = travelToMeeting + meetWaitTime + travelToRest + restTravelDur;
         } else {
           // 출발지 -> 식당
           let rt = await TmapAPI.getPredictiveRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat, restArrivalTime.toISOString(), "W02");
-          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || (estimated = true, 60);
+          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat) || (estimated = true, this.estimateDriveMin(startLng, startLat, this.mealRestaurant.lng, this.mealRestaurant.lat));
           travelToRest = rt;
           travelTime = travelToRest + restTravelDur;
         }
@@ -1221,27 +1237,28 @@ const Register = {
           const meetLat = this.meetingPointObj.lat;
           const meetLng = this.meetingPointObj.lng;
           let rtMeetToGolf = await TmapAPI.getPredictiveRouteTime(meetLng, meetLat, this.course.lng, this.course.lat, arrivalTime.toISOString(), "W02");
-          if (!rtMeetToGolf) rtMeetToGolf = await TmapAPI.getRouteTime(meetLng, meetLat, this.course.lng, this.course.lat) || (estimated = true, 40);
+          if (!rtMeetToGolf) rtMeetToGolf = await TmapAPI.getRouteTime(meetLng, meetLat, this.course.lng, this.course.lat) || (estimated = true, this.estimateDriveMin(meetLng, meetLat, this.course.lng, this.course.lat));
           
           const meetWaitTime = 10;
           const meetArrivalTime = new Date(arrivalTime.getTime() - rtMeetToGolf * 60000 - meetWaitTime * 60000);
 
           // 출발지 -> 집결지
           let rtStartToMeet = await TmapAPI.getPredictiveRouteTime(startLng, startLat, meetLng, meetLat, meetArrivalTime.toISOString(), "W02");
-          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || (estimated = true, 30);
+          if (!rtStartToMeet) rtStartToMeet = await TmapAPI.getRouteTime(startLng, startLat, meetLng, meetLat) || (estimated = true, this.estimateDriveMin(startLng, startLat, meetLng, meetLat));
           travelToMeeting = rtStartToMeet;
 
           travelTime = travelToMeeting + meetWaitTime + rtMeetToGolf;
         } else {
           // 출발지 -> 골프장
           let rt = await TmapAPI.getPredictiveRouteTime(startLng, startLat, this.course.lng, this.course.lat, arrivalTime.toISOString(), "W02");
-          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.course.lng, this.course.lat) || (estimated = true, 60);
+          if (!rt) rt = await TmapAPI.getRouteTime(startLng, startLat, this.course.lng, this.course.lat) || (estimated = true, this.estimateDriveMin(startLng, startLat, this.course.lng, this.course.lat));
           travelTime = rt;
         }
       }
     } catch (e) {
       console.error("TMAP 연동 중 에러 발생:", e);
       estimated = true;
+      travelTime = this.estimateDriveMin(startLng, startLat, this.course.lng, this.course.lat);
       U.toast('⚠️ 예측 경로 탐색 오류. 기본 소요시간으로 계산됩니다.');
     }
 
