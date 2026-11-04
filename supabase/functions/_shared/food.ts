@@ -26,12 +26,13 @@ export const CATEGORIES: Json = {
     { key: 'sea', label: '회·해산물', emoji: '🐟', query: '횟집', words: ['회', '횟집', '해물', '생선', '조개', '아구', '대게', '꽃게', '해산물', '복어', '물회', '매운탕', '초밥'] },
     { key: 'stamina', label: '장어·보양', emoji: '💪', query: '장어', words: ['장어', '삼계탕', '보양', '오리', '백숙', '흑염소', '닭볶음탕'] },
     { key: 'chinese', label: '중식', emoji: '🥟', query: '중식', words: ['중식', '중국', '짬뽕', '짜장', '양꼬치', '마라'] },
+    { key: 'etc', label: '일식·기타', emoji: '🍱', query: '일식', words: ['일식', '돈까스', '돈가스', '우동', '라멘', '소바', '양식', '파스타', '스테이크', '이탈리안', '레스토랑'] },
   ],
 };
 
 const ALL_CATS: Json[] = [...CATEGORIES.before.map((c: Json) => ({ ...c, timing: 'before' })), ...CATEGORIES.after.map((c: Json) => ({ ...c, timing: 'after' }))];
-// 카테고리 판정 순서: 구체적인 종류부터 (예: '장어'가 '회'보다 먼저, '한정식'은 백반)
-const MATCH_ORDER = ['stamina', 'haejang', 'chinese', 'sea', 'meat', 'cafe', 'baekban'];
+// 카테고리 판정 순서: 구체적인 종류부터 (예: '장어'가 '회'보다 먼저, 초밥은 회·해산물, '한정식'은 백반)
+const MATCH_ORDER = ['stamina', 'haejang', 'chinese', 'sea', 'meat', 'etc', 'cafe', 'baekban'];
 
 /** 카카오 category_name(예: '음식점 > 한식 > 해장국')을 우리 카테고리로 */
 export function classify(categoryName: string, placeName = ''): string | null {
@@ -115,14 +116,17 @@ export async function searchCandidates(env: Env, lat: number, lng: number, f: ty
   calls.push(kakao(env, 'category', { ...base, category_group_code: 'FD6', sort: 'accuracy', page: '1' }, f).catch(() => []));
   calls.push(kakao(env, 'category', { ...base, category_group_code: 'FD6', sort: 'accuracy', page: '2' }, f).catch(() => []));
   const lists = await Promise.all(calls);
+  const page2 = lists.length - 1;   // 마지막 목록은 2쪽(16~30위)이라 순위를 15만큼 뒤로
   const byId: Record<string, Json> = {};
-  for (const list of lists) {
+  lists.forEach((list, li) => {
+    const offset = li === page2 ? 15 : 0;
     list.forEach((d: Json, i: number) => {
       if (!d || !d.id) return;
+      const rank = i + offset;
       const prev = byId[d.id];
-      if (!prev || i < prev._rank) byId[d.id] = toPlace(d, i);
+      if (!prev || rank < prev._rank) byId[d.id] = toPlace(d, rank);
     });
-  }
+  });
   return Object.values(byId);
 }
 
@@ -161,7 +165,7 @@ export async function curateWithAI(env: Env, groups: Json, courseName: string, f
 규칙:
 - 각 카테고리 안의 후보만 쓰고, 다른 카테고리로 옮기거나 새 식당을 만들지 마세요.
 - 이유는 주어진 정보(음식 종류, 거리 km)만 근거로 씁니다. 평점·맛·영업시간·주차·가격처럼 주어지지 않은 사실은 쓰지 마세요.
-- 라운딩 전 카테고리(haejang, baekban, cafe)는 아침 식사, 라운딩 후(meat, sea, stamina, chinese)는 동반자 회식 기준입니다.
+- 라운딩 전 카테고리(haejang, baekban, cafe)는 아침 식사, 라운딩 후(meat, sea, stamina, chinese, etc)는 동반자 회식 기준입니다.
 - 출력은 JSON 하나만: {"카테고리key":[{"id":"...","why":"..."}], ...}
 
 후보: ${JSON.stringify(compact)}`;
