@@ -343,29 +343,35 @@ const Profile = {
   },
 
   async logout() {
-    if (confirm('정말 로그아웃 하시겠습니까?')) {
+    if (this._loggingOut) return;
+    const ok = await App.ask('로그아웃할까요?', '다시 로그인하면 일정과 기록을 그대로 불러와요.',
+      { ok: '로그아웃', cancel: '취소', busyText: '로그아웃 중…' });
+    if (!ok) return;
+    this._loggingOut = true;
+    try {
       const provider = localStorage.getItem('bp_provider');
 
       // 클라우드 사용 중: 남은 변경을 올린 뒤, 다음 로그인 계정과 섞이지 않게 기기 데이터를 정리
       if (typeof Cloud !== 'undefined' && Cloud.isSignedIn()) {
-        try { await Cloud.push(); } catch (e) { /* 오프라인 등 */ }
-        if (Cloud.pendingCount() > 0 &&
-            !confirm('아직 서버에 저장되지 않은 변경이 있어요. 지금 로그아웃하면 이 변경은 사라집니다. 그래도 로그아웃할까요?')) {
-          return;
+        // 네트워크가 느려도 최대 3초만 기다림
+        try { await Promise.race([Cloud.push(), new Promise(r => setTimeout(r, 3000))]); } catch (e) { /* 오프라인 등 */ }
+        if (Cloud.pendingCount() > 0) {
+          const go = await App.ask('저장 안 된 변경이 있어요',
+            '아직 서버에 올라가지 않은 변경이 있어요.<br>지금 로그아웃하면 이 변경은 사라져요.',
+            { ok: '그래도 로그아웃', cancel: '취소', busyText: '로그아웃 중…' });
+          if (!go) return;
         }
         await Cloud.signOut();
         Cloud.clearLocalData();
         if (typeof Billing !== 'undefined') Billing.unlinkCloudUser();
         State.schedules = [];
       }
-      
+
       // 카카오 로그아웃 처리
       if (provider === 'kakao' && typeof Kakao !== 'undefined' && Kakao.Auth) {
-        Kakao.Auth.logout(() => {
-          console.log('카카오 세션 만료');
-        });
+        try { Kakao.Auth.logout(() => console.log('카카오 세션 만료')); } catch (e) { /* SDK 미초기화 */ }
       }
-      
+
       // 구글 로그아웃 처리 (앱: 네이티브 계정 선택 상태 초기화 / 웹: 자동 로그인 해제)
       if (provider === 'google') {
         const isNative = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
@@ -380,9 +386,13 @@ const Profile = {
       localStorage.removeItem('bp_provider');
       localStorage.removeItem('bp_user_name');
       localStorage.removeItem('bp_user_email');
-      
+
       U.toast('로그아웃 되었습니다.');
       App.navigate('login');
+    } finally {
+      this._loggingOut = false;
+      document.querySelectorAll('#app-modal').forEach(bg => { delete bg.dataset.busy; });
+      App.closeModal();
     }
   },
 

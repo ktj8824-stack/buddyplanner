@@ -624,16 +624,51 @@ const App = {
     bg.id = 'app-modal';
     bg.innerHTML = `<div class="modal-panel"><div class="modal-handle"></div><h3 class="modal-title">${title}</h3><div class="modal-list">${content}</div></div>`;
     document.body.appendChild(bg);
-    bg.addEventListener('click', e => { if (e.target===bg) this.closeModal(); });
+    bg.addEventListener('click', e => { if (e.target===bg && !bg.dataset.busy) this.closeModal(); });
     requestAnimationFrame(() => bg.classList.add('open'));
+    return bg;
+  },
+
+  /**
+   * 앱 안의 확인 창 (브라우저 기본 confirm 대신 — 일부 웹뷰에서는 기본 창이 안 떠요)
+   * opts: { ok, cancel, busyText } — busyText가 있으면 확인을 누른 뒤 창을 닫지 않고
+   *       버튼에 진행 문구를 보여 줍니다. 작업이 끝나면 부르는 쪽에서 App.closeModal().
+   */
+  ask(title, message, opts = {}) {
+    return new Promise(resolve => {
+      let done = false;
+      const finish = (v) => { if (done) return; done = true; resolve(v); };
+      const bg = this.showModal(U.esc(title), `
+        <div class="pay-success" style="padding-top:var(--sp-2);">
+          ${message ? `<p>${message}</p>` : ''}
+          <button class="btn-primary" id="app-ask-ok" style="width:100%; margin-bottom:var(--sp-2);">${U.esc(opts.ok || '확인')}</button>
+          <button class="btn-ghost" id="app-ask-cancel" style="width:100%;">${U.esc(opts.cancel || '취소')}</button>
+        </div>`);
+      // 방금 띄운 창 안에서 찾음 (닫히는 중인 이전 창과 헷갈리지 않게)
+      const okBtn = bg.querySelector('#app-ask-ok'), cancelBtn = bg.querySelector('#app-ask-cancel');
+      okBtn.onclick = () => {
+        if (done) return;
+        if (opts.busyText) {
+          okBtn.disabled = true; cancelBtn.disabled = true;
+          okBtn.textContent = opts.busyText;
+          okBtn.style.opacity = '0.7';
+          bg.dataset.busy = '1';
+        } else this.closeModal();
+        finish(true);
+      };
+      cancelBtn.onclick = () => { this.closeModal(); finish(false); };
+      bg.addEventListener('click', e => { if (e.target === bg && !bg.dataset.busy) finish(false); }, true);
+    });
   },
 
   closeModal() {
-    const bg = U.$('#app-modal');
-    if (bg) {
+    // 닫히는 중인 이전 창이 남아 있어도 모두 닫음
+    document.querySelectorAll('#app-modal').forEach(bg => {
+      if (bg.dataset.closing) return;
+      bg.dataset.closing = '1';
       bg.classList.remove('open');
       setTimeout(() => bg.remove(), 300);
-    }
+    });
   },
 
   openAddressSearch(title, onSelectCallback) {
