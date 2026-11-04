@@ -265,7 +265,7 @@ const Restaurant = {
           ${nextHtml}
           ${recentHtml}
           <div class="fd-lab" style="margin-top:24px">이렇게 추천해요</div>
-          <div class="fd-how">· 골프장에서 <b>가까운 곳</b>부터, 카카오에서 <b>많이 찾는 곳</b>을 위로<br>· 우리 앱 사용자의 <b>버디 평가</b>가 높으면 더 위로<br>· <b>운영팀 추천</b> 집은 맨 위에 고정</div>
+          <div class="fd-how">· 골프장에서 <b>가까운 곳</b>부터, 카카오에서 <b>많이 찾는 곳</b>을 위로<br>· 우리 앱 사용자의 <b>버디 평가</b>를 함께 보여줘요<br>· <b>운영팀 추천</b> 집은 맨 위에 고정</div>
         </div>
       </div>`;
   },
