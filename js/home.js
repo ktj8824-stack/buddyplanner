@@ -70,7 +70,7 @@ const Home = {
     });
 
     let subTag = '스마트 라운딩 플래너';
-    let mainHeading = '다음 라운딩 일정을 등록하고,<br>스마트 타임라인을 경험해 보세요.';
+    let mainHeading = '첫 라운딩을<br>등록해 보세요.';
     let btnText = '새 일정 등록하기';
     let btnAction = "App.navigate('register')";
     let departTime = '--:--';
@@ -231,7 +231,8 @@ const Home = {
               <div class="hero-main-title">${mainHeading}</div>
 
               <!-- Mini Timeline (출발 - 골프장 - 티오프, 위치: 타임라인 보기 바로 위) -->
-              <div class="hero-inline-timeline" onclick="${btnAction}">
+              ${upcomingScheds.length === 0 ? `<div class="hero-empty-hint">골프장·티오프만 넣으면<br>출발 시간이 자동 계산돼요</div>` : ''}
+              <div class="hero-inline-timeline" onclick="${btnAction}" ${upcomingScheds.length === 0 ? 'style="display:none"' : ''}>
                 <div class="mini-tl-node">
                   <span class="mini-tl-tag tag-depart">출발</span>
                   <span class="mini-tl-val">${departTime}</span>
