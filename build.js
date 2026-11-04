@@ -6,6 +6,7 @@ const destDir = path.join(__dirname, 'www');
 
 const excludeList = [
     'node_modules',
+    'tools',
     '.git',
     '.vscode',
     '.agents',
