@@ -511,7 +511,7 @@ const Timeline = {
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
               ${nextDestName}(으)로 출발
             </div>
-            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 약 ${tl.meetTravelDur}분으로 잡았어요 · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 약 ${tl.meetTravelDur}분 소요`}</div>
+            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 거리로 어림잡았어요 (약 ${tl.meetTravelDur}분) · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 약 ${tl.meetTravelDur}분 소요`}</div>
             <div class="tl-nav-btns">
               <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${tmapIcon} TMAP</button>
               <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${kakaoIcon} 카카오내비</button>
@@ -529,7 +529,7 @@ const Timeline = {
               ${startIconHtml}
               ${startPt}에서 출발하기
             </div>
-            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 ${nextDestName}까지 약 ${tl.homeTravelDur}분으로 잡았어요 · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 ${nextDestName}까지 약 ${tl.homeTravelDur}분 소요`}</div>
+            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 ${nextDestName}까지 거리로 어림잡았어요 (약 ${tl.homeTravelDur}분) · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 ${nextDestName}까지 약 ${tl.homeTravelDur}분 소요`}</div>
             <div class="tl-nav-btns">
               <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
               <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
