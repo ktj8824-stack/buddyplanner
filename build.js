@@ -12,6 +12,7 @@ const excludeList = [
     '.agents',
     'android',
     'ios',
+    'native-assets',  // 아이폰 알람 음악 등 앱 안에 직접 넣는 파일
     'www',
     'package.json',
     'package-lock.json',
