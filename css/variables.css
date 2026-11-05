@@ -156,7 +156,7 @@
 
   /* ── Layout ── */
   --app-w: 430px;
-  --header-h: 56px;
+  --header-h: calc(56px + env(safe-area-inset-top, 0px));   /* 아이폰: 시계 줄(노치) 높이만큼 더함, 웹·안드로이드는 0 */
   --nav-h: 50px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }

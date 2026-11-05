@@ -4,14 +4,14 @@
 
 .dash-scroll.bg-light {
   background: #041432; /* Top navy hero background */
-  padding: 56px 0 0 0;
+  padding: var(--header-h) 0 0 0;
 }
 
 /* ── 1. Top G Lounge Dark Header & Hero ── */
 .home-glounge-wrapper {
   background: linear-gradient(180deg, #04132f 0%, #081e48 60%, #0b275c 100%);
   color: #ffffff;
-  padding-top: max(6px, env(safe-area-inset-top));
+  padding-top: 6px;   /* 안전 영역은 --header-h에 포함됨 */
   position: relative;
   overflow: hidden;
 }
