@@ -46,6 +46,7 @@ npx cap sync ios
 step "6/7 아이폰 설정 (앱 ID·팀·알림창·카카오·광고)"
 cp native-assets/ios/AppDelegate.swift ios/App/App/AppDelegate.swift
 cp native-assets/ios/SceneDelegate.swift ios/App/App/SceneDelegate.swift
+cp native-assets/ios/BuddyPlanner-AppIcon.png ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png   # 앱 아이콘 (1024x1024)
 PB=ios/App/App.xcodeproj/project.pbxproj
 sed -i '' "s/PRODUCT_BUNDLE_IDENTIFIER = [^;]*;/PRODUCT_BUNDLE_IDENTIFIER = $BUNDLE_ID;/g" "$PB"
 if ! grep -q "DEVELOPMENT_TEAM = $TEAM_ID" "$PB"; then
