@@ -26,10 +26,12 @@ const U = {
   },
 
   hlMatch(text,q) {
-    if(!q)return text;
-    const i=text.toLowerCase().indexOf(q.toLowerCase());
-    if(i!==-1)return text.slice(0,i)+'<span class="hl">'+text.slice(i,i+q.length)+'</span>'+text.slice(i+q.length);
-    return text;
+    // 검색 결과 이름은 외부 서버에서 오므로 글자 그대로 보이게 바꾼 뒤 강조만 붙임
+    text=String(text==null?'':text);
+    if(!q)return U.esc(text);
+    const i=text.toLowerCase().indexOf(String(q).toLowerCase());
+    if(i!==-1)return U.esc(text.slice(0,i))+'<span class="hl">'+U.esc(text.slice(i,i+q.length))+'</span>'+U.esc(text.slice(i+q.length));
+    return U.esc(text);
   },
 
   /* ── Date / Time ── */
