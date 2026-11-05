@@ -26,6 +26,8 @@ cd "$APP_DIR"
 step "2/7 설정 파일(js/config.js) 넣기"
 if [ ! -f "$CONFIG" ]; then echo "❌ $CONFIG 파일이 없어요. Claude에게 다시 만들어 달라고 하세요."; exit 1; fi
 cp "$CONFIG" js/config.js
+# 테스트 빌드는 반드시 테스트 광고 (실제 광고를 누르면 애드몹 정책 위반). 스토어 출시 빌드 때만 false로
+sed -i '' "s/ADS_TEST_MODE: *false/ADS_TEST_MODE: true/" js/config.js
 
 step "3/7 패키지 설치 (처음엔 몇 분 걸려요)"
 npm install --no-audit --no-fund
