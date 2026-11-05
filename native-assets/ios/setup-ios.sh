@@ -17,6 +17,9 @@ step() { echo; echo "▶ $1"; }
 
 step "1/7 최신 코드 받기"
 if [ -d "$APP_DIR/.git" ]; then
+  # 지난번 빌드로 바뀐 파일(www/ 등)은 되돌린 뒤 받기 (빌드하면 다시 만들어짐. js/config.js·ios/는 그대로)
+  rm -f "$APP_DIR/.git/index.lock"
+  git -C "$APP_DIR" checkout -- .
   git -C "$APP_DIR" pull --ff-only
 else
   git clone https://github.com/ktj8824-stack/buddyplanner.git "$APP_DIR"
