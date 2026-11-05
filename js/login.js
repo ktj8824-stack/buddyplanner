@@ -189,24 +189,14 @@ const Login = {
       if (window.Capacitor.Plugins.CapacitorKakaoLogin) {
         window.Capacitor.Plugins.CapacitorKakaoLogin.login()
           .then(res => {
-            // 네이티브 로그인 성공 시 발급받은 토큰을 JS SDK에 세팅
-            if (typeof Kakao !== 'undefined' && Kakao.isInitialized()) {
-              Kakao.Auth.setAccessToken(res.accessToken);
-              Kakao.API.request({
-                url: '/v2/user/me',
-                success: (profileRes) => {
-                  const name = profileRes.properties && profileRes.properties.nickname ? profileRes.properties.nickname : '카카오 유저';
-                  const email = profileRes.kakao_account && profileRes.kakao_account.email ? profileRes.kakao_account.email : '';
-                  this.finishLogin('kakao', { name, email }, { idToken: res.idToken });
-                },
-                fail: (err) => {
-                  console.error('프로필 조회 실패:', err);
-                  this.finishLogin('kakao', { name: '카카오 유저', email: '' }, { idToken: res.idToken });
-                }
-              });
-            } else {
-              this.finishLogin('kakao', { name: '카카오 유저', email: '' }, { idToken: res.idToken });
-            }
+            // 카카오 인증은 끝남 → 이름·이메일은 ID 토큰에서 바로 꺼냄
+            // (예전처럼 카카오 JS SDK로 프로필을 다시 묻지 않음: 앱 안(아이폰)에서는 그 요청이 응답 없이 멈출 수 있음)
+            U.toast('카카오 인증 완료. 로그인하는 중...');
+            const p = (res && res.idToken && this.decodeJwt(res.idToken)) || {};
+            const name = p.nickname || p.name || '카카오 유저';
+            const email = p.email || '';
+            if (!res || !res.idToken) console.warn('[Login] 카카오 ID 토큰이 없어요 (OpenID Connect 설정 확인)');
+            this.finishLogin('kakao', { name, email }, { idToken: res && res.idToken });
           })
           .catch(err => {
             console.error('Kakao login err:', err);
