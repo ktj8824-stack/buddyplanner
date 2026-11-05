@@ -190,9 +190,8 @@ const App = {
     }
     
     const adBanner = U.$('#adfit-banner-wrap');
-    const hideBannerScreens = ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai', 'upgrade'];
     // PRO 회원은 광고 제거
-    const shouldHideBanner = hideBannerScreens.includes(name) || State.isPro;
+    const shouldHideBanner = this.bannerHiddenOn(name);
 
     // 광고 배너가 보이는 화면은 하단 여백을 늘려 마지막 내용이 가려지지 않게
     document.body.classList.toggle('ad-visible', !shouldHideBanner);
@@ -418,6 +417,12 @@ const App = {
     }
   },
 
+  /** 배너 광고를 숨기는 화면 (시작·로그인·설정 화면 등) 또는 PRO */
+  BANNER_HIDDEN_SCREENS: ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai', 'upgrade'],
+  bannerHiddenOn(name) {
+    return State.isPro || !name || this.BANNER_HIDDEN_SCREENS.includes(name);
+  },
+
   async renderAdBanner() {
     if (State.isPro) return; // PRO 회원은 배너 광고 없음
     // 모바일(Capacitor) 네이티브 환경인 경우 구글 애드몹 사용
@@ -442,6 +447,9 @@ const App = {
             isTesting: App.adsTestMode()
           };
           await AdMob.showBanner(options);
+          // 광고 준비가 끝나는 사이 시작 화면 등 광고를 숨기는 화면으로 와 있으면 바로 숨김
+          // (예전엔 준비가 늦게 끝나 시작 화면에 광고가 떠 있었음)
+          if (this.bannerHiddenOn(State.screen)) AdMob.hideBanner().catch(() => { });
           
           // 전역 광고 상태 저장 (앱 전환 시 숨김/보임 처리용)
           this.adMobActive = true;
