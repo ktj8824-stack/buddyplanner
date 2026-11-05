@@ -95,6 +95,14 @@ final class SafeDialogUIDelegate: NSObject, WKUIDelegate {
     func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String,
                  defaultText: String?, initiatedByFrame frame: WKFrameInfo,
                  completionHandler: @escaping (String?) -> Void) {
+        // Capacitor 내부 신호({"type":"CapacitorCookies.isEnabled"} 등)는 화면에 띄우지 않고 Capacitor 원래 처리로 넘김.
+        // 이걸 가로채면 쿠키·HTTP·플러그인 통신이 멈춤 (카카오 로그인 무반응의 원인)
+        if prompt.hasPrefix("{"), let original = original,
+           original.responds(to: #selector(WKUIDelegate.webView(_:runJavaScriptTextInputPanelWithPrompt:defaultText:initiatedByFrame:completionHandler:))) {
+            original.webView?(webView, runJavaScriptTextInputPanelWithPrompt: prompt, defaultText: defaultText,
+                              initiatedByFrame: frame, completionHandler: completionHandler)
+            return
+        }
         let alert = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
         alert.addTextField { $0.text = defaultText }
         alert.addAction(UIAlertAction(title: "취소", style: .cancel) { _ in completionHandler(nil) })
