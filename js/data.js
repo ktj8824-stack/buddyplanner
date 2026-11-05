@@ -168,11 +168,21 @@ const State = {
   },
 
   saveSchedules() {
-    localStorage.setItem('bp_schedules_v2', JSON.stringify(this.schedules));
+    // 저장 공간이 가득 차면 setItem이 실패함 → 멈추지 않고 안내 (false 반환)
+    try {
+      localStorage.setItem('bp_schedules_v2', JSON.stringify(this.schedules));
+      this.saveFailed = false;
+    } catch (e) {
+      console.error('saveSchedules failed', e);
+      this.saveFailed = true;
+      if (typeof U !== 'undefined' && U.toast) U.toast('⚠️ 저장 공간이 부족해 일정을 저장하지 못했어요. 기록 사진을 몇 개 지우고 다시 시도해 주세요.', 4500);
+      return false;
+    }
     // 일정이 바뀌면 전날 밤·라운딩 후 안내 알림도 다시 맞춤 (앱에서만 동작)
     if (typeof Timeline !== 'undefined' && Timeline.scheduleReminders) {
       try { Timeline.scheduleReminders(); } catch (e) {}
     }
+    return true;
   },
 
   loadSchedules() {
@@ -334,6 +344,27 @@ const State = {
 
     s.timeline = tl;
   },
+
+  /** 타임라인 시각(HH:MM)을 실제 날짜·시각으로. 티오프 전 단계가 티오프보다 늦은 시각이면 자정을 넘긴 것 → 전날 */
+  tlAt(s, timeStr) {
+    if (!s || !s.date || !timeStr) return null;
+    const [h, m] = String(timeStr).split(':').map(Number);
+    if (isNaN(h)) return null;
+    const d = new Date(s.date);
+    d.setHours(h, m || 0, 0, 0);
+    if (this.tlPrevDay(s, timeStr)) d.setDate(d.getDate() - 1);
+    return d;
+  },
+
+  /** 티오프 전 단계 시각이 전날인지 (예: 05:30 티오프에 23:50 준비 시작) */
+  tlPrevDay(s, timeStr) {
+    if (!s || !timeStr) return false;
+    const toMin = (t) => { const [h, m] = String(t || '').split(':').map(Number); return isNaN(h) ? null : h * 60 + (m || 0); };
+    const t = toMin(timeStr), tee = toMin(s.teeOff || (s.timeline && s.timeline.teeOff));
+    return t !== null && tee !== null && t > tee;
+  },
+
+  saveFailed: false,
 
   mToTime(m) {
     if (m < 0) m += 1440;

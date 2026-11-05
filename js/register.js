@@ -69,11 +69,16 @@ const Register = {
     this.hasPostMeal = s.hasPostMeal || false;
     this.postMealRestaurant = s.postMealRestaurant || null;
     this.startPoint = s.startPoint || '집';
+    // '직접 입력' 출발지는 저장 때 주소 이름으로 바뀌어 있음 → 다시 '직접 입력'과 좌표로 되살림
+    if (!['집', '회사'].includes(this.startPoint)) {
+      this.startPoint = '직접 입력';
+      this.customStartObj = s.startLat ? { name: s.startAddress || s.startPoint, lat: s.startLat, lng: s.startLng } : null;
+    }
     this.hasMeetingPoint = s.hasMeetingPoint || false;
     this.meetingPointObj = s.meetingPointObj || null;
     this.roundLength = s.roundLength || '18';
     
-    if (s.startPoint === '직접 입력' && s.startAddress) {
+    if (this.startPoint === '직접 입력' && s.startAddress) {
       setTimeout(() => {
         const customInput = U.$('#r-startpoint-text');
         if (customInput) customInput.textContent = s.startAddress;
@@ -1288,20 +1293,23 @@ const Register = {
     };
 
     if (this.editIdx !== null) {
+      const prev = State.schedules[this.editIdx];
       State.updateSchedule(this.editIdx, schedData);
+      if (State.saveFailed) { State.schedules[this.editIdx] = prev; btn.innerHTML = originalText; btn.disabled = false; return; }
       U.toast('✅ 스마트 플랜이 수정되었습니다!');
       const idx = this.editIdx;
       this.editIdx = null;
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(idx);
-      Timeline.toggleAlarm();
+      Timeline.alarmOn();
       App.showInterstitialAd();
     } else {
       State.addSchedule(schedData);
+      if (State.saveFailed) { State.schedules.pop(); btn.innerHTML = originalText; btn.disabled = false; return; }
       U.toast('✅ 스마트 플랜이 생성되었습니다!');
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(State.schedules.length - 1);
-      Timeline.toggleAlarm();
+      Timeline.alarmOn();
       App.showInterstitialAd();
     }
   }

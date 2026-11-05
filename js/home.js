@@ -12,7 +12,9 @@ const Home = {
     const at = (hm) => {
       const [h, m] = String(hm || '').split(':').map(Number);
       if (!Number.isFinite(h)) return null;
-      const d = new Date(dateObj); d.setHours(h, m || 0, 0, 0); return d;
+      const d = new Date(dateObj); d.setHours(h, m || 0, 0, 0);
+      if (State.tlPrevDay(s, hm)) d.setDate(d.getDate() - 1); // 새벽 티오프: 준비·출발이 전날 밤
+      return d;
     };
     const left = (d) => {
       const min = Math.max(0, Math.round((d - now) / 60000));

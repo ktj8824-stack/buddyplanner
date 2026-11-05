@@ -97,8 +97,8 @@ const Timeline = {
               <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
                 🌤️ 날씨
               </button>
-              <button id="tl-alarm-btn" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:#ffffff; color:#334155; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
-                🔔 알람 켜기
+              <button id="tl-alarm-btn" class="${s.alarmOff ? '' : 'alarm-on'}" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:${s.alarmOff ? '#ffffff' : 'var(--accent)'}; color:${s.alarmOff ? '#334155' : '#fff'}; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
+                ${s.alarmOff ? '🔔 알람 켜기' : '🔔 알람 켜짐'}
               </button>
               <button style="border:1px solid rgba(217,119,6,0.25); background:#fffbeb; color:#b45309; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;" onclick="Register.edit(${this.schedIdx})">
                 ✏️ 일정 수정
@@ -193,8 +193,9 @@ const Timeline = {
       const timeEl = item.querySelector('.tl-time');
       let timeTotal = 0;
       if (timeEl) {
-        const [h, m] = timeEl.innerText.trim().split(':').map(Number);
-        timeTotal = h * 60 + m;
+        const txt = timeEl.innerText.trim();
+        const mt = txt.match(/(\d{1,2}):(\d{2})/);
+        if (mt) timeTotal = Number(mt[1]) * 60 + Number(mt[2]) - (txt.includes('전날') ? 1440 : 0);
       }
       return { item, time: timeTotal };
     });
@@ -427,6 +428,8 @@ const Timeline = {
 
   renderTimelineItems(s, tl) {
     const roundOver = Timeline.isRoundOver(s);
+    // 새벽 티오프로 자정을 넘긴 단계는 '(전날)' 표시
+    const prevDay = (t) => t && State.tlPrevDay(s, t) ? `${t} <span style="font-size:11px; font-weight:700; color:var(--text-400);">(전날)</span>` : (t || '');
     let items = '';
     const startPt = s.startPoint || '집';
     const tmapIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top:-1px"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`;
@@ -445,7 +448,7 @@ const Timeline = {
       <div class="tl-item stag">
         <div class="tl-dot"></div>
         <div class="tl-card">
-          <div class="tl-time">${tl.prepStart}</div>
+          <div class="tl-time">${prevDay(tl.prepStart)}</div>
           <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             준비 시작
@@ -474,7 +477,7 @@ const Timeline = {
         <div class="tl-item stag">
           <div class="tl-dot"></div>
           <div class="tl-card">
-            <div class="tl-time">${tl.homeDepart}</div>
+            <div class="tl-time">${prevDay(tl.homeDepart)}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
               ${startIconHtml}
               ${startPt}에서 출발하기
@@ -492,7 +495,7 @@ const Timeline = {
         <div class="tl-item stag">
           <div class="tl-dot"></div>
           <div class="tl-card">
-            <div class="tl-time">${tl.meetArrival}</div>
+            <div class="tl-time">${prevDay(tl.meetArrival)}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
               집결지 도착 및 동반자 탑승
@@ -506,7 +509,7 @@ const Timeline = {
         <div class="tl-item stag">
           <div class="tl-dot"></div>
           <div class="tl-card">
-            <div class="tl-time">${tl.meetDepart}</div>
+            <div class="tl-time">${prevDay(tl.meetDepart)}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
               ${nextDestName}(으)로 출발
@@ -524,7 +527,7 @@ const Timeline = {
         <div class="tl-item stag">
           <div class="tl-dot"></div>
           <div class="tl-card">
-            <div class="tl-time">${tl.homeDepart}</div>
+            <div class="tl-time">${prevDay(tl.homeDepart)}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
               ${startIconHtml}
               ${startPt}에서 출발하기
@@ -548,7 +551,7 @@ const Timeline = {
         <div class="tl-item meal stag">
           <div class="tl-dot"></div>
           <div class="tl-card">
-            <div class="tl-time">${tl.mealStart}</div>
+            <div class="tl-time">${prevDay(tl.mealStart)}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>
               ${tl.restaurantName} 식사
@@ -564,7 +567,7 @@ const Timeline = {
         <div class="tl-item stag">
           <div class="tl-dot"></div>
           <div class="tl-card">
-            <div class="tl-time">${tl.restDepart}</div>
+            <div class="tl-time">${prevDay(tl.restDepart)}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
               골프장으로 출발
@@ -583,7 +586,7 @@ const Timeline = {
       <div class="tl-item stag">
         <div class="tl-dot"></div>
         <div class="tl-card">
-          <div class="tl-time">${tl.arrival}</div>
+          <div class="tl-time">${prevDay(tl.arrival)}</div>
           <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>
             클럽하우스 도착
@@ -747,11 +750,20 @@ const Timeline = {
       
       U.toast('동선 타임라인 알람이 해제되었습니다.');
     } else {
+      this.alarmOn();
+    }
+  },
+
+  /** 알람 켜기 (일정 생성·수정 직후에도 호출). 이미 켜져 있어도 기존 예약을 지우고 다시 예약하므로 중복되지 않음 */
+  alarmOn() {
+    const btn = U.$('#tl-alarm-btn');
+    if (btn) {
       btn.classList.add('alarm-on');
       btn.innerHTML = '🔔 알람 켜짐';
       btn.style.background = 'var(--accent)';
       btn.style.color = '#fff';
-      
+    }
+    {
       this.initAudioContext();
 
       const sched = State.schedules[this.schedIdx];
@@ -785,12 +797,7 @@ const Timeline = {
   nativeAlarmTimes(s) {
     if (!s || !s.timeline || !s.date) return [];
     const tl = s.timeline;
-    return [tl.prepStart, tl.homeDepart, tl.restDepart].filter(Boolean).map(timeStr => {
-      const [hour, min] = timeStr.split(':').map(Number);
-      const d = new Date(s.date);
-      d.setHours(hour, min, 0, 0);
-      return d.getTime();
-    });
+    return [tl.prepStart, tl.homeDepart, tl.restDepart].filter(Boolean).map(timeStr => State.tlAt(s, timeStr).getTime());
   },
 
   /** 출발 알림 팝업(다른 앱 위에 표시)은 원하는 사용자에게만, 최초 1회 안내 */
@@ -881,19 +888,17 @@ const Timeline = {
     const now = new Date();
     State.schedules.forEach((s) => {
       if (!s.timeline || !s.date || s.alarmOff) return;
-      const sDate = new Date(s.date);
-      if (sDate.getFullYear() === now.getFullYear() && 
-          sDate.getMonth() === now.getMonth() && 
-          sDate.getDate() === now.getDate()) {
+      // 오늘·내일 라운딩만 (새벽 티오프는 준비 시작이 전날 밤일 수 있음)
+      const sDate = new Date(s.date); sDate.setHours(0, 0, 0, 0);
+      const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
+      const dayDiff = Math.round((sDate - today0) / 86400000);
+      if (dayDiff === 0 || dayDiff === 1) {
         
         const tl = s.timeline;
-        const dateStr = s.date;
         const getTargetTime = (timeStr) => {
           if (!timeStr) return -1;
-          const [hour, min] = timeStr.split(':').map(Number);
-          const targetDate = new Date(dateStr);
-          targetDate.setHours(hour, min, 0, 0);
-          return targetDate.getTime();
+          const d = State.tlAt(s, timeStr);
+          return d ? d.getTime() : -1;
         };
 
         const events = [];
@@ -922,7 +927,7 @@ const Timeline = {
         events.forEach(ev => {
           const targetTime = getTargetTime(ev.time);
           const delay = targetTime - Date.now();
-          if (delay > 0) {
+          if (delay > 0 && delay < 36 * 3600000) {
             if ((ev.isNative || ev.isPrep) && window.NativeApp) {
               if (typeof window.NativeApp.setAlarmWithData === 'function') {
                 try { window.NativeApp.setAlarmWithData(targetTime, timelineJson); } catch(e) {}
@@ -962,16 +967,18 @@ const Timeline = {
     this.alarmTimeouts = this.alarmTimeouts || [];
     const s = State.schedules[this.schedIdx];
     if (!s || !s.timeline) return;
+    // 같은 일정에 앞서 걸어 둔 앱 안 타이머는 지우고 다시 검 (중복 알람 방지)
+    this._schedTimers = this._schedTimers || new Map();
+    (this._schedTimers.get(s) || []).forEach(id => clearTimeout(id));
+    const myTimers = [];
+    this._schedTimers.set(s, myTimers);
     
     const tl = s.timeline;
-    const dateStr = s.date;
     
     const getTargetTime = (timeStr) => {
       if (!timeStr) return -1;
-      const [hour, min] = timeStr.split(':').map(Number);
-      const targetDate = new Date(dateStr);
-      targetDate.setHours(hour, min, 0, 0);
-      return targetDate.getTime();
+      const d = State.tlAt(s, timeStr);
+      return d ? d.getTime() : -1;
     };
 
     const events = [];
@@ -1009,6 +1016,8 @@ const Timeline = {
             window.NativeApp.setAlarm(targetTime);
           }
         }
+        // setTimeout은 약 24.8일(2^31-1ms)을 넘기면 바로 실행돼 버림 → 먼 일정은 앱 안 타이머를 걸지 않음 (폰 알람은 위에서 예약)
+        if (delay >= 2147483647) { scheduledCount++; return; }
         const timeoutId = setTimeout(() => {
           try {
             if ('Notification' in window && Notification.permission === 'granted') {
@@ -1024,6 +1033,7 @@ const Timeline = {
           Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon);
         }, delay);
         this.alarmTimeouts.push(timeoutId);
+        myTimers.push(timeoutId);
         scheduledCount++;
       }
     });
@@ -1156,10 +1166,8 @@ const Timeline = {
       
       const parseTime = (timeStr) => {
         if (!timeStr) return Infinity;
-        const [hour, min] = timeStr.split(':').map(Number);
-        const td = new Date(s.date);
-        td.setHours(hour, min, 0, 0);
-        return td.getTime();
+        const td = State.tlAt(s, timeStr);
+        return td ? td.getTime() : Infinity;
       };
 
       const events = [

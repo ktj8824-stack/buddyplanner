@@ -111,7 +111,8 @@ const U = {
     // 알림: 준비 시작 시간
     const tl = s.timeline;
     const [ah,am] = tl.prepStart.split(':').map(Number);
-    const alarmMinutes = (th*60+tm) - (ah*60+am);
+    let alarmMinutes = (th*60+tm) - (ah*60+am);
+    if (alarmMinutes < 0) alarmMinutes += 1440; // 준비 시작이 전날 밤
 
     const ics = [
       'BEGIN:VCALENDAR',
