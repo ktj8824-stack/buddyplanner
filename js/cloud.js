@@ -366,7 +366,11 @@ const Cloud = {
 
   _afterRemoteApplied(keys) {
     try {
-      if (keys.indexOf('bp_schedules_v2') >= 0 && typeof State !== 'undefined') State.loadSchedules();
+      if (keys.indexOf('bp_schedules_v2') >= 0 && typeof State !== 'undefined') {
+        State.loadSchedules();
+        // 일정 객체가 새로 바뀌었으니 앱 안 알람도 새 목록 기준으로 다시 걸기 (이전 타이머 정리 → 중복 방지)
+        if (typeof Timeline !== 'undefined' && Timeline.autoScheduleAllAlarms) { try { Timeline.autoScheduleAllAlarms(); } catch (e) {} }
+      }
       if (keys.indexOf('bp_ai_messages_v1') >= 0 && typeof AI !== 'undefined') AI.isInitialized = false;
       if ((keys.indexOf('bp_font') >= 0 || keys.indexOf('bp_size') >= 0) && typeof App !== 'undefined') App.loadPreferences();
       // 현재 화면을 새 데이터로 다시 그림 (로그인·온보딩 화면은 제외)

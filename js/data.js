@@ -153,7 +153,15 @@ const State = {
   calYear: new Date().getFullYear(),
   userAddresses: { home: '', office: '' },
 
+  /** 일정마다 바뀌지 않는 알람용 키 (수정해도 유지) */
+  aidOf(s) {
+    if (!s) return null;
+    if (!s.aid) s.aid = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    return s.aid;
+  },
+
   addSchedule(sched) {
+    this.aidOf(sched);
     this.schedules.push(sched);
     this.calculateTimeline(this.schedules.length - 1);
     this.saveSchedules();
@@ -161,6 +169,7 @@ const State = {
 
   updateSchedule(idx, sched) {
     if (this.schedules[idx]) {
+      sched.aid = this.aidOf(this.schedules[idx]);
       this.schedules[idx] = sched;
       this.calculateTimeline(idx);
       this.saveSchedules();

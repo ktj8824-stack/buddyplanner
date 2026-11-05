@@ -1294,8 +1294,10 @@ const Register = {
 
     if (this.editIdx !== null) {
       const prev = State.schedules[this.editIdx];
+      // 이전 시각으로 걸린 알람(앱 켤 때 자동 예약분 포함)을 먼저 지움 → 수정 후 한 번만 울림
+      if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(prev, true);
       State.updateSchedule(this.editIdx, schedData);
-      if (State.saveFailed) { State.schedules[this.editIdx] = prev; btn.innerHTML = originalText; btn.disabled = false; return; }
+      if (State.saveFailed) { State.schedules[this.editIdx] = prev; try { Timeline.autoScheduleAllAlarms(); } catch (e) {} btn.innerHTML = originalText; btn.disabled = false; return; }
       U.toast('✅ 스마트 플랜이 수정되었습니다!');
       const idx = this.editIdx;
       this.editIdx = null;

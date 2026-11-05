@@ -259,6 +259,7 @@ const Timeline = {
 
   deleteSchedule() {
     if (confirm("정말로 이 일정을 삭제하시겠습니까?")) {
+      this.clearSchedAlarms(State.schedules[this.schedIdx], true);
       State.schedules.splice(this.schedIdx, 1);
       State.saveSchedules();
       App.navigate('home');
@@ -722,6 +723,29 @@ const Timeline = {
     }
   },
 
+  /** 한 일정에 걸린 앱 안 타이머(앱 켤 때 자동 예약분 포함)를 모두 지움. native=true면 폰 알람도 취소 */
+  clearSchedAlarms(s, native) {
+    if (!s) return;
+    this._schedTimers = this._schedTimers || new Map();
+    const key = State.aidOf(s);
+    const ids = this._schedTimers.get(key) || [];
+    ids.forEach(id => clearTimeout(id));
+    this._schedTimers.delete(key);
+    if (this.alarmTimeouts) this.alarmTimeouts = this.alarmTimeouts.filter(id => !ids.includes(id));
+    if (native && window.NativeApp && typeof window.NativeApp.cancelAlarm === 'function') {
+      this.nativeAlarmTimes(s).forEach(t => { try { window.NativeApp.cancelAlarm(t); } catch (e) {} });
+    }
+  },
+
+  _trackTimer(s, id) {
+    this._schedTimers = this._schedTimers || new Map();
+    const key = State.aidOf(s);
+    if (!this._schedTimers.has(key)) this._schedTimers.set(key, []);
+    this._schedTimers.get(key).push(id);
+    this.alarmTimeouts = this.alarmTimeouts || [];
+    this.alarmTimeouts.push(id);
+  },
+
   toggleAlarm() {
     const btn = U.$('#tl-alarm-btn');
     if (!btn) return;
@@ -733,17 +757,10 @@ const Timeline = {
       btn.style.background = 'transparent';
       btn.style.color = 'var(--accent)';
       
-      if (this.alarmTimeouts) {
-        this.alarmTimeouts.forEach(id => clearTimeout(id));
-        this.alarmTimeouts = [];
-      }
-
-      // 폰에 예약된 네이티브 알람도 취소하고, 꺼둔 상태를 저장 (앱 재실행 시 자동 예약 방지)
+      // 이 일정의 앱 안 타이머와 폰 알람을 취소하고, 꺼둔 상태를 저장 (앱 재실행 시 자동 예약 방지)
       const s = State.schedules[this.schedIdx];
       if (s) {
-        if (window.NativeApp && typeof window.NativeApp.cancelAlarm === 'function') {
-          this.nativeAlarmTimes(s).forEach(t => { try { window.NativeApp.cancelAlarm(t); } catch (e) {} });
-        }
+        this.clearSchedAlarms(s, true);
         s.alarmOff = true;
         State.saveSchedules();
       }
@@ -884,6 +901,7 @@ const Timeline = {
     this.alarmTimeouts = this.alarmTimeouts || [];
     this.alarmTimeouts.forEach(id => clearTimeout(id));
     this.alarmTimeouts = [];
+    this._schedTimers = new Map();
 
     const now = new Date();
     State.schedules.forEach((s) => {
@@ -948,7 +966,7 @@ const Timeline = {
               }
               Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon);
             }, delay);
-            this.alarmTimeouts.push(timeoutId);
+            this._trackTimer(s, timeoutId);
           }
         });
       }
@@ -968,10 +986,7 @@ const Timeline = {
     const s = State.schedules[this.schedIdx];
     if (!s || !s.timeline) return;
     // 같은 일정에 앞서 걸어 둔 앱 안 타이머는 지우고 다시 검 (중복 알람 방지)
-    this._schedTimers = this._schedTimers || new Map();
-    (this._schedTimers.get(s) || []).forEach(id => clearTimeout(id));
-    const myTimers = [];
-    this._schedTimers.set(s, myTimers);
+    this.clearSchedAlarms(s, false);
     
     const tl = s.timeline;
     
@@ -1032,8 +1047,7 @@ const Timeline = {
           
           Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon);
         }, delay);
-        this.alarmTimeouts.push(timeoutId);
-        myTimers.push(timeoutId);
+        this._trackTimer(s, timeoutId);
         scheduledCount++;
       }
     });
