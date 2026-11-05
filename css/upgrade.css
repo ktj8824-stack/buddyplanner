@@ -131,7 +131,7 @@
 .plan-sub { font-size: var(--fs-xs); color: var(--text-500); }
 .plan-price { flex: none; font-size: var(--fs-lg); font-weight: var(--fw-bold); color: var(--text-100); }
 .plan-badge {
-  font-size: 11px; font-weight: var(--fw-bold); color: #fff;
+  font-size: 0.875rem; font-weight: var(--fw-bold); color: #fff;
   background: var(--gold-warm); padding: 2px 8px; border-radius: 999px;
 }
 .btn-upg:disabled { opacity: .6; transform: none; cursor: default; }

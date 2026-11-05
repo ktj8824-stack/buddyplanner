@@ -113,18 +113,18 @@ const Record = {
           <!-- 라운딩 핵심 통계 바 (Unified Style) -->
           <div style="display:flex; justify-content:space-around; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:14px 12px; margin-bottom:18px; box-shadow:0 2px 10px rgba(0,0,0,0.02);">
             <div style="text-align:center; flex:1;">
-              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">총 라운딩</div>
-              <div style="font-size:17px; font-weight:800; color:#0f172a;"><span style="color:#007aff;">${displayCount}</span>회</div>
+              <div style="font-size:0.7188rem; font-weight:700; color:#64748b; margin-bottom:3px;">총 라운딩</div>
+              <div style="font-size:1.0625rem; font-weight:800; color:#0f172a;"><span style="color:#007aff;">${displayCount}</span>회</div>
             </div>
             <div style="width:1px; height:24px; background:#e2e8f0;"></div>
             <div style="text-align:center; flex:1;">
-              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">평균 타수</div>
-              <div style="font-size:17px; font-weight:800; color:#0f172a;">${avgScore}<span style="font-size:12px; font-weight:700; color:#64748b;">타</span></div>
+              <div style="font-size:0.7188rem; font-weight:700; color:#64748b; margin-bottom:3px;">평균 타수</div>
+              <div style="font-size:1.0625rem; font-weight:800; color:#0f172a;">${avgScore}<span style="font-size:0.75rem; font-weight:700; color:#64748b;">타</span></div>
             </div>
             <div style="width:1px; height:24px; background:#e2e8f0;"></div>
             <div style="text-align:center; flex:1;">
-              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">최근 타수</div>
-              <div style="font-size:17px; font-weight:800; color:#0f172a;">${recentScore}<span style="font-size:12px; font-weight:700; color:#64748b;">타</span></div>
+              <div style="font-size:0.7188rem; font-weight:700; color:#64748b; margin-bottom:3px;">최근 타수</div>
+              <div style="font-size:1.0625rem; font-weight:800; color:#0f172a;">${recentScore}<span style="font-size:0.75rem; font-weight:700; color:#64748b;">타</span></div>
             </div>
           </div>
           ${this.trendHtml(list)}
@@ -132,11 +132,11 @@ const Record = {
 
         <div style="padding: 0 16px 12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:6px;">
+            <h2 style="font-size:1.125rem; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:6px;">
               <span>📅</span>
               라운딩 스코어 캘린더
             </h2>
-            <button onclick="Record.showRecordForm()" style="background:#04122d; color:#fff; border:none; padding:8px 16px; border-radius:9999px; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 3px 10px rgba(4,18,45,0.2);">
+            <button onclick="Record.showRecordForm()" style="background:#04122d; color:#fff; border:none; padding:8px 16px; border-radius:9999px; font-size:0.8125rem; font-weight:800; display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 3px 10px rgba(4,18,45,0.2);">
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               스코어 등록
             </button>
@@ -255,13 +255,13 @@ const Record = {
           <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
             <div style="min-width:0;">
               <div class="record-date">${dateLabel} · ${U.esc(sc.teeOff || '')} 티오프</div>
-              <div style="font-size:17px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${U.esc((sc.course && sc.course.name) || '')}</div>
+              <div style="font-size:1.0625rem; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${U.esc((sc.course && sc.course.name) || '')}</div>
             </div>
-            <span style="flex-shrink:0; font-size:11.5px; font-weight:800; padding:4px 9px; border-radius:999px; ${past ? 'background:#fff7ed; color:#c2410c;' : 'background:#eff6ff; color:#1d4ed8;'}">${past ? '기록 전' : '예정'}</span>
+            <span style="flex-shrink:0; font-size:0.7188rem; font-weight:800; padding:4px 9px; border-radius:999px; ${past ? 'background:#fff7ed; color:#c2410c;' : 'background:#eff6ff; color:#1d4ed8;'}">${past ? '기록 전' : '예정'}</span>
           </div>
           ${past
-            ? `<button class="record-action" onclick="Record.showRecordForm()" style="margin:0; width:100%; padding:11px; font-size:14px; background:#04122d; color:#fff; border:none; border-radius:10px; font-weight:800;">⛳ 이날 스코어 기록하기</button>`
-            : `<button onclick="App.viewTimeline(${idx})" style="margin:0; width:100%; padding:11px; font-size:14px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:10px; font-weight:800; cursor:pointer;">타임라인 보기</button>`}
+            ? `<button class="record-action" onclick="Record.showRecordForm()" style="margin:0; width:100%; padding:11px; font-size:0.875rem; background:#04122d; color:#fff; border:none; border-radius:10px; font-weight:800;">⛳ 이날 스코어 기록하기</button>`
+            : `<button onclick="App.viewTimeline(${idx})" style="margin:0; width:100%; padding:11px; font-size:0.875rem; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:10px; font-weight:800; cursor:pointer;">타임라인 보기</button>`}
         </div>`;
       return;
     }
@@ -270,10 +270,10 @@ const Record = {
       detailContainer.innerHTML = `
         <div class="record-card" style="animation: slideUp 0.3s ease; display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:130px; gap:12px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <div style="font-size:24px;">⛳️</div>
-            <div style="font-size:15px; font-weight:700; color:#64748b;">기록이 없는 날입니다</div>
+            <div style="font-size:1.5rem;">⛳️</div>
+            <div style="font-size:0.9375rem; font-weight:700; color:#64748b;">기록이 없는 날입니다</div>
           </div>
-          <button class="record-action" onclick="Record.showRecordForm()" style="margin:0; width:100%; padding:11px; font-size:14px; background:#04122d; color:#fff; border:none; border-radius:10px; font-weight:800;">+ 새 라운드 일지 작성하기</button>
+          <button class="record-action" onclick="Record.showRecordForm()" style="margin:0; width:100%; padding:11px; font-size:0.875rem; background:#04122d; color:#fff; border:none; border-radius:10px; font-weight:800;">+ 새 라운드 일지 작성하기</button>
         </div>`;
       return;
     }
@@ -288,7 +288,7 @@ const Record = {
       if (same.length === 1 && rounds.length === 1) companions = same[0].companions || [];
     }
     const companionsHtml = companions.length
-      ? companions.map(c => `<div class="record-stat-item"><span class="record-stat-label" style="color:#0f172a; font-size:13px; font-weight:700;">${U.esc((c && c.name) || c)}</span><span class="record-stat-val" style="color:#94a3b8; font-size:12px; font-weight:700;">함께한 동반자</span></div>`).join('')
+      ? companions.map(c => `<div class="record-stat-item"><span class="record-stat-label" style="color:#0f172a; font-size:0.8125rem; font-weight:700;">${U.esc((c && c.name) || c)}</span><span class="record-stat-val" style="color:#94a3b8; font-size:0.75rem; font-weight:700;">함께한 동반자</span></div>`).join('')
       : '';
 
     detailContainer.innerHTML = rounds.map(({ key, rec }, idx) => `
@@ -296,7 +296,7 @@ const Record = {
         <div class="record-card-top">
           <div style="display:flex; flex-direction:column; gap:4px; min-width:0;">
             <span class="record-date">${dateLabel}${rounds.length > 1 ? ` · ${idx + 1}라운드` : ''}${rec.time ? ` · ${U.esc(rec.time)}` : ''}</span>
-            <span style="font-size:18px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${U.esc(rec.course || '')}</span>
+            <span style="font-size:1.125rem; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${U.esc(rec.course || '')}</span>
           </div>
           <div class="record-score-box">
             ${this.isNine(rec) ? '<span class="rec-nine">9홀</span>' : ''}
@@ -306,9 +306,9 @@ const Record = {
         </div>
         <div class="record-card-bottom" style="display:flex; justify-content:space-between; align-items:center;">
           <div style="display:flex; flex-direction:column; gap:6px; flex:1; min-width:0;">
-            ${companionsHtml || `<span style="color:#64748b; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${rec.diary ? U.esc(rec.diary.slice(0, 40)) : '눌러서 일지 자세히 보기 ›'}</span>`}
+            ${companionsHtml || `<span style="color:#64748b; font-size:0.8125rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${rec.diary ? U.esc(rec.diary.slice(0, 40)) : '눌러서 일지 자세히 보기 ›'}</span>`}
           </div>
-          <button onclick="event.stopPropagation(); Record.showRecordForm('${key}')" style="background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; border-radius:8px; padding:6px 16px; font-size:13px; font-weight:800; cursor:pointer; flex-shrink:0; margin-left:12px;">수정</button>
+          <button onclick="event.stopPropagation(); Record.showRecordForm('${key}')" style="background:#f1f5f9; color:#334155; border:1px solid #e2e8f0; border-radius:8px; padding:6px 16px; font-size:0.8125rem; font-weight:800; cursor:pointer; flex-shrink:0; margin-left:12px;">수정</button>
         </div>
       </div>`).join('') + `
       <button onclick="Record.showRecordForm()" class="rec-add-round">+ 이날 라운드 추가</button>`;
@@ -348,7 +348,7 @@ const Record = {
           
           <!-- Header -->
           <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f1f5f9;">
-            <div style="font-size:16px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">${existingRecord ? '라운드 기록 수정' : '스코어 및 일지 등록'}</div>
+            <div style="font-size:1rem; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">${existingRecord ? '라운드 기록 수정' : '스코어 및 일지 등록'}</div>
             <button onclick="Record.closeRecordForm()" style="color:#64748b; padding:4px; border:none; background:transparent; cursor:pointer;" aria-label="닫기">
               <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -359,33 +359,33 @@ const Record = {
             
             <!-- 1. Date & Schedule -->
             <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
+              <div style="font-size:0.8438rem; font-weight:800; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
                 <span>📋</span> 1. 기본 정보
               </div>
               <div style="display:flex; flex-direction:column; gap:8px;">
                 
                 <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 날짜</label>
+                  <label class="field-label" style="font-size:0.7188rem; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 날짜</label>
                   <div class="picker-btn" onclick="Record.openDatePicker()" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-                    <span class="picker-val" id="record-date-display" style="font-size:13px; font-weight:700; color:#0f172a;">${todayStr}</span>
-                    <span class="picker-ico" style="font-size:14px;">📅</span>
+                    <span class="picker-val" id="record-date-display" style="font-size:0.8125rem; font-weight:700; color:#0f172a;">${todayStr}</span>
+                    <span class="picker-ico" style="font-size:0.875rem;">📅</span>
                     <input type="hidden" id="record-date" value="${todayStr}">
                   </div>
                 </div>
 
                 <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 구장 선택</label>
+                  <label class="field-label" style="font-size:0.7188rem; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 구장 선택</label>
                   <div class="field-input" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                    <input type="text" id="record-course" value="${U.esc(defaultCourse)}" placeholder="예: 남서울CC" style="width:100%; font-size:13px; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
-                    <span class="fi-icon" style="font-size:13.5px; opacity:0.5;">🔍</span>
+                    <input type="text" id="record-course" value="${U.esc(defaultCourse)}" placeholder="예: 남서울CC" style="width:100%; font-size:0.8125rem; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
+                    <span class="fi-icon" style="font-size:0.8438rem; opacity:0.5;">🔍</span>
                   </div>
                 </div>
 
                 <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 티업시간</label>
+                  <label class="field-label" style="font-size:0.7188rem; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 티업시간</label>
                   <div class="picker-btn" onclick="Record.openTimePicker()" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-                    <span class="picker-val" id="record-time-display" style="font-size:13px; font-weight:700; color:#0f172a;">${defaultTime}</span>
-                    <span class="picker-ico" style="font-size:14px;">⏰</span>
+                    <span class="picker-val" id="record-time-display" style="font-size:0.8125rem; font-weight:700; color:#0f172a;">${defaultTime}</span>
+                    <span class="picker-ico" style="font-size:0.875rem;">⏰</span>
                     <input type="hidden" id="record-time" value="${defaultTime}">
                   </div>
                 </div>
@@ -395,17 +395,17 @@ const Record = {
 
             <!-- 2. Score Info (Photo Only) -->
             <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:3px; display:flex; align-items:center; gap:5px;">
+              <div style="font-size:0.8438rem; font-weight:800; color:#0f172a; margin-bottom:3px; display:flex; align-items:center; gap:5px;">
                 <span>⛳</span> 2. 스코어 등록
               </div>
-              <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">스코어카드 사진을 함께 남겨 두세요. (PRO는 AI 비서에게 사진을 보내면 타수를 자동으로 읽어 드려요)</div>
+              <div style="font-size:0.6875rem; font-weight:600; color:#64748b; margin-bottom:8px;">스코어카드 사진을 함께 남겨 두세요. (PRO는 AI 비서에게 사진을 보내면 타수를 자동으로 읽어 드려요)</div>
               <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" class="hide-scrollbar">
                 ${[1, 2].map(i => `
                 <div style="flex:0 0 auto;">
                   <input type="file" id="upload-scorecard-${i}" accept="image/*" style="display:none;" onchange="Record.handleScoreUpload(${i}, event)">
                   <div id="score-upload-box-${i}" style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; width:68px; height:68px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:all 0.15s ease;" onclick="document.getElementById('upload-scorecard-${i}').click()">
                     <svg viewBox="0 0 24 24" width="22" height="22" stroke="#007aff" stroke-width="2" fill="none" style="margin-bottom:2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <div style="font-size:10.5px; font-weight:700; color:#475569;">${i === 1 ? '전반' : '후반'}</div>
+                    <div style="font-size:0.6562rem; font-weight:700; color:#475569;">${i === 1 ? '전반' : '후반'}</div>
                   </div>
                   <div id="score-preview-box-${i}" style="display:none; position:relative; width:68px; height:68px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1; background:#f1f5f9;">
                     <img id="score-preview-img-${i}" src="" style="width:100%; height:100%; object-fit:contain; padding:2px; box-sizing:border-box;">
@@ -419,27 +419,27 @@ const Record = {
               
               <!-- Manual Score Input (3-Column compact layout) -->
               <div style="margin-top:10px;">
-                <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:6px;">스코어 직접 입력</div>
+                <div style="font-size:0.7188rem; font-weight:700; color:#64748b; margin-bottom:6px;">스코어 직접 입력</div>
                 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
                   <div class="field" style="margin:0;">
-                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">전반 스코어</label>
+                    <label class="field-label" style="font-size:0.6562rem; font-weight:700; color:#64748b; margin-bottom:2px;">전반 스코어</label>
                     <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                      <input type="number" id="manual-score-out" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
+                      <input type="number" id="manual-score-out" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:0.875rem; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
+                      <span style="font-size:0.7188rem; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
                     </div>
                   </div>
                   <div class="field" style="margin:0;">
-                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">후반 스코어</label>
+                    <label class="field-label" style="font-size:0.6562rem; font-weight:700; color:#64748b; margin-bottom:2px;">후반 스코어</label>
                     <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                      <input type="number" id="manual-score-in" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
+                      <input type="number" id="manual-score-in" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:0.875rem; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
+                      <span style="font-size:0.7188rem; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
                     </div>
                   </div>
                   <div class="field" style="margin:0;">
-                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">총 타수</label>
+                    <label class="field-label" style="font-size:0.6562rem; font-weight:700; color:#64748b; margin-bottom:2px;">총 타수</label>
                     <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                      <input type="number" id="manual-score" placeholder="72" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
+                      <input type="number" id="manual-score" placeholder="72" style="width:100%; font-size:0.875rem; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
+                      <span style="font-size:0.7188rem; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
                     </div>
                   </div>
                 </div>
@@ -462,12 +462,12 @@ const Record = {
 
             <!-- 3. Story & Photos -->
             <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+              <div style="font-size:0.8438rem; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
                 <span>📝</span> 3. 일지 작성
               </div>
               
               <div style="margin-bottom:8px;">
-                <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:6px;">추억을 남길 사진이나 골프장 풍경 사진 (최대 4장)</div>
+                <div style="font-size:0.6875rem; font-weight:600; color:#64748b; margin-bottom:6px;">추억을 남길 사진이나 골프장 풍경 사진 (최대 4장)</div>
                 <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" class="hide-scrollbar">
                   ${[1, 2, 3, 4].map(i => `
                   <div style="flex:0 0 auto;">
@@ -486,7 +486,7 @@ const Record = {
                 </div>
               </div>
 
-              <textarea id="record-diary" placeholder="오늘 라운딩에 남기고 싶은 말을 기록해보세요." style="width:100%; height:64px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:12.5px; font-family:inherit; resize:none; outline:none; box-sizing:border-box; color:#0f172a;"></textarea>
+              <textarea id="record-diary" placeholder="오늘 라운딩에 남기고 싶은 말을 기록해보세요." style="width:100%; height:64px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:0.7812rem; font-family:inherit; resize:none; outline:none; box-sizing:border-box; color:#0f172a;"></textarea>
             </div>
 
             <div style="height: 10px;"></div>
@@ -494,8 +494,8 @@ const Record = {
 
           <!-- Footer Action -->
           <div style="padding:10px 16px; background:#fff; border-top:1px solid #f1f5f9; padding-bottom: max(10px, env(safe-area-inset-bottom)); display:flex; gap:8px;">
-            ${existingRecord ? `<button onclick="Record.deleteRecord()" style="flex:0 0 auto; height:44px; padding:0 16px; background:#fff; color:#ef4444; font-size:14px; font-weight:800; border-radius:10px; border:1px solid #fecaca; cursor:pointer;">삭제</button>` : ''}
-            <button onclick="Record.saveRecord()" style="flex:1; width:100%; height:44px; background:linear-gradient(135deg, #007aff 0%, #0056b3 100%); color:#fff; font-size:14.5px; font-weight:800; border-radius:10px; border:none; box-shadow:0 3px 12px rgba(0,122,255,0.25); cursor:pointer; display:flex; align-items:center; justify-content:center;">
+            ${existingRecord ? `<button onclick="Record.deleteRecord()" style="flex:0 0 auto; height:44px; padding:0 16px; background:#fff; color:#ef4444; font-size:0.875rem; font-weight:800; border-radius:10px; border:1px solid #fecaca; cursor:pointer;">삭제</button>` : ''}
+            <button onclick="Record.saveRecord()" style="flex:1; width:100%; height:44px; background:linear-gradient(135deg, #007aff 0%, #0056b3 100%); color:#fff; font-size:0.9062rem; font-weight:800; border-radius:10px; border:none; box-shadow:0 3px 12px rgba(0,122,255,0.25); cursor:pointer; display:flex; align-items:center; justify-content:center;">
               ${existingRecord ? '수정 완료' : '저장하기'}
             </button>
           </div>
@@ -952,14 +952,14 @@ const Record = {
     // 홀별 점수 (AI 비서가 스코어카드에서 읽은 경우)
     let holesHtml = '';
     if (Array.isArray(rec.holes) && rec.holes.length === 18) {
-      const row = (from) => rec.holes.slice(from, from + 9).map((n, k) => `<div style="text-align:center;"><div style="font-size:10px; color:var(--text-400); font-weight:700;">${from + k + 1}</div><div style="font-size:14px; font-weight:800; color:var(--text-100);">${Number(n) || '-'}</div></div>`).join('');
+      const row = (from) => rec.holes.slice(from, from + 9).map((n, k) => `<div style="text-align:center;"><div style="font-size:0.625rem; color:var(--text-400); font-weight:700;">${from + k + 1}</div><div style="font-size:0.875rem; font-weight:800; color:var(--text-100);">${Number(n) || '-'}</div></div>`).join('');
       const sum = (a) => a.reduce((t, n) => t + (Number(n) || 0), 0);
       holesHtml = `
         <div style="margin-top:10px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px;">
           <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:2px;">${row(0)}</div>
-          <div style="font-size:11px; font-weight:700; color:var(--text-400); text-align:right; margin:4px 0 8px;">전반 ${sum(rec.holes.slice(0, 9))}타</div>
+          <div style="font-size:0.6875rem; font-weight:700; color:var(--text-400); text-align:right; margin:4px 0 8px;">전반 ${sum(rec.holes.slice(0, 9))}타</div>
           <div style="display:grid; grid-template-columns:repeat(9,1fr); gap:2px;">${row(9)}</div>
-          <div style="font-size:11px; font-weight:700; color:var(--text-400); text-align:right; margin-top:4px;">후반 ${sum(rec.holes.slice(9))}타</div>
+          <div style="font-size:0.6875rem; font-weight:700; color:var(--text-400); text-align:right; margin-top:4px;">후반 ${sum(rec.holes.slice(9))}타</div>
         </div>`;
     }
 
@@ -974,7 +974,7 @@ const Record = {
             <button onclick="Record.closeDiaryDetail()" style="color:var(--text-100); padding:4px;">
               <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
-            <div style="font-size:17px; font-weight:800; color:var(--text-100);">라운드 일지</div>
+            <div style="font-size:1.0625rem; font-weight:800; color:var(--text-100);">라운드 일지</div>
             <button onclick="Record.shareRecord()" style="color:var(--text-100); padding:4px;" aria-label="공유">
               <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
             </button>
@@ -987,10 +987,10 @@ const Record = {
               <!-- 1. Post Header (User, Location, Date) -->
               <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 16px 12px 16px;">
                 <div style="display:flex; align-items:center; gap:10px;">
-                  <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, #fbbf24, #f59e0b); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;">${userName.charAt(0)}</div>
+                  <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, #fbbf24, #f59e0b); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.125rem;">${userName.charAt(0)}</div>
                   <div style="display:flex; flex-direction:column; gap:4px;">
-                    <span style="font-size:16px; font-weight:800; color:var(--text-100);">${userName}</span>
-                    <span style="font-size:14px; font-weight:700; color:var(--text-300);">📍 ${U.esc(rec.course || '')} · ${dateStr} ${teeTime ? `· ⏰ ${U.esc(teeTime)}` : ''}</span>
+                    <span style="font-size:1rem; font-weight:800; color:var(--text-100);">${userName}</span>
+                    <span style="font-size:0.875rem; font-weight:700; color:var(--text-300);">📍 ${U.esc(rec.course || '')} · ${dateStr} ${teeTime ? `· ⏰ ${U.esc(teeTime)}` : ''}</span>
                   </div>
                 </div>
               </div>
@@ -1001,7 +1001,7 @@ const Record = {
                   ${photos.map((src, i) => `
                     <div style="flex-shrink:0; width:100%; height:100%; scroll-snap-align:start; position:relative;">
                       <img src="${src}" style="width:100%; height:100%; object-fit:cover;">
-                      <div style="position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.6); color:#fff; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:700;">${i+1} / ${photos.length}</div>
+                      <div style="position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.6); color:#fff; padding:4px 10px; border-radius:12px; font-size:0.6875rem; font-weight:700;">${i+1} / ${photos.length}</div>
                     </div>
                   `).join('')}
                 </div>
@@ -1009,11 +1009,11 @@ const Record = {
 
               <!-- 4. Score Summary Box -->
               <div style="padding:0 16px; margin-bottom:16px; margin-top:16px;">
-                <div style="font-size:16px; font-weight:800; color:var(--text-100); margin-bottom:12px;">최종 스코어</div>
+                <div style="font-size:1rem; font-weight:800; color:var(--text-100); margin-bottom:12px;">최종 스코어</div>
                 <div style="background:rgba(37,99,235,0.04); border:1px solid rgba(37,99,235,0.1); border-radius:12px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
                   <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                    <span style="font-size:13px; font-weight:700; color:var(--text-400); margin-bottom:4px;">${userName} (나)</span>
-                    <span style="font-size:28px; font-weight:800; color:#2563eb;">${typeof rec.score === 'number' ? rec.score : '-'}<span style="font-size:16px; font-weight:600; color:var(--text-300); margin-left:4px;">타</span></span>
+                    <span style="font-size:0.8125rem; font-weight:700; color:var(--text-400); margin-bottom:4px;">${userName} (나)</span>
+                    <span style="font-size:1.75rem; font-weight:800; color:#2563eb;">${typeof rec.score === 'number' ? rec.score : '-'}<span style="font-size:1rem; font-weight:600; color:var(--text-300); margin-left:4px;">타</span></span>
                   </div>
                   <div style="display:flex; gap:8px;">
                     ${rec.scoreImg1 ? `<img src="${rec.scoreImg1}" onclick="Record.showScorecardGallery(['${rec.scoreImg1 || ''}', '${rec.scoreImg2 || ''}'].filter(Boolean), 0)" style="width:48px; height:48px; border-radius:8px; object-fit:cover; border:1px solid rgba(0,0,0,0.1); cursor:pointer;">` : ''}
@@ -1025,8 +1025,8 @@ const Record = {
 
               <!-- 5. Story / Content -->
               <div style="padding:0 16px;">
-                ${rec.diary ? `<p style="font-size:14px; font-weight:500; color:var(--text-100); line-height:1.6; margin:0 0 12px 0; white-space:pre-wrap;"><span style="font-weight:800; margin-right:4px;">${userName}</span>${U.esc(rec.diary)}</p>` : ''}
-                <div style="font-size:13px; font-weight:600; color:#2563eb;">
+                ${rec.diary ? `<p style="font-size:0.875rem; font-weight:500; color:var(--text-100); line-height:1.6; margin:0 0 12px 0; white-space:pre-wrap;"><span style="font-weight:800; margin-right:4px;">${userName}</span>${U.esc(rec.diary)}</p>` : ''}
+                <div style="font-size:0.8125rem; font-weight:600; color:#2563eb;">
                   #명랑골프 #BuddyPlanner #골프스타그램 #골프일지
                 </div>
               </div>
@@ -1072,8 +1072,8 @@ const Record = {
     const html = `
       <div id="modal-fullscreen-gallery" style="display:flex; flex-direction:column; background:rgba(0,0,0,0.95); position:fixed; top:0; left:0; width:100%; height:100%; z-index:10001; opacity:0; transition: opacity 0.3s;">
         <div style="display:flex; justify-content:space-between; align-items:center; padding:20px; color:#fff;">
-          <div style="font-size:16px; font-weight:700;">스코어카드</div>
-          <div onclick="this.parentElement.parentElement.style.opacity='0'; setTimeout(()=>this.parentElement.parentElement.remove(), 300)" style="font-size:32px; font-weight:200; cursor:pointer; line-height:1;">&times;</div>
+          <div style="font-size:1rem; font-weight:700;">스코어카드</div>
+          <div onclick="this.parentElement.parentElement.style.opacity='0'; setTimeout(()=>this.parentElement.parentElement.remove(), 300)" style="font-size:2rem; font-weight:200; cursor:pointer; line-height:1;">&times;</div>
         </div>
         <div style="flex:1; width:100%; display:flex; overflow-x:auto; scroll-snap-type: x mandatory;" class="hide-scrollbar">
           ${images.map(src => `
@@ -1082,7 +1082,7 @@ const Record = {
             </div>
           `).join('')}
         </div>
-        <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5); font-size:13px; font-weight:600;">좌우로 스와이프하여 사진 이동</div>
+        <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5); font-size:0.8125rem; font-weight:600;">좌우로 스와이프하여 사진 이동</div>
       </div>
     `;
     document.body.insertAdjacentHTML('beforeend', html);

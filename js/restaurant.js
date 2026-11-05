@@ -125,24 +125,24 @@ const Restaurant = {
       ">
         <div style="width:40px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 20px;"></div>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🍽️</div>
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#2563eb);display:flex;align-items:center;justify-content:center;font-size:1.125rem;flex-shrink:0;">🍽️</div>
           <div>
-            <div style="font-size:13px;color:#7c3aed;font-weight:600;">추천 메뉴</div>
-            <div style="font-size:16px;font-weight:800;color:#fff;">${placeName}</div>
+            <div style="font-size:0.8125rem;color:#7c3aed;font-weight:600;">추천 메뉴</div>
+            <div style="font-size:1rem;font-weight:800;color:#fff;">${placeName}</div>
           </div>
         </div>
-        <div style="font-size:12px;color:#64748b;margin-bottom:20px;padding-left:46px;">카테고리: ${category}</div>
+        <div style="font-size:0.75rem;color:#64748b;margin-bottom:20px;padding-left:46px;">카테고리: ${category}</div>
 
         <div id="ai-loading" style="text-align:center;padding:32px 0;">
           <div style="width:48px;height:48px;margin:0 auto 16px;border:3px solid rgba(124,58,237,0.2);border-top-color:#7c3aed;border-radius:50%;animation:aiSpin 0.8s linear infinite;"></div>
-          <div style="color:#94a3b8;font-size:14px;font-weight:600;" id="ai-loading-text">추천 메뉴를 고르는 중...</div>
+          <div style="color:#94a3b8;font-size:0.875rem;font-weight:600;" id="ai-loading-text">추천 메뉴를 고르는 중...</div>
         </div>
         <div id="ai-result" style="display:none;"></div>
 
         <button onclick="document.getElementById('ai-modal-bg').remove()" style="
           width:100%;margin-top:20px;padding:14px;
           background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
-          border-radius:14px;color:#94a3b8;font-size:15px;font-weight:600;cursor:pointer;
+          border-radius:14px;color:#94a3b8;font-size:0.9375rem;font-weight:600;cursor:pointer;
         ">닫기</button>
       </div>
     `;
@@ -172,7 +172,7 @@ const Restaurant = {
         : '🏆 라운딩 후 — 식당 종류에 맞춰 회식하기 좋은 메뉴를 골라 봤어요. 실제 메뉴는 식당마다 다를 수 있어요.';
 
       const resultHtml = `
-        <div style="font-size:12px;color:#7c3aed;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;">${contextNote}</div>
+        <div style="font-size:0.75rem;color:#7c3aed;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:10px 14px;margin-bottom:16px;">${contextNote}</div>
         ${menus.map((m, i) => `
           <div style="
             background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);
@@ -180,11 +180,11 @@ const Restaurant = {
             animation:aiFadeUp 0.4s ease both;animation-delay:${i * 0.15}s;
           ">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-              <div style="font-size:15px;font-weight:800;color:#fff;">${m.name}</div>
-              <div style="font-size:11px;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);padding:3px 8px;border-radius:20px;white-space:nowrap;margin-left:8px;">${m.tag}</div>
+              <div style="font-size:0.9375rem;font-weight:800;color:#fff;">${m.name}</div>
+              <div style="font-size:0.6875rem;color:#fbbf24;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.25);padding:3px 8px;border-radius:20px;white-space:nowrap;margin-left:8px;">${m.tag}</div>
             </div>
-            <div style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:10px;">${m.reason}</div>
-            <div style="font-size:12px;color:#475569;">🔥 대략적인 칼로리: <span style="color:#30d158;font-weight:600;">${m.kcal}</span></div>
+            <div style="font-size:0.8125rem;color:#94a3b8;line-height:1.6;margin-bottom:10px;">${m.reason}</div>
+            <div style="font-size:0.75rem;color:#475569;">🔥 대략적인 칼로리: <span style="color:#30d158;font-weight:600;">${m.kcal}</span></div>
           </div>
         `).join('')}
       `;

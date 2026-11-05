@@ -49,14 +49,14 @@ body {
 }
 
 .title {
-    font-size: 24px;
+    font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 20px;
     color: #e0e0e0;
 }
 
 .time-display {
-    font-size: 64px;
+    font-size: 4rem;
     font-weight: 800;
     background: -webkit-linear-gradient(#fff, #a5b4fc);
     -webkit-background-clip: text;
@@ -80,7 +80,7 @@ body {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    font-size: 24px;
+    font-size: 1.5rem;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -94,7 +94,7 @@ body {
 }
 
 .preset-times span {
-    font-size: 16px;
+    font-size: 1rem;
     color: #a5b4fc;
     font-weight: 600;
 }
@@ -104,7 +104,7 @@ body {
     border: none;
     border-radius: 16px;
     color: white;
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 600;
     padding: 18px 0;
     width: 100%;
@@ -129,7 +129,7 @@ body {
 
 .status-msg {
     margin-top: 20px;
-    font-size: 14px;
+    font-size: 0.875rem;
     color: #9ca3af;
     min-height: 20px;
 }

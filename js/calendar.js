@@ -88,10 +88,10 @@ const Calendar = {
         schedHtml += `
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; ${isPast ? 'opacity:0.6;' : ''}" onclick="App.viewTimeline(${idx})">
             <div style="flex:1; background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <span style="font-size:15px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:8px;">${s.course ? s.course.name : (s.courseName || '골프장')}</span>
-              <span style="font-size:13px; font-weight:700; color:#64748b; white-space:nowrap;">${teeTime} <span style="color:#007aff; font-size:12px; font-weight:800; margin-left:4px;">${dday}</span></span>
+              <span style="font-size:0.9375rem; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:8px;">${s.course ? s.course.name : (s.courseName || '골프장')}</span>
+              <span style="font-size:0.8125rem; font-weight:700; color:#64748b; white-space:nowrap;">${teeTime} <span style="color:#007aff; font-size:0.75rem; font-weight:800; margin-left:4px;">${dday}</span></span>
             </div>
-            <button onclick="event.stopPropagation(); Calendar.deleteSchedule(${idx})" style="width:34px; height:34px; border-radius:50%; background:rgba(255,59,48,0.08); border:none; color:#ef4444; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;" aria-label="일정 삭제">✕</button>
+            <button onclick="event.stopPropagation(); Calendar.deleteSchedule(${idx})" style="width:34px; height:34px; border-radius:50%; background:rgba(255,59,48,0.08); border:none; color:#ef4444; font-size:1rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;" aria-label="일정 삭제">✕</button>
           </div>
         `;
       });
@@ -102,8 +102,8 @@ const Calendar = {
 
     return `
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: ${scheds.length > 0 ? '10px' : '4px'}; padding: 0 4px;">
-        <div style="font-size: 17px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${dateStr}</div>
-        <button onclick="Calendar._addForSelected()" style="background:#04122d; color:#fff; border:none; padding:8px 14px; border-radius:9999px; font-size:12.5px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(4,18,45,0.15); display:flex; align-items:center; gap:5px;">
+        <div style="font-size: 1.0625rem; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${dateStr}</div>
+        <button onclick="Calendar._addForSelected()" style="background:#04122d; color:#fff; border:none; padding:8px 14px; border-radius:9999px; font-size:0.7812rem; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(4,18,45,0.15); display:flex; align-items:center; gap:5px;">
           <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           새로운 일정
         </button>

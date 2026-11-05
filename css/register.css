@@ -21,7 +21,7 @@
 }
 
 .reg-card-title {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 800;
   color: #0f172a;
   margin-bottom: 10px;
@@ -45,11 +45,11 @@
   border: 1px solid #e2e8f0;
 }
 #screen-register .field-input input {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 #screen-register .field-input .fi-icon {
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 /* ── Search Autocomplete ── */
@@ -76,9 +76,9 @@
   background: #eff6ff; color: #007aff; font-size: 1rem; flex-shrink: 0;
 }
 .search-item-info { flex: 1; min-width: 0; }
-.search-item-name { font-size: 13px; font-weight: 700; color: #0f172a; }
+.search-item-name { font-size: 0.8125rem; font-weight: 700; color: #0f172a; }
 .search-item-name .hl { color: #007aff; font-weight: 800; }
-.search-item-addr { font-size: 11.5px; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
+.search-item-addr { font-size: 0.875rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 1px; }
 
 /* ── Picker ── */
 .picker-btn {
@@ -90,9 +90,9 @@
 }
 .picker-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
 .picker-btn:active { transform: scale(0.99); }
-.picker-val { font-size: 12.5px; font-weight: 700; color: #0f172a; letter-spacing: -0.2px; }
+.picker-val { font-size: 0.9375rem; font-weight: 700; color: #0f172a; letter-spacing: -0.2px; }
 .picker-val.is-empty { color: #94a3b8; font-weight: 600; }
-.picker-ico { font-size: 14px; }
+.picker-ico { font-size: 0.875rem; }
 
 /* Dual Date & Time Pickers */
 .picker-btn.picker-date {
@@ -115,7 +115,7 @@
 .pill {
   height: 34px; padding: 0 12px; border-radius: 8px;
   border: 1px solid #e2e8f0; background: #f8fafc;
-  font-size: 12.5px; font-weight: 700; color: #334155;
+  font-size: 0.9375rem; font-weight: 700; color: #334155;
   cursor: pointer; transition: all 0.15s ease;
   display: flex; align-items: center; justify-content: center;
 }
@@ -134,7 +134,7 @@
   width: 100%; height: 40px; padding: 0 12px;
   background: #f8fafc; border: 1.5px dashed #cbd5e1;
   border-radius: 8px; cursor: pointer;
-  color: #64748b; font-size: 12.5px; font-weight: 700;
+  color: #64748b; font-size: 0.9375rem; font-weight: 700;
   transition: all 0.15s ease;
 }
 .invite-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
@@ -143,12 +143,12 @@
   display: flex; align-items: center; gap: 5px;
   padding: 4px 10px; background: #eff6ff;
   border: 1px solid #dbeafe; border-radius: 6px;
-  font-size: 11.5px; font-weight: 700; color: #1d4ed8;
+  font-size: 0.875rem; font-weight: 700; color: #1d4ed8;
 }
 .invite-tag .x {
   width: 16px; height: 16px; border-radius: 50%;
   background: rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center;
-  font-size: 10px; cursor: pointer;
+  font-size: 0.8125rem; cursor: pointer;
 }
 .invite-tag .x:hover { background: #fee2e2; color: #ef4444; }
 
@@ -165,7 +165,7 @@
   display: flex; align-items: center; justify-content: space-between;
 }
 .meal-title {
-  font-size: 14px; font-weight: 800; color: #0f172a;
+  font-size: 0.875rem; font-weight: 800; color: #0f172a;
   display: flex; align-items: center; gap: 6px;
   letter-spacing: -0.3px;
 }
@@ -204,7 +204,7 @@
 .reg-submit .btn-primary {
   width: 100%;
   height: 46px;
-  font-size: 14.5px;
+  font-size: 0.9062rem;
   font-weight: 800;
   background: linear-gradient(135deg, #04122d 0%, #0c285d 100%);
   color: #ffffff;
@@ -218,3 +218,59 @@
   transform: scale(0.98);
   opacity: 0.9;
 }
+
+/* =========================================
+   쉽게 쓰기 (2026-11): 누르는 곳 44px 이상 · 더 챙길 것 접기 · 빈칸 안내 · 쉬운 화면 3단계
+   ========================================= */
+#screen-register .header-btn { min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+#screen-register .field-input { height: 48px; }
+#screen-register .field-input input { font-size: 1rem; }
+.pill { min-height: 44px; min-width: 44px; height: auto; padding: 0 14px; font-size: 0.9375rem; }
+.picker-btn { height: 48px; }
+.picker-val { font-size: 0.9375rem; }
+.invite-btn { height: 48px; font-size: 0.9375rem; }
+.invite-tag { min-height: 44px; padding: 0 0 0 12px; font-size: 0.9375rem; }
+.invite-tag .x { width: 44px; height: 44px; background: transparent; font-size: 0.875rem; }
+.invite-tag .x:hover { background: transparent; }
+#screen-register .address-input { min-height: 48px; }
+.reg-card-title { font-size: 1rem; }
+.meal-title { font-size: 1rem; }
+.meal-header { min-height: 44px; }
+
+/* 스위치: 보이는 모양은 그대로, 누르는 영역은 52×44 */
+.toggle { width: 52px; height: 44px; background: transparent !important; flex-shrink: 0; }
+.toggle::before {
+  content: ''; position: absolute; left: 0; top: 7px; width: 52px; height: 30px; border-radius: 999px;
+  background: #e2e8f0; transition: background 0.2s ease;
+}
+.toggle::after { top: 9px; left: 2px; width: 26px; height: 26px; }
+.toggle.on::before { background: #007aff; }
+.toggle.on::after { transform: translateX(22px); }
+
+/* 더 챙길 것 */
+.reg-fold { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
+.reg-fold-head {
+  width: 100%; min-height: 56px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: transparent; border: 0; text-align: left; cursor: pointer; font: inherit; color: #0f172a;
+}
+.reg-fold-head b { display: block; font-size: 1rem; font-weight: 800; }
+.reg-fold-sum { display: block; font-size: 0.875rem; font-weight: 600; color: #64748b; margin-top: 2px; line-height: 1.4; }
+.reg-fold-ic { font-size: 1.125rem; font-weight: 800; color: #64748b; transition: transform 0.2s ease; flex-shrink: 0; }
+.reg-fold.open .reg-fold-ic { transform: rotate(180deg); }
+.reg-fold-body { display: none; padding: 0 10px 2px; }
+.reg-fold.open .reg-fold-body { display: block; }
+.reg-fold-body .reg-card, .reg-fold-body .meal-section { box-shadow: none; }
+
+/* 빠진 칸 안내 */
+.reg-card.has-err, .meal-section.has-err { border: 2px solid #ef4444; }
+.reg-err { margin: 8px 2px 0; font-size: 0.875rem; font-weight: 700; color: #dc2626; line-height: 1.4; }
+
+/* 쉬운 화면 3단계 */
+.wiz-only { display: none; }
+.wiz-mode .wiz-only { display: block; }
+.wiz-mode .wiz-nav { display: flex; gap: 8px; margin-bottom: 8px; }
+.wiz-nav .btn { flex: 1; height: 52px; font-size: 1rem; font-weight: 800; border-radius: 10px; }
+.wiz-nav .wiz-prev { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+.wiz-mode .reg-submit #r-submit { height: 56px; font-size: 1.0625rem; }
+.reg-submit .btn-primary { min-height: 48px; font-size: 1rem; }
+.wiz-hide { display: none !important; }

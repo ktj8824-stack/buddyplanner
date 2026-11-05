@@ -105,6 +105,7 @@ const Register = {
       if (search) search.value = course.name;
       const hint = U.$('#r-hint');
       if (hint) { hint.innerHTML = `📍 ${U.esc(course.addr || '')}`; hint.style.color = 'var(--accent)'; }
+      this.clearErr('course');
     }
     if (date && !isNaN(date.getTime())) {
       this.date = date;
@@ -139,6 +140,9 @@ const Register = {
     setTimeout(() => {
       this.bind();
       this.updateStartPointUI();
+      this.refreshFold();
+      this.wizStep = 1;
+      this.wizApply();
       if (this.editIdx !== null) {
         if (this.course) {
           U.$('#r-search').value = this.course.name;
@@ -166,7 +170,7 @@ const Register = {
         <button class="header-btn" onclick="Register.editIdx=null; App.navigate('calendar')" aria-label="뒤로가기">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h1 class="header-title" style="font-size:17px; font-weight:800; color:var(--text-100); letter-spacing:-0.4px;">${isEdit ? '라운딩 일정 수정' : '새 라운딩 등록'}</h1>
+        <h1 class="header-title" style="font-size:1.0625rem; font-weight:800; color:var(--text-100); letter-spacing:-0.4px;">${isEdit ? '라운딩 일정 수정' : '새 라운딩 등록'}</h1>
         <div class="header-btn" style="visibility:hidden; width:22px;"></div>
       </div>
 
@@ -176,7 +180,7 @@ const Register = {
             ${isEdit ? '' : this.quickFillHTML()}
 
             <!-- 1. Golf Course Selection Card -->
-            <div class="reg-card">
+            <div class="reg-card" id="rc-course" data-step="1">
               <div class="reg-card-title">
                 <span>⛳</span> 골프장 선택 <span class="req" style="color:#ef4444;">*</span>
               </div>
@@ -187,53 +191,43 @@ const Register = {
                 </div>
                 <div class="search-drop" id="r-results"></div>
               </div>
-              <p class="field-hint" id="r-hint" style="margin-top:6px; font-size:11.5px;"></p>
+              <p class="field-hint" id="r-hint" style="margin-top:6px; font-size:0.875rem;"></p>
               
               <!-- 최근·자주 간 골프장 (없으면 추천 골프장) -->
               ${this.quickCoursesHTML()}
             </div>
 
             <!-- 2. Date & Time Dual Pickers Card -->
-            <div class="reg-card">
+            <div class="reg-card" id="rc-when" data-step="2">
               <div class="reg-card-title">
                 <span>📅</span> 라운딩 일시 & 티오프 <span class="req" style="color:#ef4444;">*</span>
               </div>
               <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                 <div>
-                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">날짜</label>
+                  <label style="font-size:0.875rem; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">날짜</label>
                   <button class="picker-btn picker-date" onclick="Register.openDatePicker()">
                     <span class="picker-val is-empty" id="r-date">날짜 선택</span>
                     <span class="picker-ico">📅</span>
                   </button>
                 </div>
                 <div>
-                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">티오프 시간</label>
+                  <label style="font-size:0.875rem; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">티오프 시간</label>
                   <button class="picker-btn picker-time" onclick="Register.openTimePicker()">
                     <span class="picker-val ${this.timeH === null ? 'is-empty' : ''}" id="r-time">${this.timeH === null ? '시간 선택' : U.fmtTimeKo(String(this.timeH).padStart(2,'0')+':'+String(this.timeM).padStart(2,'0'))}</span>
                     <span class="picker-ico">⏰</span>
                   </button>
                 </div>
               </div>
-              <label style="font-size:11.5px; font-weight:700; color:#64748b; margin:10px 0 4px; display:block;">라운딩 길이 <span style="font-weight:600; color:#94a3b8;">(귀가 시간 계산)</span></label>
-              <div class="pills" id="r-round-pills">
-                ${Object.keys(ROUND_LENGTHS).map(k => `<button type="button" class="pill ${k === this.roundLength ? 'on' : ''}" onclick="Register.setRoundLength('${k}', this)">${ROUND_LENGTHS[k].label}</button>`).join('')}
-              </div>
-              <p class="field-hint" id="r-round-hint" style="margin-top:6px; font-size:11px; color:#94a3b8;">${(ROUND_LENGTHS[this.roundLength] || ROUND_LENGTHS['18']).desc}</p>
             </div>
 
-            <!-- 3. Prep Time Card -->
-            <div class="reg-card">
-              <div class="reg-card-title">
-                <span>⏱️</span> 나의 외출 준비 시간 <span class="req" style="color:#ef4444;">*</span>
-              </div>
-              <div class="pills" id="r-pills">
-                ${PREP_OPTIONS.map(t => `<button class="pill ${t===this.prep?'on':''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
-              </div>
-              <p class="field-hint" style="margin-top:6px; font-size:11px; color:#94a3b8;">샤워, 골프백 챙기기 등 집에서 출발 전 소요 시간</p>
+            <!-- 쉬운 화면 3단계: 확인 -->
+            <div class="reg-card wiz-only" id="rc-confirm" data-step="3">
+              <div class="reg-card-title"><span>✅</span> 이대로 저장할까요?</div>
+              <div id="r-confirm-text" style="font-size:1rem; font-weight:700; color:#0f172a; line-height:1.6;"></div>
             </div>
 
             <!-- 4. Start Point Card -->
-            <div class="reg-card">
+            <div class="reg-card" id="rc-start" data-step="3">
               <div class="reg-card-title">
                 <span>🚗</span> 출발지 설정 <span class="req" style="color:#ef4444;">*</span>
               </div>
@@ -242,12 +236,39 @@ const Register = {
                 <button type="button" class="pill ${this.startPoint==='회사'?'on':''}" onclick="Register.setStartPoint('회사',this)">🏢 회사</button>
                 <button type="button" class="pill ${this.startPoint==='직접 입력'?'on':''}" onclick="Register.setStartPoint('직접 입력',this)">📍 직접 입력</button>
               </div>
-              <div class="field-input" id="r-startpoint-custom-wrap" style="display:flex;margin-top:8px; height:40px;">
+              <div class="field-input" id="r-startpoint-custom-wrap" style="display:flex;margin-top:8px; height:auto; padding:0; border:0; background:transparent;">
                 <div id="r-startpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#f8fafc; border:1px solid #e2e8f0; padding:6px 12px; border-radius:8px;" onclick="Register.searchMode='start';Register.searchCustomAddress()">
-                  <span id="r-startpoint-text" style="color:#64748b; font-size:12.5px;">출발지 주소를 검색하세요</span>
-                  <span style="opacity:0.6; font-size:13px;">🔍</span>
+                  <span id="r-startpoint-text" style="color:#64748b; font-size:0.9375rem;">출발지 주소를 검색하세요</span>
+                  <span style="opacity:0.6; font-size:0.8125rem;">🔍</span>
                 </div>
               </div>
+            </div>
+
+            <!-- 더 챙길 것 (선택 항목 접기) -->
+            <div class="reg-fold" id="rc-fold" data-step="3">
+              <button type="button" class="reg-fold-head" id="r-fold-head" aria-expanded="false" onclick="Register.toggleFold()">
+                <span style="min-width:0;"><b>더 챙길 것</b><span class="reg-fold-sum" id="r-fold-sum"></span></span>
+                <span class="reg-fold-ic" aria-hidden="true">∨</span>
+              </button>
+              <div class="reg-fold-body" id="r-fold-body">
+            <!-- 라운딩 길이 -->
+            <div class="reg-card" id="rc-round">
+              <div class="reg-card-title"><span>🏌️</span> 몇 홀 치세요? <span style="font-weight:600; color:#94a3b8; font-size:0.8125rem;">(귀가 시간 계산)</span></div>
+              <div class="pills" id="r-round-pills">
+                ${Object.keys(ROUND_LENGTHS).map(k => `<button type="button" class="pill ${k === this.roundLength ? 'on' : ''}" onclick="Register.setRoundLength('${k}', this)">${ROUND_LENGTHS[k].label}</button>`).join('')}
+              </div>
+              <p class="field-hint" id="r-round-hint" style="margin-top:6px; font-size:0.875rem; color:#94a3b8;">${(ROUND_LENGTHS[this.roundLength] || ROUND_LENGTHS['18']).desc}</p>
+            </div>
+
+            <!-- 3. Prep Time Card -->
+            <div class="reg-card">
+              <div class="reg-card-title">
+                <span>⏱️</span> 집에서 준비하는 시간
+              </div>
+              <div class="pills" id="r-pills">
+                ${PREP_OPTIONS.map(t => `<button class="pill ${t===this.prep?'on':''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
+              </div>
+              <p class="field-hint" style="margin-top:6px; font-size:0.875rem; color:#94a3b8;">샤워, 골프백 챙기기 등 집에서 출발 전 소요 시간</p>
             </div>
 
             <!-- 5. Meeting Point Toggle -->
@@ -258,19 +279,19 @@ const Register = {
               </div>
               <div class="meal-body ${this.hasMeetingPoint?'show':''}" id="meeting-body">
                 <div class="field" style="margin-bottom:0">
-                  <div class="field-input" style="height:40px;">
+                  <div class="field-input" style="height:auto; padding:0; border:0; background:transparent;">
                     <div id="r-meetingpoint-custom" class="address-input" style="flex:1; display:flex; align-items:center; justify-content:space-between; cursor:pointer; background:#f8fafc; border:1px solid #e2e8f0; padding:6px 12px; border-radius:8px;" onclick="Register.searchMode='meeting';Register.searchCustomAddress()">
-                      <span id="r-meetingpoint-text" style="font-size:12.5px; color:${this.meetingPointObj ? 'var(--text-100)' : '#94a3b8'}">${this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명)를 검색하세요'}</span>
-                      <span style="opacity:0.6; font-size:13px;">🔍</span>
+                      <span id="r-meetingpoint-text" style="font-size:0.9375rem; color:${this.meetingPointObj ? 'var(--text-100)' : '#94a3b8'}">${this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명)를 검색하세요'}</span>
+                      <span style="opacity:0.6; font-size:0.8125rem;">🔍</span>
                     </div>
                   </div>
-                  <p class="field-hint" style="margin-top:6px; font-size:11px; color:#94a3b8;">집결지에서 만나서 출발 시 약 10분의 대기/탑승 시간이 타임라인에 자동 추가됩니다.</p>
+                  <p class="field-hint" style="margin-top:6px; font-size:0.875rem; color:#94a3b8;">집결지에서 만나서 출발 시 약 10분의 대기/탑승 시간이 타임라인에 자동 추가됩니다.</p>
                 </div>
               </div>
             </div>
 
             <!-- 6. Pre-Meal Toggle -->
-            <div class="meal-section">
+            <div class="meal-section" id="rc-meal">
               <div class="meal-header">
                 <span class="meal-title">🍽️ 라운딩 전 아침 식사</span>
                 <div class="toggle ${this.hasMeal?'on':''}" id="meal-toggle" onclick="Register.toggleMeal('pre')"></div>
@@ -278,14 +299,14 @@ const Register = {
               <div class="meal-body ${this.hasMeal?'show':''}" id="meal-body">
                 <!-- Meal Duration -->
                 <div class="field" style="margin-bottom:8px">
-                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">식사 소요 시간</label>
+                  <label style="font-size:0.875rem; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">식사 소요 시간</label>
                   <div class="pills" id="meal-pills">
                     ${MEAL_TIME_OPTIONS.map(t => `<button class="pill ${t===this.mealDuration?'on':''}" data-t="${t}" onclick="Register.setMealTime(${t},this)">${t}분</button>`).join('')}
                   </div>
                 </div>
                 <!-- Restaurant Selection -->
                 <div class="field" style="margin-bottom:0">
-                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">아침 맛집 선택</label>
+                  <label style="font-size:0.875rem; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">아침 맛집 선택</label>
                   <button class="picker-btn" onclick="Register.openRestaurantPicker('pre')">
                     <span class="picker-val ${!this.mealRestaurant?'is-empty':''}" id="r-restaurant">${this.mealRestaurant ? this.mealRestaurant.name : '골프장 주변 맛집 선택하기'}</span>
                     <span class="picker-ico">🍲</span>
@@ -295,14 +316,14 @@ const Register = {
             </div>
 
             <!-- 7. Post Meal Toggle -->
-            <div class="meal-section">
+            <div class="meal-section" id="rc-post">
               <div class="meal-header">
                 <span class="meal-title">🍻 라운딩 후 식사 (뒷풀이)</span>
                 <div class="toggle ${this.hasPostMeal?'on':''}" id="postmeal-toggle" onclick="Register.toggleMeal('post')"></div>
               </div>
               <div class="meal-body ${this.hasPostMeal?'show':''}" id="postmeal-body">
                 <div class="field" style="margin-bottom:0">
-                  <label style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">뒷풀이 식당 선택</label>
+                  <label style="font-size:0.875rem; font-weight:700; color:#64748b; margin-bottom:4px; display:block;">뒷풀이 식당 선택</label>
                   <button class="picker-btn" onclick="Register.openRestaurantPicker('post')">
                     <span class="picker-val ${!this.postMealRestaurant?'is-empty':''}" id="r-post-restaurant">${this.postMealRestaurant ? this.postMealRestaurant.name : '식당을 선택하세요 (반경 10km 검색)'}</span>
                     <span class="picker-ico">🍖</span>
@@ -323,10 +344,16 @@ const Register = {
             </div>
           </div>
 
+              </div>
+            </div>
           <!-- Submit Button -->
-          <div class="reg-submit">
+          <div class="reg-submit" id="r-submit-wrap">
+            <div class="wiz-nav wiz-only">
+              <button type="button" class="btn wiz-prev" id="r-wiz-prev" onclick="Register.wizGo(-1)">이전</button>
+              <button type="button" class="btn btn-primary wiz-next" id="r-wiz-next" onclick="Register.wizGo(1)">다음</button>
+            </div>
             <button class="btn btn-primary" id="r-submit" onclick="Register.createPlan()">
-              ${isEdit ? '라운딩 일정 수정 완료' : '⛳ 스마트 플랜 & 타임라인 생성'}
+              ${isEdit ? '라운딩 일정 수정 완료' : '저장하고 알람 켜기'}
             </button>
           </div>
         </div>
@@ -403,7 +430,8 @@ const Register = {
       restDisplay.classList.add('empty');
     }
     
-    U.toast(`⛳ ${c.name} 선택 완료`); U.haptic();
+    this.clearErr('course');
+    U.toast(`⛳ ${this.course.name} 선택 완료`); U.haptic();
   },
 
   openDatePicker() {
@@ -487,6 +515,7 @@ const Register = {
     this.date = new Date(iso);
     const display = U.$('#r-date');
     display.textContent = U.fmtDate(this.date); display.classList.remove('is-empty');
+    this.clearErr('date');
     App.closeModal(); U.haptic();
   },
 
@@ -581,6 +610,7 @@ const Register = {
     const mm = String(m).padStart(2, '0');
     display.textContent = U.fmtTimeKo(`${hh}:${mm}`);
     display.classList.remove('is-empty');
+    if (this.date) this.clearErr('time');
     App.closeModal();
     U.haptic();
   },
@@ -591,10 +621,11 @@ const Register = {
     U.$$('#r-round-pills .pill').forEach(b => b.classList.remove('on'));
     btn.classList.add('on');
     const h = U.$('#r-round-hint'); if (h) h.textContent = ROUND_LENGTHS[k].desc;
+    this.refreshFold();
     U.haptic();
   },
 
-  setPrepTime(t, btn) { this.prep=t; U.$$('#r-pills .pill').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); U.haptic(); },
+  setPrepTime(t, btn) { this.prep=t; U.$$('#r-pills .pill').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); this.refreshFold(); U.haptic(); },
 
   setStartPoint(type, btn) {
     this.startPoint = type;
@@ -639,16 +670,16 @@ const Register = {
     const last = this.lastSchedule();
     const btn = 'flex:1; min-width:0; display:flex; align-items:center; gap:8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:10px 12px; cursor:pointer; text-align:left;';
     return `
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <div data-step="1" style="display:flex; gap:8px; margin-bottom:10px;">
         ${last ? `<button type="button" style="${btn}" onclick="Register.fillFromLast()">
-          <span style="font-size:18px;">↺</span>
-          <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">지난번처럼</b>
-          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
+          <span style="font-size:1.125rem;">↺</span>
+          <span style="min-width:0;"><b style="display:block; font-size:0.8125rem; color:#0f172a;">지난번처럼</b>
+          <span style="display:block; font-size:0.875rem; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
         </button>` : ''}
         <button type="button" style="${btn}" onclick="Register.openPasteBooking()">
-          <span style="font-size:18px;">📋</span>
-          <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">예약 문자로 채우기</b>
-          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
+          <span style="font-size:1.125rem;">📋</span>
+          <span style="min-width:0;"><b style="display:block; font-size:0.8125rem; color:#0f172a;">예약 문자로 채우기</b>
+          <span style="display:block; font-size:0.875rem; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
         </button>
       </div>`;
   },
@@ -684,8 +715,8 @@ const Register = {
 
   openPasteBooking() {
     App.showModal('📋 예약 문자로 채우기', `
-      <p style="font-size:13px; color:#64748b; margin:0 0 8px;">골프장 예약 확정 문자나 카톡을 그대로 붙여넣으세요.</p>
-      <textarea id="r-paste" rows="6" style="width:100%; box-sizing:border-box; border:1px solid #e2e8f0; border-radius:10px; padding:10px; font-size:13px; line-height:1.5; resize:none;" placeholder="[레이크사이드CC] 예약 확정&#10;11/15(토) 07:12 남코스 4인"></textarea>
+      <p style="font-size:0.8125rem; color:#64748b; margin:0 0 8px;">골프장 예약 확정 문자나 카톡을 그대로 붙여넣으세요.</p>
+      <textarea id="r-paste" rows="6" style="width:100%; box-sizing:border-box; border:1px solid #e2e8f0; border-radius:10px; padding:10px; font-size:0.8125rem; line-height:1.5; resize:none;" placeholder="[레이크사이드CC] 예약 확정&#10;11/15(토) 07:12 남코스 4인"></textarea>
       <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="Register.applyPastedBooking()">채우기</button>`);
     setTimeout(async () => {
       const ta = U.$('#r-paste'); if (!ta) return;
@@ -810,7 +841,7 @@ const Register = {
   },
 
   quickCoursesHTML() {
-    const chip = 'font-size:11px; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); padding:3px 9px; border-radius:6px; cursor:pointer;';
+    const chip = 'font-size:0.875rem; font-weight:700; color:#007aff; background:rgba(0,122,255,0.08); border:1px solid rgba(0,122,255,0.2); min-height:44px; min-width:44px; display:inline-flex; align-items:center; padding:0 12px; border-radius:8px; cursor:pointer; font-size:0.9375rem;';
     const recent = this.recentCourses();
     this._recent = recent;
     const items = recent.length
@@ -819,7 +850,7 @@ const Register = {
           .map(([q, l]) => `<span onclick="U.$('#r-search').value='${q}'; Register.search('${q}');" style="${chip}">${l}</span>`).join('');
     return `
               <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
-                <span style="font-size:11px; color:#64748b; font-weight:700; width:100%; margin-bottom:2px;">${recent.length ? '최근 간 골프장:' : '추천 골프장:'}</span>
+                <span style="font-size:0.875rem; color:#64748b; font-weight:700; width:100%; margin-bottom:2px;">${recent.length ? '최근 간 골프장:' : '추천 골프장:'}</span>
                 ${items}
               </div>`;
   },
@@ -827,6 +858,7 @@ const Register = {
   pickRecentCourse(i) {
     const c = (this._recent || [])[i]; if (!c) return;
     this.course = c;
+    this.clearErr('course');
     U.$('#r-search').value = c.name;
     const hint = U.$('#r-hint'); if (hint) { hint.innerHTML = `📍 ${U.esc(c.addr || '')}`; hint.style.color = 'var(--accent)'; }
     this.mealRestaurant = null;
@@ -867,10 +899,106 @@ const Register = {
     });
   },
 
+  /* ── 더 챙길 것 (선택 항목 접기) ── */
+  toggleFold(open) {
+    const box = U.$('#rc-fold'); if (!box) return;
+    const on = typeof open === 'boolean' ? open : !box.classList.contains('open');
+    box.classList.toggle('open', on);
+    const h = U.$('#r-fold-head'); if (h) h.setAttribute('aria-expanded', String(on));
+    U.haptic();
+  },
+
+  /** 접혀 있을 때 지금 값을 한 줄로 */
+  refreshFold() {
+    const el = U.$('#r-fold-sum'); if (!el) return;
+    const rl = (ROUND_LENGTHS[this.roundLength] || ROUND_LENGTHS['18']).label;
+    const parts = [rl, `준비 ${this.prep}분`,
+      this.hasMeetingPoint ? '픽업 있음' : '픽업 없음',
+      this.hasMeal ? '아침 식사' : '아침 식사 없음',
+      this.hasPostMeal ? '뒷풀이' : '뒷풀이 없음',
+      `동반자 ${(this.invited || []).length}명`];
+    el.textContent = parts.join(' · ');
+  },
+
+  /* ── 빠진 칸 안내: 그 칸으로 옮기고 빨간 테두리 + 설명 한 줄 ── */
+  ERR_TARGET: { course: '#rc-course', date: '#rc-when', time: '#rc-when', start: '#rc-start', meal: '#rc-meal', post: '#rc-post' },
+  fieldError(key, msg) {
+    this.clearErr();
+    const box = U.$(this.ERR_TARGET[key]); if (!box) { U.toast(msg); return; }
+    if (box.closest('#rc-fold')) this.toggleFold(true);
+    if (this.wizOn()) this.wizShow(Number((box.closest('[data-step]') || box).dataset.step) || 3);
+    box.classList.add('has-err');
+    const p = document.createElement('p');
+    p.className = 'reg-err'; p.dataset.key = key; p.setAttribute('role', 'alert'); p.textContent = msg;
+    box.appendChild(p);
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    U.haptic();
+  },
+  clearErr(key) {
+    U.$$('#screen-register .reg-err').forEach(p => {
+      if (key && p.dataset.key !== key && !(key === 'date' && p.dataset.key === 'time') && !(key === 'time' && p.dataset.key === 'date')) return;
+      const box = p.parentElement; p.remove();
+      if (box && !box.querySelector('.reg-err')) box.classList.remove('has-err');
+    });
+  },
+
+  /* ── 쉬운 화면: ① 골프장 ② 날짜·티오프 ③ 확인 ── */
+  wizOn() { return document.documentElement.classList.contains('easy') && this.editIdx === null; },
+  wizApply() { this.wizShow(this.wizOn() ? (this.wizStep || 1) : 0); },
+  wizShow(step) {
+    const form = U.$('#screen-register .reg-form'); if (!form) return;
+    this.wizStep = step || 1;
+    const on = !!step;
+    form.classList.toggle('wiz', on);
+    U.$('#screen-register').classList.toggle('wiz-mode', on);
+    U.$$('#screen-register [data-step]').forEach(el => el.classList.toggle('wiz-hide', on && Number(el.dataset.step) !== step));
+    const prev = U.$('#r-wiz-prev'), next = U.$('#r-wiz-next'), sub = U.$('#r-submit');
+    if (on) {
+      if (prev) prev.classList.toggle('wiz-hide', step <= 1);
+      if (next) next.classList.toggle('wiz-hide', step >= 3);
+      if (sub) sub.classList.toggle('wiz-hide', step !== 3);
+      const t = U.$('#screen-register .header-title'); if (t) t.textContent = `새 라운딩 등록 (${step}/3)`;
+      if (step === 3) this.fillConfirm();
+      const sc = U.$('#screen-register .screen-scroll'); if (sc) sc.scrollTop = 0;
+    } else if (sub) sub.classList.remove('wiz-hide');
+  },
+  wizGo(d) {
+    const st = this.wizStep || 1;
+    if (d > 0 && st === 1 && !this.course) return this.fieldError('course', '골프장을 골라 주세요. 이름 두 글자만 써도 찾아 줘요.');
+    if (d > 0 && st === 2) {
+      if (!this.date) return this.fieldError('date', '라운딩 날짜를 골라 주세요.');
+      if (this.timeH === null || this.timeM === null) return this.fieldError('time', '티오프 시간을 골라 주세요.');
+    }
+    this.clearErr();
+    this.wizShow(Math.min(3, Math.max(1, st + d)));
+  },
+  fillConfirm() {
+    const el = U.$('#r-confirm-text'); if (!el) return;
+    const t = this.timeH === null ? '' : U.fmtTimeKo(`${String(this.timeH).padStart(2, '0')}:${String(this.timeM).padStart(2, '0')}`);
+    el.innerHTML = `⛳ ${U.esc(this.course ? this.course.name : '')}<br>📅 ${this.date ? U.fmtDate(this.date) : ''} · ${t} 티오프<br><span style="font-size:0.875rem; font-weight:600; color:#64748b;">준비 ${this.prep}분 · 출발지는 아래에서 바꿀 수 있어요</span>`;
+  },
+
+  /** 지금 위치 (권한 거부·실패면 null) */
+  getCurrentPos(timeoutMs = 8000) {
+    return new Promise(resolve => {
+      if (!navigator.geolocation) return resolve(null);
+      let done = false;
+      const fin = v => { if (!done) { done = true; resolve(v); } };
+      setTimeout(() => fin(null), timeoutMs + 500);
+      try {
+        navigator.geolocation.getCurrentPosition(
+          p => fin({ lat: p.coords.latitude, lng: p.coords.longitude }),
+          e => fin(e && e.code === 1 ? { denied: true } : null),
+          { enableHighAccuracy: false, timeout: timeoutMs, maximumAge: 10 * 60000 });
+      } catch (e) { fin(null); }
+    });
+  },
+
   toggleMeetingPoint() {
     this.hasMeetingPoint = !this.hasMeetingPoint;
     U.$('#meeting-toggle').classList.toggle('on', this.hasMeetingPoint);
     U.$('#meeting-body').classList.toggle('show', this.hasMeetingPoint);
+    this.refreshFold();
     U.haptic();
   },
 
@@ -884,6 +1012,8 @@ const Register = {
       U.$('#postmeal-toggle').classList.toggle('on', this.hasPostMeal);
       U.$('#postmeal-body').classList.toggle('show', this.hasPostMeal);
     }
+    this.clearErr(type === 'pre' ? 'meal' : 'post');
+    this.refreshFold();
     U.haptic();
   },
 
@@ -1021,12 +1151,12 @@ const Register = {
     };
     
     if (isPost) {
-      this.postMealRestaurant = restObj;
+      this.postMealRestaurant = restObj; this.clearErr('post');
       const display = U.$('#r-post-restaurant');
       display.textContent = restObj.name; 
       display.classList.remove('is-empty');
     } else {
-      this.mealRestaurant = restObj;
+      this.mealRestaurant = restObj; this.clearErr('meal');
       const display = U.$('#r-restaurant');
       display.textContent = restObj.name; 
       display.classList.remove('is-empty');
@@ -1047,12 +1177,12 @@ const Register = {
       };
       
       if (isPost) {
-        this.postMealRestaurant = restObj;
+        this.postMealRestaurant = restObj; this.clearErr('post');
         const display = U.$('#r-post-restaurant');
         display.textContent = this.postMealRestaurant.name; 
         display.classList.remove('is-empty');
       } else {
-        this.mealRestaurant = restObj;
+        this.mealRestaurant = restObj; this.clearErr('meal');
         const display = U.$('#r-restaurant');
         display.textContent = this.mealRestaurant.name; 
         display.classList.remove('is-empty');
@@ -1078,12 +1208,12 @@ const Register = {
     };
     
     if (isPost) {
-      this.postMealRestaurant = restObj;
+      this.postMealRestaurant = restObj; this.clearErr('post');
       const display = U.$('#r-post-restaurant');
       display.textContent = this.postMealRestaurant.name; 
       display.classList.remove('is-empty');
     } else {
-      this.mealRestaurant = restObj;
+      this.mealRestaurant = restObj; this.clearErr('meal');
       const display = U.$('#r-restaurant');
       display.textContent = this.mealRestaurant.name; 
       display.classList.remove('is-empty');
@@ -1097,18 +1227,18 @@ const Register = {
   openCompanionModal() {
     let items = `
       <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; margin: -24px -24px 16px -24px; position: sticky; top: -24px; background: white; z-index: 10;">
-        <div style="font-size: 16px; font-weight: 700; text-align: center;">카카오톡 친구 선택</div>
+        <div style="font-size: 1rem; font-weight: 700; text-align: center;">카카오톡 친구 선택</div>
         <div style="position: absolute; right: 16px; top: 12px; cursor: pointer;" onclick="App.closeModal()">✕</div>
       </div>
       <div style="margin-bottom: 12px; position: relative;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" style="position: absolute; left: 12px; top: 10px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="companion-search" placeholder="이름(초성), 전화번호 검색" onkeyup="Register.filterCompanions(this.value)" style="width: 100%; background: #f5f5f5; border: none; border-radius: 6px; padding: 8px 12px 8px 36px; color: #333; font-size: 14px; outline: none;">
+        <input type="text" id="companion-search" placeholder="이름(초성), 전화번호 검색" onkeyup="Register.filterCompanions(this.value)" style="width: 100%; background: #f5f5f5; border: none; border-radius: 6px; padding: 8px 12px 8px 36px; color: #333; font-size: 0.875rem; outline: none;">
       </div>
-      <div style="font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 600;">친구 ${COMPANIONS.length}</div>
+      <div style="font-size: 0.9375rem; color: #888; margin-bottom: 8px; font-weight: 600;">친구 ${COMPANIONS.length}</div>
       <div id="companion-list-container" style="max-height: 50vh; overflow-y: auto; margin: 0 -8px; padding: 0 8px;">
         ${this.renderCompanionItems(COMPANIONS)}
       </div>
-      <button style="margin-top: 16px; width: 100%; padding: 14px; border-radius: 8px; background: #FEE500; color: #191919; font-weight: 700; font-size: 16px; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(254, 229, 0, 0.3);" onclick="App.closeModal();Register.updateTags()">확인</button>
+      <button style="margin-top: 16px; width: 100%; padding: 14px; border-radius: 8px; background: #FEE500; color: #191919; font-weight: 700; font-size: 1rem; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(254, 229, 0, 0.3);" onclick="App.closeModal();Register.updateTags()">확인</button>
     `;
     
     App.showModal('', items);
@@ -1116,13 +1246,13 @@ const Register = {
 
   renderCompanionItems(list) {
     if (list.length === 0) {
-      return `<div style="text-align:center; padding: 20px; color: #999; font-size: 14px;">검색 결과가 없습니다.</div>`;
+      return `<div style="text-align:center; padding: 20px; color: #999; font-size: 0.875rem;">검색 결과가 없습니다.</div>`;
     }
     return list.map(c => {
       const sel = this.invited.find(x => x.id === c.id);
       return `<div style="display: flex; align-items: center; padding: 10px 8px; cursor: pointer; border-radius: 8px; transition: background 0.2s;" onclick="Register.toggleCompanion(${c.id}, this)">
-        <div style="width: 44px; height: 44px; border-radius: 18px; background: ${c.color}; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">${c.emoji}</div>
-        <div style="flex: 1; font-size: 15px; font-weight: 500; color: #111;">${c.name}</div>
+        <div style="width: 44px; height: 44px; border-radius: 18px; background: ${c.color}; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-right: 12px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);">${c.emoji}</div>
+        <div style="flex: 1; font-size: 0.9375rem; font-weight: 500; color: #111;">${c.name}</div>
         <div class="check-circle" style="width: 24px; height: 24px; border-radius: 50%; border: 2px solid ${sel ? '#FEE500' : '#ddd'}; background: ${sel ? '#FEE500' : 'transparent'}; display: flex; align-items: center; justify-content: center;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${sel ? '#000' : 'transparent'}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
@@ -1159,6 +1289,7 @@ const Register = {
   },
 
   updateTags() {
+    this.refreshFold();
     const c = U.$('#r-tags'); if(!c)return;
     c.innerHTML = this.invited.map(x=>`<div class="invite-tag">${x.emoji} ${x.name} <span class="x" onclick="Register.removeInvite(${x.id})">✕</span></div>`).join('');
     const btn = U.$('#r-invite span:first-child');
@@ -1184,11 +1315,12 @@ const Register = {
   },
 
   async createPlan() {
-    if (!this.course) { U.toast('⚠️ 골프장을 선택해주세요'); return; }
-    if (!this.date) { U.toast('⚠️ 날짜를 선택해주세요'); return; }
-    if (this.timeH === null || this.timeM === null) { U.toast('⚠️ 시간을 선택해주세요'); return; }
-    if (this.hasMeal && !this.mealRestaurant) { U.toast('⚠️ 식당을 선택하거나 식사를 끄세요'); return; }
-    if (this.hasPostMeal && !this.postMealRestaurant) { U.toast('⚠️ 뒷풀이 식당을 선택하거나 기능을 끄세요'); return; }
+    if (!this.course) return this.fieldError('course', '골프장을 골라 주세요. 이름 두 글자만 써도 찾아 줘요.');
+    if (!this.date) return this.fieldError('date', '라운딩 날짜를 골라 주세요.');
+    if (this.timeH === null || this.timeM === null) return this.fieldError('time', '티오프 시간을 골라 주세요.');
+    if (this.hasMeal && !this.mealRestaurant) return this.fieldError('meal', '아침 먹을 식당을 고르거나, 아침 식사 스위치를 꺼 주세요.');
+    if (this.hasPostMeal && !this.postMealRestaurant) return this.fieldError('post', '뒷풀이 식당을 고르거나, 뒷풀이 스위치를 꺼 주세요.');
+    this.clearErr();
     // 무료 회원 일정 개수 제한 (수정은 제외)
     if (this.editIdx === null && !Billing.guardScheduleLimit()) return;
 
@@ -1204,16 +1336,28 @@ const Register = {
     else if (this.startPoint === '회사') valObj = State.userAddresses?.office;
     else valObj = this.customStartObj;
     
+    // 집·회사 주소가 없으면 지금 위치에서 출발하는 것으로 계산 (위치를 거부했을 때만 주소 검색창)
+    let fromCurrent = false;
+    if ((!valObj || !valObj.lat) && this.startPoint !== '직접 입력') {
+      const pos = await this.getCurrentPos();
+      if (pos && pos.lat) { valObj = { name: '현재 위치', lat: pos.lat, lng: pos.lng }; fromCurrent = true; }
+      else if (!(pos && pos.denied)) {
+        btn.innerHTML = originalText; btn.disabled = false;
+        this.fieldError('start', `지금 위치를 찾지 못했어요. ${this.startPoint} 주소를 넣어 주세요.`);
+        this.searchMode = 'start'; this.searchCustomAddress();
+        return;
+      }
+    }
     if (!valObj || !valObj.lat) {
-      U.toast(this.startPoint === '직접 입력' ? '⚠️ 출발지 주소를 검색해 주세요.' : `⚠️ ${this.startPoint} 주소를 먼저 등록해 주세요.`);
       btn.innerHTML = originalText; btn.disabled = false;
+      this.fieldError('start', this.startPoint === '직접 입력' ? '출발지 주소를 검색해 주세요.' : `위치 권한이 꺼져 있어요. ${this.startPoint} 주소를 넣어 주세요.`);
       this.updateStartPointUI();
       this.searchMode = 'start';
       this.searchCustomAddress();
       return;
     }
 
-    if (this.startPoint === '직접 입력') {
+    if (this.startPoint === '직접 입력' || fromCurrent) {
       finalStartPoint = valObj.name;
     }
 
@@ -1315,7 +1459,8 @@ const Register = {
       travelToMeeting,
       groupCode: this.groupCode || null,
       roundLength: this.roundLength || '18',
-      routeEstimated: estimated
+      routeEstimated: estimated,
+      startFromCurrent: fromCurrent
     };
 
     if (this.editIdx !== null) {

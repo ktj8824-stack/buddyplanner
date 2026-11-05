@@ -45,14 +45,14 @@ const Timeline = {
         <button class="header-btn" onclick="App.navigate('calendar')" aria-label="뒤로가기">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         </button>
-        <h1 class="header-title" style="font-size:17px; font-weight:800; color:var(--text-100); letter-spacing:-0.4px;">스마트 타임라인</h1>
+        <h1 class="header-title" style="font-size:1.0625rem; font-weight:800; color:var(--text-100); letter-spacing:-0.4px;">스마트 타임라인</h1>
         <button class="header-btn" onclick="U.downloadICS(State.schedules[${this.schedIdx}])" aria-label="캘린더 저장">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         </button>
       </div>
 
       <!-- Sticky Event Banner -->
-      <div id="tl-sticky-banner" style="display:none; flex-shrink:0; z-index:90; background:var(--accent); color:#fff; padding:10px 16px; font-size:13px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:all 0.3s ease;">
+      <div id="tl-sticky-banner" style="display:none; flex-shrink:0; z-index:90; background:var(--accent); color:#fff; padding:10px 16px; font-size:0.8125rem; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:all 0.3s ease;">
         <span style="font-weight:var(--fw-bold);" id="tl-banner-text">현재 진행 중인 일정 없음</span>
       </div>
 
@@ -61,7 +61,7 @@ const Timeline = {
         <div class="tl-hero">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
             <h2 class="tl-course" style="margin:0;"><span class="accent">${s.course.name}</span></h2>
-            <div class="tl-dday" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:800; padding:3px 8px; border-radius:6px; margin:0;">
+            <div class="tl-dday" style="display:inline-flex; align-items:center; gap:4px; font-size:0.75rem; font-weight:800; padding:3px 8px; border-radius:6px; margin:0;">
               <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               <span>${dday}</span>
             </div>
@@ -94,17 +94,18 @@ const Timeline = {
               </h3>
             </div>
             <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
-              <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
+              <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
                 🌤️ 날씨
               </button>
-              <button id="tl-alarm-btn" class="${s.alarmOff ? '' : 'alarm-on'}" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:${s.alarmOff ? '#ffffff' : 'var(--accent)'}; color:${s.alarmOff ? '#334155' : '#fff'}; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
+              <button id="tl-alarm-btn" class="${s.alarmOff ? '' : 'alarm-on'}" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:${s.alarmOff ? '#ffffff' : 'var(--accent)'}; color:${s.alarmOff ? '#334155' : '#fff'}; cursor:pointer; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
                 ${s.alarmOff ? '🔔 알람 켜기' : '🔔 알람 켜짐'}
               </button>
-              <button style="border:1px solid rgba(217,119,6,0.25); background:#fffbeb; color:#b45309; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;" onclick="Register.edit(${this.schedIdx})">
+              <button style="border:1px solid rgba(217,119,6,0.25); background:#fffbeb; color:#b45309; cursor:pointer; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;" onclick="Register.edit(${this.schedIdx})">
                 ✏️ 일정 수정
               </button>
             </div>
           </div>
+          ${s.startFromCurrent && !(State.userAddresses && State.userAddresses.home && State.userAddresses.home.lat) ? `<div class="tl-home-tip"><span>집 주소를 넣으면 출발 시간이 더 정확해요</span><button type="button" onclick="Timeline.addHomeAddress()">집 주소 넣기</button></div>` : ''}
           <p class="tl-sub tl-route">${['출발', tl.hasMeetingPoint ? '집결지' : '', tl.hasMeal ? '아침 식사' : '', '골프장', tl.hasPostMeal ? '뒷풀이' : '', '귀가'].filter(Boolean).join(' → ')}</p>
 
           <div class="tl-list">
@@ -150,7 +151,7 @@ const Timeline = {
       el.innerHTML = `<div class="empty">
         <div class="empty-icon">❌</div>
         <h2 class="empty-title">화면을 불러오지 못했습니다.</h2>
-        <p class="empty-desc" style="color:var(--red-400); font-size:12px; margin-top:10px;">${e.toString()}</p>
+        <p class="empty-desc" style="color:var(--red-400); font-size:0.75rem; margin-top:10px;">${e.toString()}</p>
         <button class="btn" style="margin-top:20px;" onclick="App.navigate('calendar')">돌아가기</button>
       </div>`;
     }
@@ -430,7 +431,7 @@ const Timeline = {
   renderTimelineItems(s, tl) {
     const roundOver = Timeline.isRoundOver(s);
     // 새벽 티오프로 자정을 넘긴 단계는 '(전날)' 표시
-    const prevDay = (t) => t && State.tlPrevDay(s, t) ? `${t} <span style="font-size:11px; font-weight:700; color:var(--text-400);">(전날)</span>` : (t || '');
+    const prevDay = (t) => t && State.tlPrevDay(s, t) ? `${t} <span style="font-size:0.6875rem; font-weight:700; color:var(--text-400);">(전날)</span>` : (t || '');
     let items = '';
     const startPt = s.startPoint || '집';
     const tmapIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top:-1px"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`;
@@ -721,6 +722,21 @@ const Timeline = {
         window.location.href = `https://map.kakao.com/link/to/${encodeURIComponent(destName)},${destLat},${destLng}`;
       }
     }
+  },
+
+  /** 지금 위치로 계산한 일정에 집 주소를 넣고, 집 기준으로 다시 계산해 저장 */
+  addHomeAddress() {
+    const idx = this.schedIdx;
+    App.openAddressSearch('🏠 집 주소 검색', (place) => {
+      if (!State.userAddresses) State.userAddresses = { home: null, office: null };
+      State.userAddresses.home = place;
+      localStorage.setItem('bp_home', JSON.stringify(place));
+      const s = State.schedules[idx];
+      if (!s) return;
+      s.startPoint = '집';
+      Register.edit(idx);
+      setTimeout(() => { if (Register.editIdx === idx) Register.createPlan(); }, 400);
+    });
   },
 
   /** 한 일정에 걸린 앱 안 타이머(앱 켤 때 자동 예약분 포함)를 모두 지움. native=true면 폰 알람도 취소 */
@@ -1146,8 +1162,8 @@ const Timeline = {
     popup.innerHTML = `
       <div style="flex-shrink:0;">${displayIcon}</div>
       <div style="flex-grow:1;">
-        <div style="font-size:12px; color:var(--accent); font-weight:var(--fw-bold); margin-bottom:4px;">${title}</div>
-        <div style="font-size:14px; font-weight:var(--fw-bold); color:var(--text-100); line-height:1.4;">${msg}</div>
+        <div style="font-size:0.75rem; color:var(--accent); font-weight:var(--fw-bold); margin-bottom:4px;">${title}</div>
+        <div style="font-size:0.875rem; font-weight:var(--fw-bold); color:var(--text-100); line-height:1.4;">${msg}</div>
       </div>
       <button onclick="this.parentElement.style.transform='translateY(-150%)'; setTimeout(()=>this.parentElement.remove(), 400);" style="flex-shrink:0; background:none; border:none; color:var(--text-300); padding:4px; cursor:pointer;">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>

@@ -148,7 +148,7 @@
   padding: 10px 16px;
   border-radius: var(--r-full);
   font-weight: 800;
-  font-size: 13px;
+  font-size: 0.8125rem;
   border: none;
   box-shadow: 0 4px 10px rgba(191, 149, 63, 0.4);
   cursor: pointer;
@@ -237,3 +237,11 @@
   display: block; text-align: center; margin-top: var(--sp-1);
   font-size: var(--fs-xs); color: var(--text-400);
 }
+
+/* 쉬운 화면 스위치 (누르는 영역 52×44) */
+.easy-switch { position: relative; flex-shrink: 0; width: 52px; height: 44px; border: 0; background: transparent; cursor: pointer; padding: 0; }
+.easy-switch span { position: absolute; left: 0; top: 7px; width: 52px; height: 30px; border-radius: 999px; background: #e2e8f0; transition: background .2s; }
+.easy-switch span::after { content: ''; position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15); transition: transform .2s; }
+.easy-switch.on span { background: #007aff; }
+.easy-switch.on span::after { transform: translateX(22px); }
+.setting-opt-btn { min-height: 44px; }

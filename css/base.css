@@ -193,7 +193,7 @@ img { max-width: 100%; display: block; }
   filter: drop-shadow(var(--glow-accent));
 }
 .gnb-item .nav-label {
-  font-size: 10px;
+  font-size: 0.8125rem;
   font-weight: var(--fw-medium);
 }
 
