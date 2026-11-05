@@ -142,7 +142,8 @@
 .top-header {
   position: fixed; top: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: var(--app-w);
-  height: 56px;
+  height: var(--header-h);
+  padding-top: env(safe-area-inset-top, 0px) !important;   /* 아이폰 시계 줄 아래로 */
   background: rgba(4, 19, 47, 0.96); /* Golfzon G-Lounge Premium Navy */
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   display: flex; align-items: center; justify-content: space-between;
