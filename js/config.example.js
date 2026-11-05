@@ -13,6 +13,7 @@ window.APP_CONFIG = {
   KAKAO_NATIVE_APP_KEY: '',  // 카카오 네이티브 앱 키 (안드로이드 로그인, strings.xml과 동일)
   TMAP_APP_KEY: '',          // SK open API Tmap 앱키 (경로, 장소 검색)
   REVENUECAT_ANDROID_KEY: '', // RevenueCat 공개 SDK 키 (goog_로 시작, 구독 결제)
+  REVENUECAT_IOS_KEY: '',     // RevenueCat 아이폰용 공개 키 (appl_로 시작)
   GOOGLE_WEB_CLIENT_ID: '',   // 구글 클라우드 '웹 애플리케이션' OAuth 클라이언트 ID (비우면 구글 로그인 버튼 숨김)
   SUPABASE_URL: '',           // Supabase 프로젝트 URL (예: https://abcd1234.supabase.co) — 비우면 기기에만 저장
   SUPABASE_ANON_KEY: '',      // Supabase 공개 키 (Project Settings > API의 anon/publishable 키)
