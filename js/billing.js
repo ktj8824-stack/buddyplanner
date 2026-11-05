@@ -31,7 +31,10 @@ const Billing = {
   },
 
   apiKey() {
-    return (window.APP_CONFIG || {}).REVENUECAT_ANDROID_KEY || '';
+    const c = window.APP_CONFIG || {};
+    const ios = window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() === 'ios';
+    // 아이폰은 애플 결제용 키(appl_)가 따로 필요. 안드로이드 키(goog_)를 아이폰에 쓰면 안 됨
+    return (ios ? c.REVENUECAT_IOS_KEY : c.REVENUECAT_ANDROID_KEY) || '';
   },
 
   /** 앱에서 결제가 가능한 상태인지 (네이티브 + 키 설정됨) */
