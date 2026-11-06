@@ -76,7 +76,6 @@ const Home = {
     let btnText = '새 일정 등록하기';
     let btnAction = "App.navigate('register')";
     let departTime = '--:--';
-    let wakeTime = '--:--';
     let arrivalTime = '--:--';
     let teeOffTime = '--:--';
 
@@ -100,7 +99,6 @@ const Home = {
       }
       const tl = s.timeline || {};
       departTime = tl.homeDepart || '--:--';
-      wakeTime = tl.prepStart || '--:--';
       arrivalTime = tl.arrival || '--:--';
       teeOffTime = tl.teeOff || s.teeOff || '--:--';
 
@@ -236,8 +234,33 @@ const Home = {
 
               <!-- Mini Timeline (출발 - 골프장 - 티오프, 위치: 타임라인 보기 바로 위) -->
               ${upcomingScheds.length === 0 ? `<div class="hero-empty-hint">골프장·티오프만 넣으면<br>출발 시간이 자동 계산돼요</div>` : ''}
+              <div class="hero-inline-timeline" onclick="${btnAction}" ${upcomingScheds.length === 0 ? 'style="display:none"' : ''}>
+                <div class="mini-tl-node">
+                  <span class="mini-tl-tag tag-depart">출발</span>
+                  <span class="mini-tl-val">${departTime}</span>
+                </div>
+                <div class="mini-tl-arrow">
+                  <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                  </svg>
+                </div>
+                <div class="mini-tl-node">
+                  <span class="mini-tl-tag tag-arrival">골프장</span>
+                  <span class="mini-tl-val">${arrivalTime}</span>
+                </div>
+                <div class="mini-tl-arrow">
+                  <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
+                    <path d="M5 12h14M13 6l6 6-6 6"/>
+                  </svg>
+                </div>
+                <div class="mini-tl-node highlight">
+                  <span class="mini-tl-tag tag-teeoff">티오프</span>
+                  <span class="mini-tl-val">${teeOffTime}</span>
+                </div>
+              </div>
+
               <!-- 타임라인 보기 버튼 -->
-              <button class="glounge-pill-btn hero-main-btn ${upcomingScheds.length > 0 ? 'has-sched' : ''}" onclick="${btnAction}">
+              <button class="glounge-pill-btn" onclick="${btnAction}">
                 ${btnText}
                 <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none">
                   <polyline points="9 18 15 12 9 6"></polyline>
@@ -250,42 +273,11 @@ const Home = {
               <img src="img/glounge_hero_golfer.png" alt="Golfer 3D" />
             </div>
           </div>
-          <!-- 다음 라운딩 세 시각 (기상 · 출발 · 티오프), 화면 폭 전체에 큰 글씨 -->
-            <div class="hero-inline-timeline hero-times" onclick="${btnAction}" ${upcomingScheds.length === 0 ? 'style="display:none"' : ''}>
-              <div class="mini-tl-node">
-                <span class="mini-tl-tag tag-wake">기상</span>
-                <span class="mini-tl-val">${wakeTime}</span>
-              </div>
-              <div class="mini-tl-arrow">
-                <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
-                  <path d="M5 12h14M13 6l6 6-6 6"/>
-                </svg>
-              </div>
-              <div class="mini-tl-node">
-                <span class="mini-tl-tag tag-depart">출발</span>
-                <span class="mini-tl-val">${departTime}</span>
-              </div>
-              <div class="mini-tl-arrow">
-                <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
-                  <path d="M5 12h14M13 6l6 6-6 6"/>
-                </svg>
-              </div>
-              <div class="mini-tl-node highlight">
-                <span class="mini-tl-tag tag-teeoff">티오프</span>
-                <span class="mini-tl-val">${teeOffTime}</span>
-              </div>
-            </div>
         </div>
 
         <!-- 2. White Curved Bottom Sheet -->
         <div class="home-glounge-sheet">
           
-          <!-- 일정 등록 큰 버튼 (홈에서 등록 버튼은 이것 하나. 일정이 없을 때는 위 히어로 버튼이 등록) -->
-          <div class="home-main-actions">
-            ${upcomingScheds.length > 0 ? `<button type="button" class="home-big-btn primary" onclick="Register.editIdx=null; App.navigate('register')">＋ 라운딩 등록하기</button>` : ''}
-            <button type="button" class="home-big-btn secondary easy-only" onclick="App.navigate('calendar')">📅 내 일정 보기</button>
-          </div>
-
           <!-- 다가오는 라운딩: 일정 앱의 핵심이라 상단 바로 아래에 배치 -->
           ${upcomingScheds.length > 0 ? `
             <div class="glounge-upcoming-box">
@@ -300,15 +292,15 @@ const Home = {
                 const tTime = sched.teeOff || sched.teeTime || '07:00';
                 const origIdx = State.schedules.indexOf(sched);
                 return `
-                  <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
+                  <div class="upcoming-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
                     <div style="display:flex; align-items:center; gap:10px;">
                       <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; font-size:1rem;">⛳</div>
                       <div>
                         <div style="font-size:0.8438rem; font-weight:800; color:#0f172a;">${cName}</div>
-                        <div style="font-size:0.875rem; color:#64748b;">${dStr} · ${tTime}</div>
+                        <div style="font-size:0.7188rem; color:#64748b;">${dStr} · ${tTime}</div>
                       </div>
                     </div>
-                    <div style="font-size:0.9375rem; font-weight:700; color:#007aff; background:#eff6ff; padding:4px 8px; border-radius:6px;">
+                    <div style="font-size:0.75rem; font-weight:700; color:#007aff; background:#eff6ff; padding:4px 8px; border-radius:6px;">
                       타임라인 보기
                     </div>
                   </div>
@@ -322,13 +314,12 @@ const Home = {
             
             <!-- Left Card: Recent Score (Soft Sky Blue + 3D Golfer) -->
             <div class="glounge-score-card card-blue ${hasRecent ? '' : 'is-empty'}" onclick="${hasRecent ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-blue">최근 스코어</div>
+              <div class="card-label-blue card-label-row"><span>최근 스코어</span>${hasRecent ? `<span class="card-label-date">${recentDate}</span>` : ''}</div>
               ${hasRecent ? `<div class="card-score-row">
                 <span class="card-score-num">${recentScore}</span>
                 <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
               </div>
               <div class="card-meta-info">
-                <span class="card-meta-date">${recentDate}</span>
                 <span class="card-meta-course">${U.esc(recentCourse)}</span>
               </div>` : `<div class="card-empty-cta">스코어 등록하기 ›</div>
               <div class="card-meta-info"><span class="card-meta-date">라운딩 후 남겨 보세요</span></div>`}
@@ -339,13 +330,12 @@ const Home = {
 
             <!-- Right Card: Life Best (Soft Warm Cream Gold + 3D Trophy) -->
             <div class="glounge-score-card card-gold ${hasBest ? '' : 'is-empty'}" onclick="${hasBest ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-gold">라이프 베스트</div>
+              <div class="card-label-gold card-label-row"><span>라이프 베스트</span>${hasBest ? `<span class="card-label-date gold">${bestDate}</span>` : ''}</div>
               ${hasBest ? `<div class="card-score-row">
                 <span class="card-score-num gold">${bestScore}</span>
                 <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
               </div>
               <div class="card-meta-info">
-                <span class="card-meta-date gold">${bestDate}</span>
                 <span class="card-meta-course gold">${U.esc(bestCourse)}</span>
               </div>` : `<div class="card-empty-cta gold">첫 기록 남기기 ›</div>
               <div class="card-meta-info"><span class="card-meta-date gold">최고 기록이 쌓여요</span></div>`}
@@ -378,7 +368,13 @@ const Home = {
           <div class="glounge-week-card">
             <div class="week-card-head">
               <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
-
+              <button class="week-add-btn" onclick="App.navigate('register')">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                일정등록
+              </button>
             </div>
 
             <div class="week-card-grid" onclick="App.navigate('calendar')">
@@ -400,41 +396,53 @@ const Home = {
             </div>
           </div>
 
-          <!-- 바로가기: 타임라인 · 단체등록 · 럭키드로우(커뮤니티) · 추천맛집 (마켓은 아래 메뉴에 있음) -->
-          <div class="home-tiles" style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px;">
-            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/timeline.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:0.875rem; font-weight:700; color:#334155; display:block;">타임라인</span>
-            </div>
-            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#fef9c3; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/group.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:0.875rem; font-weight:700; color:#334155; display:block;">단체등록</span>
-            </div>
-            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/community.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:0.875rem; font-weight:700; color:#334155; display:block;">커뮤니티</span>
-            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/raffle.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:0.875rem; font-weight:700; color:#334155; display:block;">럭키드로우</span>
-            </div>`}
-            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/restaurant.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:0.875rem; font-weight:700; color:#334155; display:block;">추천맛집</span>
-            </div>
-          </div>
           <!-- Points & Ad Reward Card (Full Width Slim) -->
-          <div class="glounge-point-card home-points" style="margin-bottom: 18px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+          <div class="glounge-point-card" style="margin-bottom: 18px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
             <div style="display: flex; align-items: center; gap: 10px;">
               <span style="font-size: 0.8125rem; color: #64748b; font-weight: 700;">내 포인트</span>
               <span style="font-size: 1rem; font-weight: 800; color: var(--accent); font-family: 'Montserrat', sans-serif;">
-                <span data-points>${currentPoints.toLocaleString()}</span> <span style="font-size: 0.875rem; color: #94a3b8;">P</span>
+                <span data-points>${currentPoints.toLocaleString()}</span> <span style="font-size: 0.6875rem; color: #94a3b8;">P</span>
               </span>
             </div>
-            <button class="ad-reward-btn" style="padding: 6px 12px; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; border: none; cursor: pointer; width: auto; margin: 0;" onclick="Profile.watchAd()">
+            <button class="ad-reward-btn" style="padding: 6px 12px; font-size: 0.7188rem; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; border: none; cursor: pointer; width: auto; margin: 0;" onclick="Profile.watchAd()">
               <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 
-              광고 시청 ${pm.ad_points}P <span data-ad-count style="font-size: 0.8125rem; opacity: 0.85;">${pm.ad_today}/${pm.ad_limit}</span>
+              광고 시청 ${pm.ad_points}P <span data-ad-count style="font-size: 0.625rem; opacity: 0.85;">${pm.ad_today}/${pm.ad_limit}</span>
             </button>
           </div>
+
+          <!-- Core Tool Quick Launch Grid: 위 2칸(일정등록·단체등록) + 아래 4칸 -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:40px; height:40px; border-radius:12px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:1.1875rem; flex-shrink:0;"><img src="img/icons/register.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <div style="min-width:0;"><span style="font-size:0.875rem; font-weight:800; color:#0f172a; display:block;">일정등록</span><span style="font-size:0.6875rem; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">내 라운딩 · 출발 알람</span></div>
+            </div>
+            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:40px; height:40px; border-radius:12px; background:#fef9c3; display:flex; align-items:center; justify-content:center; font-size:1.1875rem; flex-shrink:0;"><img src="img/icons/group.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <div style="min-width:0;"><span style="font-size:0.875rem; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:0.6875rem; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px;">
+            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/timeline.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:0.7188rem; font-weight:700; color:#334155; display:block;">타임라인</span>
+            </div>
+            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#ecfeff; color:#0891b2; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/market.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:0.7188rem; font-weight:700; color:#334155; display:block;">마켓</span>
+            </div>
+            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/community.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:0.7188rem; font-weight:700; color:#334155; display:block;">커뮤니티</span>
+            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/raffle.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:0.7188rem; font-weight:700; color:#334155; display:block;">럭키드로우</span>
+            </div>`}
+            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:1.125rem;"><img src="img/icons/restaurant.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:0.7188rem; font-weight:700; color:#334155; display:block;">추천맛집</span>
+            </div>
+          </div>
+
 
         </div>
       </div>

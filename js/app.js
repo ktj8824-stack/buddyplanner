@@ -446,7 +446,16 @@ const App = {
           
           // 하단 네비게이션 바 높이만큼 margin-bottom 설정 (네비바 바로 위에 표시)
           // CSS variables(--nav-h)나 안전 영역 등을 고려해 대략 60px ~ 70px 정도 띄웁니다.
-          const bottomMargin = 65; 
+          // 메뉴를 아래로 내린 만큼(아이폰 홈 표시줄 여백 - 20px) 배너도 같이 내림
+          let lowered = 0;
+          try {
+            const probe = document.createElement('div');
+            probe.style.cssText = 'position:fixed;visibility:hidden;height:env(safe-area-inset-bottom,0px)';
+            document.body.appendChild(probe);
+            const sb = probe.getBoundingClientRect().height || 0; probe.remove();
+            lowered = Math.min(20, sb);
+          } catch (e) {}
+          const bottomMargin = Math.round(65 - lowered); 
           
           const options = {
             adId: this.ADMOB_BANNER_ID,

@@ -47,7 +47,7 @@
 }
 
 .glounge-brand-badge {
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.15);
@@ -148,7 +148,7 @@
 }
 
 .mini-tl-tag {
-  font-size: 0.8125rem;
+  font-size: 0.625rem;
   font-weight: 700;
   border-radius: 4px;
   padding: 1.5px 5px;
@@ -319,7 +319,7 @@
 }
 
 .trio-label {
-  font-size: 0.9375rem;
+  font-size: 0.7812rem;
   font-weight: 700;
   color: #475569;
   letter-spacing: -0.3px;
@@ -377,7 +377,7 @@
 }
 
 .trio-sub {
-  font-size: 0.875rem;
+  font-size: 0.7188rem;
   font-weight: 600;
   color: #94a3b8;
   letter-spacing: -0.2px;
@@ -439,7 +439,7 @@
 }
 
 .glounge-round-stat-card .stat-desc {
-  font-size: 0.9375rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #047857;
 }
@@ -467,7 +467,7 @@
 }
 
 .glounge-round-stat-card .stat-badge-year {
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #10b981;
   margin-top: 2px;
@@ -500,7 +500,7 @@
   background: #475569;
   color: #ffffff;
   border: none;
-  font-size: 0.9375rem;
+  font-size: 0.7812rem;
   font-weight: 700;
   padding: 6px 13px;
   border-radius: 9px;
@@ -593,7 +593,7 @@
 }
 
 .card-label-blue {
-  font-size: 0.9375rem;
+  font-size: 0.7812rem;
   font-weight: 700;
   color: #334155;
   margin-bottom: 2px;
@@ -607,7 +607,7 @@
 }
 
 .card-label-gold {
-  font-size: 0.9375rem;
+  font-size: 0.7812rem;
   font-weight: 700;
   color: #78350f;
   margin-bottom: 2px;
@@ -654,7 +654,7 @@
 }
 
 .card-meta-date {
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #64748b;
   letter-spacing: -0.2px;
@@ -665,7 +665,7 @@
 }
 
 .card-meta-course {
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
   font-weight: 800;
   color: #334155;
   white-space: nowrap;
@@ -759,7 +759,7 @@
 }
 
 .donut-year {
-  font-size: 0.875rem;
+  font-size: 0.6875rem;
   font-weight: 600;
   color: #94a3b8;
   margin-top: 1px;
@@ -808,7 +808,7 @@
 }
 
 .tip-sub-text {
-  font-size: 0.875rem;
+  font-size: 0.7188rem;
   color: #64748b;
   letter-spacing: -0.2px;
 }
@@ -876,7 +876,7 @@
 }
 
 .upcoming-more-btn {
-  font-size: 0.9375rem;
+  font-size: 0.7812rem;
   font-weight: 700;
   color: #007aff;
   cursor: pointer;
@@ -896,45 +896,27 @@
 .glounge-round-stat-card .stat-3d-icon-wrap { width: 36px; height: 36px; }
 .glounge-round-stat-card .stat-title { font-size: 0.8438rem; }
 .glounge-round-stat-card .stat-badge-num .num { font-size: 1.3125rem; }
-.stat-empty-cta { display: inline-block; font-size: 0.9375rem; font-weight: 800; color: #047857; background: #ffffff; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 11px; white-space: nowrap; }
+.stat-empty-cta { display: inline-block; font-size: 0.7812rem; font-weight: 800; color: #047857; background: #ffffff; border: 1px solid #bbf7d0; border-radius: 999px; padding: 5px 11px; white-space: nowrap; }
 
 /* 일정이 없을 때 시간 줄 대신 안내 */
-.hero-empty-hint { font-size: 0.9375rem; line-height: 1.5; color: rgba(255,255,255,0.72); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 9px 12px; margin: 10px 0 14px; word-break: keep-all; }
+.hero-empty-hint { font-size: 0.7812rem; line-height: 1.5; color: rgba(255,255,255,0.72); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 9px 12px; margin: 10px 0 14px; word-break: keep-all; }
 
-/* =========================================
-   쉽게 쓰기 (2026-11): 세 시각 크게 · 등록 버튼 하나 · 쉬운 화면
-   ========================================= */
-.home-glounge-wrapper .hero-times {
-  margin: 4px 20px 18px; padding: 12px 10px; gap: 4px; position: relative; z-index: 2;
-}
-.hero-times .mini-tl-node { gap: 6px; flex: 1; }
-.hero-times .mini-tl-tag { font-size: 0.875rem; padding: 2px 8px; }
-.hero-times .mini-tl-val { font-size: 1.625rem; letter-spacing: -0.5px; line-height: 1.1; }
-.hero-times .mini-tl-arrow svg { width: 14px; height: 14px; }
-.mini-tl-tag.tag-wake { background: rgba(253, 230, 138, 0.22); color: #fde68a; }
-.glounge-pill-btn { min-height: 44px; }
-
-.home-main-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
-.home-main-actions:empty { display: none; }
-.home-big-btn {
-  width: 100%; min-height: 56px; border-radius: 14px; border: 0; cursor: pointer;
-  font: inherit; font-size: 1.0625rem; font-weight: 800; letter-spacing: -0.3px;
-}
-.home-big-btn.primary { background: linear-gradient(135deg, #04122d 0%, #0c285d 100%); color: #fff; box-shadow: 0 4px 14px rgba(4,18,45,0.18); }
-.home-big-btn.secondary { background: #fff; color: #0f172a; border: 1px solid #e2e8f0; }
-.easy-only { display: none !important; }
-html.easy .easy-only { display: block !important; }
-.home-points { margin-top: 4px; }
-.home-points .ad-reward-btn { min-height: 44px; }
-.upcoming-more-btn { min-height: 44px; padding: 0 4px; }
-
-/* 쉬운 화면: 다음 라운딩 카드 + 큰 버튼 2개만 */
-html.easy #screen-home .glounge-upcoming-box,
-html.easy #screen-home .glounge-score-grid,
-html.easy #screen-home .glounge-round-stat-card,
-html.easy #screen-home .glounge-week-card,
-html.easy #screen-home .home-tiles,
-html.easy #screen-home .home-points { display: none !important; }
-html.easy #screen-home .hero-main-btn.has-sched { display: none; }
-.home-glounge-wrapper .hero-times { display: flex; width: auto; max-width: none; }
-.home-main-actions { position: relative; z-index: 1; }
+/* ── 홈 줄이기 (배너 광고 위로 주간 달력이 보이게) ── */
+.glounge-upcoming-box { padding: 10px 14px 6px; margin-bottom: 12px; border-radius: 16px; }
+.upcoming-head { margin-bottom: 2px; }
+.upcoming-item:last-child { border-bottom: 0 !important; }
+.card-label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.card-label-date { font-size: 0.6875rem; font-weight: 600; color: #64748b; letter-spacing: -0.2px; white-space: nowrap; }
+.card-label-date.gold { color: #92400e; }
+.glounge-score-card { padding: 9px 12px 8px; }
+.glounge-score-card .card-score-row { margin-bottom: 1px; }
+.glounge-score-card .card-corner-thumb { width: 32px; height: 32px; right: 8px; bottom: 7px; }
+.glounge-score-card .card-meta-info { max-width: 70%; }
+/* 크게 글씨에서도 보이게: 위쪽 그림·올해 라운드·달력 머리 여백 줄이기 */
+.home-glounge-hero { padding-top: 8px; padding-bottom: 22px; }
+.glounge-hero-figure { width: 118px; height: 118px; margin-bottom: -6px; }
+.glounge-round-stat-card { padding: 6px 12px; margin-bottom: 10px; }
+.glounge-round-stat-card .stat-desc, .glounge-round-stat-card .stat-badge-year { display: none; }
+.glounge-round-stat-card .stat-3d-icon-wrap { width: 28px; height: 28px; }
+.glounge-week-card { padding: 10px 14px 12px; }
+.week-card-title { font-size: 1.0625rem; }
