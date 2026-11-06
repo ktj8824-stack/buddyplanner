@@ -292,7 +292,7 @@ const Home = {
                 const tTime = sched.teeOff || sched.teeTime || '07:00';
                 const origIdx = State.schedules.indexOf(sched);
                 return `
-                  <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
+                  <div class="upcoming-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
                     <div style="display:flex; align-items:center; gap:10px;">
                       <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; font-size:16px;">⛳</div>
                       <div>
