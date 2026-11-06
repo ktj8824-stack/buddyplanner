@@ -309,39 +309,6 @@ const Home = {
             </div>
           ` : ''}
 
-          <!-- Modern Weekly Calendar Strip Card (다가오는 라운딩 바로 아래: 광고 배너에 가리지 않게) -->
-          <div class="glounge-week-card">
-            <div class="week-card-head">
-              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
-              <button class="week-add-btn" onclick="App.navigate('register')">
-                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                일정등록
-              </button>
-            </div>
-
-            <div class="week-card-grid" onclick="App.navigate('calendar')">
-              ${weekDays.map(item => {
-                let dayColor = '#94a3b8';
-                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
-                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
-                
-                return `
-                  <div class="week-day-col">
-                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
-                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
-                      ${item.dateNum}
-                    </div>
-                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-
-
           <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
           <div class="glounge-score-grid">
             
@@ -394,6 +361,38 @@ const Home = {
                 <span class="num">${yearlyCount}</span><span class="unit">회</span>
               </div>
               <div class="stat-badge-year">${currentYear}년 누적</div>` : `<span class="stat-empty-cta">기록하기 ›</span>`}
+            </div>
+          </div>
+
+          <!-- Modern Weekly Calendar Strip Card (올해 라운드 바로 밑에 배치) -->
+          <div class="glounge-week-card">
+            <div class="week-card-head">
+              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
+              <button class="week-add-btn" onclick="App.navigate('register')">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                일정등록
+              </button>
+            </div>
+
+            <div class="week-card-grid" onclick="App.navigate('calendar')">
+              ${weekDays.map(item => {
+                let dayColor = '#94a3b8';
+                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
+                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
+                
+                return `
+                  <div class="week-day-col">
+                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
+                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
+                      ${item.dateNum}
+                    </div>
+                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
 
