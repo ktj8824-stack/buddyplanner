@@ -314,13 +314,12 @@ const Home = {
             
             <!-- Left Card: Recent Score (Soft Sky Blue + 3D Golfer) -->
             <div class="glounge-score-card card-blue ${hasRecent ? '' : 'is-empty'}" onclick="${hasRecent ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-blue">최근 스코어</div>
+              <div class="card-label-blue card-label-row"><span>최근 스코어</span>${hasRecent ? `<span class="card-label-date">${recentDate}</span>` : ''}</div>
               ${hasRecent ? `<div class="card-score-row">
                 <span class="card-score-num">${recentScore}</span>
                 <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
               </div>
               <div class="card-meta-info">
-                <span class="card-meta-date">${recentDate}</span>
                 <span class="card-meta-course">${U.esc(recentCourse)}</span>
               </div>` : `<div class="card-empty-cta">스코어 등록하기 ›</div>
               <div class="card-meta-info"><span class="card-meta-date">라운딩 후 남겨 보세요</span></div>`}
@@ -331,13 +330,12 @@ const Home = {
 
             <!-- Right Card: Life Best (Soft Warm Cream Gold + 3D Trophy) -->
             <div class="glounge-score-card card-gold ${hasBest ? '' : 'is-empty'}" onclick="${hasBest ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-gold">라이프 베스트</div>
+              <div class="card-label-gold card-label-row"><span>라이프 베스트</span>${hasBest ? `<span class="card-label-date gold">${bestDate}</span>` : ''}</div>
               ${hasBest ? `<div class="card-score-row">
                 <span class="card-score-num gold">${bestScore}</span>
                 <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
               </div>
               <div class="card-meta-info">
-                <span class="card-meta-date gold">${bestDate}</span>
                 <span class="card-meta-course gold">${U.esc(bestCourse)}</span>
               </div>` : `<div class="card-empty-cta gold">첫 기록 남기기 ›</div>
               <div class="card-meta-info"><span class="card-meta-date gold">최고 기록이 쌓여요</span></div>`}
