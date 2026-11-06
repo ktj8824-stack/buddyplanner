@@ -279,7 +279,7 @@ const Home = {
         <div class="home-glounge-sheet">
           
           <!-- Points & Ad Reward Card (Full Width Slim) -->
-          <div class="glounge-point-card" style="margin-bottom: 18px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+          <div class="glounge-point-card" style="margin-bottom: 14px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
             <div style="display: flex; align-items: center; gap: 10px;">
               <span style="font-size: 13px; color: #64748b; font-weight: 700;">내 포인트</span>
               <span style="font-size: 16px; font-weight: 800; color: var(--accent); font-family: 'Montserrat', sans-serif;">
@@ -366,7 +366,7 @@ const Home = {
               <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
             </div>
           </div>
-          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px;">
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
             <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/timeline.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
               <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">타임라인</span>

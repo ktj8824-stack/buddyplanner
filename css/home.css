@@ -104,7 +104,7 @@
 }
 
 .hero-main-title {
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 800;
   line-height: 1.32;
   letter-spacing: -0.5px;
@@ -910,3 +910,9 @@
 .glounge-upcoming-box { padding: 12px 16px 6px; margin-bottom: 12px; }
 .upcoming-head { margin-bottom: 2px; }
 .upcoming-item:last-child { border-bottom: 0 !important; }
+
+/* 홈 카드 사이 간격 통일 (14px) — 일정등록 줄과 타임라인 줄은 8px로 묶음 */
+.glounge-upcoming-box { margin-bottom: 14px; }
+.glounge-week-card { margin-bottom: 14px; }
+.glounge-score-grid { margin-bottom: 14px; }
+.glounge-round-stat-card { margin-bottom: 14px; }
