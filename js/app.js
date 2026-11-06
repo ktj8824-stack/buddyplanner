@@ -892,7 +892,8 @@ const App = {
     // 단체 일정 링크 (?g=코드) → 로그인 없이 바로 단체 일정 화면
     const gm = /[?&]g=([0-9a-fA-F]{16})/.exec(urlStr);
     if (gm && typeof Group !== 'undefined') {
-      setTimeout(() => { try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { } Group.openCode(gm[1]); }, 0);
+      const mm = /[?&]m=(\d{1,12})/.exec(urlStr);
+      setTimeout(() => { try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { } Group.openCode(gm[1], mm ? mm[1] : null); }, 0);
       return 'group';
     }
     console.log('🔗 DeepLink URL received:', urlStr);
