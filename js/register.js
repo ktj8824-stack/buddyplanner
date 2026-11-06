@@ -734,8 +734,18 @@ const Register = {
 
     // 골프장: [○○CC] 또는 '○○ CC / 컨트리클럽 / 골프클럽 / GC / 골프장 / 골프&리조트'
     const SUF = '(?:CC|C\\.C|GC|cc|gc|컨트리\\s?클럽|골프\\s?클럽|골프장|골프\\s?[&앤]\\s?리조트|골프리조트)';
-    const named = t.match(new RegExp('[가-힣A-Za-z0-9]{2,}\\s?' + SUF));
-    if (named) out.course = named[0].replace(/^[\[(]/, '').trim();
+    // 골프장 이름은 여러 단어일 수 있음 (오렌지듄스 영종 골프클럽) → 접미사 앞 단어를 3개까지
+    const W = '[가-힣A-Za-z0-9&]+';
+    const STOP = /^(예약|확정|안내|알림|이용|이용안내|예약확정|예약안내|알림톡|도착|님|고객님)$/;
+    const lines = t.split('\n').map(x => x.trim()).filter(Boolean);
+    const nameRe = new RegExp('((?:' + W + '\\s+){0,2}' + W + '\\s?' + SUF + ')');
+    let named = null;
+    for (const ln of lines) { const m = ln.match(nameRe); if (m) { named = m[1]; break; } }
+    if (named) {
+      const words = named.replace(/[\[\]()]/g, ' ').split(/\s+/).filter(Boolean);
+      while (words.length > 1 && STOP.test(words[0])) words.shift();
+      out.course = words.join(' ').trim();
+    }
     else if ((mm = t.match(/\[([^\]]{2,20})\]/))) out.course = mm[1].replace(/(예약|확정|안내|알림|골프)$/g, '').trim() || null;
     return out;
   },
@@ -761,13 +771,29 @@ const Register = {
       try {
         const res = await TmapAPI.searchPlace(p.course);
         this.searchResults = res || [];
-        const key = p.course.replace(/\s|CC|cc|GC|gc|컨트리클럽|골프클럽|골프장/g, '');
-        const hit = this.searchResults.find(r => String(r.place_name || '').replace(/\s/g, '').includes(key)) || null;
+        const hit = this.bestCourseMatch(p.course, this.searchResults);
         if (hit) { this.selectCourse(hit.id); filled.push('골프장'); }
         else if (input) this.search(p.course);   // 후보 목록에서 고르게
       } catch (e) { if (input) this.search(p.course); }
     }
     U.toast(filled.length ? `${filled.join('·')}을(를) 채웠어요. 확인해 주세요.` : '골프장 이름으로 검색했어요. 목록에서 골라 주세요.');
+  },
+
+  /** 예약 문자 속 골프장 이름과 가장 잘 맞는 검색 결과 (가장 긴 이름 조각이 들어 있어야 함, 아니면 null → 목록에서 고르게) */
+  bestCourseMatch(name, results) {
+    const norm = x => String(x || '').replace(/\s/g, '').toLowerCase();
+    const toks = String(name || '').replace(/CC|C\.C|GC|cc|gc|컨트리\s?클럽|골프\s?클럽|골프장|골프\s?[&앤]\s?리조트|골프리조트|골프|클럽/g, ' ')
+      .split(/\s+/).map(norm).filter(x => x.length >= 2);
+    if (!toks.length || !results || !results.length) return null;
+    const main = toks.slice().sort((a, b) => b.length - a.length)[0];
+    let best = null, bestScore = 0;
+    results.forEach(r => {
+      const n = norm(r.place_name || r.name);
+      if (!n.includes(main)) return;
+      const sc = toks.filter(k => n.includes(k)).length;
+      if (sc > bestScore) { best = r; bestScore = sc; }
+    });
+    return best;
   },
 
   /** 최근·자주 간 골프장 칩 (기록이 없으면 추천 골프장) */
