@@ -278,6 +278,20 @@ const Home = {
         <!-- 2. White Curved Bottom Sheet -->
         <div class="home-glounge-sheet">
           
+          <!-- Points & Ad Reward Card (Full Width Slim) -->
+          <div class="glounge-point-card" style="margin-bottom: 18px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 13px; color: #64748b; font-weight: 700;">내 포인트</span>
+              <span style="font-size: 16px; font-weight: 800; color: var(--accent); font-family: 'Montserrat', sans-serif;">
+                <span data-points>${currentPoints.toLocaleString()}</span> <span style="font-size: 11px; color: #94a3b8;">P</span>
+              </span>
+            </div>
+            <button class="ad-reward-btn" style="padding: 6px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; border: none; cursor: pointer; width: auto; margin: 0;" onclick="Profile.watchAd()">
+              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 
+              광고 시청 ${pm.ad_points}P <span data-ad-count style="font-size: 10px; opacity: 0.85;">${pm.ad_today}/${pm.ad_limit}</span>
+            </button>
+          </div>
+
           <!-- 다가오는 라운딩: 일정 앱의 핵심이라 상단 바로 아래에 배치 -->
           ${upcomingScheds.length > 0 ? `
             <div class="glounge-upcoming-box">
@@ -308,6 +322,71 @@ const Home = {
               }).join('')}
             </div>
           ` : ''}
+
+          <!-- Modern Weekly Calendar Strip Card (올해 라운드 바로 밑에 배치) -->
+          <div class="glounge-week-card">
+            <div class="week-card-head">
+              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
+              <button class="week-add-btn" onclick="App.navigate('register')">
+                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                일정등록
+              </button>
+            </div>
+
+            <div class="week-card-grid" onclick="App.navigate('calendar')">
+              ${weekDays.map(item => {
+                let dayColor = '#94a3b8';
+                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
+                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
+                
+                return `
+                  <div class="week-day-col">
+                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
+                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
+                      ${item.dateNum}
+                    </div>
+                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Core Tool Quick Launch Grid: 위 2칸(일정등록·단체등록) + 아래 4칸 -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:40px; height:40px; border-radius:12px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/register.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">일정등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">내 라운딩 · 출발 알람</span></div>
+            </div>
+            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:40px; height:40px; border-radius:12px; background:#fef9c3; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/group.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px;">
+            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/timeline.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">타임라인</span>
+            </div>
+            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#ecfeff; color:#0891b2; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/market.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">마켓</span>
+            </div>
+            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/community.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">커뮤니티</span>
+            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/raffle.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">럭키드로우</span>
+            </div>`}
+            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+              <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/restaurant.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
+              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">추천맛집</span>
+            </div>
+          </div>
 
           <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
           <div class="glounge-score-grid">
@@ -364,84 +443,6 @@ const Home = {
             </div>
           </div>
 
-          <!-- Modern Weekly Calendar Strip Card (올해 라운드 바로 밑에 배치) -->
-          <div class="glounge-week-card">
-            <div class="week-card-head">
-              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
-              <button class="week-add-btn" onclick="App.navigate('register')">
-                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                일정등록
-              </button>
-            </div>
-
-            <div class="week-card-grid" onclick="App.navigate('calendar')">
-              ${weekDays.map(item => {
-                let dayColor = '#94a3b8';
-                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
-                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
-                
-                return `
-                  <div class="week-day-col">
-                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
-                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
-                      ${item.dateNum}
-                    </div>
-                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-
-          <!-- Points & Ad Reward Card (Full Width Slim) -->
-          <div class="glounge-point-card" style="margin-bottom: 18px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 13px; color: #64748b; font-weight: 700;">내 포인트</span>
-              <span style="font-size: 16px; font-weight: 800; color: var(--accent); font-family: 'Montserrat', sans-serif;">
-                <span data-points>${currentPoints.toLocaleString()}</span> <span style="font-size: 11px; color: #94a3b8;">P</span>
-              </span>
-            </div>
-            <button class="ad-reward-btn" style="padding: 6px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; border: none; cursor: pointer; width: auto; margin: 0;" onclick="Profile.watchAd()">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 
-              광고 시청 ${pm.ad_points}P <span data-ad-count style="font-size: 10px; opacity: 0.85;">${pm.ad_today}/${pm.ad_limit}</span>
-            </button>
-          </div>
-
-          <!-- Core Tool Quick Launch Grid: 위 2칸(일정등록·단체등록) + 아래 4칸 -->
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
-              <div style="width:40px; height:40px; border-radius:12px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/register.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">일정등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">내 라운딩 · 출발 알람</span></div>
-            </div>
-            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
-              <div style="width:40px; height:40px; border-radius:12px; background:#fef9c3; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/group.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px;">
-            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/timeline.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">타임라인</span>
-            </div>
-            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#ecfeff; color:#0891b2; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/market.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">마켓</span>
-            </div>
-            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/community.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">커뮤니티</span>
-            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/raffle.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">럭키드로우</span>
-            </div>`}
-            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:38px; height:38px; border-radius:12px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; font-size:18px;"><img src="img/icons/restaurant.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; font-weight:700; color:#334155; display:block;">추천맛집</span>
-            </div>
-          </div>
 
 
         </div>
