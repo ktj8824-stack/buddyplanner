@@ -85,8 +85,13 @@ const Login = {
     if (this.isNative()) {
       const plugin = this.socialLoginPlugin();
       if (!plugin) { wrapper.style.display = 'none'; return; }
+      // 아이폰은 '아이폰용' 구글 클라이언트 ID가 따로 있어야 함 (없이 초기화하면 앱이 멈춤) → 없으면 버튼 숨김
+      const isIOS = window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios';
+      const iosId = (window.APP_CONFIG || {}).GOOGLE_IOS_CLIENT_ID || '';
+      if (isIOS && !iosId) { wrapper.style.display = 'none'; return; }
       if (!this._googleNativeReady) {
-        this._googleNativeReady = plugin.initialize({ google: { webClientId: this.GOOGLE_CLIENT_ID, mode: 'online' } })
+        const g = isIOS ? { iOSClientId: iosId, iOSServerClientId: this.GOOGLE_CLIENT_ID, mode: 'online' } : { webClientId: this.GOOGLE_CLIENT_ID, mode: 'online' };
+        this._googleNativeReady = plugin.initialize({ google: g })
           .catch(e => { console.error('Google native init err', e); this._googleNativeReady = null; throw e; });
       }
       wrapper.innerHTML = `

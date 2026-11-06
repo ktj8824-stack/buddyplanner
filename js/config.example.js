@@ -15,6 +15,7 @@ window.APP_CONFIG = {
   REVENUECAT_ANDROID_KEY: '', // RevenueCat 공개 SDK 키 (goog_로 시작, 구독 결제)
   REVENUECAT_IOS_KEY: '',     // RevenueCat 아이폰용 공개 키 (appl_로 시작)
   GOOGLE_WEB_CLIENT_ID: '',   // 구글 클라우드 '웹 애플리케이션' OAuth 클라이언트 ID (비우면 구글 로그인 버튼 숨김)
+  GOOGLE_IOS_CLIENT_ID: '',   // 구글 클라우드 'iOS' OAuth 클라이언트 ID (번들 com.buddyplanner.ktj8824). 비우면 아이폰 앱에서 구글 로그인 버튼 숨김
   SUPABASE_URL: '',           // Supabase 프로젝트 URL (예: https://abcd1234.supabase.co) — 비우면 기기에만 저장
   SUPABASE_ANON_KEY: '',      // Supabase 공개 키 (Project Settings > API의 anon/publishable 키)
 
