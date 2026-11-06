@@ -205,6 +205,11 @@ const State = {
           }
           return s;
         }).filter(s => s.date && !isNaN(s.date.getTime()));
+        // 알람 키(aid)가 없는 예전 일정은 키를 붙여 저장 (알림을 눌렀을 때 그 일정을 찾을 수 있게)
+        if (this.schedules.some(s => !s.aid)) {
+          this.schedules.forEach(s => this.aidOf(s));
+          try { localStorage.setItem('bp_schedules_v2', JSON.stringify(this.schedules)); } catch (e) {}
+        }
         return true;
       } catch (e) {
         console.error('Failed to load schedules', e);

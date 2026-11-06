@@ -1109,6 +1109,7 @@ const Timeline = {
   },
 
   playAlarmSound(msg, title = '🚨 타임라인 알람', iconHtml = null) {
+    this._lastRingAt = Date.now();   // 아이폰: 같은 알람이 알림으로 또 울리지 않게
     if (!this.audioCtx) this.initAudioContext();
     
     // 한 번만 울리는 알림음 (A5 -> C#6)
