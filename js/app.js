@@ -220,6 +220,8 @@ const App = {
     }
     
     State.screen = name;
+    // 시작 화면에서 미뤄 둔 배너는 광고 보이는 화면에 처음 왔을 때 띄움
+    if (!shouldHideBanner && this._bannerPending && !this.adMobActive) this.renderAdBanner();
     window.scrollTo(0,0);
   },
 
@@ -437,7 +439,10 @@ const App = {
       const AdMob = window.Capacitor.Plugins.AdMob;
       if (AdMob) {
         try {
-          await AdMob.initialize({});
+          if (!this._admobInit) { await AdMob.initialize({}); this._admobInit = true; }
+          // 시작 화면·로그인 등 광고를 숨기는 화면에서는 띄우지 않고, 광고 보이는 화면으로 처음 갈 때 띄움
+          if (this.bannerHiddenOn(State.screen)) { this._bannerPending = true; return; }
+          this._bannerPending = false;
           
           // 하단 네비게이션 바 높이만큼 margin-bottom 설정 (네비바 바로 위에 표시)
           // CSS variables(--nav-h)나 안전 영역 등을 고려해 대략 60px ~ 70px 정도 띄웁니다.

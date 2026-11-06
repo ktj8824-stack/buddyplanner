@@ -66,7 +66,6 @@ const Splash = {
       App.navigate('onboarding');
     } else {
       App.navigate('home');
-      setTimeout(() => U.toast('⛳ BuddyPlanner에 오신 것을 환영합니다!'), 700);
     }
   }
 };

@@ -294,8 +294,6 @@ const Login = {
       }
     }
 
-    const name = localStorage.getItem('bp_user_name') || user.name;
-    U.toast(`✅ ${U.esc(name)}님 환영합니다!`);
 
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     App.navigate(hasOnboarded ? 'home' : 'onboarding');
