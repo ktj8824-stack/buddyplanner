@@ -357,13 +357,13 @@ const Home = {
 
           <!-- Core Tool Quick Launch Grid: 위 2칸(일정등록·단체등록) + 아래 4칸 -->
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
-              <div style="width:40px; height:40px; border-radius:12px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/register.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">일정등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">내 라운딩 · 출발 알람</span></div>
+            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:16px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:42px; height:42px; border-radius:13px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/register.png?v=1" alt="" style="width:30px;height:30px;object-fit:contain;pointer-events:none;"></div>
+              <div style="min-width:0;"><span style="font-size:15.5px; font-weight:800; color:#0f172a; display:block;">일정등록</span><span style="font-size:11px; color:#94a3b8; margin-top:2px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">내 라운딩 · 출발 알람</span></div>
             </div>
-            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
-              <div style="width:40px; height:40px; border-radius:12px; background:#fef9c3; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/group.png?v=1" alt="" style="width:28px;height:28px;object-fit:contain;pointer-events:none;"></div>
-              <div style="min-width:0;"><span style="font-size:14px; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:11px; color:#94a3b8; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
+            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:16px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
+              <div style="width:42px; height:42px; border-radius:13px; background:#fef9c3; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/group.png?v=1" alt="" style="width:30px;height:30px;object-fit:contain;pointer-events:none;"></div>
+              <div style="min-width:0;"><span style="font-size:15.5px; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:11px; color:#94a3b8; margin-top:2px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
             </div>
           </div>
           <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
