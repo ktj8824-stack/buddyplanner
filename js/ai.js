@@ -99,9 +99,9 @@ const AI = {
               <div class="ai-wave-bar"></div>
               <div class="ai-wave-bar"></div>
             </div>
-            <span style="font-size:0.7812rem;letter-spacing:-0.2px;">음성을 듣고 있습니다... 말씀해 주세요</span>
+            <span style="font-size:12.5px;letter-spacing:-0.2px;">음성을 듣고 있습니다... 말씀해 주세요</span>
           </div>
-          <button onclick="AI.stopListening()" style="background:none;border:none;color:#94a3b8;font-size:0.7188rem;cursor:pointer;text-decoration:underline;">취소</button>
+          <button onclick="AI.stopListening()" style="background:none;border:none;color:#94a3b8;font-size:11.5px;cursor:pointer;text-decoration:underline;">취소</button>
         </div>
 
         <div id="ai-lock-slot"></div>
@@ -325,7 +325,7 @@ const AI = {
               <span class="ai-sched-icon-pill">📍</span>
               <span><strong>골프장:</strong></span>
             </div>
-            <span class="ai-sched-row-val" style="font-size:0.7812rem;">${sched.course.region} (${sched.course.addr || '경기 성남'})</span>
+            <span class="ai-sched-row-val" style="font-size:12.5px;">${sched.course.region} (${sched.course.addr || '경기 성남'})</span>
           </div>
 
           <div class="ai-sched-row">
@@ -372,7 +372,7 @@ const AI = {
         <div class="ai-weather-top">
           <div>
             <div class="ai-weather-course">⛳ ${w.courseName}</div>
-            <div style="font-size:0.7188rem;color:#64748b;margin-top:2px;">${w.dateStr} 예보</div>
+            <div style="font-size:11.5px;color:#64748b;margin-top:2px;">${w.dateStr} 예보</div>
           </div>
           <div class="ai-weather-temp">${w.icon || '🌤️'} ${w.temp || '21°C'}</div>
         </div>

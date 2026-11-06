@@ -3,20 +3,20 @@
    ========================================= */
 .gp-wrap { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; background: #f8fafc; min-height: 100%; padding-bottom: calc(var(--nav-h, 64px) + 60px); }
 .gp-top { background: #0f172a; color: #fff; padding: calc(env(safe-area-inset-top, 0px) + 14px) 20px 18px; }
-.gp-back { background: none; border: 0; color: #94a3b8; font-size: 0.8438rem; padding: 0; cursor: pointer; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gp-edit { float: right; background: none; font-size: 0.9375rem; color: #d4af37; border: 1px solid rgba(212,175,55,.5); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
-.gp-top-t { font-size: 1.3125rem; font-weight: 800; margin-top: 8px; word-break: keep-all; }
-.gp-top-m { font-size: 0.8125rem; color: #cbd5e1; margin-top: 4px; line-height: 1.5; }
+.gp-back { background: none; border: 0; color: #94a3b8; font-size: 13.5px; padding: 0; cursor: pointer; max-width: 70%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gp-edit { float: right; background: none; font-size: 12.5px; color: #d4af37; border: 1px solid rgba(212,175,55,.5); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+.gp-top-t { font-size: 21px; font-weight: 800; margin-top: 8px; word-break: keep-all; }
+.gp-top-m { font-size: 13px; color: #cbd5e1; margin-top: 4px; line-height: 1.5; }
 .gp-top .gold { color: #d4af37; font-weight: 800; }
 .gp-sec { padding: 14px 16px; }
-.gp-lab { font-size: 0.8125rem; font-weight: 800; color: #64748b; margin: 14px 2px 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.gp-lab { font-size: 13px; font-weight: 800; color: #64748b; margin: 14px 2px 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .gp-lab span { color: #0f172a; }
-.gp-note { font-size: 0.9375rem; color: #94a3b8; margin: 6px 2px 0; line-height: 1.5; }
-.gp-empty { text-align: center; color: #94a3b8; font-size: 0.875rem; line-height: 1.7; padding: 60px 20px; }
-.gp-badge { display: inline-block; font-size: 0.8125rem; font-weight: 800; color: #1a1306; background: #d4af37; border-radius: 6px; padding: 1px 6px; vertical-align: 1px; }
+.gp-note { font-size: 12px; color: #94a3b8; margin: 6px 2px 0; line-height: 1.5; }
+.gp-empty { text-align: center; color: #94a3b8; font-size: 14px; line-height: 1.7; padding: 60px 20px; }
+.gp-badge { display: inline-block; font-size: 10.5px; font-weight: 800; color: #1a1306; background: #d4af37; border-radius: 6px; padding: 1px 6px; vertical-align: 1px; }
 .gp-badge.sub { background: #e2e8f0; color: #334155; }
 
-.gp-btn { display: block; width: 100%; padding: 14px; border-radius: 12px; font-size: 0.9375rem; font-weight: 800; text-align: center; border: 0; margin-top: 10px; cursor: pointer; }
+.gp-btn { display: block; width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 800; text-align: center; border: 0; margin-top: 10px; cursor: pointer; }
 .gp-btn:disabled { opacity: .5; }
 .gp-btn.navy { background: #0f172a; color: #d4af37; }
 .gp-btn.kakao { background: #fee500; color: #191600; margin-top: 18px; }
@@ -24,48 +24,48 @@
 .gp-btn.del { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
 .gp-two { display: flex; gap: 8px; }
 .gp-two .gp-btn { flex: 1; }
-.gp-link { background: none; border: 0; color: #2563eb; font-size: 0.9375rem; font-weight: 700; cursor: pointer; padding: 4px 0; }
+.gp-link { background: none; border: 0; color: #2563eb; font-size: 12.5px; font-weight: 700; cursor: pointer; padding: 4px 0; }
 
 /* 목록 */
 .gp-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px; margin-bottom: 10px; cursor: pointer; }
 .gp-item-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-.gp-item-t { font-size: 1rem; font-weight: 800; color: #0f172a; }
-.gp-item-m { font-size: 0.8125rem; color: #64748b; margin-top: 4px; }
-.gp-item-c { font-size: 0.9375rem; color: #15803d; font-weight: 800; margin-top: 6px; }
-.gp-how { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-top: 18px; font-size: 0.8438rem; color: #475569; line-height: 1.9; }
+.gp-item-t { font-size: 16px; font-weight: 800; color: #0f172a; }
+.gp-item-m { font-size: 13px; color: #64748b; margin-top: 4px; }
+.gp-item-c { font-size: 12.5px; color: #15803d; font-weight: 800; margin-top: 6px; }
+.gp-how { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 16px; margin-top: 18px; font-size: 13.5px; color: #475569; line-height: 1.9; }
 .gp-how-t { font-weight: 800; color: #0f172a; margin-bottom: 4px; }
 
 /* 폼 */
-.gp-form label { display: block; font-size: 0.8125rem; font-weight: 800; color: #334155; margin: 14px 2px 6px; }
-.gp-hint { font-weight: 500; color: #94a3b8; font-size: 0.9375rem; margin-left: 4px; }
-.gp-form input, .gp-form textarea, .gp-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px 12px; font-size: 0.9375rem; color: #0f172a; background: #fff; font-family: inherit; }
+.gp-form label { display: block; font-size: 13px; font-weight: 800; color: #334155; margin: 14px 2px 6px; }
+.gp-hint { font-weight: 500; color: #94a3b8; font-size: 12px; margin-left: 4px; }
+.gp-form input, .gp-form textarea, .gp-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px 12px; font-size: 15px; color: #0f172a; background: #fff; font-family: inherit; }
 .gp-form textarea { resize: none; line-height: 1.5; }
 .gp-row2 { display: flex; gap: 10px; }
 .gp-row2 > div { flex: 1; min-width: 0; }
-.gp-pick { width: 100%; text-align: left; border: 1.5px dashed #cbd5e1; border-radius: 10px; padding: 12px; font-size: 0.9375rem; color: #64748b; background: #fff; cursor: pointer; }
+.gp-pick { width: 100%; text-align: left; border: 1.5px dashed #cbd5e1; border-radius: 10px; padding: 12px; font-size: 15px; color: #64748b; background: #fff; cursor: pointer; }
 .gp-pick.on { border-style: solid; border-color: #0f172a; color: #0f172a; font-weight: 700; }
-.gp-fixed { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 0.9375rem; color: #0f172a; background: #f1f5f9; font-weight: 700; }
+.gp-fixed { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; font-size: 15px; color: #0f172a; background: #f1f5f9; font-weight: 700; }
 
 /* 상세 */
 .gp-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 6px 14px; margin-bottom: 10px; }
 .gp-meet { padding: 14px; }
-.gp-meet-s { font-size: 0.9375rem; color: #64748b; margin-top: 2px; }
-.gp-meet-b { font-size: 1.375rem; font-weight: 900; color: #0f172a; margin: 2px 0 4px; }
-.gp-memo { margin-top: 10px; padding: 9px 11px; background: #f8fafc; border-radius: 10px; font-size: 0.8125rem; color: #334155; line-height: 1.5; white-space: pre-wrap; }
-.gp-team { font-size: 0.8125rem; font-weight: 900; color: #0f172a; margin: 12px 4px 6px; }
+.gp-meet-s { font-size: 12.5px; color: #64748b; margin-top: 2px; }
+.gp-meet-b { font-size: 22px; font-weight: 900; color: #0f172a; margin: 2px 0 4px; }
+.gp-memo { margin-top: 10px; padding: 9px 11px; background: #f8fafc; border-radius: 10px; font-size: 13px; color: #334155; line-height: 1.5; white-space: pre-wrap; }
+.gp-team { font-size: 13px; font-weight: 900; color: #0f172a; margin: 12px 4px 6px; }
 .gp-mem { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
 .gp-mem:last-child { border-bottom: 0; }
 .gp-mem.tap { cursor: pointer; }
 .gp-mem.me .gp-mem-n { color: #1d4ed8; }
-.gp-av { width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 0.9375rem; font-weight: 800; color: #0f172a; flex-shrink: 0; }
+.gp-av { width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: #0f172a; flex-shrink: 0; }
 .gp-mem-info { min-width: 0; flex: 1; }
-.gp-mem-n { font-size: 0.9062rem; font-weight: 800; color: #0f172a; }
-.gp-mem-r { font-size: 0.9375rem; color: #64748b; margin-top: 2px; line-height: 1.4; }
-.gp-st { margin-left: auto; font-size: 0.875rem; font-weight: 800; border-radius: 8px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
+.gp-mem-n { font-size: 14.5px; font-weight: 800; color: #0f172a; }
+.gp-mem-r { font-size: 12px; color: #64748b; margin-top: 2px; line-height: 1.4; }
+.gp-st { margin-left: auto; font-size: 11.5px; font-weight: 800; border-radius: 8px; padding: 3px 8px; white-space: nowrap; flex-shrink: 0; }
 .gp-st.ok { background: #dcfce7; color: #15803d; }
 .gp-st.wait { background: #fef3c7; color: #b45309; }
 .gp-st.no { background: #f1f5f9; color: #64748b; }
-.gp-car-row { display: flex; gap: 10px; font-size: 0.8438rem; color: #334155; padding: 9px 0; border-bottom: 1px solid #f1f5f9; line-height: 1.4; }
+.gp-car-row { display: flex; gap: 10px; font-size: 13.5px; color: #334155; padding: 9px 0; border-bottom: 1px solid #f1f5f9; line-height: 1.4; }
 .gp-car-row:last-child { border-bottom: 0; }
 .gp-car-row b { flex-shrink: 0; color: #0f172a; }
 .gp-car-row.warn b { color: #b45309; }
@@ -73,11 +73,11 @@
 /* 참석 응답 */
 .gp-ask { background: #fff; border: 1.5px solid #0f172a; border-radius: 14px; padding: 4px 14px 14px; margin-bottom: 6px; }
 .gp-pickrow { display: flex; flex-wrap: wrap; gap: 8px; }
-.gp-pickrow button { padding: 9px 13px; border-radius: 999px; border: 1.5px solid #e2e8f0; background: #fff; font-size: 0.875rem; font-weight: 700; color: #334155; cursor: pointer; }
+.gp-pickrow button { padding: 9px 13px; border-radius: 999px; border: 1.5px solid #e2e8f0; background: #fff; font-size: 14px; font-weight: 700; color: #334155; cursor: pointer; }
 .gp-pickrow button.taken { color: #94a3b8; }
 .gp-pickrow button.add { border-style: dashed; color: #2563eb; }
-.gp-opt { display: flex; align-items: center; gap: 10px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; background: #fff; font-size: 0.875rem; color: #0f172a; font-weight: 700; cursor: pointer; }
-.gp-opt small { display: block; font-size: 0.9375rem; color: #64748b; font-weight: 500; margin-top: 1px; }
+.gp-opt { display: flex; align-items: center; gap: 10px; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 11px 12px; margin-bottom: 8px; background: #fff; font-size: 14px; color: #0f172a; font-weight: 700; cursor: pointer; }
+.gp-opt small { display: block; font-size: 12px; color: #64748b; font-weight: 500; margin-top: 1px; }
 .gp-rd { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #cbd5e1; flex-shrink: 0; }
 .gp-opt.on { border-color: #0f172a; }
 .gp-opt.on .gp-rd { border: 6px solid #0f172a; }
@@ -85,30 +85,30 @@
 
 /* 배정 시트 */
 .gp-sheet { padding: 0 20px 26px; text-align: left; }
-.gp-meta { font-size: 0.9375rem; color: #64748b; margin-bottom: 4px; }
+.gp-meta { font-size: 12.5px; color: #64748b; margin-bottom: 4px; }
 .gp-chips { display: flex; flex-wrap: wrap; gap: 7px; }
-.gp-chips button { padding: 8px 12px; border-radius: 999px; border: 1.5px solid #e2e8f0; background: #fff; font-size: 0.8438rem; font-weight: 700; color: #334155; cursor: pointer; }
+.gp-chips button { padding: 8px 12px; border-radius: 999px; border: 1.5px solid #e2e8f0; background: #fff; font-size: 13.5px; font-weight: 700; color: #334155; cursor: pointer; }
 .gp-chips button.on { background: #0f172a; border-color: #0f172a; color: #d4af37; }
 
 /* 톡방 */
 .gp-chatwrap { display: flex; flex-direction: column; height: 100%; padding-bottom: 0; overflow: hidden; }
 .gp-chat { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 14px; background: #b2c7d9; }
-.gp-day { text-align: center; font-size: 0.875rem; color: #475569; margin: 8px 0; }
+.gp-day { text-align: center; font-size: 11.5px; color: #475569; margin: 8px 0; }
 .gp-msg { margin-bottom: 10px; max-width: 82%; }
 .gp-msg.mine { margin-left: auto; }
-.gp-msg-n { font-size: 0.9375rem; color: #1f2937; margin: 0 0 3px 2px; }
+.gp-msg-n { font-size: 12px; color: #1f2937; margin: 0 0 3px 2px; }
 .gp-msg-row { display: flex; align-items: flex-end; gap: 5px; }
 .gp-msg.mine .gp-msg-row { flex-direction: row-reverse; }
-.gp-msg-b { background: #fff; border-radius: 4px 14px 14px 14px; padding: 8px 11px; font-size: 0.875rem; color: #111; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.gp-msg-b { background: #fff; border-radius: 4px 14px 14px 14px; padding: 8px 11px; font-size: 14px; color: #111; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
 .gp-msg.mine .gp-msg-b { background: #fee500; border-radius: 14px 4px 14px 14px; }
-.gp-msg-t { font-size: 0.8125rem; color: #475569; flex-shrink: 0; }
+.gp-msg-t { font-size: 10.5px; color: #475569; flex-shrink: 0; }
 .gp-chat-in { display: flex; gap: 8px; padding: 10px 12px calc(var(--nav-h, 64px) + 14px); background: #fff; border-top: 1px solid #e2e8f0; }
-.gp-chat-in input { flex: 1; min-width: 0; border: 1px solid #cbd5e1; border-radius: 999px; padding: 10px 14px; font-size: 0.9375rem; }
-.gp-chat-in button { border: 0; border-radius: 999px; background: #0f172a; color: #d4af37; font-weight: 800; padding: 0 16px; font-size: 0.875rem; cursor: pointer; }
+.gp-chat-in input { flex: 1; min-width: 0; border: 1px solid #cbd5e1; border-radius: 999px; padding: 10px 14px; font-size: 15px; }
+.gp-chat-in button { border: 0; border-radius: 999px; background: #0f172a; color: #d4af37; font-weight: 800; padding: 0 16px; font-size: 14px; cursor: pointer; }
 
 /* 변경 안내 */
-.gp-notice { background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin:0 0 12px; font-size:0.8125rem; color:#1e3a8a; line-height:1.55; }
-.gp-notice > b { display:block; font-size:0.8438rem; margin-bottom:4px; }
-.gp-notice button { margin-top:8px; border:none; background:#1d4ed8; color:#fff; font-weight:800; font-size:0.9375rem; border-radius:9px; padding:7px 12px; cursor:pointer; }
+.gp-notice { background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin:0 0 12px; font-size:13px; color:#1e3a8a; line-height:1.55; }
+.gp-notice > b { display:block; font-size:13.5px; margin-bottom:4px; }
+.gp-notice button { margin-top:8px; border:none; background:#1d4ed8; color:#fff; font-weight:800; font-size:12.5px; border-radius:9px; padding:7px 12px; cursor:pointer; }
 .gp-notice.warn { background:#fff7ed; border-color:#fdba74; color:#7c2d12; }
 .gp-notice.warn button { background:#c2410c; }

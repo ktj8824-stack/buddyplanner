@@ -111,7 +111,7 @@ const Community = {
   },
 
   empty(icon, title, desc, action = '') {
-    return `<div class="cm-empty"><div style="font-size:2.375rem;">${icon}</div><b>${title}</b><span>${desc}</span>${action}</div>`;
+    return `<div class="cm-empty"><div style="font-size:38px;">${icon}</div><b>${title}</b><span>${desc}</span>${action}</div>`;
   },
 
   card(p) {

@@ -72,8 +72,6 @@ $PB_ -c "Delete :NSUserTrackingUsageDescription" "$PL" 2>/dev/null || true
 $PB_ -c "Add :NSUserTrackingUsageDescription string 맞춤 광고를 위해 사용돼요. 허용하지 않아도 앱은 그대로 쓸 수 있어요." "$PL"
 $PB_ -c "Delete :NSPhotoLibraryUsageDescription" "$PL" 2>/dev/null || true
 $PB_ -c "Add :NSPhotoLibraryUsageDescription string 스코어카드 사진을 기록에 붙이거나 AI 비서에게 보내려면 사진 접근이 필요해요." "$PL"
-$PB_ -c "Delete :NSLocationWhenInUseUsageDescription" "$PL" 2>/dev/null || true
-$PB_ -c "Add :NSLocationWhenInUseUsageDescription string 집 주소를 넣지 않았을 때 지금 위치에서 골프장까지 출발 시간을 계산하려고 사용해요." "$PL"
 $PB_ -c "Delete :NSCameraUsageDescription" "$PL" 2>/dev/null || true
 $PB_ -c "Add :NSCameraUsageDescription string 스코어카드를 바로 찍어 기록하려면 카메라가 필요해요." "$PL"
 

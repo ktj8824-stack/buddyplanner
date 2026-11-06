@@ -107,7 +107,7 @@ const Market = {
                <div class="market-ref-note">${when} · 쿠팡에서 확인 ›</div>`;
     } else {
       // 가격 정보가 없는 제휴 상품
-      price = `<div class="market-price-wrap"><span class="market-price" style="font-size:0.8125rem;">쿠팡에서 가격 확인 ›</span></div>`;
+      price = `<div class="market-price-wrap"><span class="market-price" style="font-size:13px;">쿠팡에서 가격 확인 ›</span></div>`;
     }
     const rocket = p.rocket ? `<div class="market-rocket">로켓배송</div>` : '';
     const click = p.kind === 'direct' ? `Market.soon()` : `Market.openLink('${U.esc(String(p.link || '').replace(/'/g, ''))}')`;
@@ -140,7 +140,7 @@ const Market = {
 
     container.innerHTML = `
       <div class="market-container">
-        <h2 style="font-size:1.5rem; font-weight:900; margin-bottom:20px; color:var(--text-100);">버디마켓</h2>
+        <h2 style="font-size:24px; font-weight:900; margin-bottom:20px; color:var(--text-100);">버디마켓</h2>
 
         <div class="market-banner" onclick="App.navigate('raffle')" style="cursor:pointer;">
           <div class="market-banner-sub">포인트 럭키드로우</div>
@@ -153,9 +153,9 @@ const Market = {
         </div>
 
         ${shown.length ? `<div class="market-grid">${shown.map(p => this.card(p)).join('')}</div>`
-          : `<div style="text-align:center; color:var(--text-400); padding:40px 0; font-size:0.875rem;">이 분류에는 아직 상품이 없어요.</div>`}
+          : `<div style="text-align:center; color:var(--text-400); padding:40px 0; font-size:14px;">이 분류에는 아직 상품이 없어요.</div>`}
 
-        ${hasAffiliate ? `<div style="margin-top:30px; text-align:center; color:var(--text-400); font-size:0.75rem; line-height:1.5;">
+        ${hasAffiliate ? `<div style="margin-top:30px; text-align:center; color:var(--text-400); font-size:12px; line-height:1.5;">
           이 포스팅은 쿠팡 파트너스 활동의 일환으로,<br>이에 따른 일정액의 수수료를 제공받습니다.<br>표시된 가격은 기준일의 참고 가격이며, 실제 가격은 쿠팡에서 확인해 주세요.
         </div>` : ''}
       </div>

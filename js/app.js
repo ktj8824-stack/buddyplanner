@@ -101,13 +101,6 @@ const App = {
     }
   },
 
-  /** 글씨 크기: 보통 1배 · 크게 1.15배 · 아주 크게 1.3배 (예전 '작게'는 보통으로) */
-  SIZE_SCALE: { small: 1, medium: 1, large: 1.15, xlarge: 1.3 },
-  applySize(size) {
-    const k = this.SIZE_SCALE[size] || 1;
-    document.documentElement.style.fontSize = (16 * k) + 'px';
-  },
-
   loadPreferences() {
     const font = localStorage.getItem('bp_font');
     if (font) {
@@ -120,8 +113,13 @@ const App = {
         document.head.appendChild(link);
       }
     }
-    this.applySize(localStorage.getItem('bp_size') || 'medium');
-    document.documentElement.classList.toggle('easy', localStorage.getItem('bp_easy') === '1');
+    const size = localStorage.getItem('bp_size');
+    if (size) {
+      let basePx = 16;
+      if (size === 'small') basePx = 14;
+      if (size === 'large') basePx = 18;
+      document.documentElement.style.fontSize = basePx + 'px';
+    }
     const home = localStorage.getItem('bp_home');
     const office = localStorage.getItem('bp_office');
     if (!State.userAddresses) State.userAddresses = { home: null, office: null };
@@ -554,9 +552,9 @@ const App = {
 
     this.showModal('골프장 날씨', `
       <div style="padding: 32px 16px; text-align: center; color: var(--text-300); font-weight:600;">
-        <div style="font-size:1.75rem; margin-bottom:12px; animation:spin 1s infinite linear;">📡</div>
-        <div style="font-size:0.9375rem; color:var(--text-100); margin-bottom:4px;">${safeName}</div>
-        <div style="font-size:0.8125rem; color:var(--text-400);">기상 데이터를 불러오는 중입니다...</div>
+        <div style="font-size:28px; margin-bottom:12px; animation:spin 1s infinite linear;">📡</div>
+        <div style="font-size:15px; color:var(--text-100); margin-bottom:4px;">${safeName}</div>
+        <div style="font-size:13px; color:var(--text-400);">기상 데이터를 불러오는 중입니다...</div>
       </div>
     `);
 
@@ -576,37 +574,37 @@ const App = {
     // 조회 실패 시 가짜 날씨 대신 안내 표시
     const currentHTML = weather ? `
           <div style="display:flex; align-items:center; gap:20px; margin-top:4px;">
-            <div style="font-size:3.75rem; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.15));">${weather.weatherIcon}</div>
+            <div style="font-size:60px; filter:drop-shadow(0 4px 10px rgba(0,0,0,0.15));">${weather.weatherIcon}</div>
             <div style="display:flex; flex-direction:column; align-items:flex-start;">
-              <div style="font-size:0.75rem; font-weight:700; color:var(--text-400);">지금 날씨</div>
-              <div style="font-size:2.375rem; font-weight:900; color:var(--text-900); font-family:'Montserrat', sans-serif; line-height:1;">
-                ${weather.temp}<span style="font-size:1.375rem; color:var(--text-300); font-weight:600;">°C</span>
+              <div style="font-size:12px; font-weight:700; color:var(--text-400);">지금 날씨</div>
+              <div style="font-size:38px; font-weight:900; color:var(--text-900); font-family:'Montserrat', sans-serif; line-height:1;">
+                ${weather.temp}<span style="font-size:22px; color:var(--text-300); font-weight:600;">°C</span>
               </div>
-              <div style="font-size:1rem; font-weight:700; color:var(--text-100); margin-top:4px;">${weather.weatherText}</div>
+              <div style="font-size:16px; font-weight:700; color:var(--text-100); margin-top:4px;">${weather.weatherText}</div>
             </div>
           </div>
 
           <div style="width:100%; display:flex; justify-content:space-around; background:var(--bg-sub, #f9fafb); border:1px solid var(--border-default); border-radius:16px; padding:16px 8px; margin-top:4px;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
-              <span style="font-size:0.75rem; color:var(--text-400); font-weight:600;">체감 온도</span>
-              <span style="font-size:0.9375rem; color:var(--text-100); font-weight:800;">${weather.feelsLike}°C</span>
+              <span style="font-size:12px; color:var(--text-400); font-weight:600;">체감 온도</span>
+              <span style="font-size:15px; color:var(--text-100); font-weight:800;">${weather.feelsLike}°C</span>
             </div>
             <div style="width:1px; background:var(--border-default);"></div>
             <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
-              <span style="font-size:0.75rem; color:var(--text-400); font-weight:600;">바람 (풍속)</span>
-              <span style="font-size:0.9375rem; color:${weather.windSpeed >= 4 ? '#ef4444' : 'var(--text-100)'}; font-weight:800;">${weather.windSpeed} m/s</span>
+              <span style="font-size:12px; color:var(--text-400); font-weight:600;">바람 (풍속)</span>
+              <span style="font-size:15px; color:${weather.windSpeed >= 4 ? '#ef4444' : 'var(--text-100)'}; font-weight:800;">${weather.windSpeed} m/s</span>
             </div>
             <div style="width:1px; background:var(--border-default);"></div>
             <div style="display:flex; flex-direction:column; align-items:center; gap:4px; flex:1;">
-              <span style="font-size:0.75rem; color:var(--text-400); font-weight:600;">습도</span>
-              <span style="font-size:0.9375rem; color:var(--text-100); font-weight:800;">${weather.humidity}%</span>
+              <span style="font-size:12px; color:var(--text-400); font-weight:600;">습도</span>
+              <span style="font-size:15px; color:var(--text-100); font-weight:800;">${weather.humidity}%</span>
             </div>
           </div>` : `
           <div class="wx-empty">날씨 정보를 불러오지 못했어요.<br>인터넷 연결을 확인한 뒤 다시 시도해 주세요.</div>`;
 
     list.innerHTML = `
         <div style="padding: 16px; display:flex; flex-direction:column; align-items:center; gap:16px;">
-          <div style="font-size:0.8125rem; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.04); padding:6px 14px; border-radius:12px; display:flex; align-items:center; gap:6px;">
+          <div style="font-size:13px; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.04); padding:6px 14px; border-radius:12px; display:flex; align-items:center; gap:6px;">
             <span>📍</span> <span>${safeName}</span>
           </div>
           ${currentHTML}
@@ -762,7 +760,7 @@ const App = {
         <h3 class="modal-title">${title}</h3>
         <div style="padding:0 var(--sp-4) var(--sp-4) var(--sp-4); display:flex; gap:var(--sp-2);">
           <input type="text" id="addr-search-input" class="address-input" placeholder="정확한 주소 또는 건물명" style="flex:1; min-width:0;" onkeypress="if(event.key==='Enter') window._searchAddress()" />
-          <button class="btn btn-primary" onclick="window._searchAddress()" style="width:auto; flex-shrink:0; min-width:72px; padding:0 18px; font-size:0.9375rem; white-space:nowrap;">검색</button>
+          <button class="btn btn-primary" onclick="window._searchAddress()" style="width:auto; flex-shrink:0; min-width:72px; padding:0 18px; font-size:15px; white-space:nowrap;">검색</button>
         </div>
         <div id="addr-search-results" class="modal-list" style="flex:1; overflow-y:auto;">
           <div style="padding:var(--sp-4);text-align:center;color:var(--text-light)">검색어를 입력하고 검색 버튼을 누르세요.</div>
@@ -924,11 +922,11 @@ const App = {
     const html = `
       <div id="${modalId}" class="modal-bg open" style="z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); position:fixed; top:0; left:0; right:0; bottom:0;">
         <div class="modal-card" style="background:#ffffff; border-radius:24px; padding:24px; width:90%; max-width:380px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); transform:scale(1); transition:transform 0.2s ease;">
-          <div style="font-size:2.625rem; margin-bottom:6px;">⛳</div>
-          <h3 style="font-size:1.25rem; font-weight:800; color:#111111; margin-bottom:6px;">공유받은 라운딩 일정</h3>
-          <p style="font-size:0.8125rem; color:#666666; margin-bottom:18px;">카카오톡으로 공유된 일정을 내 스케줄에 등록할까요?</p>
+          <div style="font-size:42px; margin-bottom:6px;">⛳</div>
+          <h3 style="font-size:20px; font-weight:800; color:#111111; margin-bottom:6px;">공유받은 라운딩 일정</h3>
+          <p style="font-size:13px; color:#666666; margin-bottom:18px;">카카오톡으로 공유된 일정을 내 스케줄에 등록할까요?</p>
           
-          <div style="background:#f4f6f8; border-radius:16px; padding:16px; text-align:left; font-size:0.875rem; margin-bottom:22px; line-height:1.7; color:#222;">
+          <div style="background:#f4f6f8; border-radius:16px; padding:16px; text-align:left; font-size:14px; margin-bottom:22px; line-height:1.7; color:#222;">
             <div><strong>📍 골프장:</strong> ${courseName}${courseAddr}</div>
             <div><strong>📅 라운딩 일시:</strong> ${dateStr} ${teeOff}</div>
             ${meetingName ? `<div style="color:#007aff;"><strong>🤝 중간 집결지:</strong> ${meetingName}</div>` : ''}
@@ -937,8 +935,8 @@ const App = {
           </div>
 
           <div style="display:flex; gap:10px;">
-            <button id="btn-cancel-shared-sched" style="flex:1; padding:14px; border:none; background:#e9ecef; color:#495057; border-radius:12px; font-size:0.9375rem; font-weight:600; cursor:pointer;">취소</button>
-            <button id="btn-accept-shared-sched" style="flex:2; padding:14px; border:none; background:#007aff; color:#ffffff; border-radius:12px; font-size:0.9375rem; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(0,122,255,0.3);">내 일정에 등록 ⛳</button>
+            <button id="btn-cancel-shared-sched" style="flex:1; padding:14px; border:none; background:#e9ecef; color:#495057; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer;">취소</button>
+            <button id="btn-accept-shared-sched" style="flex:2; padding:14px; border:none; background:#007aff; color:#ffffff; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(0,122,255,0.3);">내 일정에 등록 ⛳</button>
           </div>
         </div>
       </div>

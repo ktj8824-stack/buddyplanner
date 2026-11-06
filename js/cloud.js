@@ -14,7 +14,7 @@ const Cloud = {
   SYNC_KEYS: [
     // 포인트는 서버 장부(point_ledger)가 기준이라 여기서 동기화하지 않음 (js/points.js)
     'bp_schedules_v2', 'bp_records_v1', 'bp_ai_messages_v1',
-    'bp_user_name', 'bp_home', 'bp_office', 'bp_font', 'bp_size', 'bp_easy', 'bp_onboarded'
+    'bp_user_name', 'bp_home', 'bp_office', 'bp_font', 'bp_size', 'bp_onboarded'
   ],
   SESSION_KEY: 'bp_cloud_session',
   META_KEY: 'bp_sync_meta',      // { key: 마지막 로컬 수정 시각(ms) }
@@ -372,7 +372,7 @@ const Cloud = {
         if (typeof Timeline !== 'undefined' && Timeline.autoScheduleAllAlarms) { try { Timeline.autoScheduleAllAlarms(); } catch (e) {} }
       }
       if (keys.indexOf('bp_ai_messages_v1') >= 0 && typeof AI !== 'undefined') AI.isInitialized = false;
-      if ((keys.indexOf('bp_font') >= 0 || keys.indexOf('bp_size') >= 0 || keys.indexOf('bp_easy') >= 0) && typeof App !== 'undefined') App.loadPreferences();
+      if ((keys.indexOf('bp_font') >= 0 || keys.indexOf('bp_size') >= 0) && typeof App !== 'undefined') App.loadPreferences();
       // 현재 화면을 새 데이터로 다시 그림 (로그인·온보딩 화면은 제외)
       const s = typeof State !== 'undefined' && State.screen;
       if (s && ['splash', 'login', 'onboarding'].indexOf(s) < 0 && typeof App !== 'undefined') App.navigate(s);

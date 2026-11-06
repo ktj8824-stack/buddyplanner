@@ -7,17 +7,17 @@
   position: sticky; top: 0; z-index: 5; height: 56px; background: #0f172a; color: #fff;
   display: flex; align-items: center; justify-content: space-between; padding: 0 18px;
 }
-.adm-head-title { font-size: 1.125rem; font-weight: 800; }
-.adm-close { background: none; border: 0; color: #fff; font-size: 1.375rem; cursor: pointer; padding: 6px; }
+.adm-head-title { font-size: 18px; font-weight: 800; }
+.adm-close { background: none; border: 0; color: #fff; font-size: 22px; cursor: pointer; padding: 6px; }
 .adm-body { padding: 16px; }
 
 .adm-add {
   width: 100%; height: 48px; border-radius: 14px; background: #0f172a; color: #fff;
-  font-weight: 800; font-size: 0.9375rem; border: 0; margin-bottom: 14px; cursor: pointer;
+  font-weight: 800; font-size: 15px; border: 0; margin-bottom: 14px; cursor: pointer;
 }
 .adm-add:disabled { opacity: .4; }
-.adm-count { font-size: 0.8125rem; color: #64748b; margin-bottom: 8px; }
-.adm-empty { text-align: center; color: #94a3b8; font-size: 0.875rem; line-height: 1.6; padding: 40px 0; }
+.adm-count { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+.adm-empty { text-align: center; color: #94a3b8; font-size: 14px; line-height: 1.6; padding: 40px 0; }
 
 .adm-list { display: flex; flex-direction: column; gap: 10px; }
 .adm-item {
@@ -27,41 +27,41 @@
 .adm-item.dragging { box-shadow: 0 10px 24px rgba(15, 23, 42, .18); border-color: #2563eb; transform: scale(1.02); position: relative; z-index: 2; touch-action: none; }
 .adm-img { width: 64px; height: 64px; border-radius: 10px; background: #f1f5f9; object-fit: cover; flex-shrink: 0; }
 .adm-info { flex: 1; min-width: 0; }
-.adm-cat { font-size: 0.875rem; color: #2563eb; font-weight: 700; }
-.adm-state { font-size: 0.875rem; font-weight: 700; color: #16a34a; background: #dcfce7; border-radius: 6px; padding: 2px 6px; margin-left: 2px; }
+.adm-cat { font-size: 11px; color: #2563eb; font-weight: 700; }
+.adm-state { font-size: 11px; font-weight: 700; color: #16a34a; background: #dcfce7; border-radius: 6px; padding: 2px 6px; margin-left: 2px; }
 .adm-state.off { color: #64748b; background: #f1f5f9; }
-.adm-title { font-size: 0.875rem; font-weight: 700; color: #0f172a; margin: 2px 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-title { font-size: 14px; font-weight: 700; color: #0f172a; margin: 2px 0 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .adm-acts { display: flex; gap: 6px; }
-.adm-btn { font-size: 0.9375rem; padding: 4px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; }
+.adm-btn { font-size: 12px; padding: 4px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; color: #334155; cursor: pointer; }
 .adm-btn.mute { color: #94a3b8; }
 .adm-btn.del { color: #ef4444; border-color: #fecaca; }
 
 /* 추가·수정 시트 */
 .adm-sheet { text-align: left; }
-.adm-guide { font-size: 0.9375rem; color: #64748b; line-height: 1.5; margin-bottom: 4px; }
-.adm-lab { font-size: 0.9375rem; font-weight: 700; color: #334155; margin: 12px 0 6px; }
+.adm-guide { font-size: 12.5px; color: #64748b; line-height: 1.5; margin-bottom: 4px; }
+.adm-lab { font-size: 12.5px; font-weight: 700; color: #334155; margin: 12px 0 6px; }
 .adm-paste {
   width: 100%; box-sizing: border-box; border: 1.5px solid #2563eb; border-radius: 12px; padding: 10px;
-  font-family: monospace; font-size: 0.875rem; color: #475569; line-height: 1.4; background: #f8fafc; resize: none;
+  font-family: monospace; font-size: 11px; color: #475569; line-height: 1.4; background: #f8fafc; resize: none;
 }
-.adm-found { font-size: 0.9375rem; color: #16a34a; font-weight: 700; margin-top: 6px; min-height: 2px; }
+.adm-found { font-size: 12px; color: #16a34a; font-weight: 700; margin-top: 6px; min-height: 2px; }
 .adm-found .bad { color: #ef4444; }
 .adm-prev { display: flex; gap: 12px; align-items: center; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; margin-top: 6px; }
-.adm-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 0.875rem; color: #0f172a; background: #fff; }
-.adm-auto { font-size: 0.875rem; color: #2563eb; font-weight: 700; margin-left: 4px; }
+.adm-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 14px; color: #0f172a; background: #fff; }
+.adm-auto { font-size: 11px; color: #2563eb; font-weight: 700; margin-left: 4px; }
 .adm-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.adm-chip { font-size: 0.9375rem; padding: 6px 11px; border-radius: 999px; border: 1px solid #cbd5e1; color: #334155; background: #fff; cursor: pointer; }
+.adm-chip { font-size: 12.5px; padding: 6px 11px; border-radius: 999px; border: 1px solid #cbd5e1; color: #334155; background: #fff; cursor: pointer; }
 .adm-chip.on { background: #0f172a; color: #fff; border-color: #0f172a; }
-.adm-save { width: 100%; height: 50px; border-radius: 14px; background: #0a6cff; color: #fff; font-weight: 800; font-size: 0.9375rem; border: 0; margin-top: 16px; cursor: pointer; }
+.adm-save { width: 100%; height: 50px; border-radius: 14px; background: #0a6cff; color: #fff; font-weight: 800; font-size: 15px; border: 0; margin-top: 16px; cursor: pointer; }
 .adm-save:disabled { opacity: .5; }
 .adm-item .adm-img { pointer-events: none; -webkit-user-drag: none; -webkit-touch-callout: none; }
 .adm-item { -webkit-touch-callout: none; }
-.adm-price { font-size: 0.9375rem; color: #0f172a; font-weight: 700; margin: -2px 0 6px; }
+.adm-price { font-size: 12px; color: #0f172a; font-weight: 700; margin: -2px 0 6px; }
 .adm-price-row { display: flex; align-items: center; gap: 8px; }
 .adm-price-row .adm-input { flex: 1; }
-.adm-won { font-size: 0.875rem; color: #334155; }
-.adm-rocket { display: flex; align-items: center; gap: 4px; font-size: 0.8125rem; color: #0073e9; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.adm-won { font-size: 14px; color: #334155; }
+.adm-rocket { display: flex; align-items: center; gap: 4px; font-size: 13px; color: #0073e9; font-weight: 700; white-space: nowrap; cursor: pointer; }
 .adm-rocket input { -webkit-appearance: checkbox; appearance: auto; width: 18px; height: 18px; accent-color: #0073e9; margin: 0; }
 .adm-apps-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
 .adm-app-tags { display: flex; gap: 4px; flex-wrap: wrap; margin: 2px 0 4px; }
-.adm-app-tags span { font-size: 0.8125rem; font-weight: 700; color: #475569; background: #f1f5f9; border-radius: 6px; padding: 1px 6px; }
+.adm-app-tags span { font-size: 10.5px; font-weight: 700; color: #475569; background: #f1f5f9; border-radius: 6px; padding: 1px 6px; }

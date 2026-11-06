@@ -182,7 +182,7 @@ const U = {
 
     const modalContent = `
       <div class="cal-sync-modal-content" style="padding:var(--sp-2) 0;">
-        <div style="font-size:3rem; text-align:center; margin-bottom:var(--sp-2);">🗓️</div>
+        <div style="font-size:48px; text-align:center; margin-bottom:var(--sp-2);">🗓️</div>
         <h3 style="text-align:center; margin-bottom:var(--sp-2);">일정 및 알람 연동</h3>
         <p style="margin-bottom:var(--sp-5);text-align:center;font-size:var(--fs-sm);color:var(--text-400);line-height:var(--lh-relaxed);">
           스마트 플랜을 캘린더와 알람에 연동하여 일정을 놓치지 마세요!
@@ -269,13 +269,13 @@ const U = {
       // iOS / Desktop Fallback
       const modalContent = `
         <div style="padding:var(--sp-2) 0; text-align:center;">
-          <div style="font-size:3rem; font-weight:800; color:var(--accent); margin-bottom:var(--sp-2);">
+          <div style="font-size:48px; font-weight:800; color:var(--accent); margin-bottom:var(--sp-2);">
             ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}
           </div>
-          <p style="color:var(--text-400); line-height:1.5; margin-bottom:var(--sp-4); font-size:0.9375rem;">
+          <p style="color:var(--text-400); line-height:1.5; margin-bottom:var(--sp-4); font-size:15px;">
             아이폰(애플) 정책상 웹 브라우저에서 알람을 자동으로 설정할 수 없습니다.<br><br>
             <strong>번거로우시겠지만 위 시간에 맞춰 직접 알람을 설정해 주세요!</strong><br><br>
-            <span style="font-size:0.8125rem; color:var(--text-500);">※ 향후 앱스토어에 정식 앱이 출시되면 100% 자동 알람 연동이 지원됩니다.</span>
+            <span style="font-size:13px; color:var(--text-500);">※ 향후 앱스토어에 정식 앱이 출시되면 100% 자동 알람 연동이 지원됩니다.</span>
           </p>
           <button class="btn btn-primary" style="width:100%" onclick="App.closeModal()">확인했습니다</button>
         </div>

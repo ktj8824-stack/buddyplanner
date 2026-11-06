@@ -4,7 +4,7 @@
 
 const Profile = {
   fontMap: { 'Pretendard': '고딕', 'Nanum Myeongjo': '명조', 'Gowun Dodum': '둥근고딕' },
-  sizeMap: { 'small': '보통', 'medium': '보통', 'large': '크게', 'xlarge': '아주 크게' },
+  sizeMap: { 'small': '작게', 'medium': '보통', 'large': '크게' },
 
   render() {
     const app = U.$('#screen-profile');
@@ -38,7 +38,7 @@ const Profile = {
           <div class="profile-avatar">${avatarLetter}</div>
           <div class="profile-name">${U.esc(userName)}</div>
           <div class="profile-email">${U.esc(userEmail)}</div>
-          ${State.isPro ? '<div style="margin-top:8px; display:inline-block; padding:4px 12px; background:var(--gold-dim); color:var(--gold-500); border:1px solid rgba(217,119,6,0.3); border-radius:var(--r-full); font-size:0.75rem; font-weight:bold;">👑 PRO 멤버</div>' : ''}
+          ${State.isPro ? '<div style="margin-top:8px; display:inline-block; padding:4px 12px; background:var(--gold-dim); color:var(--gold-500); border:1px solid rgba(217,119,6,0.3); border-radius:var(--r-full); font-size:12px; font-weight:bold;">👑 PRO 멤버</div>' : ''}
         </div>
         
         <div style="margin: var(--sp-4) var(--sp-5) var(--sp-6);">
@@ -50,7 +50,7 @@ const Profile = {
               </div>
             </div>
             <button onclick="Profile.watchAd()" class="ad-reward-btn">
-              <span>광고 보고 ${pm.ad_points}P 받기 <span data-ad-count style="font-size:0.6875rem; font-weight:normal; opacity:0.9;">${pm.ad_today}/${pm.ad_limit}</span></span>
+              <span>광고 보고 ${pm.ad_points}P 받기 <span data-ad-count style="font-size:11px; font-weight:normal; opacity:0.9;">${pm.ad_today}/${pm.ad_limit}</span></span>
             </button>
           </div>
         </div>
@@ -73,7 +73,7 @@ const Profile = {
           <div class="setting-card">
             <div class="setting-item" style="flex-direction:column; align-items:flex-start; border-bottom:1px solid var(--border-default);">
               <div class="setting-item-header" style="margin-bottom:8px;">닉네임</div>
-              <input type="text" id="prof-nickname" class="form-input" value="${U.esc(userName)}" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:0.9375rem;" onchange="Profile.saveNickname(this.value)" />
+              <input type="text" id="prof-nickname" class="form-input" value="${U.esc(userName)}" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:15px;" onchange="Profile.saveNickname(this.value)" />
             </div>
             
             <div class="setting-item">
@@ -88,16 +88,9 @@ const Profile = {
             <div class="setting-item">
               <div class="setting-item-header">글자 크기</div>
               <div class="setting-options">
-                <button class="setting-opt-btn ${currentSize==='medium'||currentSize==='small'?'active':''}" onclick="Profile.setSize('medium', this)">보통</button>
+                <button class="setting-opt-btn ${currentSize==='small'?'active':''}" onclick="Profile.setSize('small', this)">작게</button>
+                <button class="setting-opt-btn ${currentSize==='medium'?'active':''}" onclick="Profile.setSize('medium', this)">보통</button>
                 <button class="setting-opt-btn ${currentSize==='large'?'active':''}" onclick="Profile.setSize('large', this)">크게</button>
-                <button class="setting-opt-btn ${currentSize==='xlarge'?'active':''}" onclick="Profile.setSize('xlarge', this)">아주 크게</button>
-              </div>
-            </div>
-
-            <div class="setting-item">
-              <div class="setting-item-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                <span>쉬운 화면<span style="display:block; font-size:0.8125rem; font-weight:500; color:#64748b; margin-top:2px;">등록을 세 단계로 나누고, 홈에는 꼭 필요한 것만 보여 줘요</span></span>
-                <button type="button" role="switch" aria-checked="${localStorage.getItem('bp_easy')==='1'}" class="easy-switch ${localStorage.getItem('bp_easy')==='1'?'on':''}" onclick="Profile.toggleEasy(this)" aria-label="쉬운 화면"><span></span></button>
               </div>
             </div>
           </div>
@@ -106,15 +99,15 @@ const Profile = {
           
           <div style="display:flex; flex-direction:row; gap:8px;">
             <div class="setting-card" style="flex:1; min-width:0; padding:16px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Profile.searchAndSaveAddress('home')">
-              <span class="address-icon" style="font-size:1.5rem; margin-bottom:8px;">🏠</span>
+              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏠</span>
               <div id="prof-home-container" style="width:100%; overflow:hidden;">
-                ${homeName ? `<div style="font-size:0.9375rem; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${homeName}</div>` : `<div style="font-size:0.875rem; color:var(--text-400); font-weight:600;">집 주소 검색</div>`}
+                ${homeName ? `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${homeName}</div>` : `<div style="font-size:14px; color:var(--text-400); font-weight:600;">집 주소 검색</div>`}
               </div>
             </div>
             <div class="setting-card" style="flex:1; min-width:0; padding:16px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Profile.searchAndSaveAddress('work')">
-              <span class="address-icon" style="font-size:1.5rem; margin-bottom:8px;">🏢</span>
+              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏢</span>
               <div id="prof-office-container" style="width:100%; overflow:hidden;">
-                ${workName ? `<div style="font-size:0.9375rem; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${workName}</div>` : `<div style="font-size:0.875rem; color:var(--text-400); font-weight:600;">회사 주소 검색</div>`}
+                ${workName ? `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${workName}</div>` : `<div style="font-size:14px; color:var(--text-400); font-weight:600;">회사 주소 검색</div>`}
               </div>
             </div>
           </div>
@@ -127,8 +120,8 @@ const Profile = {
               <div class="address-input-wrap" style="flex:1">
                 <span class="address-icon">☁️</span>
                 <div class="address-input" style="display:flex; flex-direction:column; align-items:flex-start; background:transparent; color:var(--text-800)">
-                  <span>클라우드 동기화 ${Cloud.isSignedIn() ? '<span style="font-size:0.75rem; color:var(--accent);">지금 동기화</span>' : ''}</span>
-                  <span id="cloud-status-text" style="font-size:0.75rem; color:var(--text-400); font-weight:400;">${Cloud.statusText()}</span>
+                  <span>클라우드 동기화 ${Cloud.isSignedIn() ? '<span style="font-size:12px; color:var(--accent);">지금 동기화</span>' : ''}</span>
+                  <span id="cloud-status-text" style="font-size:12px; color:var(--text-400); font-weight:400;">${Cloud.statusText()}</span>
                 </div>
               </div>
             </div>` : ''}
@@ -208,7 +201,7 @@ const Profile = {
       <div class="fake-ad-content">
         <div class="spinner"></div>
         <h3>테스트 광고 재생 중...</h3>
-        <p>개발용 테스트 모드예요.<br><span style="color:#888; font-size:0.75rem;">(오늘 ${m.ad_today + 1}/${m.ad_limit})</span></p>
+        <p>개발용 테스트 모드예요.<br><span style="color:#888; font-size:12px;">(오늘 ${m.ad_today + 1}/${m.ad_limit})</span></p>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -251,23 +244,17 @@ const Profile = {
 
   setSize(size, el) {
     localStorage.setItem('bp_size', size);
-    App.applySize(size);
-
+    let basePx = 16;
+    if (size === 'small') basePx = 14;
+    if (size === 'large') basePx = 18;
+    document.documentElement.style.fontSize = basePx + 'px';
+    
     // Update UI active state
     const siblings = el.parentElement.querySelectorAll('.setting-opt-btn');
     siblings.forEach(s => s.classList.remove('active'));
     el.classList.add('active');
 
     U.toast(`글자 크기가 '${this.sizeMap[size]}'로 변경되었습니다.`);
-    U.haptic();
-  },
-
-  toggleEasy(btn) {
-    const on = localStorage.getItem('bp_easy') !== '1';
-    localStorage.setItem('bp_easy', on ? '1' : '0');
-    document.documentElement.classList.toggle('easy', on);
-    btn.classList.toggle('on', on); btn.setAttribute('aria-checked', String(on));
-    U.toast(on ? '쉬운 화면을 켰어요.' : '쉬운 화면을 껐어요.');
     U.haptic();
   },
 
