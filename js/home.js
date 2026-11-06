@@ -292,14 +292,14 @@ const Home = {
             </button>
           </div>
 
-          <!-- 다가오는 라운딩: 일정 앱의 핵심이라 상단 바로 아래에 배치 -->
-          ${upcomingScheds.length > 0 ? `
+          <!-- 그다음 라운딩: 가장 가까운 라운딩은 맨 위에 이미 나오므로, 2개 이상일 때 두 번째부터만 -->
+          ${upcomingScheds.length > 1 ? `
             <div class="glounge-upcoming-box">
               <div class="upcoming-head">
-                <span class="upcoming-title">다가오는 라운딩</span>
+                <span class="upcoming-title">그다음 라운딩</span>
                 <button class="upcoming-more-btn" onclick="App.navigate('calendar')">전체보기 &gt;</button>
               </div>
-              ${upcomingScheds.slice(0, 2).map((sched, idx) => {
+              ${upcomingScheds.slice(1, 3).map((sched, idx) => {
                 const cName = sched.course ? sched.course.name : (sched.courseName || '골프장');
                 const dObj = sched.date instanceof Date ? sched.date : new Date(sched.date);
                 const dStr = `${dObj.getMonth() + 1}월 ${dObj.getDate()}일 (${U.DAYS ? U.DAYS[dObj.getDay()] : '일'})`;
