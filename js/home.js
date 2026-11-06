@@ -286,7 +286,33 @@ const Home = {
             <button type="button" class="home-big-btn secondary easy-only" onclick="App.navigate('calendar')">📅 내 일정 보기</button>
           </div>
 
-          <!-- 다가오는 라운딩: 일정 앱의 핵심이라 상단 바로 아래에 배치 -->
+          <!-- 주간 달력: 광고 배너에 가리지 않게 등록 버튼 바로 아래 -->
+          <div class="glounge-week-card">
+            <div class="week-card-head">
+              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
+
+            </div>
+
+            <div class="week-card-grid" onclick="App.navigate('calendar')">
+              ${weekDays.map(item => {
+                let dayColor = '#94a3b8';
+                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
+                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
+                
+                return `
+                  <div class="week-day-col">
+                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
+                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
+                      ${item.dateNum}
+                    </div>
+                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- 다가오는 라운딩 -->
           ${upcomingScheds.length > 0 ? `
             <div class="glounge-upcoming-box">
               <div class="upcoming-head">
@@ -317,87 +343,20 @@ const Home = {
             </div>
           ` : ''}
 
-          <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
-          <div class="glounge-score-grid">
-            
-            <!-- Left Card: Recent Score (Soft Sky Blue + 3D Golfer) -->
-            <div class="glounge-score-card card-blue ${hasRecent ? '' : 'is-empty'}" onclick="${hasRecent ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-blue">최근 스코어</div>
-              ${hasRecent ? `<div class="card-score-row">
-                <span class="card-score-num">${recentScore}</span>
-                <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
-              </div>
-              <div class="card-meta-info">
-                <span class="card-meta-date">${recentDate}</span>
-                <span class="card-meta-course">${U.esc(recentCourse)}</span>
-              </div>` : `<div class="card-empty-cta">스코어 등록하기 ›</div>
-              <div class="card-meta-info"><span class="card-meta-date">라운딩 후 남겨 보세요</span></div>`}
-              <div class="card-corner-thumb">
-                <img src="img/glounge_thumb_golfer.jpg?v=restore" alt="Golfer Thumbnail" />
-              </div>
-            </div>
-
-            <!-- Right Card: Life Best (Soft Warm Cream Gold + 3D Trophy) -->
-            <div class="glounge-score-card card-gold ${hasBest ? '' : 'is-empty'}" onclick="${hasBest ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-gold">라이프 베스트</div>
-              ${hasBest ? `<div class="card-score-row">
-                <span class="card-score-num gold">${bestScore}</span>
-                <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
-              </div>
-              <div class="card-meta-info">
-                <span class="card-meta-date gold">${bestDate}</span>
-                <span class="card-meta-course gold">${U.esc(bestCourse)}</span>
-              </div>` : `<div class="card-empty-cta gold">첫 기록 남기기 ›</div>
-              <div class="card-meta-info"><span class="card-meta-date gold">최고 기록이 쌓여요</span></div>`}
-              <div class="card-corner-thumb">
-                <img src="img/glounge_gold_trophy.jpg" alt="Gold Trophy" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Sleek Yearly Round Stat Card (가로 바 레이아웃 + 3D 원형 배지 아이콘) -->
-          <div class="glounge-round-stat-card ${yearlyCount > 0 ? '' : 'is-empty'}" onclick="${yearlyCount > 0 ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-            <div class="stat-left">
-              <div class="stat-3d-icon-wrap">
-                <img src="img/glounge_round_flag.jpg" alt="Round Icon" />
-              </div>
-              <div class="stat-text-wrap">
-                <div class="stat-title">올해 라운드</div>
-                <div class="stat-desc">${yearlyCount > 0 ? `올해 <strong>${yearlyCount}번</strong>의 라운드를 즐기고 계시네요.` : '스코어를 남기면 횟수가 쌓여요.'}</div>
-              </div>
-            </div>
-            <div class="stat-right">
-              ${yearlyCount > 0 ? `<div class="stat-badge-num">
-                <span class="num">${yearlyCount}</span><span class="unit">회</span>
-              </div>
-              <div class="stat-badge-year">${currentYear}년 누적</div>` : `<span class="stat-empty-cta">기록하기 ›</span>`}
-            </div>
-          </div>
-
-          <!-- Modern Weekly Calendar Strip Card (올해 라운드 바로 밑에 배치) -->
-          <div class="glounge-week-card">
-            <div class="week-card-head">
-              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
-
-            </div>
-
-            <div class="week-card-grid" onclick="App.navigate('calendar')">
-              ${weekDays.map(item => {
-                let dayColor = '#94a3b8';
-                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
-                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
-                
-                return `
-                  <div class="week-day-col">
-                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
-                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
-                      ${item.dateNum}
-                    </div>
-                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
-                  </div>
-                `;
-              }).join('')}
-            </div>
+          <!-- 기록 요약 한 줄: 최근 스코어 · 라이프 베스트 · 올해 라운드 (누르면 기록) -->
+          <div class="home-stats-row">
+            <button type="button" class="hs-cell" onclick="${hasRecent ? "App.navigate('record')" : 'Home.openScoreForm()'}">
+              <span class="hs-label">최근 스코어</span>
+              ${hasRecent ? `<span class="hs-num">${recentScore}<small>(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</small></span><span class="hs-sub">${U.esc(recentCourse)}</span>` : `<span class="hs-cta">기록하기 ›</span>`}
+            </button>
+            <button type="button" class="hs-cell gold" onclick="${hasBest ? "App.navigate('record')" : 'Home.openScoreForm()'}">
+              <span class="hs-label">라이프 베스트</span>
+              ${hasBest ? `<span class="hs-num">${bestScore}<small>(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</small></span><span class="hs-sub">${bestDate}</span>` : `<span class="hs-cta">첫 기록 ›</span>`}
+            </button>
+            <button type="button" class="hs-cell green" onclick="${yearlyCount > 0 ? "App.navigate('record')" : 'Home.openScoreForm()'}">
+              <span class="hs-label">올해 라운드</span>
+              ${yearlyCount > 0 ? `<span class="hs-num">${yearlyCount}<small>회</small></span><span class="hs-sub">${currentYear}년 누적</span>` : `<span class="hs-cta">기록하기 ›</span>`}
+            </button>
           </div>
 
           <!-- 바로가기: 타임라인 · 단체등록 · 럭키드로우(커뮤니티) · 추천맛집 (마켓은 아래 메뉴에 있음) -->

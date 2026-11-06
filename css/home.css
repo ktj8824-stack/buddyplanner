@@ -938,3 +938,31 @@ html.easy #screen-home .home-points { display: none !important; }
 html.easy #screen-home .hero-main-btn.has-sched { display: none; }
 .home-glounge-wrapper .hero-times { display: flex; width: auto; max-width: none; }
 .home-main-actions { position: relative; z-index: 1; }
+
+/* =========================================
+   홈 압축 (배너 광고에 주간 달력이 가리지 않게)
+   ========================================= */
+.home-glounge-hero { padding: 10px 20px 8px; align-items: center; }
+.glounge-hero-figure { width: 112px; height: 112px; margin-bottom: 0; }
+.hero-main-btn.has-sched { display: none; }   /* 일정이 있으면 세 시각 카드를 누르면 타임라인 (다가오는 라운딩에도 버튼 있음) */
+.home-glounge-wrapper .hero-times { margin: 0 20px 22px; padding: 10px; }
+.hero-times .mini-tl-val { font-size: 1.5rem; }
+.home-big-btn { min-height: 50px; }
+.home-main-actions { margin-bottom: 10px; }
+.glounge-week-card { padding: 12px 14px; margin-bottom: 12px; }
+.glounge-week-card .week-card-head { margin-bottom: 6px; }
+
+.home-stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.hs-cell {
+  min-height: 76px; padding: 10px 8px; border-radius: 14px; border: 1px solid #dbeafe; background: #f0f7ff;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; cursor: pointer; font: inherit; min-width: 0;
+}
+.hs-cell.gold { background: #fffaf0; border-color: #fde68a; }
+.hs-cell.green { background: #f0fdf4; border-color: #bbf7d0; }
+.hs-label { font-size: 0.8125rem; font-weight: 700; color: #475569; }
+.hs-num { font-size: 1.375rem; font-weight: 900; color: #0f172a; line-height: 1.15; }
+.hs-cell.gold .hs-num { color: #b45309; }
+.hs-cell.green .hs-num { color: #15803d; }
+.hs-num small { font-size: 0.8125rem; font-weight: 700; color: #64748b; margin-left: 2px; }
+.hs-sub { font-size: 0.8125rem; color: #64748b; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.hs-cta { font-size: 0.9375rem; font-weight: 800; color: #2563eb; margin-top: 4px; }
