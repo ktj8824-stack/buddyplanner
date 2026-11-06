@@ -158,7 +158,9 @@ img { max-width: 100%; display: block; }
   transform: translateX(-50%);
   width: 100%;
   max-width: var(--app-w);
-  height: calc(var(--nav-h) + var(--safe-bottom));
+  /* 아이폰 홈 표시줄 여백을 20px 줄여 메뉴를 아래로 (광고 배너도 같이 내려감) */
+  --nav-safe: max(calc(var(--safe-bottom) - 20px), 0px);
+  height: calc(var(--nav-h) + var(--nav-safe));
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -166,7 +168,7 @@ img { max-width: 100%; display: block; }
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding-bottom: var(--safe-bottom);
+  padding-bottom: var(--nav-safe);
   z-index: var(--z-sticky);
 }
 .gnb-item {
