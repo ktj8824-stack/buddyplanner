@@ -95,6 +95,20 @@ const TOOLS = [
   },
 ];
 
+/** 다가오는 일정에 '오늘/내일/N일 뒤'를 붙임 (모델이 날짜 차이를 잘못 계산하지 않게) */
+function withWhen(ctx: Json): Json[] {
+  const list: Json[] = Array.isArray(ctx.upcoming) ? ctx.upcoming : [];
+  const today = String(ctx.today || '').slice(0, 10);
+  const t0 = Date.parse(today + 'T00:00:00Z');
+  return list.map((u) => {
+    const d = Date.parse(String(u && u.date || '').slice(0, 10) + 'T00:00:00Z');
+    if (isNaN(t0) || isNaN(d)) return u;
+    const n = Math.round((d - t0) / 86400000);
+    const when = n === 0 ? '오늘' : n === 1 ? '내일' : n === 2 ? '모레' : n > 0 ? `${n}일 뒤` : `${-n}일 전`;
+    return { ...u, when };
+  });
+}
+
 function systemPrompt(ctx: Json): string {
   return `당신은 골프 일정 앱 'BuddyPlanner'의 AI 비서 '버디'입니다. 한국어로 친근하고 간결하게 답하세요.
 
@@ -109,12 +123,13 @@ function systemPrompt(ctx: Json): string {
 - 일정 등록·스코어 저장·식사 추가는 propose_* 도구로 '제안'만 합니다. 저장은 사용자가 카드의 버튼을 눌러야 완료되므로 "등록했어요"가 아니라 "아래 카드에서 확인해 주세요"라고 말합니다.
 - "○일 라운딩 끝나고 여기 가게 일정에 넣어줘"처럼 식당을 일정에 넣어 달라고 하면, 다가오는 일정 목록에서 날짜·골프장이 맞는 일정의 idx로 propose_meal을 씁니다. 라운딩 전 식사면 timing=before, 끝나고 가면 after입니다. 그 날짜에 일정이 없으면 없다고 말하고 일정 등록(propose_schedule)부터 제안합니다. 식당은 이번 대화에서 search_restaurants로 찾은 곳이어야 하니, 아직 검색하지 않았다면 먼저 검색합니다.
 - 필수 정보(골프장, 날짜, 티오프 시간)가 빠지면 추측하지 말고 짧게 물어봅니다. 날짜는 오늘 기준으로 계산합니다.
+- 다가오는 일정을 말할 때는 각 일정의 when 값(오늘·내일·N일 뒤)과 date를 그대로 씁니다. '내일', '이번 주' 같은 말을 직접 계산해 붙이지 마세요.
 - 스코어카드 사진: 골프장 이름, 날짜, 사용자 본인의 홀별 타수와 합계를 읽어 propose_score_record로 제안합니다. 동반자 줄이 여러 개면 사용자 이름(${ctx.userName || '사용자'})과 가장 가까운 줄을 쓰고, 애매하면 어느 줄인지 물어봅니다. 잘 안 보이는 값은 지어내지 말고 확인을 요청합니다.
 
 [사용자 정보]
 - 오늘: ${ctx.today || ''}
 - 닉네임: ${ctx.userName || ''}
-- 다가오는 일정: ${JSON.stringify(ctx.upcoming || [])}
+- 다가오는 일정: ${JSON.stringify(withWhen(ctx))}
 - 스코어 요약: ${JSON.stringify(ctx.records || {})}`;
 }
 
