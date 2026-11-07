@@ -1,14 +1,13 @@
 /* =========================================
    BuddyPlanner — 차에 타면 자동 길안내 (로드플래너 AutoNav를 골프 일정에 맞게 옮김)
    앱 주소 뒤에 ?go=next 를 붙여 열면, 오늘 라운딩의 '지금 가야 할 곳'으로
-   기본 내비(티맵/카카오내비)를 3초 뒤 자동으로 엽니다.
+   기본 내비(티맵/카카오내비)를 정해 두었으면 바로 열고, '매번 선택'이면 내비 고르기 창을 띄웁니다.
    - 아이폰: 단축어 자동화 "CarPlay(또는 차 블루투스)에 연결되면 → URL 열기"
    - 갤럭시: 모드 및 루틴 "차량 블루투스 연결 시 → 웹페이지 열기"
    가야 할 곳: 집 → (모임장소) → (식당) → 골프장 → (뒷풀이 식당) → 집
    ========================================= */
 const AutoNav = {
   LINK: 'https://buddyplanner.kr/?go=next',
-  COUNTDOWN: 3,
   WAIT_MS: 8000,
   LATE_MIN: 45,          // 출발 시각이 45분 넘게 지난 구간은 이미 지나간 것으로 봄
   _timer: null,
@@ -95,7 +94,7 @@ const AutoNav = {
     this._leg = leg;
     const pref = this.pref();
     const app = pref === 'tmap' ? '티맵' : pref === 'kakao' ? '카카오내비' : '';
-    let left = this.COUNTDOWN;
+    const left = 0;
     const tee = leg.s.teeOff ? ` · 티오프 ${U.fmtTimeKo ? U.fmtTimeKo(leg.s.teeOff) : leg.s.teeOff}` : '';
     const body = () => `
       <div class="an-k">⛳ ${esc(leg.s.course.name)}${esc(tee)}</div>
@@ -109,17 +108,12 @@ const AutoNav = {
         <button type="button" class="an-go an-kakao" onclick="AutoNav.go('kakao')">카카오내비</button>`}
       </div>
       ${app ? '' : '<button type="button" class="an-link" onclick="AutoNav.cancel()">닫기</button>'}`;
+    // 기본 내비를 정해 두었으면 기다리지 않고 바로 내비를 엶 (운전 중 화면을 누를 일이 없게)
+    if (app) {
+      if (typeof U !== 'undefined' && U.toast) U.toast(`🚗 ${leg.to.name}(으)로 ${app} 안내를 시작합니다`);
+      return this.go();
+    }
     this._overlay(body(), true);
-    if (!app) return;
-    const step = () => {
-      left -= 1;
-      if (left <= 0) return this.go();
-      const box = document.getElementById('an-box');
-      if (!box) return;
-      box.innerHTML = body();
-      this._timer = setTimeout(step, 1000);
-    };
-    this._timer = setTimeout(step, 1000);
   },
 
   go(appArg) {
