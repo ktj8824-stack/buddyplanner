@@ -112,6 +112,19 @@ const Profile = {
             </div>
           </div>
           
+          <div class="profile-section-title">길안내</div>
+          <div class="setting-card">
+            <div class="setting-item" style="cursor:pointer" onclick="AutoNav.openGuide()">
+              <div class="address-input-wrap" style="flex:1">
+                <span class="address-icon">🚗</span>
+                <div class="address-input" style="display:flex; flex-direction:column; align-items:flex-start; background:transparent; color:var(--text-800)">
+                  <span>차에 타면 자동 길안내</span>
+                  <span style="font-size:12px; color:var(--text-400); font-weight:400;">차와 연결되면 다음 장소로 내비가 켜져요</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="profile-section-title">데이터 관리</div>
           
           <div class="setting-card">
