@@ -86,6 +86,7 @@ const AIAgent = {
         const d = new Date(s.date);
         return {
           idx,
+          aid: State.aidOf ? State.aidOf(s) : undefined,
           course: s.course && s.course.name,
           course_lat: s.course && s.course.lat,
           course_lng: s.course && s.course.lng,
@@ -117,6 +118,7 @@ const AIAgent = {
 
     return {
       today: `${ymd(now)} (${days[now.getDay()]})`,
+      now: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
       userName: localStorage.getItem('bp_user_name') || '',
       upcoming,
       records
@@ -266,8 +268,29 @@ const AIAgent = {
           ${btn('기록 저장', 'confirmScore')}
         </div>`;
     }
+    if (a.type === 'update') {
+      const idx = this._schedIdx(a);
+      const s = idx >= 0 ? State.schedules[idx] : null;
+      const name = s ? s.course.name : a.course_name;
+      const oldDate = s ? U.fmtDateShort(s.date) : a.old_date;
+      const oldTee = s ? s.teeOff : a.old_tee_off;
+      const rows = a.cancel
+        ? `<div><span>날짜</span><b>${U.esc(oldDate)}</b></div><div><span>티오프</span><b>${U.esc(oldTee)}</b></div>`
+        : `${a.new_date ? `<div><span>날짜</span><b>${U.esc(oldDate)} → ${U.esc(a.new_date)}</b></div>` : `<div><span>날짜</span><b>${U.esc(oldDate)}</b></div>`}
+           ${a.new_tee_off ? `<div><span>티오프</span><b>${U.esc(oldTee)} → ${U.esc(a.new_tee_off)}</b></div>` : ''}`;
+      return `
+        <div class="ai-act-card">
+          <div class="ai-act-title">${a.cancel ? '🗑️ 라운딩 일정 취소' : '⛳ 라운딩 일정 변경'}</div>
+          <div class="ai-act-body">
+            <div><span>골프장</span><b>${U.esc(name || '')}</b></div>
+            ${s ? rows : '<div><span>일정</span><b>일정을 찾을 수 없어요</b></div>'}
+          </div>
+          <p class="ai-act-note">${a.cancel ? '일정과 알람이 함께 지워져요.' : '출발 시간과 알람도 바뀐 시각으로 다시 맞춰요.'}</p>
+          ${s ? btn(a.cancel ? '일정 삭제' : '변경하기', 'confirmUpdate') : ''}
+        </div>`;
+    }
     if (a.type === 'meal') {
-      const s = State.schedules[a.schedule_index];
+      const s = State.schedules[this._schedIdx(a)];
       const when = a.timing === 'after' ? '라운딩 후 식사' : '라운딩 전 식사';
       return `
         <div class="ai-act-card">
@@ -366,11 +389,50 @@ const AIAgent = {
     U.toast(`📝 ${date} ${a.total_score}타 기록을 저장했어요.`);
   },
 
+  /** 제안이 가리키는 일정 번호: 일정 고유 번호(aid)를 먼저 찾고, 없으면 idx (그사이 일정이 지워져도 엉뚱한 일정을 바꾸지 않게) */
+  _schedIdx(a) {
+    const list = State.schedules || [];
+    if (a.aid) return list.findIndex(s => s && s.aid === a.aid);
+    return list[a.schedule_index] ? a.schedule_index : -1;
+  },
+
+  /** 일정 변경·취소: 기존 일정을 바로 고치고 이전 알람을 지운 뒤 새 시각으로 다시 예약 (새 일정을 만들지 않음) */
+  confirmUpdate(msgId, i) {
+    const { msg, a } = this._action(msgId, i);
+    if (!a) return;
+    const idx = this._schedIdx(a);
+    const s = State.schedules[idx];
+    if (!s) { U.toast('일정을 찾을 수 없어요.'); return; }
+    if (a.cancel) {
+      if (!confirm(`${s.course.name} ${U.fmtDateShort(s.date)} 일정을 삭제할까요?`)) return;
+      if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(s, true);
+      State.schedules.splice(idx, 1);
+      State.saveSchedules();
+      try { if (typeof Timeline !== 'undefined') Timeline.autoScheduleAllAlarms(); } catch (e) {}
+      this._finish(msg, a, 'done');
+      U.toast('🗑️ 일정을 삭제했어요.');
+      return;
+    }
+    const next = Object.assign({}, s);
+    if (a.new_date) {
+      const [y, mo, d] = String(a.new_date).split('-').map(Number);
+      next.date = new Date(y, mo - 1, d);
+    }
+    if (a.new_tee_off) next.teeOff = a.new_tee_off;
+    // 이전 시각으로 걸린 알람을 먼저 지움 → 바뀐 시각으로 한 번만 울림 (일정 수정 화면과 같은 순서)
+    if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(s, true);
+    State.updateSchedule(idx, next);
+    if (State.saveFailed) { State.schedules[idx] = s; try { Timeline.autoScheduleAllAlarms(); } catch (e) {} return; }
+    try { if (typeof Timeline !== 'undefined') Timeline.autoScheduleAllAlarms(); } catch (e) {}
+    this._finish(msg, a, 'done');
+    U.toast(`⛳ ${next.course.name} ${U.fmtDateShort(next.date)} ${U.fmtTimeKo(next.teeOff)}로 바꿨어요.`);
+  },
+
   /** 식사: 일정 수정 화면을 열고 식당을 넣어둠 (저장은 사용자가) */
   confirmMeal(msgId, i) {
     const { msg, a } = this._action(msgId, i);
     if (!a || !a.restaurant) return;
-    const idx = a.schedule_index;
+    const idx = this._schedIdx(a);
     if (!State.schedules[idx]) { U.toast('일정을 찾을 수 없어요.'); return; }
     const r = a.restaurant;
     this._finish(msg, a, 'done');
