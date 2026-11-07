@@ -15,7 +15,7 @@
     { "group": "날짜 표현", "say": "이번 주 일요일 11시 반 해슬리나인브릿지", "tool": "propose_schedule", "expect": { "date": "2026-11-08", "tee_off": "11:30" } },
     { "group": "날짜 표현", "say": "글피 정오에 라비에벨", "tool": "propose_schedule", "expect": { "date": "2026-11-10", "tee_off": "12:00" } },
     { "group": "날짜 표현", "say": "다음 달 3일 오후 1시 베어크리크", "tool": "propose_schedule", "expect": { "date": "2026-12-03", "tee_off": "13:00" } },
-    { "group": "날짜 표현", "say": "수요일 11시 20분 블루헤런", "tool": "propose_schedule", "expect": { "date": "2026-11-11", "tee_off": "11:20" } },
+    { "group": "날짜 표현", "say": "다음 주 수요일 11시 20분 블루헤런", "tool": "propose_schedule", "expect": { "date": "2026-11-11", "tee_off": "11:20" } },
     { "group": "음성 오타", "say": "내일 모레 칠시 반 레이크 사이드 씨씨", "tool": "propose_schedule", "expect": { "date": "2026-11-09", "tee_off": "07:30", "course_name~": "레이크" } },
     { "group": "음성 오타", "say": "다음주 화요일 여덟시 남촌 씨씨 티업", "tool": "propose_schedule", "expect": { "date": "2026-11-10", "tee_off": "08:00", "course_name~": "남촌" } },
     { "group": "맛집", "say": "레이크사이드CC 근처 해장국집 추천해줘", "tool": "search_restaurants", "expect": { "course_name~": "레이크사이드" } },
