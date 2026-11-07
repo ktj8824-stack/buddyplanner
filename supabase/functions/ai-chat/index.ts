@@ -164,7 +164,8 @@ export function calendarTable(today: string): string {
     const ymd = t.toISOString().slice(0, 10);
     const w = DOW[t.getUTCDay()];
     const week = Math.floor((i + mondayOffset) / 7);
-    const tags = [rel[i], ['이번 주', '다음 주', '다다음 주'][week] + ' ' + w + '요일'].filter(Boolean);
+    const wk = ['이번 주', '다음 주', '다다음 주'][week];   // 오늘이 월요일이 아니면 21일째 쪽은 그다음 주라 이름 없음
+    const tags = [rel[i], wk ? wk + ' ' + w + '요일' : null].filter(Boolean);
     if (week === 0 && (w === '토' || w === '일')) tags.push('이번 주말');
     if (week === 1 && (w === '토' || w === '일')) tags.push('다음 주말');
     lines.push(`${ymd}(${w}) ${koDate(ymd)} ${tags.join(', ')}`);

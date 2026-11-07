@@ -51,26 +51,52 @@ const AutoNav = {
     if (rest) legs.push({ dep: tl.restDepart, from: rest, to: course, label: '골프장으로 출발' });
     if (post) legs.push({ dep: tl.roundEnd, from: course, to: post, label: '뒷풀이 식당으로' });
     legs.push({ dep: tl.returnStart, from: post || course, to: home, label: '집으로 귀가' });
-    return legs.filter(l => this._min(l.dep) != null && l.to && l.to.lat && l.to.lng);
+    // 구간마다 '언제까지 이 구간이 맞는지(until)'를 붙임 (라운딩 날 0시 기준 분, 전날 밤 출발은 음수)
+    //  - 골프장 쪽으로 가는 구간: 티오프 + 45분까지 (늦게 출발해도 골프장으로 안내)
+    //  - 뒷풀이 식당: 귀가 출발 시각까지 / 집으로 귀가: 자정까지
+    const tee = this._min(s.teeOff);
+    const out = [];
+    for (const l of legs) {
+      let dep = this._min(l.dep);
+      if (dep == null || !l.to || !l.to.lat || !l.to.lng) continue;
+      const toCourseSide = l.label !== '뒷풀이 식당으로' && l.label !== '집으로 귀가';
+      if (toCourseSide && tee != null && dep > tee) dep -= 1440;   // 새벽 티오프: 전날 밤 출발
+      let until;
+      if (toCourseSide) until = (tee != null ? tee : dep) + this.LATE_MIN;
+      else if (l.label === '뒷풀이 식당으로') until = this._min(tl.returnStart) != null ? this._min(tl.returnStart) : 1440;
+      else until = 1440;
+      out.push({ ...l, depMin: dep, until });
+    }
+    return out;
   },
 
-  /** 지금 가야 할 곳: 오늘 라운딩에서 출발 시각이 45분 이상 지나지 않은 첫 구간 */
+  /** 지금 가야 할 곳: 오늘 라운딩(또는 오늘 밤에 출발하는 내일 새벽 라운딩)에서 아직 끝나지 않은 첫 구간 */
   nextLeg(now = new Date()) {
     if (typeof State === 'undefined' || !Array.isArray(State.schedules)) return null;
-    const ymd = d => d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
     const nowMin = now.getHours() * 60 + now.getMinutes();
+    const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     let todayCount = 0;
     const cands = [];
     State.schedules.forEach((s, idx) => {
-      if (!s || !s.date || !s.course || ymd(new Date(s.date)) !== ymd(now)) return;
-      todayCount++;
+      if (!s || !s.date || !s.course) return;
+      const d = new Date(s.date);
+      const diff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - today0) / 86400000);
+      if (diff !== 0 && diff !== 1) return;
       if (!s.timeline) { try { State.calculateTimeline(idx); } catch (e) { return; } }
-      for (const l of this._legs(s)) {
-        const dep = this._min(l.dep);
-        if (dep >= nowMin - this.LATE_MIN) { cands.push({ ...l, depMin: dep, s }); break; }
+      const legs = this._legs(s);
+      if (!legs.length) return;
+      const cur = nowMin - diff * 1440;          // 라운딩 날 0시 기준 지금 (내일 라운딩이면 음수)
+      if (diff === 1) {
+        // 내일 라운딩은 오늘 밤에 출발하는 경우만, 출발 3시간 전부터
+        if (legs[0].depMin >= 0 || cur < legs[0].depMin - 180) return;
+      }
+      todayCount++;
+      for (const l of legs) {
+        if (cur < l.until) { cands.push({ ...l, depMin: l.depMin + diff * 1440, s }); break; }
       }
     });
-    cands.sort((a, b) => a.depMin - b.depMin);
+    // 후보가 여럿이면 출발 시각이 지금과 가장 가까운 구간 (예: 밤 11시 45분 = 오늘 귀가보다 오늘 밤 출발하는 내일 새벽 라운딩)
+    cands.sort((a, b) => Math.abs(a.depMin - nowMin) - Math.abs(b.depMin - nowMin));
     return { todayCount, leg: cands[0] || null };
   },
 

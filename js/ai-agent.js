@@ -81,7 +81,7 @@ const AIAgent = {
       .map((s, idx) => ({ s, idx }))
       .filter(({ s }) => s && s.date && new Date(s.date) >= today0)
       .sort((a, b) => new Date(a.s.date) - new Date(b.s.date))
-      .slice(0, 5)
+      .slice(0, 10)
       .map(({ s, idx }) => {
         const d = new Date(s.date);
         return {
