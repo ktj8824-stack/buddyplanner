@@ -172,7 +172,7 @@ const App = {
     }
     this.updateNav(['timeline', 'register'].includes(name) ? 'calendar' : name);
     
-    const hideHeaderScreens = ['splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade', 'admin', 'group'];
+    const hideHeaderScreens = ['home', 'calendar', 'record', 'profile', 'splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade', 'admin', 'group'];
     const nav = U.$('#top-header');
     if (nav) {
       if (hideHeaderScreens.includes(name)) {
@@ -184,7 +184,7 @@ const App = {
 
     const bottomNav = U.$('#gnb');
     if (bottomNav) {
-      if (name === 'splash' || name === 'onboarding' || name === 'login') {
+      if (name === 'splash' || name === 'onboarding' || name === 'login' || name === 'register') {
         bottomNav.style.display = 'none';
       } else {
         bottomNav.style.display = 'flex';
@@ -261,9 +261,9 @@ const App = {
         <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>
         <span class="nav-label">홈</span>
       </button>
-      <button class="gnb-item" data-s="market" onclick="App.navigate('market')">
-        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
-        <span class="nav-label">마켓</span>
+      <button class="gnb-item" data-s="calendar" onclick="App.navigate('calendar')">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>
+        <span class="nav-label">일정</span>
       </button>
       <button class="gnb-item gnb-item-ai" data-s="ai" onclick="App.navigate('ai')">
         <div class="gnb-ai-btn-bubble">
@@ -302,7 +302,7 @@ const App = {
   openMenu() {
     const items = [
       ...(this.COMMUNITY_OPEN ? [{ s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' }] : []),
-      { s: 'calendar', icon: '📅', name: '일정 캘린더', desc: '월별 라운딩 일정 보기' },
+      { s: 'market', icon: '🛍️', name: '버디 마켓', desc: '골프용품 · 차량용품' },
       { s: 'raffle', icon: '🎁', name: '포인트 럭키드로우', desc: '무료 포인트로 응모' },
       { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
       { s: 'upgrade', icon: '👑', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 무제한 일정 · 당일 예보 · 광고 제거' }

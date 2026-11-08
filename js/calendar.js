@@ -1,206 +1,138 @@
 /* =========================================
-   BuddyPlanner v2 — Calendar Screen
-   Calendar Main + Upcoming Schedules
+   BuddyPlanner — 일정 (월 달력 + 선택한 날의 라운딩)
    ========================================= */
 
 const Calendar = {
+  _sel: null,          // { y, m, d } 선택한 날
+  _pendingSel: null,   // 홈 '이번 주'에서 누른 날
+
   init() {
+    const today = new Date();
+    if (State.calYear === undefined || State.calMonth === undefined) { State.calYear = today.getFullYear(); State.calMonth = today.getMonth(); }
+    if (this._pendingSel) {
+      this._sel = this._pendingSel; this._pendingSel = null;
+      State.calYear = this._sel.y; State.calMonth = this._sel.m;
+    } else {
+      // 처음 열면: 가장 가까운 예정 라운딩 날 (없으면 오늘)
+      const t0 = new Date(today); t0.setHours(0, 0, 0, 0);
+      const next = (State.schedules || []).map(s => new Date(s.date)).filter(d => d >= t0).sort((a, b) => a - b)[0];
+      const d = next || today;
+      this._sel = { y: d.getFullYear(), m: d.getMonth(), d: d.getDate() };
+      State.calYear = d.getFullYear(); State.calMonth = d.getMonth();
+    }
     this.render();
-    setTimeout(() => {
-      const grid = U.$('#cal-grid');
-      if (grid) {
-        const todayCell = grid.querySelector('.cal-day.today');
-        if (todayCell) todayCell.classList.add('selected');
-      }
-    }, 100);
   },
 
   render() {
     const el = U.$('#screen-calendar');
-    if (!el) {
-      console.error('Calendar element not found');
-      return;
-    }
+    if (!el) return;
     try {
-      const nextSch = (State.schedules && State.schedules.length > 0) ? State.schedules[0] : null;
-      const courseName = nextSch ? (nextSch.course ? nextSch.course.name : (nextSch.courseName || '아난티남해 CC')) : '아난티남해 CC';
-      const teeTime = nextSch ? (nextSch.teeTime || nextSch.teeOff || '08:30') : '08:30';
-
-    const y = State.calYear !== undefined ? State.calYear : new Date().getFullYear();
-    const m = State.calMonth !== undefined ? State.calMonth : new Date().getMonth();
-
-    el.innerHTML = `
-      <div class="screen-scroll" style="padding-top: var(--header-h); padding-bottom: calc(var(--nav-h) + 16px); background:#f8fafc;">
-        <div class="cal-main-container">
-          <!-- 1. 화이트 캘린더 카드 컨테이너 -->
-          <div class="cal-card-box">
-            <div class="cal-nav-header">
-              <button class="cal-nav-arrow" onclick="Calendar.prevMonth()" aria-label="이전 달">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>
-              <div class="cal-nav-title">${y}년 ${m + 1}월</div>
-              <button class="cal-nav-arrow" onclick="Calendar.nextMonth()" aria-label="다음 달">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
+      el.innerHTML = `
+        <div class="v2-pagehead"><h1>일정</h1></div>
+        <div class="v2-scroll">
+          <div class="v2-body">
+            <div class="v2-card" style="padding:18px 14px 14px;">
+              <div class="v2-cal-nav">
+                <button class="v2-iconbtn" onclick="Calendar.prevMonth()" aria-label="이전 달"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <b class="cal-nav-title">${State.calYear}년 ${State.calMonth + 1}월</b>
+                <button class="v2-iconbtn" onclick="Calendar.nextMonth()" aria-label="다음 달"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+              </div>
+              <div class="v2-cal-grid" id="cal-grid">${this.renderCalDays()}</div>
+              <div class="v2-cal-legend">
+                <span><i style="width:16px;height:16px;border:2px solid var(--v2-blue);"></i>오늘</span>
+                <span><i style="width:16px;height:16px;background:var(--v2-navy);"></i>선택한 날</span>
+                <span><i style="width:7px;height:7px;background:var(--v2-green);"></i>라운딩</span>
+              </div>
             </div>
-            
-            <div class="cal-weekdays-row">
-              <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-            </div>
-            
-            <div class="cal-days-grid" id="cal-grid">
-              ${this.renderCalDays()}
-            </div>
+            <div id="cal-selected-area">${this.selectedHtml()}</div>
           </div>
-
-          <!-- 2. 선택된 날짜 상세 및 등록 목록 -->
-          <div id="cal-selected-area">
-            ${this.getSelectedDateLabel(y, m, new Date().getDate())}
-          </div>
-        </div>
-      </div>
-    `;
+        </div>`;
     } catch (e) {
       console.error('Calendar Render Error:', e);
       el.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-200);">캘린더를 렌더링하는 중 오류가 발생했습니다.<br><br>앱을 새로고침 해주세요.</div>`;
     }
   },
 
-  // 날짜 레이블 + 일정 목록
-  getSelectAreaHtml(y, m, d) {
-    return this.getSelectedDateLabel(y, m, d);
-  },
-
-  getSelectedDateLabel(y, m, d) {
-    const dateStr = `${y}년 ${m+1}월 ${d}일 (${U.DAYS[new Date(y, m, d).getDay()]})`;
-    const scheds = State.getSchedulesForDate(y, m, d);
-    let schedHtml = '';
-
-    if (scheds.length > 0) {
-      scheds.forEach(s => {
-        const idx = State.schedules.indexOf(s);
-        const dday = U.dday(s.date);
-        const teeTime = U.fmtTimeKo(s.teeOff);
-        const cellDate = new Date(s.date);
-        const todayDate = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-        const isPast = cellDate < todayDate;
-
-        schedHtml += `
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; ${isPast ? 'opacity:0.6;' : ''}" onclick="App.viewTimeline(${idx})">
-            <div style="flex:1; background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <span style="font-size:15px; font-weight:800; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:8px;">${s.course ? s.course.name : (s.courseName || '골프장')}</span>
-              <span style="font-size:13px; font-weight:700; color:#64748b; white-space:nowrap;">${teeTime} <span style="color:#007aff; font-size:12px; font-weight:800; margin-left:4px;">${dday}</span></span>
-            </div>
-            <button onclick="event.stopPropagation(); Calendar.deleteSchedule(${idx})" style="width:34px; height:34px; border-radius:50%; background:rgba(255,59,48,0.08); border:none; color:#ef4444; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink:0; cursor:pointer;" aria-label="일정 삭제">✕</button>
-          </div>
-        `;
-      });
+  renderCalDays() {
+    const y = State.calYear, m = State.calMonth;
+    const firstDay = new Date(y, m, 1).getDay();
+    const days = new Date(y, m + 1, 0).getDate();
+    const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    const sel = this._sel;
+    let html = ['일', '월', '화', '수', '목', '금', '토'].map((w, i) => `<div class="wd ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${w}</div>`).join('');
+    for (let i = 0; i < firstDay; i++) html += '<div></div>';
+    for (let d = 1; d <= days; d++) {
+      const dt = new Date(y, m, d);
+      const cls = ['v2-cal-cell'];
+      if (dt.getDay() === 0) cls.push('sun');
+      if (dt.getDay() === 6) cls.push('sat');
+      if (dt < t0) cls.push('past');
+      if (dt.getTime() === t0.getTime()) cls.push('today');
+      if (sel && sel.y === y && sel.m === m && sel.d === d) cls.push('sel');
+      if (State.hasScheduleOnDate(y, m, d)) cls.push('has');
+      html += `<div class="${cls.join(' ')}" onclick="Calendar.selectDate(event, ${y}, ${m}, ${d})"><span class="n cal-day-num">${d}</span><span class="dot"></span></div>`;
     }
-
-    // 선택 날짜를 버튼에 저장
-    Calendar._selectedY = y; Calendar._selectedM = m; Calendar._selectedD = d;
-
-    return `
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: ${scheds.length > 0 ? '10px' : '4px'}; padding: 0 4px;">
-        <div style="font-size: 17px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">${dateStr}</div>
-        <button onclick="Calendar._addForSelected()" style="background:#04122d; color:#fff; border:none; padding:8px 14px; border-radius:9999px; font-size:12.5px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(4,18,45,0.15); display:flex; align-items:center; gap:5px;">
-          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          새로운 일정
-        </button>
-      </div>
-      ${schedHtml}
-    `;
+    return html;
   },
 
-  // 고정 버튼 클릭 시 선택된 날짜로 일정 등록
+  selectedHtml() {
+    const sel = this._sel;
+    if (!sel) return '';
+    const { y, m, d } = sel;
+    const date = new Date(y, m, d);
+    const scheds = State.getSchedulesForDate(y, m, d);
+    const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    const cards = scheds.map(s => {
+      const idx = State.schedules.indexOf(s);
+      if (!s.timeline && State.calculateTimeline) { try { State.calculateTimeline(idx); } catch (e) {} }
+      const tl = s.timeline || {};
+      const diff = Math.round((date - t0) / 864e5);
+      const n = (s.companions || []).length;
+      const on = !s.alarmOff;
+      return `
+        <div class="v2-card">
+          <div class="v2-rcard-top" onclick="App.viewTimeline(${idx})">
+            <b>${U.esc(s.course ? s.course.name : (s.courseName || '골프장'))}</b>
+            <span class="v2-pill blue">${diff === 0 ? 'D-Day' : diff > 0 ? 'D-' + diff : '지난 라운딩'}</span>
+          </div>
+          <div class="v2-rcard-times" onclick="App.viewTimeline(${idx})">
+            <div><span>출발</span><b>${tl.homeDepart || '--:--'}</b></div>
+            <div><span>도착</span><b>${tl.arrival || '--:--'}</b></div>
+            <div class="tee"><span>티오프</span><b>${tl.teeOff || s.teeOff || '--:--'}</b></div>
+          </div>
+          <div class="v2-rcard-foot">
+            <span class="st${on ? '' : ' off'}">${on ? '알람 켜짐' : '알람 꺼짐'}${n ? ` · 동반자 ${n}명` : ''}</span>
+            <button class="v2-link" onclick="App.viewTimeline(${idx})">타임라인 보기</button>
+          </div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="v2-cal-day">${m + 1}월 ${d}일 (${U.DAYS[date.getDay()]})</div>
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
+        ${cards || '<div class="v2-cal-empty">이 날은 라운딩이 없어요</div>'}
+        <button class="v2-btn-navy" onclick="Calendar._addForSelected()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> 새 라운딩 등록</button>
+      </div>`;
+  },
+
+  // 선택한 날짜로 일정 등록
   _addForSelected() {
-    const y = Calendar._selectedY ?? new Date().getFullYear();
-    const m = Calendar._selectedM ?? new Date().getMonth();
-    const d = Calendar._selectedD ?? new Date().getDate();
-    window._selectedDateForRegister = new Date(y, m, d);
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    const sel = this._sel;
+    const d = sel ? new Date(sel.y, sel.m, sel.d) : t;
+    window._selectedDateForRegister = d >= t ? d : null;
     App.navigate('register');
   },
 
-  _selectedY: null, _selectedM: null, _selectedD: null,
-
   async deleteSchedule(idx) {
+    if (!State.schedules[idx]) return;
     if (await App.ask('일정을 삭제할까요?', '일정과 알람이 함께 지워져요.', { ok: '삭제' })) {
-      const targetDate = new Date(State.schedules[idx].date);
-      const y = targetDate.getFullYear();
-      const m = targetDate.getMonth();
-      const d = targetDate.getDate();
-
+      const s = State.schedules[idx];
+      if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(s, true);
       State.schedules.splice(idx, 1);
       State.saveSchedules();
       U.toast('🗑️ 일정이 삭제되었습니다.');
-      
-      State.calYear = y;
-      State.calMonth = m;
-      this.updateCalendar();
-      
-      setTimeout(() => {
-        this.selectDate(null, y, m, d);
-        const days = U.$$('.cal-day:not(.empty)');
-        days.forEach(el => {
-          const numEl = el.querySelector('.cal-day-num');
-          if (numEl && parseInt(numEl.textContent, 10) === d) {
-            el.classList.add('selected');
-          }
-        });
-      }, 160);
+      this.render();
     }
-  },
-
-  renderCalDays() {
-    const y = State.calYear !== undefined ? State.calYear : new Date().getFullYear();
-    const m = State.calMonth !== undefined ? State.calMonth : new Date().getMonth();
-    const firstDay = new Date(y, m, 1).getDay();
-    const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const today = new Date();
-    const isThisMonth = today.getFullYear() === y && today.getMonth() === m;
-
-    let html = '';
-    for (let i = 0; i < firstDay; i++) {
-      html += '<div class="cal-day empty"></div>';
-    }
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = isThisMonth && today.getDate() === d;
-      const cellDate = new Date(y, m, d);
-      const dayOfWeek = cellDate.getDay();
-      const scheds = State.getSchedulesForDate(y, m, d);
-      const hasSched = scheds.length > 0;
-
-      const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const isPast = cellDate < todayDate;
-
-      let cls = 'cal-day';
-      if (isToday) cls += ' today';
-      if (hasSched) cls += ' has-record';
-      if (isPast) cls += ' past-date';
-
-      let inner = `<div class="cal-day-num">${d}</div>`;
-
-      if (hasSched) {
-        const s = scheds[0];
-        const rawName = s.course ? s.course.name : (s.courseName || '');
-        const cleanName = rawName.replace(/\s*(CC|GC|골프클럽|컨트리클럽|골프코스|하늘코스|GC\s*제주|CC\s*제주)\s*/gi, '').trim() || '일정';
-        const shortName = cleanName.length > 4 ? cleanName.slice(0, 3) + '..' : cleanName;
-
-        inner += `
-          <div class="cal-event-chip">
-            <div class="cal-chip-bar"></div>
-            <span class="cal-chip-name">${shortName}</span>
-          </div>
-        `;
-      }
-
-      html += `<div class="${cls}" onclick="Calendar.selectDate(event, ${y}, ${m}, ${d})">
-        ${inner}
-      </div>`;
-    }
-    
-    return html;
   },
 
   prevMonth() {
@@ -219,45 +151,25 @@ const Calendar = {
     const today = new Date();
     State.calYear = today.getFullYear();
     State.calMonth = today.getMonth();
-    this.updateCalendar();
-    
-    setTimeout(() => {
-      const grid = U.$('#cal-grid');
-      if (grid) {
-        const todayEl = grid.querySelector('.cal-day.today');
-        if (todayEl) {
-          todayEl.click();
-        } else {
-          this.selectDate(null, State.calYear, State.calMonth, today.getDate());
-        }
-      }
-    }, 160);
+    this._sel = { y: State.calYear, m: State.calMonth, d: today.getDate() };
+    this.render();
   },
 
   updateCalendar() {
     const grid = U.$('#cal-grid');
-    if (grid) {
-      grid.style.opacity = '0';
-      grid.style.transform = 'scale(0.97)';
-      setTimeout(() => {
-        grid.innerHTML = this.renderCalDays();
-        grid.style.transition = 'all 0.25s cubic-bezier(0.22,1,0.36,1)';
-        grid.style.opacity = '1';
-        grid.style.transform = 'scale(1)';
-      }, 120);
-    }
+    if (grid) grid.innerHTML = this.renderCalDays();
     const label = U.$('.cal-nav-title');
     if (label) label.textContent = `${State.calYear}년 ${State.calMonth + 1}월`;
   },
 
   selectDate(evt, y, m, d) {
-    U.$$('.cal-day').forEach(el => el.classList.remove('selected'));
-    if (evt && evt.currentTarget) {
-      evt.currentTarget.classList.add('selected');
-    }
+    this._sel = { y, m, d };
+    this.updateCalendar();
     const area = U.$('#cal-selected-area');
-    if (area) {
-      area.innerHTML = this.getSelectAreaHtml(y, m, d);
-    }
-  }
+    if (area) area.innerHTML = this.selectedHtml();
+  },
+
+  // 예전 이름 호환
+  getSelectAreaHtml(y, m, d) { this._sel = { y, m, d }; return this.selectedHtml(); },
+  getSelectedDateLabel(y, m, d) { return this.getSelectAreaHtml(y, m, d); }
 };

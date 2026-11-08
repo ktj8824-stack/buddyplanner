@@ -32,152 +32,107 @@ const Profile = {
     const currentPoints = Points.balance();
     const pm = Points.meta();
 
+    const chev = '<svg class="v2-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+    const provName = { kakao: '카카오', google: '구글', apple: 'Apple' }[provider];
+    const prep = (() => { const v = parseInt(localStorage.getItem('bp_last_prep'), 10); return v > 0 ? v : 30; })();
+    const navPref = (typeof AutoNav !== 'undefined' ? AutoNav.pref() : 'choice');
+    const navName = { tmap: 'TMAP', kakao: '카카오내비', choice: '매번 선택' }[navPref] || '매번 선택';
+    const cloudOn = typeof Cloud !== 'undefined' && Cloud.isConfigured() && Cloud.isSignedIn();
+    const seg = (cur, items, fn) => items.map(([v, l]) => `<button class="setting-opt-btn ${cur === v ? 'on active' : ''}" onclick="${fn}('${v}', this)">${l}</button>`).join('');
+    const homeRow = homeName
+      ? `<button class="v2-li" onclick="Profile.searchAndSaveAddress('home')"><span class="k">집 주소</span><span class="v">${U.esc(homeName)}</span>${chev}</button>`
+      : `<button class="v2-li warn" onclick="Profile.searchAndSaveAddress('home')">
+          <span class="ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9H4z"/></svg></span>
+          <span class="k"><b>집 주소</b><small>아직 없어요 · 등록하면 출발 시간이 정확해져요</small></span><span class="go">등록</span></button>`;
+
     app.innerHTML = `
-      <div class="screen-scroll">
-        <div class="profile-hero">
-          <div class="profile-avatar">${avatarLetter}</div>
-          <div class="profile-name">${U.esc(userName)}</div>
-          <div class="profile-email">${U.esc(userEmail)}</div>
-          ${State.isPro ? '<div style="margin-top:8px; display:inline-block; padding:4px 12px; background:var(--gold-dim); color:var(--gold-500); border:1px solid rgba(217,119,6,0.3); border-radius:var(--r-full); font-size:12px; font-weight:bold;">👑 PRO 멤버</div>' : ''}
-        </div>
-        
-        <div style="margin: var(--sp-4) var(--sp-5) var(--sp-6);">
-          <div style="background:var(--bg-100); border-radius:var(--r-xl); padding:var(--sp-4); display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-sm); border:1px solid var(--border-default);">
-            <div>
-              <div style="font-size:var(--fs-sm); color:var(--text-400); font-weight:bold; margin-bottom:4px;">내 포인트</div>
-              <div style="font-size:1.5rem; font-weight:800; color:var(--text-900); font-family:'Montserrat', sans-serif;">
-                <span style="color:var(--primary); margin-right:4px;">P</span><span data-points>${currentPoints.toLocaleString()}</span>
-              </div>
-            </div>
-            <button onclick="Profile.watchAd()" class="ad-reward-btn">
-              <span>광고 보고 ${pm.ad_points}P 받기 <span data-ad-count style="font-size:11px; font-weight:normal; opacity:0.9;">${pm.ad_today}/${pm.ad_limit}</span></span>
-            </button>
+      <div class="v2-pagehead"><h1>마이</h1></div>
+      <div class="v2-scroll">
+        <div class="v2-body">
+          <div class="v2-card v2-me">
+            <div class="v2-avatar profile-avatar">${avatarLetter}</div>
+            <div class="t"><b class="profile-name">${U.esc(userName)}</b><small>${provName ? provName + ' 계정으로 로그인' : (userEmail ? U.esc(userEmail) : '로그인하지 않음')}</small></div>
+            <button class="v2-me-edit" onclick="Profile.editProfile()">프로필 편집</button>
           </div>
-        </div>
-
-        ${!State.isPro ? `
-        <div style="margin: 0 var(--sp-5) var(--sp-6);">
-          <div style="background:linear-gradient(135deg, #0f172a, #1e293b); border-radius:var(--r-xl); padding:var(--sp-4); color:#fff; display:flex; align-items:center; justify-content:space-between; box-shadow:var(--shadow-md);">
-            <div>
-              <div style="font-size:var(--fs-sm); color:var(--gold-300); font-weight:bold; margin-bottom:2px;">BuddyPlanner PRO</div>
-              <div style="font-size:var(--fs-lg); font-weight:800;">프리미엄 혜택 만나보기</div>
+          <div class="v2-me-grid">
+            <div class="v2-me-box pt" onclick="Profile.watchAd()">
+              <span>내 포인트</span><b><span data-points>${currentPoints.toLocaleString()}</span> P</b>
+              <small>광고 보고 ${pm.ad_points}P 받기 · 오늘 <span data-ad-count>${pm.ad_today}/${pm.ad_limit}</span></small>
             </div>
-            <button onclick="App.navigate('upgrade')" style="background:var(--gold-400); color:#fff; padding:8px 16px; border-radius:var(--r-full); font-weight:bold; font-size:var(--fs-sm); box-shadow:var(--glow-gold);">업그레이드</button>
-          </div>
-        </div>
-        ` : ''}
-
-        <div class="profile-section">
-          <div class="profile-section-title">기본 설정</div>
-          
-          <div class="setting-card">
-            <div class="setting-item" style="flex-direction:column; align-items:flex-start; border-bottom:1px solid var(--border-default);">
-              <div class="setting-item-header" style="margin-bottom:8px;">닉네임</div>
-              <input type="text" id="prof-nickname" class="form-input" value="${U.esc(userName)}" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:16px;" onchange="Profile.saveNickname(this.value)" />
-            </div>
-            
-            <div class="setting-item">
-              <div class="setting-item-header">글꼴 스타일</div>
-              <div class="setting-options">
-                <button class="setting-opt-btn ${currentFont==='Pretendard'?'active':''}" onclick="Profile.setFont('Pretendard', this)">고딕 (기본)</button>
-                <button class="setting-opt-btn ${currentFont==='Nanum Myeongjo'?'active':''}" onclick="Profile.setFont('Nanum Myeongjo', this)">명조체</button>
-                <button class="setting-opt-btn ${currentFont==='Gowun Dodum'?'active':''}" onclick="Profile.setFont('Gowun Dodum', this)">둥근고딕</button>
-              </div>
-            </div>
-            
-            <div class="setting-item">
-              <div class="setting-item-header">글자 크기</div>
-              <div class="setting-options">
-                <button class="setting-opt-btn ${currentSize==='small'?'active':''}" onclick="Profile.setSize('small', this)">작게</button>
-                <button class="setting-opt-btn ${currentSize==='medium'?'active':''}" onclick="Profile.setSize('medium', this)">보통</button>
-                <button class="setting-opt-btn ${currentSize==='large'?'active':''}" onclick="Profile.setSize('large', this)">크게</button>
-              </div>
+            <div class="v2-me-box pro" onclick="App.navigate('upgrade')">
+              <span>현재 이용권</span><b>${State.isPro ? 'PRO' : '무료'}</b>
+              <small>${State.isPro ? 'PRO 이용 중 · 관리' : 'PRO 혜택 보기'}</small>
             </div>
           </div>
 
-          <div class="profile-section-title">자주 출발하는 장소</div>
-          
-          <div style="display:flex; flex-direction:row; gap:8px;">
-            <div class="setting-card" style="flex:1; min-width:0; padding:16px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Profile.searchAndSaveAddress('home')">
-              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏠</span>
-              <div id="prof-home-container" style="width:100%; overflow:hidden;">
-                ${homeName ? `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${homeName}</div>` : `<div style="font-size:14px; color:var(--text-400); font-weight:600;">집 주소 검색</div>`}
-              </div>
-            </div>
-            <div class="setting-card" style="flex:1; min-width:0; padding:16px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Profile.searchAndSaveAddress('work')">
-              <span class="address-icon" style="font-size:24px; margin-bottom:8px;">🏢</span>
-              <div id="prof-office-container" style="width:100%; overflow:hidden;">
-                ${workName ? `<div style="font-size:15px; font-weight:700; color:var(--text-100); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding: 0 4px;">${workName}</div>` : `<div style="font-size:14px; color:var(--text-400); font-weight:600;">회사 주소 검색</div>`}
-              </div>
-            </div>
-          </div>
-          
-          <div class="profile-section-title">길안내</div>
-          <div class="setting-card">
-            <div class="setting-item" style="cursor:pointer" onclick="AutoNav.openGuide()">
-              <div class="address-input-wrap" style="flex:1">
-                <span class="address-icon">🚗</span>
-                <div class="address-input" style="display:flex; flex-direction:column; align-items:flex-start; background:transparent; color:var(--text-800)">
-                  <span>차에 타면 자동 길안내</span>
-                  <span style="font-size:12px; color:var(--text-400); font-weight:400;">차와 연결되면 다음 장소로 내비가 켜져요</span>
-                </div>
-              </div>
-            </div>
+          <div class="v2-sec-title">타임라인 설정</div>
+          <div class="v2-list">
+            ${homeRow}
+            <button class="v2-li" onclick="Profile.searchAndSaveAddress('work')"><span class="k">회사 주소</span><span class="v">${workName ? U.esc(workName) : '등록'}</span>${chev}</button>
+            <button class="v2-li" onclick="Profile.pickPrep()"><span class="k">기본 준비 시간</span><span class="v">${prep}분</span>${chev}</button>
+            <button class="v2-li" onclick="AutoNav.openGuide()"><span class="k">길안내 앱<small>차에 타면 자동 길안내도 여기서 켜요</small></span><span class="v">${navName}</span>${chev}</button>
+            <button class="v2-li" onclick="Profile.previewAlarm()"><span class="k">알람 소리</span><span class="v">버디 알람</span>${chev}</button>
           </div>
 
-          <div class="profile-section-title">데이터 관리</div>
-          
-          <div class="setting-card">
+          <div class="v2-sec-title">화면</div>
+          <div class="v2-list">
+            <div class="v2-li-block"><span>글자 크기</span><div class="v2-seg setting-options">${seg(currentSize, [['small', '작게'], ['medium', '보통'], ['large', '크게']], 'Profile.setSize')}</div></div>
+            <div class="v2-li-block"><span>글꼴</span><div class="v2-seg setting-options">${seg(currentFont, [['Pretendard', '고딕'], ['Nanum Myeongjo', '명조'], ['Gowun Dodum', '둥근고딕']], 'Profile.setFont')}</div></div>
+          </div>
+
+          <div class="v2-sec-title">데이터</div>
+          <div class="v2-list">
             ${(typeof Cloud !== 'undefined' && Cloud.isConfigured()) ? `
-            <div class="setting-item" style="cursor:pointer" onclick="Profile.syncNow()">
-              <div class="address-input-wrap" style="flex:1">
-                <span class="address-icon">☁️</span>
-                <div class="address-input" style="display:flex; flex-direction:column; align-items:flex-start; background:transparent; color:var(--text-800)">
-                  <span>클라우드 동기화 ${Cloud.isSignedIn() ? '<span style="font-size:12px; color:var(--accent);">지금 동기화</span>' : ''}</span>
-                  <span id="cloud-status-text" style="font-size:12px; color:var(--text-400); font-weight:400;">${Cloud.statusText()}</span>
-                </div>
-              </div>
+            <div class="v2-li" style="cursor:default;">
+              <span class="k">클라우드 자동 백업<small id="cloud-status-text">${cloudOn ? '라운드 기록과 일정을 자동으로 보관해요' : U.esc(Cloud.statusText())}</small></span>
+              <button class="v2-switch ${cloudOn ? 'on' : ''}" role="switch" aria-checked="${cloudOn}" aria-label="클라우드 자동 백업" onclick="Profile.cloudSwitch()"></button>
             </div>` : ''}
-            <div class="setting-item" style="cursor:pointer" onclick="Profile.exportData()">
-              <div class="address-input-wrap" style="flex:1">
-                <span class="address-icon">📤</span>
-                <div class="address-input" style="display:flex; align-items:center; background:transparent; color:var(--text-800)">
-                  데이터 백업하기 (기기 저장)
-                </div>
-              </div>
-            </div>
-            
-            <div class="setting-item" style="cursor:pointer" onclick="Profile.importData()">
-              <div class="address-input-wrap" style="flex:1">
-                <span class="address-icon">📥</span>
-                <div class="address-input" style="display:flex; align-items:center; background:transparent; color:var(--text-800)">
-                  데이터 불러오기 (파일 선택)
-                </div>
-              </div>
-            </div>
+            <button class="v2-li" onclick="Profile.exportData()"><span class="k">기기에 파일로 백업</span>${chev}</button>
+            <button class="v2-li" onclick="Profile.importData()"><span class="k">파일에서 불러오기</span>${chev}</button>
           </div>
-          
-          ${this.canAdmin() ? `
-          <div class="setting-card" style="margin-top:20px;">
-            <div class="setting-item" style="cursor:pointer" onclick="Profile.openAdmin()">
-              <div class="address-input-wrap" style="flex:1">
-                <span class="address-icon">⚙️</span>
-                <div class="address-input" style="display:flex; align-items:center; background:transparent; color:var(--text-800); font-weight:700;">
-                  [대표님 전용] 버디마켓 관리자 모드
-                </div>
-              </div>
-            </div>
+
+          <div class="v2-sec-title">계정</div>
+          <div class="v2-list">
+            ${this.canAdmin() ? `<button class="v2-li" onclick="Profile.openAdmin()"><span class="k" style="font-weight:700;">[대표님 전용] 버디마켓 관리자 모드</span>${chev}</button>` : ''}
+            <a class="v2-li" href="./privacy.html" style="text-decoration:none;"><span class="k">개인정보처리방침</span>${chev}</a>
+            <button class="v2-li" id="v2-logout" onclick="Profile.logout()"><span class="k">로그아웃</span></button>
           </div>
-          ` : ''}
-          
-          <div class="logout-wrap">
-            <button class="logout-btn" onclick="Profile.logout()">로그아웃</button>
-            <button class="delete-account-btn" onclick="Profile.deleteAllData()">회원 탈퇴 및 데이터 삭제</button>
-            <a class="privacy-link" href="./privacy.html">개인정보처리방침</a>
-          </div>
+          <button class="v2-quit" onclick="Profile.deleteAllData()">회원 탈퇴 및 데이터 삭제</button>
         </div>
       </div>
     `;
+  },
+
+  editProfile() {
+    const name = localStorage.getItem('bp_user_name') || '';
+    App.showModal('프로필 편집', `
+      <div style="font-size:14px; color:#475569; margin-bottom:8px;">닉네임</div>
+      <input type="text" id="prof-nickname" value="${U.esc(name)}" maxlength="20" placeholder="사용하실 닉네임" style="width:100%; box-sizing:border-box; height:50px; padding:0 14px; border-radius:12px; border:1px solid #e2e8f0; background:#f8fafc; font-size:16px;">
+      <button class="v2-btn-navy" style="margin-top:14px;" onclick="Profile.saveNickname(U.$('#prof-nickname').value); App.closeModal(); Profile.render();">저장</button>`);
+  },
+
+  pickPrep() {
+    const cur = (() => { const v = parseInt(localStorage.getItem('bp_last_prep'), 10); return v > 0 ? v : 30; })();
+    App.showModal('기본 준비 시간', `
+      <div style="font-size:14px; color:#475569; margin-bottom:12px;">새 라운딩을 등록할 때 이 시간으로 시작해요.</div>
+      <div class="v2-opts c3">${[20, 30, 40, 60, 90, 120].map(t => `<button class="${t === cur ? 'on' : ''}" onclick="Profile.setPrep(${t})">${t}분</button>`).join('')}</div>`);
+  },
+
+  setPrep(t) {
+    try { localStorage.setItem('bp_last_prep', String(t)); } catch (e) {}
+    App.closeModal(); U.toast(`기본 준비 시간을 ${t}분으로 바꿨어요.`); this.render();
+  },
+
+  previewAlarm() {
+    try { Timeline.initAudioContext(); Timeline.playAlarmSound('출발 시간이 되면 이 소리로 알려 드려요.', '🔔 버디 알람 미리 듣기'); }
+    catch (e) { U.toast('알람 소리를 재생하지 못했어요.'); }
+  },
+
+  /** 클라우드 백업 스위치: 로그인돼 있으면 지금 동기화, 아니면 로그인 안내 */
+  cloudSwitch() {
+    if (typeof Cloud === 'undefined') return;
+    if (Cloud.isSignedIn()) { this.syncNow(); return; }
+    if (App.offerCloudConnect) { try { localStorage.removeItem('bp_cloud_offer_day'); } catch (e) {} App.offerCloudConnect(); }
   },
 
   async watchAd() {
@@ -231,8 +186,8 @@ const Profile = {
     
     // Update UI active state
     const siblings = el.parentElement.querySelectorAll('.setting-opt-btn');
-    siblings.forEach(s => s.classList.remove('active'));
-    el.classList.add('active');
+    siblings.forEach(s => s.classList.remove('active', 'on'));
+    el.classList.add('active', 'on');
     
     U.toast(`글꼴이 '${this.fontMap[font]}'으로 변경되었습니다.`);
     U.haptic();
@@ -264,8 +219,8 @@ const Profile = {
     
     // Update UI active state
     const siblings = el.parentElement.querySelectorAll('.setting-opt-btn');
-    siblings.forEach(s => s.classList.remove('active'));
-    el.classList.add('active');
+    siblings.forEach(s => s.classList.remove('active', 'on'));
+    el.classList.add('active', 'on');
 
     U.toast(`글자 크기가 '${this.sizeMap[size]}'로 변경되었습니다.`);
     U.haptic();

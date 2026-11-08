@@ -40,222 +40,254 @@ const Timeline = {
       const dday = U.dday(s.date);
       const dateStr = U.fmtDateShort(s.date);
 
-    el.innerHTML = `
-      <div class="header" style="height:52px; padding:0 var(--sp-4); background:#ffffff; border-bottom:1px solid #f1f5f9; box-shadow:none;">
-        <button class="header-btn" onclick="App.navigate('calendar')" aria-label="뒤로가기">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        </button>
-        <h1 class="header-title" style="font-size:17px; font-weight:800; color:var(--text-100); letter-spacing:-0.4px;">스마트 타임라인</h1>
-        <button class="header-btn" onclick="U.downloadICS(State.schedules[${this.schedIdx}])" aria-label="캘린더 저장">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        </button>
-      </div>
-
-      <!-- Sticky Event Banner -->
-      <div id="tl-sticky-banner" style="display:none; flex-shrink:0; z-index:90; background:var(--accent); color:#fff; padding:10px 16px; font-size:13px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,0.15); transition:all 0.3s ease;">
-        <span style="font-weight:var(--fw-bold);" id="tl-banner-text">현재 진행 중인 일정 없음</span>
-      </div>
-
-      <div class="screen-scroll" style="padding-top:0;">
-        <!-- Hero -->
-        <div class="tl-hero">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <h2 class="tl-course" style="margin:0;"><span class="accent">${s.course.name}</span></h2>
-            <div class="tl-dday" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:800; padding:3px 8px; border-radius:6px; margin:0;">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              <span>${dday}</span>
-            </div>
-          </div>
-          <div class="tl-meta">
-            <span style="display:inline-flex; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              ${dateStr}
-            </span>
-            <span style="display:inline-flex; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              ${U.fmtTimeKo(s.teeOff)}
-            </span>
-            ${(s.course.region || s.course.addr) ? `<span style="display:inline-flex; align-items:center; gap:4px;">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="opacity:0.75;"><path d="M12 2c3.866 0 7 3.134 7 7 0 5.25-7 13-7 13S5 14.25 5 9c0-3.866 3.134-7 7-7z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>
-              ${U.esc(s.course.region || String(s.course.addr).split(' ').slice(0, 2).join(' '))}
-            </span>` : ''}
-          </div>
-        </div>
-
-        ${s.groupCode ? `<div class="tl-group-link" onclick="Group.openCode('${U.esc(s.groupCode)}')">👥 단체 일정 · 우리 조 보기 <span>›</span></div>` : ''}
-
-        <!-- Timeline -->
-        <div class="tl-section">
-          <div class="tl-head" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
-            <div style="flex: 1; min-width: 0;">
-              <h3 class="tl-title" style="display:flex; align-items:center; gap:6px; margin-bottom: 2px;">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                타임라인
-              </h3>
-            </div>
-            <div style="display:flex; gap:6px; align-items:center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end;">
-              <button onclick="App.showWeather(${this.schedIdx})" style="border:1px solid rgba(14,165,233,0.3); background:#f0f9ff; color:#0369a1; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap;">
-                🌤️ 날씨
-              </button>
-              <button id="tl-alarm-btn" class="${s.alarmOff ? '' : 'alarm-on'}" onclick="Timeline.toggleAlarm()" style="border:1px solid #cbd5e1; background:${s.alarmOff ? '#ffffff' : 'var(--accent)'}; color:${s.alarmOff ? '#334155' : '#fff'}; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;">
-                ${s.alarmOff ? '🔔 알람 켜기' : '🔔 알람 켜짐'}
-              </button>
-              <button style="border:1px solid rgba(217,119,6,0.25); background:#fffbeb; color:#b45309; cursor:pointer; padding: 4px 10px; font-size: 12px; font-weight: 700; border-radius: 6px; line-height: 1.2; white-space: nowrap; transition:all 0.2s ease;" onclick="Register.edit(${this.schedIdx})">
-                ✏️ 일정 수정
-              </button>
-            </div>
-          </div>
-          <p class="tl-sub tl-route">${['출발', tl.hasMeetingPoint ? '집결지' : '', tl.hasMeal ? '아침 식사' : '', '골프장', tl.hasPostMeal ? '뒷풀이' : '', '귀가'].filter(Boolean).join(' → ')}</p>
-
-          <div class="tl-list">
-            ${this.renderTimelineItems(s, tl)}
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-acts" style="display:flex; gap:12px; padding:0 var(--sp-5) var(--sp-5); justify-content:center;">
-          <button class="qact" onclick="Timeline.shareTimeline()">
-            <span class="qact-icon" style="display:inline-flex; width:36px; height:36px; align-items:center; justify-content:center; border-radius:50%; background:rgba(254, 229, 0, 0.2); color:#3c1e1e;">
-              <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px; height:20px;"><path d="M12 3c-5.523 0-10 3.553-10 7.938 0 2.825 1.83 5.303 4.606 6.744l-1.01 3.7c-.053.195.166.353.332.227l4.316-2.82c.575.08 1.162.124 1.756.124 5.523 0 10-3.553 10-7.938C22 6.553 17.523 3 12 3z"/></svg>
-            </span>
-            <span>카카오톡 공유</span>
-          </button>
-          <button class="qact" onclick="U.downloadICS(State.schedules[${this.schedIdx}])">
-            <span class="qact-icon" style="display:inline-flex; width:36px; height:36px; align-items:center; justify-content:center; border-radius:50%; background:rgba(142, 142, 147, 0.15); color:var(--text-300);">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px; height:18px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            </span>
-            <span>일정 캘린더</span>
-          </button>
-        </div>
-
-        <!-- Companions -->
-        ${this.renderCompanions(s.companions)}
-
-        <!-- Delete Plan -->
-        <div style="padding:var(--sp-4) var(--sp-5) calc(var(--sp-5) * 2); text-align:center;">
-          <button class="btn" style="background:transparent; border:1px solid rgba(255,59,48,0.3); color:var(--red-400); width:100%; font-size:var(--fs-sm);" onclick="Timeline.deleteSchedule()">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:-3px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
-            이 일정 삭제하기
-          </button>
-        </div>
-      </div>
-    `;
-
-      this.hidePastItems();
-      setTimeout(() => U.stagger(U.$('.tl-list'), '.tl-item:not([style*="display: none"])', 120), 200);
-      
+    el.innerHTML = this.renderV2(s, tl);
+      this.markSteps();
       this.startBannerUpdater();
     } catch (e) {
       console.error('Timeline render crash', e);
       el.innerHTML = `<div class="empty">
         <div class="empty-icon">❌</div>
         <h2 class="empty-title">화면을 불러오지 못했습니다.</h2>
-        <p class="empty-desc" style="color:var(--red-400); font-size:12px; margin-top:10px;">${e.toString()}</p>
+        <p class="empty-desc" style="color:var(--red-400); font-size:12px; margin-top:10px;">${U.esc(e.toString())}</p>
         <button class="btn" style="margin-top:20px;" onclick="App.navigate('calendar')">돌아가기</button>
       </div>`;
     }
   },
 
-  hidePastItems() {
-    const s = State.schedules[this.schedIdx];
-    if (!s) return;
-    
-    // We only hide items if the schedule date is today or in the past
-    // If it's in the future, we don't hide anything.
-    const now = new Date();
-    let isToday = false;
-    let isPastDate = false;
-
-    if (s.date) {
-      const sDate = new Date(s.date);
-      if (sDate.getFullYear() === now.getFullYear() && sDate.getMonth() === now.getMonth() && sDate.getDate() === now.getDate()) {
-        isToday = true;
-      } else if (sDate < now) {
-        isPastDate = true;
-      }
-    } else {
-      // If no date is set, assume it's today for demonstration purposes
-      isToday = true;
-    }
-
-    if (!isToday && !isPastDate) {
-      // Future date - mark the first item as 'now'
-      const firstItem = U.$('.tl-item');
-      if (firstItem) firstItem.classList.add('now');
-      return;
-    }
-
-    const items = document.querySelectorAll('.tl-item');
-    let foundNow = false;
-
-    // Extract times for all items first
-    const itemData = Array.from(items).map(item => {
-      const timeEl = item.querySelector('.tl-time');
-      let timeTotal = 0;
-      if (timeEl) {
-        const txt = timeEl.innerText.trim();
-        const mt = txt.match(/(\d{1,2}):(\d{2})/);
-        if (mt) timeTotal = Number(mt[1]) * 60 + Number(mt[2]) - (txt.includes('전날') ? 1440 : 0);
-      }
-      return { item, time: timeTotal };
-    });
-
-    const nowTotal = now.getHours() * 60 + now.getMinutes();
-
-    itemData.forEach((data, index) => {
-      const { item, time } = data;
-      if (time === 0) return; // Skip items without time
-      
-      let isPastTime = false;
-      let shouldHide = false;
-
-      if (isPastDate) {
-        isPastTime = true;
-        shouldHide = false; // Do not hide for past days
-      } else if (isToday) {
-        // An event is only fully "past" (and hidden) if the NEXT event has already started
-        let nextTime = Infinity;
-        if (index < itemData.length - 1) {
-          nextTime = itemData[index + 1].time;
-        } else {
-          // If it's the very last event (e.g. arrival), hide it 2 hours after it begins
-          nextTime = time + 120;
-        }
-
-        if (nextTime <= nowTotal) {
-          isPastTime = true;
-          shouldHide = true; // Hide if the NEXT schedule has arrived
-        }
-      }
-
-      if (isPastTime) {
-        if (shouldHide) {
-          item.style.display = 'none';
-        } else {
-          item.style.display = 'block';
-        }
-        item.classList.remove('now');
-        item.classList.add('done');
-      } else {
-        item.style.display = 'block';
-        if (!foundNow) {
-          item.classList.add('now'); // This makes the CURRENTLY ongoing event highlighted!
-          foundNow = true;
-        } else {
-          item.classList.remove('now');
-        }
-      }
-    });
-
-    // If all items are in the past and hidden, maybe show a message
-    const visibleItems = document.querySelectorAll('.tl-item[style*="display: block"]');
-    if (visibleItems.length === 0) {
-      const list = U.$('.tl-list');
-      if (list && !U.$('.tl-empty-msg')) {
-        list.innerHTML += `<div class="tl-empty-msg" style="text-align:center; padding:40px 20px; color:var(--text-400);">모든 일정이 종료되었습니다. 수고하셨습니다! 👏</div>`;
-      }
-    }
+  /* ── 2026.11 개편 화면 ── */
+  _ico: {
+    back: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+    pen: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>',
+    check: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>',
+    home: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M4 11 12 4l8 7v9H4z"/></svg>',
+    office: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.4"/></svg>',
+    car: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5z"/><path d="M5 16v2M19 16v2"/><circle cx="8.5" cy="13" r=".6" fill="currentColor"/><circle cx="15.5" cy="13" r=".6" fill="currentColor"/></svg>',
+    meal: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v7a2 2 0 0 0 4 0V3M8 12v9M17 21V3c-2 1.5-3 4-3 7 0 1.7 1 2.7 3 3"/></svg>',
+    people: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5"/><circle cx="17" cy="9" r="2.4"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h10l-2.5 4L16 12H6"/></svg>'
   },
+
+  /** 동선 단계 목록 (화면·지금 할 일 카드·길찾기에서 같이 씀) */
+  buildSteps(s, tl) {
+    const I = this._ico;
+    const startPt = s.startPoint || '집';
+    const startIco = /회사|사무실/.test(startPt) ? I.office : /집|자택/.test(startPt) ? I.home : I.pin;
+    const home = { name: s.startAddress || startPt, lat: s.startLat || 0, lng: s.startLng || 0 };
+    const startFrom = { name: startPt, lat: s.startLat || 0, lng: s.startLng || 0 };
+    const course = { name: s.course.name, lat: s.course.lat, lng: s.course.lng };
+    const mp = s.meetingPointObj || {};
+    const meet = tl.hasMeetingPoint ? { name: tl.meetingPointName || mp.name || '집결지', lat: mp.lat || 0, lng: mp.lng || 0 } : null;
+    const rest = tl.hasMeal && s.mealRestaurant ? { name: s.mealRestaurant.name, lat: s.mealRestaurant.lat, lng: s.mealRestaurant.lng } : null;
+    const post = tl.hasPostMeal && tl.postMealRestaurant ? { name: tl.postMealRestaurant.name, lat: tl.postMealRestaurant.lat, lng: tl.postMealRestaurant.lng } : null;
+    const next1 = meet || rest || course;
+    const mealWord = (t) => { const h = parseInt(String(t || '').split(':')[0], 10); return h < 10 || h >= 20 ? '아침' : h < 15 ? '점심' : '식사'; };
+    const roundOver = this.isRoundOver(s);
+    const steps = [];
+    steps.push({ key: 'prep', time: tl.prepStart, ico: I.home, title: '준비 시작', sub: '보스턴백, 거리측정기, 골프공을 챙기세요' });
+    steps.push({ key: 'depart', time: tl.homeDepart, ico: startIco, title: `${startPt}에서 출발`, depart: true,
+      sub: s.routeEstimated ? `${next1.name}까지 약 ${tl.homeTravelDur}분 (거리로 어림잡음)` : `${next1.name}까지 약 ${tl.homeTravelDur}분`,
+      nav: { to: next1, from: startFrom }, tip: '보스턴백, 거리측정기, 골프공 챙기셨나요?' });
+    if (meet) {
+      steps.push({ key: 'meet', time: tl.meetArrival, ico: I.people, title: '집결지 도착 · 동반자 탑승', sub: `${meet.name} · 여유 약 10분` });
+      const nx = rest || course;
+      steps.push({ key: 'meetDepart', time: tl.meetDepart, ico: I.car, title: `${U.josa(nx.name, '으로/로')} 출발`, depart: true, sub: `${nx.name}까지 약 ${tl.meetTravelDur}분`, nav: { to: nx, from: meet } });
+    }
+    if (rest) {
+      const rv = ReviewStore.getReviews(tl.restaurantName);
+      steps.push({ key: 'meal', time: tl.mealStart, ico: I.meal, meal: true, title: `${tl.restaurantName} ${mealWord(tl.mealStart)}`,
+        sub: `식사 약 ${tl.mealDuration}분 · ${roundOver ? '식당을 평가해 주세요' : '평가는 식사 후에 할 수 있어요'}`,
+        extra: (rv.count > 0 ? ReviewStore.renderStars(rv.avgRating, rv.count) : '') + (roundOver ? `<button class="v2-step-act" style="padding-left:0" onclick="ReviewStore.openRatingModal(${U.jsq(tl.restaurantName)}, ${U.jsq(s.course.name)})">식당 평가하기</button>` : '') });
+      steps.push({ key: 'restDepart', time: tl.restDepart, ico: I.car, title: '골프장으로 출발', depart: true, sub: `${s.course.name}까지 약 ${tl.restTravelDur}분`, nav: { to: course, from: rest } });
+    }
+    steps.push({ key: 'arrival', time: tl.arrival, ico: I.pin, title: '클럽하우스 도착', inlineSub: `${tl.hasMeal ? '환복' : '조식·환복'} · 여유 ${tl.mannerTime}분` });
+    steps.push({ key: 'tee', time: tl.teeOff, tee: true, title: `티오프 · ${(ROUND_LENGTHS[s.roundLength] || ROUND_LENGTHS['18']).label}` });
+    if (post) {
+      const rv = ReviewStore.getReviews(post.name);
+      const cat = tl.postMealRestaurant.category || (s.postMealRestaurant && s.postMealRestaurant.category) || '';
+      steps.push({ key: 'post', time: tl.postMealStart, ico: I.meal, meal: true, title: `뒤풀이 · ${post.name}`, depart: true,
+        sub: `${cat ? String(cat).split('>').pop().trim() + ' · ' : ''}약 2시간`, nav: { to: post, from: course },
+        extra: (rv.count > 0 ? ReviewStore.renderStars(rv.avgRating, rv.count) : '') + (roundOver ? `<button class="v2-step-act" style="padding-left:0" onclick="ReviewStore.openRatingModal(${U.jsq(post.name)}, ${U.jsq(s.course.name)})">식당 평가하기</button>` : '') });
+    }
+    steps.push({ key: 'return', time: tl.returnStart, ico: startIco, title: `${U.josa(startPt, '으로/로')} 귀가`, depart: true,
+      sub: `약 ${tl.returnTravelDur}분 · ${tl.returnEnd} 도착 예상`, nav: { to: home, from: post || course } });
+    return steps.filter(x => x.time);
+  },
+
+  renderV2(s, tl) {
+    const I = this._ico;
+    const idx = this.schedIdx;
+    const steps = this.buildSteps(s, tl);
+    this._steps = steps;
+    const d = new Date(s.date);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const dd = new Date(d); dd.setHours(0, 0, 0, 0);
+    const diff = Math.round((dd - today) / 864e5);
+    const region = s.course.region || (s.course.addr ? Register.regionOf(s.course.addr) : '');
+    const on = !s.alarmOff;
+    const teeI = steps.findIndex(x => x.tee);
+    const prevDay = (t, i) => (i < teeI && State.tlPrevDay(s, t)) ? '<small>전날</small>' : '';
+
+    const stepHtml = steps.map((st, i) => {
+      if (st.tee) return `<div class="v2-tee v2-tlitem" data-i="${i}"><div class="v2-tee-ico">${I.flag}</div><div><b>${st.time}</b><span>${U.esc(st.title)}</span></div></div>`;
+      return `<div class="v2-step v2-tlitem${st.meal ? ' meal' : ''}" data-i="${i}">
+        <div class="v2-step-row">
+          <span class="v2-step-ico${st.meal ? ' meal' : ''}">${st.ico}</span>
+          <span class="v2-step-time">${st.time}${prevDay(st.time, i)}</span>
+          <span class="v2-step-title">${U.esc(st.title)}${st.inlineSub ? `<small style="display:block; font-size:14px; color:var(--v2-sub); font-weight:500; margin-top:2px;">${U.esc(st.inlineSub)}</small>` : ''}</span>
+          ${st.nav ? `<button class="v2-step-act" onclick="Timeline.navStep(${i})">길찾기</button>` : ''}
+          <span class="v2-step-now" style="display:none">지금</span>
+        </div>
+        ${st.sub ? `<div class="v2-step-sub">${U.esc(st.sub)}</div>` : ''}
+        ${st.extra ? `<div class="v2-step-extra">${st.extra}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    return `
+      <div class="v2-pagehead center">
+        <button class="v2-iconbtn" onclick="App.navigate('calendar')" aria-label="뒤로가기">${I.back}</button>
+        <h1>스마트 타임라인</h1>
+        <button class="v2-iconbtn" onclick="Register.edit(${idx})" aria-label="일정 수정">${I.pen}</button>
+      </div>
+      <div class="v2-scroll">
+        <div class="v2-body">
+          <div class="v2-card">
+            <div class="v2-tl-head">
+              <div style="min-width:0;"><div class="v2-tl-name">${U.esc(s.course.name)}</div>
+              <div class="v2-tl-meta">${d.getMonth() + 1}월 ${d.getDate()}일 (${U.DAYS[d.getDay()]}) · 티오프 ${U.esc(s.teeOff)}${region ? ' · ' + U.esc(region) : ''}</div></div>
+              <span class="v2-pill ${diff < 0 ? 'blue' : 'green'}">${diff === 0 ? '오늘' : diff > 0 ? 'D-' + diff : '지난 라운딩'}</span>
+            </div>
+            <div class="v2-alarm-box${on ? '' : ' off'}" id="tl-alarm-box">
+              <div><b>${on ? '알람 켜짐' : '알람 꺼짐'}</b><small>${on ? '단계마다 미리 알려 드려요' : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
+              <button id="tl-alarm-btn" class="v2-switch${on ? ' on alarm-on' : ''}" role="switch" aria-checked="${on}" aria-label="알람" onclick="Timeline.toggleAlarm()"></button>
+            </div>
+          </div>
+          ${s.groupCode ? `<div class="tl-group-link" onclick="Group.openCode(${U.jsq(s.groupCode)})">👥 단체 일정 · 우리 조 보기 <span>›</span></div>` : ''}
+          <div id="tl-now-card"></div>
+          <div class="v2-route-title">${diff <= 0 && diff > -1 ? '오늘의 동선' : '그날의 동선'}</div>
+          <div class="v2-tl-list" style="display:flex; flex-direction:column; gap:10px;">${stepHtml}</div>
+          <div class="v2-tl-foot">
+            <button class="v2-btn-line" onclick="App.showWeather(${idx})">골프장 날씨 보기</button>
+            <div class="v2-tl-mini">
+              <button onclick="Timeline.shareTimeline()">카카오톡 공유</button>
+              <button onclick="U.downloadICS(State.schedules[${idx}])">캘린더에 저장</button>
+            </div>
+          </div>
+          ${this.renderCompanions(s.companions)}
+          <button class="v2-tl-del" onclick="Timeline.deleteSchedule()">이 일정 삭제하기</button>
+        </div>
+      </div>`;
+  },
+
+  /** 단계 상태(지난 단계·지금 단계)와 '지금 할 일' 카드 */
+  markSteps() {
+    const s = State.schedules[this.schedIdx];
+    const steps = this._steps || [];
+    if (!s || !steps.length) return;
+    const now = new Date();
+    // 티오프 전 단계는 State.tlAt(전날 밤 처리), 티오프 뒤 단계는 그날(자정을 넘기면 다음 날)
+    const teeI = steps.findIndex(x => x.tee);
+    const toMin = (t) => { const [h, m] = String(t || '').split(':').map(Number); return h * 60 + (m || 0); };
+    const at = (t) => {
+      const i = steps.findIndex(x => x.time === t);
+      if (i >= 0 && teeI >= 0 && i > teeI) {
+        const d0 = new Date(s.date); const [h, m] = String(t).split(':').map(Number);
+        d0.setHours(h, m || 0, 0, 0);
+        if (toMin(t) < toMin(steps[teeI].time)) d0.setDate(d0.getDate() + 1);
+        return d0;
+      }
+      return State.tlAt(s, t);
+    };
+    const d = new Date(s.date); d.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    // 라운딩 진행 중(준비 6시간 전 ~ 마지막 단계 3시간 후)이면 '지금' 표시 (새벽 티오프의 전날 밤 준비도 포함)
+    const tFirst = at(steps[0].time), tLast = at(steps[steps.length - 1].time);
+    const isToday = !!(tFirst && tLast && now >= new Date(tFirst.getTime() - 6 * 3600000) && now <= new Date(tLast.getTime() + 3 * 3600000));
+    const doneKeys = (s.tlDone && s.tlDone.day === d.getTime()) ? s.tlDone.keys : [];
+    let nowIdx = -1;
+    if (isToday) {
+      steps.forEach((st, i) => {
+        const nx = steps[i + 1];
+        const nextAt = nx ? at(nx.time) : new Date(at(st.time).getTime() + 120 * 60000);
+        st.state = (nextAt <= now || doneKeys.indexOf(st.key) >= 0) ? 'done' : '';
+      });
+      // 손으로 '출발했어요'를 누른 단계 앞은 모두 지난 것으로
+      let lastDone = -1; steps.forEach((st, i) => { if (st.state === 'done') lastDone = i; });
+      steps.forEach((st, i) => { if (i < lastDone) st.state = 'done'; });
+      nowIdx = steps.findIndex(st => st.state !== 'done');
+      if (nowIdx >= 0) steps[nowIdx].state = 'now';
+    }
+    U.$$('#screen-timeline .v2-tlitem').forEach(el => {
+      const st = steps[Number(el.dataset.i)];
+      if (!st) return;
+      el.classList.toggle('done', st.state === 'done');
+      el.classList.toggle('now', st.state === 'now' && !st.tee);
+      const ic = el.querySelector('.v2-step-ico');
+      if (ic && st.state === 'done') ic.innerHTML = this._ico.check;
+      const nw = el.querySelector('.v2-step-now');
+      const act = el.querySelector('.v2-step-act');
+      if (nw) nw.style.display = st.state === 'now' ? '' : 'none';
+      if (act && st.state === 'now') act.style.display = 'none';
+    });
+
+    // 지금 할 일: 오늘 다음 출발 단계 / 다른 날은 첫 출발 단계
+    const card = U.$('#tl-now-card');
+    if (!card) return;
+    let target = -1;
+    if (isToday) target = steps.findIndex((st, i) => i >= Math.max(nowIdx, 0) && st.depart && st.state !== 'done');
+    else if (tFirst > now) target = steps.findIndex(st => st.depart);
+    if (target < 0) { card.innerHTML = ''; return; }
+    const st = steps[target];
+    const mins = Math.round((at(st.time) - now) / 60000);
+    let pill;
+    if (mins >= 18 * 60) { const t1 = at(st.time); const t1d = new Date(t1); t1d.setHours(0, 0, 0, 0); const dd = Math.round((t1d - today) / 864e5); pill = dd <= 1 ? '내일 출발' : `${dd}일 후 출발`; }
+    else if (mins > 0) pill = mins >= 60 ? `${Math.floor(mins / 60)}시간 ${mins % 60 ? (mins % 60) + '분 ' : ''}후 출발` : `${mins}분 후 출발`;
+    else pill = '지금 출발';
+    card.innerHTML = `
+      <div class="v2-now">
+        <div class="v2-now-top"><span>${isToday ? '지금 할 일' : '첫 출발'}</span><span class="v2-pill yellow">${pill}</span></div>
+        <div class="v2-now-main"><b>${st.time}</b><span>${U.esc(st.title)}</span></div>
+        <div class="v2-now-desc">${U.esc(st.sub || '')}${st.tip ? ' · ' + U.esc(st.tip) : ''}</div>
+        <div class="v2-now-btns">
+          <button class="tmap" onclick="Timeline.navStep(${target}, 'tmap')">TMAP</button>
+          <button class="kakao" onclick="Timeline.navStep(${target}, 'kakao')">카카오내비</button>
+        </div>
+        ${isToday ? `<button class="v2-now-done" onclick="Timeline.markDeparted(${target})">출발했어요</button>` : ''}
+      </div>`;
+  },
+
+  /** 단계의 길찾기: 앱을 정해 주면 그 앱, 아니면 기본 내비(없으면 고르기) */
+  navStep(i, app) {
+    const st = (this._steps || [])[i];
+    if (!st || !st.nav) return;
+    const to = st.nav.to, from = st.nav.from && st.nav.from.lat ? st.nav.from : { name: '', lat: 0, lng: 0 };
+    const go = (a) => this.openNav(a, to.name, to.lat, to.lng, from.name, from.lat, from.lng);
+    if (app) return go(app);
+    const pref = typeof AutoNav !== 'undefined' ? AutoNav.pref() : 'choice';
+    if (pref === 'tmap' || pref === 'kakao') return go(pref);
+    Timeline._navPick = go;
+    App.showModal('길찾기', `
+      <div style="font-size:15px; color:#475569; margin-bottom:14px;">${U.esc(to.name)}</div>
+      <div class="v2-now-btns" style="margin-top:0;">
+        <button class="tmap" style="border:1px solid var(--v2-line);" onclick="App.closeModal(); Timeline._navPick('tmap')">TMAP</button>
+        <button class="kakao" onclick="App.closeModal(); Timeline._navPick('kakao')">카카오내비</button>
+      </div>`);
+  },
+
+  /** '출발했어요': 그 단계까지 지난 것으로 표시 (그날만) */
+  markDeparted(i) {
+    const s = State.schedules[this.schedIdx];
+    const st = (this._steps || [])[i];
+    if (!s || !st) return;
+    const d = new Date(s.date); d.setHours(0, 0, 0, 0);
+    if (!s.tlDone || s.tlDone.day !== d.getTime()) s.tlDone = { day: d.getTime(), keys: [] };
+    if (s.tlDone.keys.indexOf(st.key) < 0) s.tlDone.keys.push(st.key);
+    State.saveSchedules();
+    U.toast('안전 운전하세요! 🚗');
+    this.render();
+  },
+
+  hidePastItems() { this.markSteps(); },
 
   async deleteSchedule() {
     if (await App.ask('일정을 삭제할까요?', '일정과 알람이 함께 지워져요.', { ok: '삭제' })) {
@@ -446,256 +478,6 @@ const Timeline = {
     `;
   },
 
-  renderTimelineItems(s, tl) {
-    const roundOver = Timeline.isRoundOver(s);
-    // 새벽 티오프로 자정을 넘긴 단계는 '(전날)' 표시
-    const prevDay = (t) => t && State.tlPrevDay(s, t) ? `${t} <span style="font-size:11px; font-weight:700; color:var(--text-400);">(전날)</span>` : (t || '');
-    let items = '';
-    const startPt = s.startPoint || '집';
-    const tmapIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-top:-1px"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`;
-    const kakaoIcon = `<svg width="15" height="15" viewBox="0 0 24 24" style="margin-top:-1px"><path fill="#191919" d="M12 3c-5.523 0-10 3.553-10 7.938 0 2.825 1.83 5.303 4.606 6.744l-1.01 3.7c-.053.195.166.353.332.227l4.316-2.82c.575.08 1.162.124 1.756.124 5.523 0 10-3.553 10-7.938C22 6.553 17.523 3 12 3z"/></svg>`;
-    const ratingIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-top:-2px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
-
-    let startIconHtml = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
-    if (startPt.includes('회사') || startPt.includes('사무실')) {
-      startIconHtml = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`;
-    } else if (startPt.includes('집') || startPt.includes('자택')) {
-      startIconHtml = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="display:inline-block; vertical-align:-2px; margin-right:4px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`;
-    }
-
-    // 1) 준비 시작
-    items += `
-      <div class="tl-item stag">
-        <div class="tl-dot"></div>
-        <div class="tl-card">
-          <div class="tl-time">${prevDay(tl.prepStart)}</div>
-          <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            준비 시작
-          </div>
-          <div class="tl-detail">"${startPt}에서 출발하기 전 보스턴백, 거리측정기, 골프공을 챙기세요."</div>
-        </div>
-      </div>`;
-
-    let nextDestName = '';
-    let nextDestLat = 0;
-    let nextDestLng = 0;
-    
-    if (tl.hasMeal) {
-      nextDestName = s.mealRestaurant.name;
-      nextDestLat = s.mealRestaurant.lat;
-      nextDestLng = s.mealRestaurant.lng;
-    } else {
-      nextDestName = s.course.name;
-      nextDestLat = s.course.lat;
-      nextDestLng = s.course.lng;
-    }
-
-    if (tl.hasMeetingPoint) {
-      // 2) 출발지 → 집결지 출발
-      items += `
-        <div class="tl-item stag">
-          <div class="tl-dot"></div>
-          <div class="tl-card">
-            <div class="tl-time">${prevDay(tl.homeDepart)}</div>
-            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              ${startIconHtml}
-              ${startPt}에서 출발하기
-            </div>
-            <div class="tl-detail">집결지(${tl.meetingPointName})까지 약 ${tl.homeTravelDur}분 소요</div>
-            <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
-            </div>
-          </div>
-        </div>`;
-
-      // 2-1) 집결지 도착 및 탑승
-      items += `
-        <div class="tl-item stag">
-          <div class="tl-dot"></div>
-          <div class="tl-card">
-            <div class="tl-time">${prevDay(tl.meetArrival)}</div>
-            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              집결지 도착 및 동반자 탑승
-            </div>
-            <div class="tl-detail">여유 대기 시간 (약 10분)</div>
-          </div>
-        </div>`;
-
-      // 2-2) 집결지 → 다음 목적지 출발
-      items += `
-        <div class="tl-item stag">
-          <div class="tl-dot"></div>
-          <div class="tl-card">
-            <div class="tl-time">${prevDay(tl.meetDepart)}</div>
-            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
-              ${U.esc(U.josa(nextDestName, '으로/로'))} 출발
-            </div>
-            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 거리로 어림잡았어요 (약 ${tl.meetTravelDur}분) · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 약 ${tl.meetTravelDur}분 소요`}</div>
-            <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${kakaoIcon} 카카오내비</button>
-            </div>
-          </div>
-        </div>`;
-    } else {
-      // 2) 출발지 → 다음 목적지 출발
-      items += `
-        <div class="tl-item stag">
-          <div class="tl-dot"></div>
-          <div class="tl-card">
-            <div class="tl-time">${prevDay(tl.homeDepart)}</div>
-            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              ${startIconHtml}
-              ${startPt}에서 출발하기
-            </div>
-            <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 ${nextDestName}까지 거리로 어림잡았어요 (약 ${tl.homeTravelDur}분) · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 ${nextDestName}까지 약 ${tl.homeTravelDur}분 소요`}</div>
-            <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
-            </div>
-          </div>
-        </div>`;
-    }
-
-    if (tl.hasMeal) {
-      // 3) 식사
-      const mealReview = ReviewStore.getReviews(tl.restaurantName);
-      const mealRatingHtml = mealReview.count > 0 
-        ? `<div style="margin-top:4px;">${ReviewStore.renderStars(mealReview.avgRating, mealReview.count)}</div>` 
-        : '';
-      items += `
-        <div class="tl-item meal stag">
-          <div class="tl-dot"></div>
-          <div class="tl-card">
-            <div class="tl-time">${prevDay(tl.mealStart)}</div>
-            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"></path></svg>
-              ${tl.restaurantName} 식사
-            </div>
-            <div class="tl-detail">식사 시간 약 ${tl.mealDuration}분</div>
-            ${mealRatingHtml}
-            ${roundOver ? `<button class="tl-nav-btn rating" style="margin-top:6px;" onclick="ReviewStore.openRatingModal('${tl.restaurantName}', '${s.course.name}')">${ratingIcon} 식당 평가하기</button>` : ''}
-          </div>
-        </div>`;
-
-      // 4) 식당 → 골프장 출발
-      items += `
-        <div class="tl-item stag">
-          <div class="tl-dot"></div>
-          <div class="tl-card">
-            <div class="tl-time">${prevDay(tl.restDepart)}</div>
-            <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-              골프장으로 출발
-            </div>
-            <div class="tl-detail">${s.course.name}까지 약 ${tl.restTravelDur}분 소요</div>
-            <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(s.course.name)},${s.course.lat},${s.course.lng},${U.jsq(s.mealRestaurant.name)},${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(s.course.name)},${s.course.lat},${s.course.lng},${U.jsq(s.mealRestaurant.name)},${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${kakaoIcon} 카카오내비</button>
-            </div>
-          </div>
-        </div>`;
-    }
-
-    // 도착
-    items += `
-      <div class="tl-item stag">
-        <div class="tl-dot"></div>
-        <div class="tl-card">
-          <div class="tl-time">${prevDay(tl.arrival)}</div>
-          <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M9 21V10a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v11M2 14h20"></path></svg>
-            클럽하우스 도착
-          </div>
-          <div class="tl-detail">${tl.hasMeal ? '환복·몸풀기' : '조식·환복'} 여유 시간 (${tl.mannerTime}분)</div>
-        </div>
-      </div>`;
-
-    // 티오프
-    items += `
-      <div class="tl-item gold stag">
-        <div class="tl-dot"></div>
-        <div class="tl-card">
-          <div class="tl-time">${tl.teeOff}</div>
-          <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 22V2l10 5-10 5"></path></svg>
-            티오프!
-          </div>
-          <div class="tl-detail">멋진 라운딩 되세요! 🏌️‍♂️</div>
-        </div>
-      </div>`;
-
-    // 라운딩 종료 (귀가·뒷풀이 시간의 기준)
-    const rl = ROUND_LENGTHS[s.roundLength] || ROUND_LENGTHS['18'];
-    items += `
-      <div class="tl-item stag">
-        <div class="tl-dot"></div>
-        <div class="tl-card">
-          <div class="tl-time">${tl.roundEnd || ''}</div>
-          <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l-2 4 2 4H5"></path></svg>
-            라운딩 종료
-          </div>
-          <div class="tl-detail">${rl.label} 기준 · ${rl.desc}</div>
-        </div>
-      </div>`;
-
-    if (tl.hasPostMeal && tl.postMealRestaurant) {
-      const postReview = ReviewStore.getReviews(tl.postMealRestaurant.name);
-      const postRatingHtml = postReview.count > 0 
-        ? `<div style="margin-top:4px;">${ReviewStore.renderStars(postReview.avgRating, postReview.count)}</div>` 
-        : '';
-      items += `
-      <div class="tl-item meal stag" style="margin-top:var(--sp-4);">
-        <div class="tl-dot"></div>
-        <div class="tl-card">
-          <div class="tl-time">${tl.postMealStart}</div>
-          <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-            🍻 ${tl.postMealRestaurant.name} (뒷풀이)
-          </div>
-          <div class="tl-detail">라운딩 후 식사 예정 (약 2시간)</div>
-          ${postRatingHtml}
-          <div class="tl-nav-btns">
-            <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(tl.postMealRestaurant.name)},${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},${U.jsq(s.course.name)},${s.course.lat},${s.course.lng})">${tmapIcon} TMAP</button>
-            <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(tl.postMealRestaurant.name)},${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},${U.jsq(s.course.name)},${s.course.lat},${s.course.lng})">${kakaoIcon} 카카오내비</button>
-            ${roundOver ? `<button class="tl-nav-btn rating" onclick="ReviewStore.openRatingModal('${tl.postMealRestaurant.name}', '${s.course.name}')">${ratingIcon} 식당 평가하기</button>` : ''}
-          </div>
-        </div>
-      </div>`;
-    }
-
-    // 6) 귀가
-    const returnStartLat = s.hasPostMeal && s.postMealRestaurant ? s.postMealRestaurant.lat : s.course.lat;
-    const returnStartLng = s.hasPostMeal && s.postMealRestaurant ? s.postMealRestaurant.lng : s.course.lng;
-    const returnStartName = s.hasPostMeal && s.postMealRestaurant ? s.postMealRestaurant.name : s.course.name;
-    const returnDestName = s.startAddress || startPt;
-    const returnDestLat = s.startLat || 0;
-    const returnDestLng = s.startLng || 0;
-
-    items += `
-      <div class="tl-item stag" style="margin-top:var(--sp-4);">
-        <div class="tl-dot"></div>
-        <div class="tl-card">
-          <div class="tl-time">${tl.returnStart}</div>
-          <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            ${U.esc(U.josa(startPt, '으로/로'))} 귀가
-          </div>
-          <div class="tl-detail">약 ${tl.returnTravelDur}분 소요 예상 (도착 시간: ${tl.returnEnd})</div>
-          <div class="tl-nav-btns">
-            <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(returnDestName)},${returnDestLat},${returnDestLng})">${tmapIcon} TMAP</button>
-            <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(returnDestName)},${returnDestLat},${returnDestLng})">${kakaoIcon} 카카오내비</button>
-          </div>
-        </div>
-      </div>`;
-
-    return items;
-  },
-
   renderCompanions(companions) {
     if (!companions || !companions.length) return '';
     return `
@@ -779,39 +561,39 @@ const Timeline = {
   },
 
   toggleAlarm() {
-    const btn = U.$('#tl-alarm-btn');
-    if (!btn) return;
-    
-    const isAlarmOn = btn.classList.contains('alarm-on');
-    if (isAlarmOn) {
-      btn.classList.remove('alarm-on');
-      btn.innerHTML = '🔔 알람 켜기';
-      btn.style.background = 'transparent';
-      btn.style.color = 'var(--accent)';
-      
-      // 이 일정의 앱 안 타이머와 폰 알람을 취소하고, 꺼둔 상태를 저장 (앱 재실행 시 자동 예약 방지)
-      const s = State.schedules[this.schedIdx];
-      if (s) {
-        this.clearSchedAlarms(s, true);
-        s.alarmOff = true;
-        State.saveSchedules();
-      }
-      
-      U.toast('동선 타임라인 알람이 해제되었습니다.');
-    } else {
-      this.alarmOn();
+    const s = State.schedules[this.schedIdx];
+    if (!s) return;
+    if (!s.alarmOff) this.alarmOffFor(this.schedIdx);
+    else this.alarmOn();
+  },
+
+  /** 알람 끄기: 이 일정의 앱 안 타이머와 폰 알람을 취소하고 꺼둔 상태를 저장 (앱 재실행 시 자동 예약 방지) */
+  alarmOffFor(idx) {
+    const s = State.schedules[idx];
+    if (!s) return;
+    this.clearSchedAlarms(s, true);
+    s.alarmOff = true;
+    State.saveSchedules();
+    this.syncAlarmUI(false);
+    U.toast('출발 알람을 껐어요.');
+  },
+
+  /** 화면의 알람 스위치 모양 맞추기 */
+  syncAlarmUI(on) {
+    const sw = U.$('#tl-alarm-btn');
+    if (sw) { sw.classList.toggle('on', on); sw.classList.toggle('alarm-on', on); sw.setAttribute('aria-checked', on); }
+    const box = U.$('#tl-alarm-box');
+    if (box) {
+      box.classList.toggle('off', !on);
+      const b = box.querySelector('b'), sm = box.querySelector('small');
+      if (b) b.textContent = on ? '알람 켜짐' : '알람 꺼짐';
+      if (sm) sm.textContent = on ? '단계마다 미리 알려 드려요' : '켜면 준비·출발 시간에 알려 드려요';
     }
   },
 
   /** 알람 켜기 (일정 생성·수정 직후에도 호출). 이미 켜져 있어도 기존 예약을 지우고 다시 예약하므로 중복되지 않음 */
   alarmOn() {
-    const btn = U.$('#tl-alarm-btn');
-    if (btn) {
-      btn.classList.add('alarm-on');
-      btn.innerHTML = '🔔 알람 켜짐';
-      btn.style.background = 'var(--accent)';
-      btn.style.color = '#fff';
-    }
+    this.syncAlarmUI(true);
     {
       this.initAudioContext();
 
@@ -1236,6 +1018,7 @@ const Timeline = {
         }
       }
 
+      if (State.screen === 'timeline' && Timeline.schedIdx === State.schedules.indexOf(s)) { try { Timeline.markSteps(); } catch (e) {} }
       const banner = U.$('#tl-sticky-banner');
       const bannerText = U.$('#tl-banner-text');
       if (banner && bannerText) {

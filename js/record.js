@@ -93,79 +93,154 @@ const Record = {
       </div>`;
   },
 
+  view: 'list',
+
+  /** 최근 라운딩 중 아직 기록이 없는 일정 (14일 이내) */
+  pendingRound() {
+    const now = new Date();
+    const list = ((typeof State !== 'undefined' && State.schedules) || []).filter(s => {
+      if (!s || !s.date) return false;
+      const d = new Date(s.date);
+      const [h, m] = String(s.teeOff || '07:00').split(':').map(Number);
+      d.setHours(h || 0, m || 0, 0, 0);
+      const ago = (now - d) / 864e5;
+      return ago > 0.1 && ago <= 14 && !this.roundsOn(this.ymd(d.getFullYear(), d.getMonth(), d.getDate())).length;
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    return list[0] || null;
+  },
+
+  /** 기록 화면에서 바로: 그날 날짜로 직접 입력 */
+  writeFor(dateIso) {
+    if (dateIso) {
+      const d = new Date(dateIso);
+      this.currentYear = d.getFullYear(); this.currentMonth = d.getMonth(); this.selectedDate = d.getDate();
+    } else {
+      const t = new Date(); this.currentYear = t.getFullYear(); this.currentMonth = t.getMonth(); this.selectedDate = t.getDate();
+    }
+    this.showRecordForm();
+  },
+
+  /** 스코어카드 사진 → 버디 AI가 홀별 타수를 읽음 */
+  async onCardPhoto(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await this.compressImage(file, 1400, 1400, 0.8);
+      input.value = '';
+      App.navigate('ai');
+      setTimeout(() => { try { AI.processUserMessage('스코어카드 사진이에요. 타수를 기록해 주세요.', dataUrl); } catch (e) { U.toast('사진을 보내지 못했어요.'); } }, 350);
+    } catch (e) { U.toast('사진을 불러오지 못했어요.'); }
+  },
+
+  setView(v) { this.view = v; this.render(); },
+
   render() {
     const container = U.$('#screen-record');
     const list = this.scoredList();
-    const roundCount = Object.keys(this.records).filter(k => this.records[k]).length;   // 9홀 포함 전체 라운드
-    const validScoreCount = list.length;
-    const totalScore = list.reduce((t, r) => t + r.score, 0);
-    const recentScore = list.length ? list[list.length - 1].score : '--';
+    const year = String(new Date().getFullYear());
+    const yearCount = Object.keys(this.records).filter(k => this.records[k] && this.dateOf(k).startsWith(year)).length;
+    const avg = list.length ? (list.reduce((t, r) => t + r.score, 0) / list.length).toFixed(1) : '--';
+    const best = list.length ? Math.min(...list.map(r => r.score)) : null;
+    const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+    const cam = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+    const chev = '<svg class="v2-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
 
-    const avgScore = validScoreCount > 0 ? (totalScore / validScoreCount).toFixed(1) : '--';
-    const displayCount = roundCount;
+    // 1. 상단: 기록 안 한 최근 라운딩
+    const pr = this.pendingRound();
+    let heroTitle, heroMeta = '', heroDate = '';
+    if (pr) {
+      const d = new Date(pr.date);
+      heroTitle = `${U.esc(pr.course ? pr.course.name : '골프장')} 스코어를 남겨 볼까요?`;
+      heroMeta = `${d.getMonth() + 1}월 ${d.getDate()}일 (${DAYS[d.getDay()]}) · 티오프 ${U.esc(pr.teeOff || '')}${(pr.companions || []).length ? ` · 동반자 ${pr.companions.length}명` : ''}`;
+      heroDate = d.toISOString();
+    } else {
+      heroTitle = '오늘 라운드 스코어를 남겨 볼까요?';
+    }
+
+    // 2. 최근 5라운드 막대
+    const last5 = list.slice(-5);
+    let barsHtml = '';
+    if (last5.length >= 2) {
+      const sc = last5.map(r => r.score);
+      const lo = Math.min(...sc) - 4, hi = Math.max(...sc);
+      const delta = sc[sc.length - 1] - sc[0];
+      const msg = delta < 0 ? `${-delta}타 줄었어요` : delta > 0 ? `${delta}타 늘었어요` : '그대로예요';
+      barsHtml = `
+        <div class="v2-card">
+          <div class="v2-bars-head"><b>최근 ${last5.length}라운드 흐름</b><span class="${delta > 0 ? 'up' : ''}">${msg}</span></div>
+          <div class="v2-bars">
+            ${last5.map((r, i) => {
+              const h = 30 + 70 * ((r.score - lo) / Math.max(1, hi - lo));
+              const [, mm, dd] = r.date.split('-');
+              return `<div class="v2-bar ${i === last5.length - 1 ? 'last' : ''}"><em>${r.score}</em><i style="height:${h.toFixed(0)}%"></i><small>${+mm}/${+dd}</small></div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+
+    // 3. 라운드 일지
+    const keys = Object.keys(this.records).filter(k => this.records[k])
+      .sort((a, b) => this.dateOf(b).localeCompare(this.dateOf(a)) || b.localeCompare(a));
+    const logHtml = keys.length ? keys.map(k => {
+      const r = this.records[k];
+      const [, mm, dd] = this.dateOf(k).split('-');
+      const sch = this.schedulesOn(this.dateOf(k));
+      const comp = (r.companions && r.companions.length) || (sch.length === 1 ? (sch[0].companions || []).length : 0);
+      const photos = ['dImg1', 'dImg2', 'dImg3', 'dImg4'].filter(x => r[x]).length;
+      const isBest = best !== null && r.score === best && !this.isNine(r);
+      const meta = [`${+mm}월 ${+dd}일`, comp ? `동반자 ${comp}명` : '', photos ? `사진 ${photos}장` : '', this.isNine(r) ? '9홀' : ''].filter(Boolean).join(' · ');
+      return `<div class="v2-log" onclick="Record.showDiaryDetail(${U.jsq(k)})">
+        <div class="v2-log-score"><b>${typeof r.score === 'number' ? r.score : '-'}</b><small>타</small></div>
+        <div class="v2-log-info"><div class="t"><span class="nm">${U.esc(r.course || '라운드')}</span>${isBest ? '<span class="v2-pill amber">베스트</span>' : ''}</div><div class="m">${meta}</div></div>
+        ${chev}
+      </div>`;
+    }).join('') : `<div class="v2-empty">아직 남긴 라운드가 없어요.<br>스코어를 남기면 여기에 일지로 쌓여요.</div>`;
+
+    const calHtml = `
+      <div class="v2-card" style="padding:14px;">
+        <div class="record-calendar" style="margin:0; box-shadow:none; border:none; padding:0;">
+          <div class="record-cal-header">
+            <button onclick="Record.prevMonth()" aria-label="이전 달"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+            <div class="record-cal-title">${this.currentYear}년 ${this.currentMonth + 1}월</div>
+            <button onclick="Record.nextMonth()" aria-label="다음 달"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+          </div>
+          <div class="record-cal-days"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+          <div class="record-cal-grid" id="record-cal-grid"></div>
+        </div>
+      </div>
+      <div id="record-detail-container"></div>`;
 
     container.innerHTML = `
-      <div class="screen-scroll" style="background:#f8fafc; padding-top:var(--header-h); padding-bottom:calc(var(--nav-h) + 16px);">
-        
-        <!-- Record Top Section -->
-        <div style="padding: 16px 20px 8px;">
-          
-          <!-- 라운딩 핵심 통계 바 (Unified Style) -->
-          <div style="display:flex; justify-content:space-around; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; padding:14px 12px; margin-bottom:18px; box-shadow:0 2px 10px rgba(0,0,0,0.02);">
-            <div style="text-align:center; flex:1;">
-              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">총 라운딩</div>
-              <div style="font-size:17px; font-weight:800; color:#0f172a;"><span style="color:#007aff;">${displayCount}</span>회</div>
+      <div class="v2-pagehead"><h1>기록</h1></div>
+      <div class="v2-scroll">
+        <div class="v2-body">
+          <div class="v2-rec-hero">
+            <div class="tag">${pr ? '라운딩 수고하셨어요' : '라운드 기록'}</div>
+            <h3>${heroTitle}</h3>
+            ${heroMeta ? `<div class="meta">${heroMeta}</div>` : ''}
+            <div class="btns">
+              <button class="w" onclick="document.getElementById('rec-card-input').click()">${cam} 스코어카드 촬영</button>
+              <button class="o" onclick="Record.writeFor(${heroDate ? U.jsq(heroDate) : "''"})">직접 입력</button>
             </div>
-            <div style="width:1px; height:24px; background:#e2e8f0;"></div>
-            <div style="text-align:center; flex:1;">
-              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">평균 타수</div>
-              <div style="font-size:17px; font-weight:800; color:#0f172a;">${avgScore}<span style="font-size:12px; font-weight:700; color:#64748b;">타</span></div>
-            </div>
-            <div style="width:1px; height:24px; background:#e2e8f0;"></div>
-            <div style="text-align:center; flex:1;">
-              <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;">최근 타수</div>
-              <div style="font-size:17px; font-weight:800; color:#0f172a;">${recentScore}<span style="font-size:12px; font-weight:700; color:#64748b;">타</span></div>
-            </div>
+            <input type="file" id="rec-card-input" accept="image/*" style="display:none" onchange="Record.onCardPhoto(this)">
+            <div class="foot">사진을 올리면 버디 AI가 홀별 타수를 읽어 채워 드려요</div>
           </div>
-          ${this.trendHtml(list)}
-        </div>
-
-        <div style="padding: 0 16px 12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin:0; display:flex; align-items:center; gap:6px;">
-              <span>📅</span>
-              라운딩 스코어 캘린더
-            </h2>
-            <button onclick="Record.showRecordForm()" style="background:#04122d; color:#fff; border:none; padding:8px 16px; border-radius:9999px; font-size:13px; font-weight:800; display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow:0 3px 10px rgba(4,18,45,0.2);">
-              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              스코어 등록
-            </button>
+          <div class="v2-stats">
+            <div class="v2-stat"><span>올해 라운드</span><b>${yearCount}회</b></div>
+            <div class="v2-stat"><span>평균 타수</span><b>${avg}</b></div>
+            <div class="v2-stat best"><span>베스트</span><b>${best !== null ? best : '--'}</b></div>
           </div>
-          
-          <div class="record-calendar">
-            <div class="record-cal-header">
-              <button onclick="Record.prevMonth()"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-              <div class="record-cal-title">${this.currentYear}년 ${this.currentMonth + 1}월</div>
-              <button onclick="Record.nextMonth()"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
-            </div>
-            
-            <div class="record-cal-days">
-              <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-            </div>
-            
-            <div class="record-cal-grid" id="record-cal-grid">
-              <!-- Calendar cells injected here -->
-            </div>
+          ${barsHtml}
+          <div class="v2-log-head"><b>라운드 일지</b>
+            <div class="v2-seg"><button class="${this.view === 'list' ? 'on' : ''}" onclick="Record.setView('list')">목록</button><button class="${this.view === 'cal' ? 'on' : ''}" onclick="Record.setView('cal')">달력</button></div>
           </div>
-
-          <div id="record-detail-container" style="margin-top:20px;"></div>
+          ${this.view === 'cal' ? calHtml : `<div style="display:flex; flex-direction:column; gap:10px;">${logHtml}</div>`}
         </div>
       </div>
     `;
-    
-    this.renderCalendarGrid();
+    if (this.view === 'cal') this.renderCalendarGrid();
   },
-  
+
   prevMonth() {
     this.currentMonth--;
     if(this.currentMonth < 0) {
@@ -242,6 +317,7 @@ const Record = {
     const dateStr = this.ymd(this.currentYear, this.currentMonth, d);
     const rounds = this.roundsOn(dateStr);
     const detailContainer = U.$('#record-detail-container');
+    if (!detailContainer) return;
     const dayStr = ['일', '월', '화', '수', '목', '금', '토'][new Date(this.currentYear, this.currentMonth, d).getDay()];
     const dateLabel = `${this.currentYear}. ${String(this.currentMonth + 1).padStart(2, '0')}. ${String(d).padStart(2, '0')} (${dayStr})`;
 

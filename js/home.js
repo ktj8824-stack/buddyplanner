@@ -63,6 +63,30 @@ const Home = {
     setTimeout(() => { if (typeof Record !== 'undefined' && Record.showRecordForm) Record.showRecordForm(); }, 200);
   },
 
+  /** 홈 출발 알람 스위치: 타임라인의 알람 켜기/끄기와 같은 동작 */
+  toggleAlarm(idx) {
+    const s = State.schedules[idx];
+    if (!s) return;
+    Timeline.schedIdx = idx;
+    if (s.alarmOff) Timeline.alarmOn(); else Timeline.alarmOffFor(idx);
+    this.render();
+  },
+
+  /** 🔔 알림: 다가오는 라운딩의 알람 시각 */
+  showAlarms() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const list = (State.schedules || []).map((s, i) => ({ s, i })).filter(x => new Date(x.s.date) >= today)
+      .sort((a, b) => new Date(a.s.date) - new Date(b.s.date)).slice(0, 5);
+    const body = list.length ? list.map(({ s, i }) => {
+      const tl = s.timeline || {};
+      return `<button class="v2-li" onclick="App.closeModal(); App.viewTimeline(${i})">
+        <span class="k"><b style="font-weight:800;">${U.esc(s.course ? s.course.name : '골프장')}</b>
+        <small>${U.fmtDateShort(s.date)} · ${s.alarmOff ? '알람 꺼짐' : `준비 ${tl.prepStart || '--:--'} · 출발 ${tl.homeDepart || '--:--'}`}</small></span>
+        <svg class="v2-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>`;
+    }).join('') : `<div class="v2-cal-empty">예정된 알람이 없어요.<br>라운딩을 등록하면 단계마다 알려 드려요.</div>`;
+    App.showModal('알림', `<div class="v2-list" style="border:none;">${body}</div>`);
+  },
+
   render() {
     const el = U.$('#screen-home');
     if (!el) return;
@@ -70,393 +94,151 @@ const Home = {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const currentYear = today.getFullYear();
+    const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+    const ico = {
+      chev: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+      plus: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+      flag: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h10l-2.5 4L16 12H6"/></svg>',
+      bell: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+      menu: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+      group: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><circle cx="16.5" cy="9" r="2.6"/><path d="M3.5 19c.6-3 2.8-4.6 5.5-4.6s4.9 1.6 5.5 4.6"/><path d="M15 14.6c2.4-.3 4.6 1.1 5.2 4"/></svg>',
+      food: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3"/><path d="M8 12v9"/><path d="M17 21V3c-2 1.5-3 4-3 7 0 1.7 1 2.7 3 3"/></svg>',
+      chat: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 1-11.6 7.1L4 20l1.4-4.2A8 8 0 1 1 20 11.5z"/></svg>',
+      gift: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v9h14v-9"/><path d="M12 8c-2-4-6-3-5 0M12 8c2-4 6-3 5 0"/></svg>',
+      bag: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 14H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>'
+    };
 
-    // 1. 다가오는 라운딩 일정 조회
-    const upcomingScheds = (State.schedules || []).filter(s => {
-      const d = s.date instanceof Date ? s.date : new Date(s.date);
-      return d >= today;
-    }).sort((a, b) => {
-      const da = a.date instanceof Date ? a.date : new Date(a.date);
-      const db = b.date instanceof Date ? b.date : new Date(b.date);
-      return da - db;
-    });
+    // 1. 다가오는 라운딩
+    const upcoming = (State.schedules || []).filter(s => new Date(s.date) >= today)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    let subTag = '스마트 라운딩 플래너';
-    let mainHeading = '첫 라운딩을<br>등록해 보세요.';
-    let btnText = '새 일정 등록하기';
-    let btnAction = "App.navigate('register')";
-    let departTime = '--:--';
-    let arrivalTime = '--:--';
-    let teeOffTime = '--:--';
-
-    if (upcomingScheds.length > 0) {
-      const s = upcomingScheds[0];
-      const originalIdx = State.schedules.indexOf(s);
-      const cName = s.course ? s.course.name : (s.courseName || '골프장');
-      const dateObj = s.date instanceof Date ? s.date : new Date(s.date);
-      const dday = typeof U !== 'undefined' && U.dday ? U.dday(dateObj) : 'D-Day';
-
-      // 오늘과의 날짜 차이 계산
-      const t = new Date(); t.setHours(0,0,0,0);
-      const tg = new Date(dateObj); tg.setHours(0,0,0,0);
-      const diffDays = Math.ceil((tg - t) / 864e5);
-
-      btnText = '타임라인 보기';
-      btnAction = `App.viewTimeline(${originalIdx})`;
-
-      if (!s.timeline && typeof State !== 'undefined' && State.calculateTimeline) {
-        try { State.calculateTimeline(originalIdx); } catch(e){}
-      }
+    let heroHtml;
+    if (upcoming.length) {
+      const s = upcoming[0];
+      const idx = State.schedules.indexOf(s);
+      if (!s.timeline && State.calculateTimeline) { try { State.calculateTimeline(idx); } catch (e) {} }
       const tl = s.timeline || {};
-      departTime = tl.homeDepart || '--:--';
-      arrivalTime = tl.arrival || '--:--';
-      teeOffTime = tl.teeOff || s.teeOff || '--:--';
-
-      // 큰 문구: 다음 라운딩까지 남은 시간과 '지금 할 일'에 맞춰 바뀜
+      const dateObj = new Date(s.date);
+      const tg = new Date(dateObj); tg.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((tg - today) / 864e5);
+      const cName = s.course ? s.course.name : (s.courseName || '골프장');
+      const region = Register && Register.regionOf ? (s.course && (s.course.region || Register.regionOf(s.course.addr || s.course.address))) : '';
       const msg = this.heroMessage(s, tl, diffDays, dateObj);
-      subTag = `${cName} · ${diffDays <= 0 ? 'D-Day' : dday}`;
-      mainHeading = msg.heading;
-      if (msg.btnText) { btnText = msg.btnText; btnAction = msg.btnAction || btnAction; }
+      const btnText = diffDays <= 0 && msg.btnText ? msg.btnText : '타임라인 보기';
+      const btnAction = diffDays <= 0 && msg.btnAction ? msg.btnAction : `App.viewTimeline(${idx})`;
+      const startPt = s.startPoint || '집';
+      const on = !s.alarmOff;
+      heroHtml = `
+        <div class="v2-hero-tag">${diffDays <= 0 ? '오늘 라운딩 · D-Day' : `다음 라운딩 · D-${diffDays}`}</div>
+        <div class="v2-hero-title">${U.esc(cName)}</div>
+        <div class="v2-hero-sub">${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 (${DAYS[dateObj.getDay()]})${region ? ' · ' + U.esc(region) : ''}</div>
+        <div class="v2-hero-times" onclick="App.viewTimeline(${idx})">
+          <div class="v2-hero-time"><span>${U.esc(String(startPt).slice(0, 4))}에서 출발</span><b>${tl.homeDepart || '--:--'}</b></div>
+          <div class="v2-hero-time"><span>골프장 도착</span><b>${tl.arrival || '--:--'}</b></div>
+          <div class="v2-hero-time tee"><span>티오프</span><b>${tl.teeOff || s.teeOff || '--:--'}</b></div>
+        </div>
+        <div class="v2-hero-alarm">
+          <div><b>출발 알람 ${on ? '켜짐' : '꺼짐'}</b><small>${on ? `${tl.prepStart || '준비'} 준비 시작부터 단계마다 알려 드려요` : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
+          <button class="v2-switch ${on ? 'on' : ''}" role="switch" aria-checked="${on}" aria-label="출발 알람" onclick="Home.toggleAlarm(${idx})"></button>
+        </div>
+        <button class="v2-hero-btn" onclick="${btnAction}">${btnText} ${ico.chev}</button>`;
+    } else {
+      heroHtml = `
+        <div class="v2-hero-tag">다음 라운딩</div>
+        <div class="v2-hero-title">첫 라운딩을 등록해 보세요</div>
+        <div class="v2-hero-empty">골프장과 티오프만 넣으면 출발 시간과<br>단계별 알람을 자동으로 맞춰 드려요.</div>
+        <button class="v2-hero-btn" onclick="App.navigate('register')">새 라운딩 등록 ${ico.chev}</button>`;
     }
 
-    // 2. 스코어 기록 데이터 조회
-    // 기록이 없으면 예시 숫자 대신 빈 화면 안내를 보여줌
-    let hasRecent = false, hasBest = false;
-    let recentScore = '--';
-    let recentDiff = null;
-    let recentDate = '';
-    let recentCourse = '';
-
-    let bestScore = '--';
-    let bestDiff = null;
-    let bestDate = '';
-    let bestCourse = '';
-
-    let yearlyCount = 0;
-
+    // 2. 스코어 기록 (18홀만 통계)
+    let rec = null, best = null, yearly = 0, total = 0;
     try {
-      const recordsData = localStorage.getItem('bp_records_v1');
-      if (recordsData) {
-        const records = JSON.parse(recordsData);
-        // 키: 'YYYY-MM-DD' 또는 같은 날 추가 라운드 'YYYY-MM-DD#2' (Record.dateOf 참고)
-        const dOf = k => (typeof Record !== 'undefined' ? Record.dateOf(k) : String(k).split('#')[0]);
-        const sortedDates = Object.keys(records).sort((a, b) => dOf(b) === dOf(a) ? b.localeCompare(a) : dOf(b).localeCompare(dOf(a)));
-        
-        // 최근 스코어·라이프 베스트는 18홀 라운드만 (9홀 기록은 횟수에만 포함)
-        const isNine = r => (typeof Record !== 'undefined' ? Record.isNine(r) : false);
-        const full = sortedDates.filter(k => records[k] && typeof records[k].score === 'number' && !isNine(records[k]));
-        if (sortedDates.length > 0) {
-          const r0 = full.length ? records[full[0]] : null;
-          if (r0 && typeof r0.score === 'number') {
-            hasRecent = true;
-            recentScore = r0.score;
-            recentDiff = recentScore - 72;
-            recentCourse = r0.course || '';
-            const p = dOf(full[0]).split('-');
-            if (p.length === 3) {
-              recentDate = `${p[0].slice(2)}.${p[1]}.${p[2]}`;
-            }
-          }
-
-          // 라베(Life Best) 찾기
-          let minScore = Infinity;
-          let minRec = null;
-          let minDateStr = '';
-          let thisYearRounds = 0;
-
-          sortedDates.forEach(d => {
-            const r = records[d];
-            if (r) {
-              if (d.startsWith(String(currentYear))) {
-                thisYearRounds++;
-              }
-              if (typeof r.score === 'number' && !isNine(r) && r.score < minScore) {
-                minScore = r.score;
-                minRec = r;
-                minDateStr = d;
-              }
-            }
-          });
-
-          if (minScore !== Infinity && minRec) {
-            hasBest = true;
-            bestScore = minScore;
-            bestDiff = bestScore - 72;
-            bestCourse = minRec.course || '';
-            const bp = dOf(minDateStr).split("-");
-            if (bp.length === 3) {
-              bestDate = `${bp[0].slice(2)}.${bp[1]}.${bp[2]}`;
-            }
-          }
-
-          if (thisYearRounds > 0) {
-            yearlyCount = thisYearRounds;
-          }
+      const records = JSON.parse(localStorage.getItem('bp_records_v1') || '{}');
+      const dOf = k => (typeof Record !== 'undefined' ? Record.dateOf(k) : String(k).split('#')[0]);
+      const isNine = r => (typeof Record !== 'undefined' ? Record.isNine(r) : false);
+      const keys = Object.keys(records).filter(k => records[k]).sort((a, b) => dOf(b).localeCompare(dOf(a)) || b.localeCompare(a));
+      total = keys.length;
+      keys.forEach(k => {
+        const r = records[k];
+        if (dOf(k).startsWith(String(currentYear))) yearly++;
+        if (typeof r.score === 'number' && !isNine(r)) {
+          if (!rec) rec = r;
+          if (!best || r.score < best.score) best = r;
         }
-      }
-    } catch (e) {
-      console.warn('Record data parse warning:', e);
-    }
+      });
+    } catch (e) { console.warn('Record data parse warning:', e); }
 
-    // 3. 포인트 & 광고 시청 카운트
-    const currentPoints = Points.balance();
-    const pm = Points.meta();
+    const scoreHtml = rec ? `
+      <div class="v2-score-card" onclick="App.navigate('record')">
+        <div class="v2-score-ico">${ico.flag}</div>
+        <div class="t"><b>최근 ${rec.score}타 · 베스트 ${best.score}타</b><small>올해 ${yearly}라운드${rec.course ? ' · ' + U.esc(rec.course) : ''}</small></div>
+        <button class="v2-score-btn" onclick="event.stopPropagation(); Home.openScoreForm()">기록</button>
+      </div>` : `
+      <div class="v2-score-card" onclick="Home.openScoreForm()">
+        <div class="v2-score-ico">${ico.flag}</div>
+        <div class="t"><b>${total ? '스코어를 기록해 보세요' : '첫 스코어를 기록해 보세요'}</b><small>최근 스코어, 라이프 베스트, 올해 라운드가 여기에 쌓여요</small></div>
+        <button class="v2-score-btn" onclick="event.stopPropagation(); Home.openScoreForm()">기록</button>
+      </div>`;
 
-    // 4. 주간 캘린더 날짜 계산 (일요일 ~ 토요일)
-    const currentDay = today.getDay(); // 0: 일요일
-    const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - currentDay);
-
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-    const weekDays = [];
+    // 3. 이번 주
+    const start = new Date(today); start.setDate(today.getDate() - today.getDay());
+    let weekHtml = '';
+    for (let i = 0; i < 7; i++) weekHtml += `<span class="dn ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${DAYS[i]}</span>`;
     for (let i = 0; i < 7; i++) {
-      const d = new Date(startOfWeek);
-      d.setDate(startOfWeek.getDate() + i);
-      const isToday = d.toDateString() === today.toDateString();
-      const dateNum = d.getDate();
-      const dayName = dayNames[i];
-
-      const hasSchedule = (State.schedules || []).some(s => {
-        const sDate = s.date instanceof Date ? s.date : new Date(s.date);
-        return sDate.toDateString() === d.toDateString();
-      });
-
-      weekDays.push({
-        dayName,
-        dateNum,
-        isToday,
-        hasSchedule,
-        dayIdx: i
-      });
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      weekHtml += `<span class="dd ${d.getTime() === today.getTime() ? 'today' : ''}" onclick="Home.openDay(${d.getFullYear()},${d.getMonth()},${d.getDate()})">${d.getDate()}</span>`;
     }
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start); d.setDate(start.getDate() + i);
+      weekHtml += `<span class="dot">${State.hasScheduleOnDate(d.getFullYear(), d.getMonth(), d.getDate()) ? '<i></i>' : ''}</span>`;
+    }
+
+    const pm = Points.meta();
+    const third = App.COMMUNITY_OPEN
+      ? `<div class="v2-tile" onclick="App.navigate('community')"><i>${ico.chat}</i><span>커뮤니티</span></div>`
+      : `<div class="v2-tile" onclick="App.navigate('raffle')"><i>${ico.gift}</i><span>럭키드로우</span></div>`;
 
     el.innerHTML = `
-      <div class="screen-scroll dash-scroll bg-light">
-        
-        <!-- 1. Top G Lounge Dark Section -->
-        <div class="home-glounge-wrapper">
-
-          <!-- Hero Banner Content (2-Column: Left Text+Timeline+Btn, Right 3D Golfer Figure) -->
-          <div class="home-glounge-hero">
-            <div class="glounge-hero-text">
-              <div class="hero-sub-tag">${subTag}</div>
-              <div class="hero-main-title">${mainHeading}</div>
-
-              <!-- Mini Timeline (출발 - 골프장 - 티오프, 위치: 타임라인 보기 바로 위) -->
-              ${upcomingScheds.length === 0 ? `<div class="hero-empty-hint">골프장·티오프만 넣으면<br>출발 시간이 자동 계산돼요</div>` : ''}
-              <div class="hero-inline-timeline" onclick="${btnAction}" ${upcomingScheds.length === 0 ? 'style="display:none"' : ''}>
-                <div class="mini-tl-node">
-                  <span class="mini-tl-tag tag-depart">출발</span>
-                  <span class="mini-tl-val">${departTime}</span>
-                </div>
-                <div class="mini-tl-arrow">
-                  <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
-                    <path d="M5 12h14M13 6l6 6-6 6"/>
-                  </svg>
-                </div>
-                <div class="mini-tl-node">
-                  <span class="mini-tl-tag tag-arrival">골프장</span>
-                  <span class="mini-tl-val">${arrivalTime}</span>
-                </div>
-                <div class="mini-tl-arrow">
-                  <svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none">
-                    <path d="M5 12h14M13 6l6 6-6 6"/>
-                  </svg>
-                </div>
-                <div class="mini-tl-node highlight">
-                  <span class="mini-tl-tag tag-teeoff">티오프</span>
-                  <span class="mini-tl-val">${teeOffTime}</span>
-                </div>
-              </div>
-
-              <!-- 타임라인 보기 버튼 -->
-              <button class="glounge-pill-btn" onclick="${btnAction}">
-                ${btnText}
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none">
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-              </button>
-            </div>
-
-            <!-- 3D Golfer Figure (자연스러운 잔디 & 배경 블렌딩) -->
-            <div class="glounge-hero-figure">
-              <img src="img/glounge_hero_golfer.png" alt="Golfer 3D" />
-            </div>
+      <div class="v2-scroll">
+        <div class="v2-home-hero">
+          <div class="v2-brand">
+            <div class="v2-brand-logo">B</div>
+            <div class="v2-brand-name">BuddyPlanner${State.isPro ? ' <span class="glounge-brand-badge">PRO</span>' : ''}</div>
+            <button class="v2-iconbtn" onclick="Home.showAlarms()" aria-label="알림">${ico.bell}</button>
+            <button class="v2-iconbtn" onclick="App.openMenu()" aria-label="전체 메뉴">${ico.menu}</button>
           </div>
+          ${heroHtml}
         </div>
-
-        <!-- 2. White Curved Bottom Sheet -->
-        <div class="home-glounge-sheet">
-          
-          <!-- Points & Ad Reward Card (Full Width Slim) -->
-          <div class="glounge-point-card" style="margin-bottom: 14px; background: #ffffff; border: 1px solid #eef2f6; border-radius: 16px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-              <span style="font-size: 13px; color: #64748b; font-weight: 700;">내 포인트</span>
-              <span style="font-size: 16px; font-weight: 800; color: var(--accent); font-family: 'Montserrat', sans-serif;">
-                <span data-points>${currentPoints.toLocaleString()}</span> <span style="font-size: 11px; color: #94a3b8;">P</span>
-              </span>
-            </div>
-            <button class="ad-reward-btn" style="padding: 6px 12px; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; border-radius: 8px; border: none; cursor: pointer; width: auto; margin: 0;" onclick="Profile.watchAd()">
-              <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> 
-              광고 시청 ${pm.ad_points}P <span data-ad-count style="font-size: 10px; opacity: 0.85;">${pm.ad_today}/${pm.ad_limit}</span>
-            </button>
+        <div class="v2-home-body">
+          <div class="v2-new-card" onclick="App.navigate('register')">
+            <div class="v2-new-ico">${ico.plus}</div>
+            <div style="flex:1; min-width:0;"><b>새 라운딩 등록</b><small>골프장과 티오프만 넣으면 출발 시간을 계산해 드려요</small></div>
+            <span class="v2-chev">${ico.chev}</span>
           </div>
-
-          <!-- 그다음 라운딩: 가장 가까운 라운딩은 맨 위에 이미 나오므로, 2개 이상일 때 두 번째부터만 -->
-          ${upcomingScheds.length > 1 ? `
-            <div class="glounge-upcoming-box">
-              <div class="upcoming-head">
-                <span class="upcoming-title">그다음 라운딩</span>
-                <button class="upcoming-more-btn" onclick="App.navigate('calendar')">전체보기 &gt;</button>
-              </div>
-              ${upcomingScheds.slice(1, 3).map((sched, idx) => {
-                const cName = sched.course ? sched.course.name : (sched.courseName || '골프장');
-                const dObj = sched.date instanceof Date ? sched.date : new Date(sched.date);
-                const dStr = `${dObj.getMonth() + 1}월 ${dObj.getDate()}일 (${U.DAYS ? U.DAYS[dObj.getDay()] : '일'})`;
-                const tTime = sched.teeOff || sched.teeTime || '07:00';
-                const origIdx = State.schedules.indexOf(sched);
-                return `
-                  <div class="upcoming-item" style="display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f1f5f9; cursor:pointer;" onclick="App.viewTimeline(${origIdx})">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                      <div style="width:36px; height:36px; border-radius:10px; background:#eff6ff; color:#007aff; display:flex; align-items:center; justify-content:center; font-size:16px;">⛳</div>
-                      <div>
-                        <div style="font-size:13.5px; font-weight:800; color:#0f172a;">${cName}</div>
-                        <div style="font-size:11.5px; color:#64748b;">${dStr} · ${tTime}</div>
-                      </div>
-                    </div>
-                    <div style="font-size:12px; font-weight:700; color:#007aff; background:#eff6ff; padding:4px 8px; border-radius:6px;">
-                      타임라인 보기
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          ` : ''}
-
-          <!-- Modern Weekly Calendar Strip Card (올해 라운드 바로 밑에 배치) -->
-          <div class="glounge-week-card">
-            <div class="week-card-head">
-              <span class="week-card-title">${today.getMonth() + 1}월 일정</span>
-              <button class="week-add-btn" onclick="App.navigate('register')">
-                <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                일정등록
-              </button>
-            </div>
-
-            <div class="week-card-grid" onclick="App.navigate('calendar')">
-              ${weekDays.map(item => {
-                let dayColor = '#94a3b8';
-                if (item.dayIdx === 0) dayColor = '#ef4444'; // 일요일 빨강
-                if (item.dayIdx === 6) dayColor = '#3b82f6'; // 토요일 파랑
-                
-                return `
-                  <div class="week-day-col">
-                    <span class="week-day-name" style="color: ${dayColor};">${item.dayName}</span>
-                    <div class="week-day-num ${item.isToday ? 'is-today' : ''}">
-                      ${item.dateNum}
-                    </div>
-                    ${item.hasSchedule ? '<span class="week-sched-dot"></span>' : ''}
-                  </div>
-                `;
-              }).join('')}
-            </div>
+          <div class="v2-card">
+            <div class="v2-week-head"><span class="v2-h2">이번 주</span><button class="v2-link" onclick="App.navigate('calendar')">전체 일정</button></div>
+            <div class="v2-week">${weekHtml}</div>
           </div>
-
-          <!-- Core Tool Quick Launch Grid: 위 2칸(일정등록·단체등록) + 아래 4칸 -->
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-            <div onclick="App.navigate('register')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:16px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
-              <div style="width:42px; height:42px; border-radius:13px; background:#eff6ff; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/register.png?v=1" alt="" style="width:30px;height:30px;object-fit:contain;pointer-events:none;"></div>
-              <div style="min-width:0;"><span style="font-size:15.5px; font-weight:800; color:#0f172a; display:block;">일정등록</span><span style="font-size:11px; color:#94a3b8; margin-top:2px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">내 라운딩 · 출발 알람</span></div>
-            </div>
-            <div onclick="Group.openList()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:16px 12px; display:flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease; min-width:0;">
-              <div style="width:42px; height:42px; border-radius:13px; background:#fef9c3; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0;"><img src="img/icons/group.png?v=1" alt="" style="width:30px;height:30px;object-fit:contain;pointer-events:none;"></div>
-              <div style="min-width:0;"><span style="font-size:15.5px; font-weight:800; color:#0f172a; display:block;">단체등록</span><span style="font-size:11px; color:#94a3b8; margin-top:2px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">모임 참석 · 조 · 차량</span></div>
-            </div>
+          ${scoreHtml}
+          <div class="v2-tiles">
+            <div class="v2-tile" onclick="Group.openList()"><i>${ico.group}</i><span>단체 등록</span></div>
+            <div class="v2-tile" onclick="App.navigate('restaurant')"><i>${ico.food}</i><span>추천 맛집</span></div>
+            ${third}
+            <div class="v2-tile" onclick="App.navigate('market')"><i>${ico.bag}</i><span>마켓</span></div>
           </div>
-          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
-            <div onclick="Home.openNextTimeline()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:7px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:32px; height:32px; border-radius:10px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; font-size:18px;"><img src="img/icons/timeline.png?v=1" alt="" style="width:24px;height:24px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; line-height:15px; font-weight:700; color:#334155; display:block;">타임라인</span>
-            </div>
-            <div onclick="App.navigate('market')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:7px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:32px; height:32px; border-radius:10px; background:#ecfeff; color:#0891b2; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; font-size:18px;"><img src="img/icons/market.png?v=1" alt="" style="width:24px;height:24px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; line-height:15px; font-weight:700; color:#334155; display:block;">마켓</span>
-            </div>
-            ${App.COMMUNITY_OPEN ? `<div onclick="App.navigate('community')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:7px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:32px; height:32px; border-radius:10px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; font-size:18px;"><img src="img/icons/community.png?v=1" alt="" style="width:24px;height:24px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; line-height:15px; font-weight:700; color:#334155; display:block;">커뮤니티</span>
-            </div>` : `<div onclick="App.navigate('raffle')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:7px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:32px; height:32px; border-radius:10px; background:#faf5ff; color:#9333ea; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; font-size:18px;"><img src="img/icons/raffle.png?v=1" alt="" style="width:24px;height:24px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; line-height:15px; font-weight:700; color:#334155; display:block;">럭키드로우</span>
-            </div>`}
-            <div onclick="App.navigate('restaurant')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:7px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
-              <div style="width:32px; height:32px; border-radius:10px; background:#fff7ed; color:#ea580c; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; font-size:18px;"><img src="img/icons/restaurant.png?v=1" alt="" style="width:24px;height:24px;object-fit:contain;pointer-events:none;"></div>
-              <span style="font-size:11.5px; line-height:15px; font-weight:700; color:#334155; display:block;">추천맛집</span>
-            </div>
+          <div class="v2-point-row">
+            <span class="lbl">내 포인트 <b><span data-points>${Points.balance().toLocaleString()}</span> P</b></span>
+            <button class="v2-ad-btn" onclick="Profile.watchAd()">광고 보고 ${pm.ad_points}P 받기</button>
           </div>
-
-          <!-- Dual Score Cards (Restored Pastel Colors & 3D Characters) -->
-          <div class="glounge-score-grid">
-            
-            <!-- Left Card: Recent Score (Soft Sky Blue + 3D Golfer) -->
-            <div class="glounge-score-card card-blue ${hasRecent ? '' : 'is-empty'}" onclick="${hasRecent ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-blue card-label-row"><span>최근 스코어</span>${hasRecent ? `<span class="card-label-date">${recentDate}</span>` : ''}</div>
-              ${hasRecent ? `<div class="card-score-row">
-                <span class="card-score-num">${recentScore}</span>
-                <span class="card-score-diff">(${recentDiff >= 0 ? '+' + recentDiff : recentDiff})</span>
-              </div>
-              <div class="card-meta-info">
-                <span class="card-meta-course">${U.esc(recentCourse)}</span>
-              </div>` : `<div class="card-empty-cta">스코어 등록하기 ›</div>
-              <div class="card-meta-info"><span class="card-meta-date">라운딩 후 남겨 보세요</span></div>`}
-              <div class="card-corner-thumb">
-                <img src="img/glounge_thumb_golfer.jpg?v=restore" alt="Golfer Thumbnail" />
-              </div>
-            </div>
-
-            <!-- Right Card: Life Best (Soft Warm Cream Gold + 3D Trophy) -->
-            <div class="glounge-score-card card-gold ${hasBest ? '' : 'is-empty'}" onclick="${hasBest ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-              <div class="card-label-gold card-label-row"><span>라이프 베스트</span>${hasBest ? `<span class="card-label-date gold">${bestDate}</span>` : ''}</div>
-              ${hasBest ? `<div class="card-score-row">
-                <span class="card-score-num gold">${bestScore}</span>
-                <span class="card-score-diff gold">(${bestDiff >= 0 ? '+' + bestDiff : bestDiff})</span>
-              </div>
-              <div class="card-meta-info">
-                <span class="card-meta-course gold">${U.esc(bestCourse)}</span>
-              </div>` : `<div class="card-empty-cta gold">첫 기록 남기기 ›</div>
-              <div class="card-meta-info"><span class="card-meta-date gold">최고 기록이 쌓여요</span></div>`}
-              <div class="card-corner-thumb">
-                <img src="img/glounge_gold_trophy.jpg" alt="Gold Trophy" />
-              </div>
-            </div>
-          </div>
-
-          <!-- Sleek Yearly Round Stat Card (가로 바 레이아웃 + 3D 원형 배지 아이콘) -->
-          <div class="glounge-round-stat-card ${yearlyCount > 0 ? '' : 'is-empty'}" onclick="${yearlyCount > 0 ? "App.navigate('record')" : 'Home.openScoreForm()'}">
-            <div class="stat-left">
-              <div class="stat-3d-icon-wrap">
-                <img src="img/glounge_round_flag.jpg" alt="Round Icon" />
-              </div>
-              <div class="stat-text-wrap">
-                <div class="stat-title">올해 라운드</div>
-                <div class="stat-desc">${yearlyCount > 0 ? `올해 <strong>${yearlyCount}번</strong>의 라운드를 즐기고 계시네요.` : '스코어를 남기면 횟수가 쌓여요.'}</div>
-              </div>
-            </div>
-            <div class="stat-right">
-              ${yearlyCount > 0 ? `<div class="stat-badge-num">
-                <span class="num">${yearlyCount}</span><span class="unit">회</span>
-              </div>
-              <div class="stat-badge-year">${currentYear}년 누적</div>` : `<span class="stat-empty-cta">기록하기 ›</span>`}
-            </div>
-          </div>
-
-
-
         </div>
       </div>
     `;
+  },
+
+  /** 이번 주 날짜를 누르면 그 날짜의 일정 화면 */
+  openDay(y, m, d) {
+    State.calYear = y; State.calMonth = m;
+    Calendar._pendingSel = { y, m, d };
+    App.navigate('calendar');
   }
 };
