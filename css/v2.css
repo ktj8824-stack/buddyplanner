@@ -528,3 +528,7 @@
 html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 #app { height: 100%; min-height: 0; }
 .screen.active { height: 100vh; height: 100dvh; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+
+/* 홈 바로가기: 예전 3D 아이콘 */
+.v2-tile i.img { width: 46px; height: 46px; border-radius: 14px; }
+.v2-tile i.img img { width: 34px; height: 34px; object-fit: contain; pointer-events: none; }

@@ -199,8 +199,8 @@ const Home = {
 
     const pm = Points.meta();
     const third = App.COMMUNITY_OPEN
-      ? `<div class="v2-tile" onclick="App.navigate('community')"><i>${ico.chat}</i><span>커뮤니티</span></div>`
-      : `<div class="v2-tile" onclick="App.navigate('raffle')"><i>${ico.gift}</i><span>럭키드로우</span></div>`;
+      ? `<div class="v2-tile" onclick="App.navigate('community')"><i class="img" style="background:#faf5ff"><img src="img/icons/community.png?v=1" alt=""></i><span>커뮤니티</span></div>`
+      : `<div class="v2-tile" onclick="App.navigate('raffle')"><i class="img" style="background:#faf5ff"><img src="img/icons/raffle.png?v=1" alt=""></i><span>럭키드로우</span></div>`;
 
     el.innerHTML = `
       <div class="screen-scroll dash-scroll bg-light">
@@ -218,10 +218,10 @@ const Home = {
           </div>
           ${scoreHtml}
           <div class="v2-tiles">
-            <div class="v2-tile" onclick="Group.openList()"><i>${ico.group}</i><span>단체 등록</span></div>
-            <div class="v2-tile" onclick="App.navigate('restaurant')"><i>${ico.food}</i><span>추천 맛집</span></div>
+            <div class="v2-tile" onclick="Group.openList()"><i class="img" style="background:#fef9c3"><img src="img/icons/group.png?v=1" alt=""></i><span>단체등록</span></div>
+            <div class="v2-tile" onclick="App.navigate('restaurant')"><i class="img" style="background:#fff7ed"><img src="img/icons/restaurant.png?v=1" alt=""></i><span>추천맛집</span></div>
             ${third}
-            <div class="v2-tile" onclick="App.navigate('market')"><i>${ico.bag}</i><span>마켓</span></div>
+            <div class="v2-tile" onclick="App.navigate('market')"><i class="img" style="background:#ecfeff"><img src="img/icons/market.png?v=1" alt=""></i><span>마켓</span></div>
           </div>
           <div class="v2-point-row">
             <span class="lbl">내 포인트 <b><span data-points>${Points.balance().toLocaleString()}</span> P</b></span>
