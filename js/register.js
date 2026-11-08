@@ -144,7 +144,7 @@ const Register = {
           U.$('#r-search').value = this.course.name;
           const hint = U.$('#r-hint');
           if(hint) {
-            hint.innerHTML = `📍 ${this.course.addr}`;
+            hint.innerHTML = `📍 ${U.esc(this.course.addr)}`;
             hint.style.color = 'var(--accent)';
           }
         }
@@ -366,11 +366,11 @@ const Register = {
     }
     
     drop.innerHTML = this.searchResults.map(c => `
-      <div class="search-item" onclick="Register.selectCourse('${c.id}')">
+      <div class="search-item" onclick="Register.selectCourse('${U.esc(c.id)}')">
         <div class="search-item-icon">⛳</div>
         <div class="search-item-info">
           <div class="search-item-name">${U.hlMatch(c.place_name, q)}</div>
-          <div class="search-item-addr">${c.address_name}</div>
+          <div class="search-item-addr">${U.esc(c.address_name)}</div>
         </div>
       </div>`).join('');
   },
@@ -391,7 +391,7 @@ const Register = {
     U.$('#r-results').classList.remove('show');
     const hint = U.$('#r-hint');
     if (hint) {
-      hint.innerHTML = `📍 ${this.course.addr}`;
+      hint.innerHTML = `📍 ${U.esc(this.course.addr)}`;
       hint.style.color = 'var(--accent)';
     }
     
