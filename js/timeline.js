@@ -714,7 +714,19 @@ const Timeline = {
         window.location.href = `tmap://route?goalname=${encodeURIComponent(destName)}&goalx=${destLng}&goaly=${destLat}`;
       }
     } else if (app === 'kakao') {
-      U.toast(`🚙 카카오맵/내비로 길안내를 시작합니다: ${destName}`);
+      // 카카오내비 앱으로 바로 길안내 (카카오 JS SDK의 Navi.start, 앱이 없으면 설치 화면).
+      // SDK가 없거나 실패하면 예전처럼 카카오맵 길찾기로
+      try {
+        if (typeof Kakao !== 'undefined' && Kakao.Navi && Kakao.Navi.start && destLat && destLng) {
+          if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY) Kakao.init(Login.KAKAO_JS_KEY);
+          if (Kakao.isInitialized()) {
+            U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${destName}`);
+            Kakao.Navi.start({ name: String(destName || '목적지').slice(0, 50), x: Number(destLng), y: Number(destLat), coordType: 'wgs84' });
+            return;
+          }
+        }
+      } catch (e) { console.warn('[카카오내비] 실행 실패, 카카오맵으로 엽니다', e); }
+      U.toast(`🚙 카카오맵으로 길안내를 시작합니다: ${destName}`);
       if (startLat && startLng) {
         window.location.href = `kakaomap://route?sp=${startLat},${startLng}&ep=${destLat},${destLng}&by=CAR`;
       } else {
