@@ -55,6 +55,13 @@ const Upgrade = {
               </div>
             </div>
             <div class="feat-item stag">
+              <div class="feat-icon blue"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+              <div class="feat-text">
+                <h4>단체 등록</h4>
+                <p>모임 라운딩을 만들고 카톡으로 링크만 보내면 참석·조 편성·카풀까지 한 번에 정리돼요. 받은 분들은 무료예요.</p>
+              </div>
+            </div>
+            <div class="feat-item stag">
               <div class="feat-icon green"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
               <div class="feat-text">
                 <h4>광고 완벽 제거</h4>
@@ -88,7 +95,7 @@ const Upgrade = {
     if (!Billing.isNative()) {
       box.innerHTML = `
         <div class="upg-notice">
-          <b>PRO 구독은 안드로이드 앱에서 할 수 있어요</b>
+          <b>PRO 구독은 버디플래너 앱에서 할 수 있어요</b>
           <p>${Billing.storeName()}에서 BuddyPlanner 앱을 설치한 뒤 구독해 주세요.</p>
         </div>
         <button class="btn-upg" onclick="Billing.openStoreListing()">${Billing.storeName()}에서 앱 받기</button>`;

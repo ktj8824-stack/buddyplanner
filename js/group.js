@@ -59,9 +59,27 @@ const Group = {
     return true;
   },
 
+  /** 캘린더 표시용: 내 단체 일정 목록 (마지막으로 받은 목록을 기기에 저장해 두고 씀) */
+  cachedList() {
+    if (this.list && this.list.length) return this.list;
+    try { return JSON.parse(localStorage.getItem('bp_ge_list') || '[]') || []; } catch (e) { return []; }
+  },
+  _cacheList() { try { localStorage.setItem('bp_ge_list', JSON.stringify((this.list || []).map(x => ({ code: x.code, title: x.title, course_name: x.course_name, round_date: x.round_date, tee_off: x.tee_off, i_am_owner: x.i_am_owner, yes_count: x.yes_count, total: x.total })))); } catch (e) { } },
+  /** 캘린더에서 부름: 서버에서 목록만 새로 받아 저장 (단체 화면은 다시 그리지 않음) */
+  async refreshListQuiet() {
+    if (!this.signedIn()) return this.cachedList();
+    try { this.list = (await this.rpc('ge_my_list', {})) || []; this._cacheList(); } catch (e) { }
+    return this.cachedList();
+  },
+  groupsOn(y, m, d) {
+    const p = n => String(n).padStart(2, '0');
+    const ymd = `${y}-${p(m + 1)}-${p(d)}`;
+    return this.cachedList().filter(x => x && x.round_date === ymd);
+  },
+
   async loadList() {
     if (!this.signedIn()) { this.list = []; this.render(); return; }
-    try { this.list = (await this.rpc('ge_my_list', {})) || []; } catch (e) { this.list = []; }
+    try { this.list = (await this.rpc('ge_my_list', {})) || []; this._cacheList(); } catch (e) { this.list = this.cachedList(); }
     if (this.view === 'list') this.render();
   },
 
@@ -252,7 +270,8 @@ const Group = {
     el.innerHTML = `
       <div class="v2-pagehead"><button class="v2-iconbtn" style="margin-left:-10px;" onclick="App.navigate('home')" aria-label="뒤로가기">${back}</button><h1 style="font-size:1.25rem;">단체 일정</h1></div>
       <div class="v2-scroll"><div class="v2-body">
-        <button class="v2-btn-navy" onclick="Group.startCreate()">＋ 새 단체 일정 만들기</button>
+        <button class="v2-btn-navy" onclick="Group.startCreate()">＋ 새 단체 일정 만들기 <b class="pro-tag inline">PRO</b></button>
+        <p class="v2-hint pro-note" style="margin:0 4px;">👑 단체 일정 만들기는 PRO 기능이에요. 링크를 받은 참석자는 무료로 볼 수 있어요.</p>
         ${!signed ? `<p class="v2-hint" style="margin:0 4px;">단체 일정을 만들려면 로그인이 필요해요. 받은 링크로 참석하는 건 로그인 없이도 돼요.</p>` : ''}
         ${cards ? `<div class="v2-sec-title">내 단체 일정</div>${cards}` : `
         <div class="v2-card">

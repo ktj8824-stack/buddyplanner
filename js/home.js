@@ -218,7 +218,7 @@ const Home = {
           </div>
           ${scoreHtml}
           <div class="v2-tiles">
-            <div class="v2-tile" onclick="Group.openList()"><i class="img" style="background:#fef9c3"><img src="img/icons/group.png?v=1" alt=""></i><span>단체등록</span></div>
+            <div class="v2-tile" onclick="Group.openList()"><b class="pro-tag">PRO</b><i class="img" style="background:#fef9c3"><img src="img/icons/group.png?v=1" alt=""></i><span>단체등록</span></div>
             <div class="v2-tile" onclick="App.navigate('restaurant')"><i class="img" style="background:#fff7ed"><img src="img/icons/restaurant.png?v=1" alt=""></i><span>추천맛집</span></div>
             ${third}
             <div class="v2-tile" onclick="App.navigate('market')"><i class="img" style="background:#ecfeff"><img src="img/icons/market.png?v=1" alt=""></i><span>마켓</span></div>

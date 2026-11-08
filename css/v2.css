@@ -573,3 +573,18 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .v2-alarm-in{height:100%;margin:0 auto}
 .v2-alarm-btns{margin-top:auto}
 .v2-alarm-card{margin-bottom:16px}
+
+/* 캘린더: 단체 일정 표시 */
+.v2-cal-cell .cal-dots{display:flex;gap:3px;height:6px;margin-top:3px}
+.v2-cal-cell .cal-dots .dot{display:block;width:6px;height:6px;border-radius:50%;margin:0;background:var(--v2-green)}
+.v2-cal-cell .cal-dots .dot.g{background:#7048e8}
+.v2-pill.grp{background:#efeaff;color:#5b3fd1;margin-left:auto;margin-right:6px}
+.v2-grpcard{cursor:pointer;border-left:4px solid #7048e8}
+
+/* PRO 전용 표시 (PRO 회원에게는 숨김) */
+.pro-tag{position:absolute;top:7px;right:7px;z-index:2;display:inline-flex;align-items:center;height:17px;padding:0 6px;border-radius:6px;background:linear-gradient(135deg,#f7c948,#e8a317);color:#3b2a00;font-size:0.625rem;font-weight:900;letter-spacing:.03em;line-height:1;box-shadow:0 1px 3px rgba(180,120,0,.3);font-style:normal}
+.pro-tag.inline{position:static;margin-left:6px;vertical-align:middle}
+.v2-tile{position:relative}
+.gnb-ai-btn-bubble{position:relative}
+.gnb-ai-btn-bubble .pro-tag{top:-6px;right:-10px;border:2px solid #fff;height:19px}
+body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}

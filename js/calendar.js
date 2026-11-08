@@ -21,7 +21,13 @@ const Calendar = {
       State.calYear = d.getFullYear(); State.calMonth = d.getMonth();
     }
     this.render();
+    // 단체 일정은 서버 목록 → 받아 오면 달력 점·선택한 날 다시 그림
+    if (typeof Group !== 'undefined' && Group.refreshListQuiet) {
+      Group.refreshListQuiet().then(() => { if (State.screen === 'calendar') { this.updateCalendar(); const a = U.$('#cal-selected-area'); if (a) a.innerHTML = this.selectedHtml(); } }).catch(() => {});
+    }
   },
+
+  _groups(y, m, d) { return (typeof Group !== 'undefined' && Group.groupsOn) ? Group.groupsOn(y, m, d) : []; },
 
   render() {
     const el = U.$('#screen-calendar');
@@ -42,6 +48,7 @@ const Calendar = {
                 <span><i style="width:16px;height:16px;border:2px solid var(--v2-blue);"></i>오늘</span>
                 <span><i style="width:16px;height:16px;background:var(--v2-navy);"></i>선택한 날</span>
                 <span><i style="width:7px;height:7px;background:var(--v2-green);"></i>라운딩</span>
+                <span><i style="width:7px;height:7px;background:#7048e8;"></i>단체</span>
               </div>
             </div>
             <div id="cal-selected-area">${this.selectedHtml()}</div>
@@ -69,8 +76,11 @@ const Calendar = {
       if (dt < t0) cls.push('past');
       if (dt.getTime() === t0.getTime()) cls.push('today');
       if (sel && sel.y === y && sel.m === m && sel.d === d) cls.push('sel');
-      if (State.hasScheduleOnDate(y, m, d)) cls.push('has');
-      html += `<div class="${cls.join(' ')}" onclick="Calendar.selectDate(event, ${y}, ${m}, ${d})"><span class="n cal-day-num">${d}</span><span class="dot"></span></div>`;
+      const mine = State.hasScheduleOnDate(y, m, d);
+      const grp = this._groups(y, m, d).length > 0 || State.getSchedulesForDate(y, m, d).some(s => s.groupCode);
+      if (mine) cls.push('has');
+      if (grp) cls.push('grp');
+      html += `<div class="${cls.join(' ')}" onclick="Calendar.selectDate(event, ${y}, ${m}, ${d})"><span class="n cal-day-num">${d}</span><span class="cal-dots">${mine ? '<i class="dot"></i>' : ''}${grp ? '<i class="dot g"></i>' : ''}</span></div>`;
     }
     return html;
   },
@@ -93,7 +103,7 @@ const Calendar = {
         <div class="v2-card">
           <div class="v2-rcard-top" onclick="App.viewTimeline(${idx})">
             <b>${U.esc(s.course ? s.course.name : (s.courseName || '골프장'))}</b>
-            <span class="v2-pill blue">${diff === 0 ? 'D-Day' : diff > 0 ? 'D-' + diff : '지난 라운딩'}</span>
+            ${s.groupCode ? '<span class="v2-pill grp">단체</span>' : ''}<span class="v2-pill blue">${diff === 0 ? 'D-Day' : diff > 0 ? 'D-' + diff : '지난 라운딩'}</span>
           </div>
           <div class="v2-rcard-times" onclick="App.viewTimeline(${idx})">
             <div><span>출발</span><b>${tl.homeDepart || '--:--'}</b></div>
@@ -106,10 +116,21 @@ const Calendar = {
           </div>
         </div>`;
     }).join('');
+    // 단체 일정 (이미 내 일정으로 넣은 단체는 위 카드에 '단체' 표시가 있으니 빼고)
+    const linked = new Set(scheds.map(s => s.groupCode).filter(Boolean));
+    const gcards = this._groups(y, m, d).filter(g => !linked.has(g.code)).map(g => `
+        <div class="v2-card v2-grpcard" onclick="Group.openCode(${U.jsq(g.code)})">
+          <div class="v2-rcard-top">
+            <b>${U.esc(g.title || '단체 라운딩')}</b>
+            <span class="v2-pill grp">단체 · ${g.i_am_owner ? '총무' : '참석'}</span>
+          </div>
+          <div class="v2-hint" style="margin-top:6px;">⛳ ${U.esc(g.course_name || '')}${g.tee_off ? ' · 티오프 ' + U.esc(g.tee_off) : ''}</div>
+          <div class="v2-rcard-foot"><span class="st">참석 ${g.yes_count || 0}/${g.total || 0}</span><span class="v2-link">단체 일정 보기</span></div>
+        </div>`).join('');
     return `
       <div class="v2-cal-day">${m + 1}월 ${d}일 (${U.DAYS[date.getDay()]})</div>
       <div style="display:flex; flex-direction:column; gap:12px; margin-top:12px;">
-        ${cards || '<div class="v2-cal-empty">이 날은 라운딩이 없어요</div>'}
+        ${gcards}${cards || (gcards ? '' : '<div class="v2-cal-empty">이 날은 라운딩이 없어요</div>')}
         <button class="v2-btn-navy" onclick="Calendar._addForSelected()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> 새 라운딩 등록</button>
       </div>`;
   },
