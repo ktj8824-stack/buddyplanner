@@ -112,7 +112,10 @@ const Home = {
     const upcoming = (State.schedules || []).filter(s => new Date(s.date) >= today)
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    let heroHtml;
+    // 상단 히어로: 예전 G라운지 스타일 (문구 + 미니 타임라인 + 골퍼 그림)
+    const arrow = '<div class="mini-tl-arrow"><svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>';
+    let subTag = '스마트 라운딩 플래너', mainHeading = '첫 라운딩을<br>등록해 보세요.', btnText = '새 일정 등록하기', btnAction = "App.navigate('register')";
+    let dep = '--:--', arr = '--:--', tee = '--:--';
     if (upcoming.length) {
       const s = upcoming[0];
       const idx = State.schedules.indexOf(s);
@@ -122,33 +125,34 @@ const Home = {
       const tg = new Date(dateObj); tg.setHours(0, 0, 0, 0);
       const diffDays = Math.round((tg - today) / 864e5);
       const cName = s.course ? s.course.name : (s.courseName || '골프장');
-      const region = Register && Register.regionOf ? (s.course && (s.course.region || Register.regionOf(s.course.addr || s.course.address))) : '';
       const msg = this.heroMessage(s, tl, diffDays, dateObj);
-      const btnText = diffDays <= 0 && msg.btnText ? msg.btnText : '타임라인 보기';
-      const btnAction = diffDays <= 0 && msg.btnAction ? msg.btnAction : `App.viewTimeline(${idx})`;
-      const startPt = s.startPoint || '집';
-      const on = !s.alarmOff;
-      heroHtml = `
-        <div class="v2-hero-tag">${diffDays <= 0 ? '오늘 라운딩 · D-Day' : `다음 라운딩 · D-${diffDays}`}</div>
-        <div class="v2-hero-title">${U.esc(cName)}</div>
-        <div class="v2-hero-sub">${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 (${DAYS[dateObj.getDay()]})${region ? ' · ' + U.esc(region) : ''}</div>
-        <div class="v2-hero-times" onclick="App.viewTimeline(${idx})">
-          <div class="v2-hero-time"><span>${U.esc(String(startPt).slice(0, 4))}에서 출발</span><b>${tl.homeDepart || '--:--'}</b></div>
-          <div class="v2-hero-time"><span>골프장 도착</span><b>${tl.arrival || '--:--'}</b></div>
-          <div class="v2-hero-time tee"><span>티오프</span><b>${tl.teeOff || s.teeOff || '--:--'}</b></div>
-        </div>
-        <div class="v2-hero-alarm">
-          <div><b>출발 알람 ${on ? '켜짐' : '꺼짐'}</b><small>${on ? `${tl.prepStart || '준비'} 준비 시작부터 단계마다 알려 드려요` : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
-          <button class="v2-switch ${on ? 'on' : ''}" role="switch" aria-checked="${on}" aria-label="출발 알람" onclick="Home.toggleAlarm(${idx})"></button>
-        </div>
-        <button class="v2-hero-btn" onclick="${btnAction}">${btnText} ${ico.chev}</button>`;
-    } else {
-      heroHtml = `
-        <div class="v2-hero-tag">다음 라운딩</div>
-        <div class="v2-hero-title">첫 라운딩을 등록해 보세요</div>
-        <div class="v2-hero-empty">골프장과 티오프만 넣으면 출발 시간과<br>단계별 알람을 자동으로 맞춰 드려요.</div>
-        <button class="v2-hero-btn" onclick="App.navigate('register')">새 라운딩 등록 ${ico.chev}</button>`;
+      subTag = `${U.esc(cName)} · ${diffDays <= 0 ? 'D-Day' : 'D-' + diffDays}`;
+      mainHeading = msg.heading;
+      btnText = msg.btnText || '타임라인 보기';
+      btnAction = msg.btnAction || `App.viewTimeline(${idx})`;
+      dep = tl.homeDepart || '--:--'; arr = tl.arrival || '--:--'; tee = tl.teeOff || s.teeOff || '--:--';
     }
+    const heroHtml = `
+      <div class="home-glounge-wrapper">
+        <div class="home-glounge-hero">
+          <div class="glounge-hero-text">
+            <div class="hero-sub-tag">${subTag}</div>
+            <div class="hero-main-title">${mainHeading}</div>
+            ${upcoming.length ? `
+            <div class="hero-inline-timeline" onclick="${btnAction}">
+              <div class="mini-tl-node"><span class="mini-tl-tag tag-depart">출발</span><span class="mini-tl-val">${dep}</span></div>
+              ${arrow}
+              <div class="mini-tl-node"><span class="mini-tl-tag tag-arrival">골프장</span><span class="mini-tl-val">${arr}</span></div>
+              ${arrow}
+              <div class="mini-tl-node highlight"><span class="mini-tl-tag tag-teeoff">티오프</span><span class="mini-tl-val">${tee}</span></div>
+            </div>` : `<div class="hero-empty-hint">골프장·티오프만 넣으면<br>출발 시간이 자동 계산돼요</div>`}
+            <button class="glounge-pill-btn" onclick="${btnAction}">${btnText}
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+          <div class="glounge-hero-figure"><img src="img/glounge_hero_golfer.png" alt="" /></div>
+        </div>
+      </div>`;
 
     // 2. 스코어 기록 (18홀만 통계)
     let rec = null, best = null, yearly = 0, total = 0;
@@ -199,16 +203,9 @@ const Home = {
       : `<div class="v2-tile" onclick="App.navigate('raffle')"><i>${ico.gift}</i><span>럭키드로우</span></div>`;
 
     el.innerHTML = `
-      <div class="v2-scroll">
-        <div class="v2-home-hero">
-          <div class="v2-brand">
-            <div class="v2-brand-logo">B</div>
-            <div class="v2-brand-name">BuddyPlanner${State.isPro ? ' <span class="glounge-brand-badge">PRO</span>' : ''}</div>
-            <button class="v2-iconbtn" onclick="Home.showAlarms()" aria-label="알림">${ico.bell}</button>
-            <button class="v2-iconbtn" onclick="App.openMenu()" aria-label="전체 메뉴">${ico.menu}</button>
-          </div>
-          ${heroHtml}
-        </div>
+      <div class="screen-scroll dash-scroll bg-light">
+        ${heroHtml}
+        <div class="home-glounge-sheet v2-home-sheet">
         <div class="v2-home-body">
           <div class="v2-new-card" onclick="App.navigate('register')">
             <div class="v2-new-ico">${ico.plus}</div>
@@ -229,6 +226,7 @@ const Home = {
           <div class="v2-point-row">
             <span class="lbl">내 포인트 <b><span data-points>${Points.balance().toLocaleString()}</span> P</b></span>
             <button class="v2-ad-btn" onclick="Profile.watchAd()">광고 보고 ${pm.ad_points}P 받기</button>
+          </div>
           </div>
         </div>
       </div>

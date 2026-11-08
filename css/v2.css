@@ -325,3 +325,7 @@
 .v2-me-box b span, .v2-me-box small span { display: inline; }
 .v2-seg button.active { background: #fff; color: var(--v2-ink); font-weight: 800; box-shadow: 0 1px 4px rgba(15,23,42,0.12); }
 .v2-me-box b span, .v2-me-box small span { font-size: inherit; color: inherit; }
+
+/* 홈: 예전 히어로 + 새 카드 */
+.v2-home-sheet { background: var(--v2-bg); }
+.v2-home-sheet .v2-home-body { padding: 0; }
