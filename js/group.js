@@ -437,6 +437,8 @@ const Group = {
     if (!f.title.trim()) return focus('gp-title', '모임 이름을 적어 주세요.');
     if (!f.course) return U.toast('골프장을 골라 주세요.');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date)) return focus('gp-date', '날짜를 골라 주세요.');
+    { const t = new Date(); const ymd = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+      if (f.date < ymd) return focus('gp-date', '이미 지난 날짜예요. 날짜를 다시 골라 주세요.'); }
     if (!f.me.trim()) return focus('gp-me', '내 이름(총무)을 적어 주세요.');
     const teams = f.teams.map((t, i) => ({
       tee: this._teeOf(i), course: (t.course || '').trim(),

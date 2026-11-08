@@ -201,8 +201,16 @@ const Billing = {
     return false;
   },
 
-  /* ── 구독 관리 (해지·결제수단 변경은 구글 플레이에서) ── */
+  _isIOSApp() {
+    return !!(window.Capacitor && typeof window.Capacitor.getPlatform === 'function' && window.Capacitor.getPlatform() === 'ios');
+  },
+  /** 결제 안내에 쓰는 스토어 이름 (아이폰 앱이면 App Store) */
+  storeName() { return this._isIOSApp() ? 'App Store' : '구글 플레이'; },
+  manageHint() { return this._isIOSApp() ? '아이폰 설정 > Apple ID > 구독' : '구글 플레이 > 결제 및 정기 결제'; },
+
+  /* ── 구독 관리 (해지·결제수단 변경은 각 스토어에서) ── */
   openManage() {
+    if (this._isIOSApp()) { window.location.href = 'itms-apps://apps.apple.com/account/subscriptions'; return; }
     const sku = this.activeEntitlement && this.activeEntitlement.productIdentifier;
     let url = `https://play.google.com/store/account/subscriptions?package=${this.PLAY_PACKAGE}`;
     // RevenueCat 상품 ID는 "구독ID:기본요금제ID" 형식일 수 있음 → 구독 ID만 사용
@@ -211,6 +219,7 @@ const Billing = {
   },
 
   openStoreListing() {
+    if (this._isIOSApp()) { window.location.href = 'itms-apps://apps.apple.com/search?term=' + encodeURIComponent('버디플래너'); return; }
     window.location.href = `https://play.google.com/store/apps/details?id=${this.PLAY_PACKAGE}`;
   }
 };

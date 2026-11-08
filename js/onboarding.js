@@ -23,7 +23,7 @@ const Onboarding = {
 
         <div class="ob-section">
           <div class="ob-section-title" style="margin-bottom: 8px;">닉네임</div>
-          <input type="text" id="ob-nickname" class="form-input" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:15px;" />
+          <input type="text" id="ob-nickname" class="form-input" placeholder="사용하실 닉네임을 입력하세요" style="width:100%; padding:10px 14px; border-radius:10px; border:1px solid var(--border-default); background:var(--bg-input); font-size:16px;" />
         </div>
 
         <div class="ob-section">

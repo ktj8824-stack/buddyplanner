@@ -142,7 +142,6 @@ const AutoNav = {
       ${app ? '' : '<button type="button" class="an-link" onclick="AutoNav.cancel()">닫기</button>'}`;
     // 기본 내비를 정해 두었으면 기다리지 않고 바로 내비를 엶 (운전 중 화면을 누를 일이 없게)
     if (app) {
-      if (typeof U !== 'undefined' && U.toast) U.toast(`🚗 ${leg.to.name}(으)로 ${app} 안내를 시작합니다`);
       return this.go();
     }
     this._overlay(body(), true);
@@ -239,7 +238,7 @@ const AutoNav = {
       <div class="setting-options" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">${opt('tmap', '티맵')}${opt('kakao', '카카오내비')}${opt('choice', '매번 선택')}</div>
       <div style="font-weight:800;font-size:15px;margin:18px 0 8px;">2. 자동 실행 링크</div>
       <div style="display:flex;gap:6px;align-items:center;">
-        <input readonly value="${this.LINK}" onclick="this.select()" style="flex:1;min-width:0;height:42px;border:1px solid #e2e8f0;border-radius:10px;padding:0 10px;font-size:13px;background:#f8fafc;color:#0f172a;">
+        <input readonly value="${this.LINK}" onclick="this.select()" style="flex:1;min-width:0;height:42px;border:1px solid #e2e8f0;border-radius:10px;padding:0 10px;font-size:16px;background:#f8fafc;color:#0f172a;">
         <button type="button" onclick="AutoNav.copyLink(this)" style="height:42px;padding:0 14px;border-radius:10px;border:0;background:#059669;color:#fff;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;">링크 복사</button>
       </div>
       <div style="font-weight:800;font-size:15px;margin:18px 0 0;">3. 휴대폰에 자동 실행 등록</div>

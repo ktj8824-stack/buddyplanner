@@ -517,7 +517,7 @@ const Restaurant = {
     Register.edit(st.idx);
     setTimeout(() => {
       Register.setMealFromAI(timing, rest);
-      U.toast(`🍽️ ${rest.name}을(를) 넣었어요. '스마트 플랜 수정'을 눌러 저장하세요.`, 3500);
+      U.toast(`🍽️ ${U.josa(rest.name, '을/를')} 넣었어요. '라운딩 일정 수정 완료'를 눌러 저장하세요.`, 3500);
     }, 300);
   },
 
@@ -533,7 +533,7 @@ const Restaurant = {
     setTimeout(() => {
       Register.prefill({ course });
       Register.setMealFromAI(timing, rest);
-      U.toast(`🍽️ ${rest.name}을(를) 넣었어요. 날짜·티오프를 정하고 저장하세요.`, 3500);
+      U.toast(`🍽️ ${U.josa(rest.name, '을/를')} 넣었어요. 날짜·티오프를 정하고 저장하세요.`, 3500);
     }, 300);
   },
 

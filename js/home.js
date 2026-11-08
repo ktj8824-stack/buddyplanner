@@ -3,6 +3,16 @@
    ======================================================== */
 
 const Home = {
+  /** 홈 '타임라인' 바로가기: 가장 가까운 예정 라운딩의 타임라인 (없으면 캘린더) */
+  openNextTimeline() {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let best = -1, bestT = Infinity;
+    (State.schedules || []).forEach((s, i) => {
+      const t = new Date(s.date).getTime();
+      if (t >= today.getTime() && t < bestT) { bestT = t; best = i; }
+    });
+    if (best >= 0) App.viewTimeline(best); else App.navigate('calendar');
+  },
   init() {
     this.render();
   },
@@ -367,7 +377,7 @@ const Home = {
             </div>
           </div>
           <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;">
-            <div onclick="App.navigate('timeline')" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:7px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
+            <div onclick="Home.openNextTimeline()" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:16px; padding:7px 4px; text-align:center; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.02); transition:transform 0.15s ease;">
               <div style="width:32px; height:32px; border-radius:10px; background:#f0fdf4; color:#10b981; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; font-size:18px;"><img src="img/icons/timeline.png?v=1" alt="" style="width:24px;height:24px;object-fit:contain;pointer-events:none;"></div>
               <span style="font-size:11.5px; line-height:15px; font-weight:700; color:#334155; display:block;">타임라인</span>
             </div>

@@ -164,11 +164,18 @@ const AIAgent = {
       const body = { message: text || '', history: this.history().slice(0, -1), context: this.buildContext() };
       if (image) body.image = { media_type: 'image/jpeg', data: image.split(',')[1] };
 
-      const res = await fetch(`${url}/functions/v1/ai-chat`, {
-        method: 'POST',
-        headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+      // 서버가 멈춰도 '입력 중…'이 계속되지 않게 40초에서 끊음 (사진 인식은 오래 걸릴 수 있어 넉넉히)
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timer = ctl ? setTimeout(() => ctl.abort(), image ? 60000 : 40000) : null;
+      let res;
+      try {
+        res = await fetch(`${url}/functions/v1/ai-chat`, {
+          method: 'POST',
+          headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: ctl ? ctl.signal : undefined
+        });
+      } finally { if (timer) clearTimeout(timer); }
       const data = await res.json().catch(() => ({}));
       AI.hideTypingIndicator();
 
@@ -198,7 +205,7 @@ const AIAgent = {
     } catch (e) {
       console.error('[AIAgent]', e);
       AI.hideTypingIndicator();
-      AI.addSimpleBotReply('err_' + Date.now(), navigator.onLine === false ? '인터넷 연결을 확인해 주세요.' : 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.');
+      AI.addSimpleBotReply('err_' + Date.now(), navigator.onLine === false ? '인터넷 연결을 확인해 주세요.' : e && e.name === 'AbortError' ? 'AI 답이 너무 늦어요. 잠시 후 다시 보내 주세요.' : 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       this._sending = false;
     }
@@ -270,10 +277,12 @@ const AIAgent = {
     }
     if (a.type === 'update') {
       const idx = this._schedIdx(a);
-      const s = idx >= 0 ? State.schedules[idx] : null;
-      const name = s ? s.course.name : a.course_name;
-      const oldDate = s ? U.fmtDateShort(s.date) : a.old_date;
-      const oldTee = s ? s.teeOff : a.old_tee_off;
+      // 처리한 카드는 그때 저장해 둔 내용으로 (바뀐 뒤 일정·지운 일정을 다시 읽지 않게)
+      const snap = done ? (a._snap || { name: a.course_name, oldDate: a.old_date, oldTee: a.old_tee_off }) : null;
+      const s = snap ? {} : (idx >= 0 ? State.schedules[idx] : null);
+      const name = snap ? snap.name : s ? s.course.name : a.course_name;
+      const oldDate = snap ? snap.oldDate : s ? U.fmtDateShort(s.date) : a.old_date;
+      const oldTee = snap ? snap.oldTee : s ? s.teeOff : a.old_tee_off;
       const rows = a.cancel
         ? `<div><span>날짜</span><b>${U.esc(oldDate)}</b></div><div><span>티오프</span><b>${U.esc(oldTee)}</b></div>`
         : `${a.new_date ? `<div><span>날짜</span><b>${U.esc(oldDate)} → ${U.esc(a.new_date)}</b></div>` : `<div><span>날짜</span><b>${U.esc(oldDate)}</b></div>`}
@@ -286,7 +295,7 @@ const AIAgent = {
             ${s ? rows : '<div><span>일정</span><b>일정을 찾을 수 없어요</b></div>'}
           </div>
           <p class="ai-act-note">${a.cancel ? '일정과 알람이 함께 지워져요.' : '출발 시간과 알람도 바뀐 시각으로 다시 맞춰요.'}</p>
-          ${s ? btn(a.cancel ? '일정 삭제' : '변경하기', 'confirmUpdate') : ''}
+          ${s ? btn(a.cancel ? '일정 삭제' : '변경하기', 'confirmUpdate') : (done ? btn('', '') : '')}
         </div>`;
     }
     if (a.type === 'meal') {
@@ -299,7 +308,7 @@ const AIAgent = {
             <div><span>일정</span><b>${U.esc(s ? `${s.course.name} · ${U.fmtDateShort(s.date)}` : '일정을 찾을 수 없어요')}</b></div>
             <div><span>식당</span><b>${U.esc(a.restaurant && a.restaurant.name)}</b></div>
           </div>
-          <p class="ai-act-note">일정 수정 화면이 열리면 '스마트 플랜 수정'을 눌러 저장하세요.</p>
+          <p class="ai-act-note">일정 수정 화면이 열리면 '라운딩 일정 수정 완료'를 눌러 저장하세요.</p>
           ${s ? btn('일정에 넣기', 'confirmMeal') : ''}
         </div>`;
     }
@@ -356,7 +365,7 @@ const AIAgent = {
   },
 
   /** 스코어: 기록에 저장 (같은 날짜 기록이 있으면 확인) */
-  confirmScore(msgId, i) {
+  async confirmScore(msgId, i) {
     const { msg, a } = this._action(msgId, i);
     if (!a) return;
     const date = String(a.date || '').slice(0, 10);
@@ -367,7 +376,7 @@ const AIAgent = {
     // 같은 날 기록이 있으면 덮어쓰지 않고 그날의 다른 라운드로 추가
     Record.records = records;
     const exists = Record.roundsOn(date).length > 0;
-    if (exists && !confirm(`${date}에 이미 기록이 있어요. 같은 날 다른 라운드로 추가할까요?`)) return;
+    if (exists && !(await App.ask('같은 날 기록이 있어요', `${U.esc(date)}에 이미 기록이 있어요. 같은 날 다른 라운드로 추가할까요?`, { ok: '추가' }))) return;
     const key = Record.nextKey(date);
     const prev = {};
     records[key] = Object.assign({}, prev, {
@@ -397,14 +406,15 @@ const AIAgent = {
   },
 
   /** 일정 변경·취소: 기존 일정을 바로 고치고 이전 알람을 지운 뒤 새 시각으로 다시 예약 (새 일정을 만들지 않음) */
-  confirmUpdate(msgId, i) {
+  async confirmUpdate(msgId, i) {
     const { msg, a } = this._action(msgId, i);
     if (!a) return;
     const idx = this._schedIdx(a);
     const s = State.schedules[idx];
     if (!s) { U.toast('일정을 찾을 수 없어요.'); return; }
+    a._snap = { name: s.course.name, oldDate: U.fmtDateShort(s.date), oldTee: s.teeOff };
     if (a.cancel) {
-      if (!confirm(`${s.course.name} ${U.fmtDateShort(s.date)} 일정을 삭제할까요?`)) return;
+      if (!(await App.ask('일정을 삭제할까요?', `${U.esc(s.course.name)} ${U.fmtDateShort(s.date)} 일정과 알람이 함께 지워져요.`, { ok: '삭제' }))) return;
       if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(s, true);
       State.schedules.splice(idx, 1);
       State.saveSchedules();
@@ -425,7 +435,7 @@ const AIAgent = {
     if (State.saveFailed) { State.schedules[idx] = s; try { Timeline.autoScheduleAllAlarms(); } catch (e) {} return; }
     try { if (typeof Timeline !== 'undefined') Timeline.autoScheduleAllAlarms(); } catch (e) {}
     this._finish(msg, a, 'done');
-    U.toast(`⛳ ${next.course.name} ${U.fmtDateShort(next.date)} ${U.fmtTimeKo(next.teeOff)}로 바꿨어요.`);
+    U.toast(`⛳ ${next.course.name} ${U.fmtDateShort(next.date)} ${U.fmtTimeKo(next.teeOff)}으로 바꿨어요.`);
   },
 
   /** 식사: 일정 수정 화면을 열고 식당을 넣어둠 (저장은 사용자가) */
@@ -439,7 +449,7 @@ const AIAgent = {
     Register.edit(idx);
     setTimeout(() => {
       Register.setMealFromAI(a.timing, { name: r.name, tel: r.phone, lat: r.lat, lng: r.lng });
-      U.toast(`🍽️ ${r.name}을(를) 넣었어요. '스마트 플랜 수정'을 눌러 저장하세요.`, 3500);
+      U.toast(`🍽️ ${U.josa(r.name, '을/를')} 넣었어요. '라운딩 일정 수정 완료'를 눌러 저장하세요.`, 3500);
     }, 300);
   },
 

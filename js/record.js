@@ -376,7 +376,7 @@ const Record = {
                 <div class="field" style="margin:0;">
                   <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 구장 선택</label>
                   <div class="field-input" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                    <input type="text" id="record-course" value="${U.esc(defaultCourse)}" placeholder="예: 남서울CC" style="width:100%; font-size:13px; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
+                    <input type="text" id="record-course" value="${U.esc(defaultCourse)}" placeholder="예: 남서울CC" style="width:100%; font-size:16px; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
                     <span class="fi-icon" style="font-size:13.5px; opacity:0.5;">🔍</span>
                   </div>
                 </div>
@@ -438,7 +438,7 @@ const Record = {
                   <div class="field" style="margin:0;">
                     <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">총 타수</label>
                     <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                      <input type="number" id="manual-score" placeholder="72" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
+                      <input type="number" id="manual-score" placeholder="72" style="width:100%; font-size:16px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
                       <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
                     </div>
                   </div>
@@ -486,7 +486,7 @@ const Record = {
                 </div>
               </div>
 
-              <textarea id="record-diary" placeholder="오늘 라운딩에 남기고 싶은 말을 기록해보세요." style="width:100%; height:64px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:12.5px; font-family:inherit; resize:none; outline:none; box-sizing:border-box; color:#0f172a;"></textarea>
+              <textarea id="record-diary" placeholder="오늘 라운딩에 남기고 싶은 말을 기록해보세요." style="width:100%; height:64px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:16px; font-family:inherit; resize:none; outline:none; box-sizing:border-box; color:#0f172a;"></textarea>
             </div>
 
             <div style="height: 10px;"></div>

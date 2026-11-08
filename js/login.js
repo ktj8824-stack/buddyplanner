@@ -43,6 +43,11 @@ const Login = {
             </svg>
             카카오 로그인
           </button>
+          ${this.appleEnabled() ? `
+          <button class="btn-social" onclick="Login.doAppleLogin()" style="margin:12px auto 0; width:300px; height:40px; border-radius:4px; padding:0; font-size:14px; font-weight:500; background:#000; color:#fff; border:none; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.48.83-.72 0-1.82-.81-3-.79-1.54.02-2.97.9-3.76 2.28-1.6 2.78-.41 6.9 1.15 9.16.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.78.74 2.99.72 1.24-.02 2.02-1.12 2.77-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.4-.92-2.39-3.69zM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.02.61-2.67 1.37-.59.68-1.1 1.76-.96 2.8 1.02.08 2.06-.52 2.69-1.28z"/></svg>
+            Apple로 로그인
+          </button>` : ''}
         </div>
       </div>
     `;
@@ -118,6 +123,39 @@ const Login = {
     render();
   },
 
+  /** 아이폰 앱에서만, 설정(APP_CONFIG.APPLE_LOGIN)을 켰을 때만 Apple 로그인 사용 */
+  appleEnabled() {
+    const isIOS = this.isNative() && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios';
+    return isIOS && !!(window.APP_CONFIG || {}).APPLE_LOGIN && !!this.socialLoginPlugin();
+  },
+
+  async doAppleLogin() {
+    const plugin = this.socialLoginPlugin();
+    if (!plugin) { U.toast('Apple 로그인을 사용할 수 없습니다.'); return; }
+    try {
+      if (!this._appleReady) {
+        this._appleReady = plugin.initialize({ apple: {} }).catch(e => { this._appleReady = null; throw e; });
+      }
+      await this._appleReady;
+      // 애플에는 해시한 nonce, 서버(Supabase)에는 원래 값을 보냄
+      const rawNonce = this.randomNonce();
+      const hashedNonce = await this.sha256Hex(rawNonce);
+      const res = await plugin.login({ provider: 'apple', options: { scopes: ['email', 'name'], nonce: hashedNonce } });
+      const r = (res && res.result) || {};
+      const idToken = r.idToken || (r.accessToken && r.accessToken.token) || '';
+      if (!idToken) throw new Error('no id token');
+      const claims = this.decodeJwt(idToken) || {};
+      const p = r.profile || {};
+      const name = [p.familyName, p.givenName].filter(Boolean).join('') || p.name || 'Apple 유저';
+      this.finishLogin('apple', { name, email: p.email || claims.email || '' }, { idToken, nonce: rawNonce });
+    } catch (e) {
+      const msg = String((e && (e.message || e.code)) || e || '');
+      console.error('Apple login err:', e);
+      if (/cancel|1001/i.test(msg)) { U.toast('Apple 로그인을 취소했습니다.'); return; }
+      U.toast('Apple 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    }
+  },
+
   async doGoogleLoginNative() {
     const plugin = this.socialLoginPlugin();
     if (!plugin) { U.toast('구글 로그인을 사용할 수 없습니다.'); return; }
@@ -173,8 +211,7 @@ const Login = {
     U.toast('카카오 로그인을 시도합니다...');
     
     if (this.KAKAO_JS_KEY === 'YOUR_KAKAO_JS_KEY') {
-      U.toast('⚠️ 카카오 API 키가 설정되지 않았습니다. (임시 로그인 처리)');
-      this.finishLogin('kakao', { name: '카카오 유저', email: 'kakao@example.com' });
+      U.toast('카카오 로그인 설정이 아직 안 돼 있어요. 잠시 후 다시 시도해 주세요.');
       return;
     }
 

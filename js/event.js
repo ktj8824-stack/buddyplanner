@@ -23,7 +23,7 @@ const EventPage = {
           </div>
           <div style="padding: 24px 20px;">
             <div style="margin-bottom:16px;">
-              <span style="font-size:12px; font-weight:800; color:#fff; background:var(--accent); padding:4px 8px; border-radius:4px;">진행중</span>
+              ${new Date() > new Date(2026, 9, 31, 23, 59) ? '<span style="font-size:12px; font-weight:800; color:#fff; background:#94a3b8; padding:4px 8px; border-radius:4px;">종료</span>' : '<span style="font-size:12px; font-weight:800; color:#fff; background:var(--accent); padding:4px 8px; border-radius:4px;">진행중</span>'}
               <span style="font-size:13px; color:var(--text-400); margin-left:8px;">2026.09.01 ~ 2026.10.31</span>
             </div>
             <h3 style="font-size:16px; font-weight:700; color:var(--text-100); margin-bottom:12px;">참여 방법</h3>

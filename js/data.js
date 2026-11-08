@@ -351,7 +351,13 @@ const State = {
     }
 
     const returnStart = tl.hasPostMeal ? (teeTotal + roundMin + 120) : (teeTotal + roundMin);
-    const returnTravel = s.travelTime || 60;
+    // 귀가: 갈 때 집결지·식당을 들렀다면 그 시간을 빼고, 골프장(뒷풀이 식당)→출발지로 따로 어림
+    let returnTravel = s.travelTime || 60;
+    const backFrom = tl.hasPostMeal && s.postMealRestaurant && s.postMealRestaurant.lat ? s.postMealRestaurant : s.course;
+    if ((s.hasMeetingPoint || s.hasMeal || tl.hasPostMeal) && backFrom && backFrom.lat && s.startLat && s.startLng
+        && typeof Register !== 'undefined' && Register.estimateDriveMin) {
+      returnTravel = Register.estimateDriveMin(backFrom.lng, backFrom.lat, s.startLng, s.startLat);
+    }
     tl.returnStart = this.mToTime(returnStart);
     tl.returnEnd = this.mToTime(returnStart + returnTravel);
     tl.returnTravelDur = returnTravel;

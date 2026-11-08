@@ -64,6 +64,7 @@ const TmapAPI = {
         method: 'GET'
       });
 
+      if (response.status === 204) return [];   // 티맵은 결과가 없으면 내용 없이 204로 답함 → '결과 없음'
       if (!response.ok) {
         console.warn('[TmapAPI] 검색 실패', response.status, await response.text().catch(() => ''));
         throw new Error('티맵 API 요청 실패');
@@ -200,7 +201,7 @@ const TmapAPI = {
       const searchUrl = `https://apis.openapi.sk.com/tmap/pois?version=1&searchKeyword=${encodeURIComponent(keyword)}&centerLon=${lng}&centerLat=${lat}&radius=${radius}&resCoordType=WGS84GEO&reqCoordType=WGS84GEO&count=60&appKey=${TmapAPI.APP_KEY}`;
       
       const response = await fetch(searchUrl, { method: 'GET' });
-      if (!response.ok) return [];
+      if (response.status === 204 || !response.ok) return [];
 
       const data = await response.json();
       if (!data.searchPoiInfo || !data.searchPoiInfo.pois || !data.searchPoiInfo.pois.poi) return [];

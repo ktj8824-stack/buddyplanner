@@ -377,13 +377,20 @@ const Register = {
       </div>`).join('');
   },
 
+  /** 주소 → 추천 목록 지역 키 ('경남 남해군 …' → '경남 남해', 제주는 '제주') */
+  regionOf(addr) {
+    const p = String(addr || '').split(' ');
+    if (/^제주/.test(p[0] || '')) return '제주';
+    return [p[0] || '', (p[1] || '').replace(/(시|군)$/, '')].filter(Boolean).join(' ');
+  },
+
   selectCourse(id) {
     const c = this.searchResults.find(x => String(x.id) === String(id)); if(!c) return;
     
     this.course = {
       id: c.id,
       name: c.place_name,
-      region: c.address_name.split(' ').slice(0, 2).join(' '),
+      region: Register.regionOf(c.address_name),
       addr: c.address_name,
       lat: parseFloat(c.y),
       lng: parseFloat(c.x)
@@ -400,7 +407,7 @@ const Register = {
     // Clear restaurant when course changes
     this.resetMealDisplay();
     
-    U.toast(`⛳ ${c.name} 선택 완료`); U.haptic();
+    U.toast(`⛳ ${this.course.name || c.place_name || c.name || '골프장'} 선택 완료`); U.haptic();
   },
 
   openDatePicker() {
@@ -477,6 +484,14 @@ const Register = {
     const d = getVal('w-day');
 
     const selDate = new Date(y, m, d);
+    // 2월 31일처럼 달력에 없는 날짜는 다음 달로 넘어가지 않게 막음
+    if (selDate.getMonth() !== m) { U.toast(`${m + 1}월 ${d}일은 없는 날짜예요. 날짜를 다시 골라 주세요.`); return; }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (selDate < today) {
+      App.ask('지난 날짜예요', `${U.fmtDateShort(selDate)}은 이미 지난 날짜예요. 그래도 이 날짜로 할까요?`, { ok: '이 날짜로' })
+        .then(ok => { if (ok) this.selectDate(selDate.toISOString()); });
+      return;
+    }
     this.selectDate(selDate.toISOString());
   },
 
@@ -682,7 +697,7 @@ const Register = {
   openPasteBooking() {
     App.showModal('📋 예약 문자로 채우기', `
       <p style="font-size:13px; color:#64748b; margin:0 0 8px;">골프장 예약 확정 문자나 카톡을 그대로 붙여넣으세요.</p>
-      <textarea id="r-paste" rows="6" style="width:100%; box-sizing:border-box; border:1px solid #e2e8f0; border-radius:10px; padding:10px; font-size:13px; line-height:1.5; resize:none;" placeholder="[레이크사이드CC] 예약 확정&#10;11/15(토) 07:12 남코스 4인"></textarea>
+      <textarea id="r-paste" rows="6" style="width:100%; box-sizing:border-box; border:1px solid #e2e8f0; border-radius:10px; padding:10px; font-size:16px; line-height:1.5; resize:none;" placeholder="[레이크사이드CC] 예약 확정&#10;11/15(토) 07:12 남코스 4인"></textarea>
       <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="Register.applyPastedBooking()">채우기</button>`);
     setTimeout(async () => {
       const ta = U.$('#r-paste'); if (!ta) return;
@@ -773,7 +788,7 @@ const Register = {
         else if (input) this.search(p.course);   // 후보 목록에서 고르게
       } catch (e) { if (input) this.search(p.course); }
     }
-    U.toast(filled.length ? `${filled.join('·')}을(를) 채웠어요. 확인해 주세요.` : '골프장 이름으로 검색했어요. 목록에서 골라 주세요.');
+    U.toast(filled.length ? `${U.josa(filled.join('·'), '을/를')} 채웠어요. 확인해 주세요.` : '골프장 이름으로 검색했어요. 목록에서 골라 주세요.');
   },
 
   /** 예약 문자 속 골프장 이름과 가장 잘 맞는 검색 결과 (가장 긴 이름 조각이 들어 있어야 함, 아니면 null → 목록에서 고르게) */
@@ -963,7 +978,7 @@ const Register = {
               ${rvHtml}
               <div class="modal-item-sub">${p.category} · ${p.tel || '전화번호 없음'}</div>
             </div>
-            <button type="button" onclick="window.open('${reviewUrl}', '_blank')" style="padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:var(--text-sm); color:var(--text-600); background:transparent; cursor:pointer; white-space:nowrap; margin-top:4px;">★ 리뷰보기</button>
+            <button type="button" onclick="window.open(${U.jsq(reviewUrl)}, '_blank')" style="padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:var(--text-sm); color:var(--text-600); background:transparent; cursor:pointer; white-space:nowrap; margin-top:4px;">★ 리뷰보기</button>
           </div>
         `}).join('');
       }
@@ -993,9 +1008,9 @@ const Register = {
           const reviewUrl = `https://m.search.naver.com/search.naver?query=${encodeURIComponent((r.place_name || r.name) + ' ' + regionQuery)}`;
           return `
           <div class="modal-item" style="display:flex; align-items:center; gap:var(--sp-3);">
-            <div style="flex:1;" onclick="Register.selectRestaurant(${i}, '${r.id}')">
-              <div class="modal-item-text" style="font-weight:bold;">${r.place_name || r.name} <span style="font-size:0.75rem; font-weight:normal; color:var(--text-400); margin-left:4px;">${r.category}</span></div>
-              <div class="modal-item-sub">${r.distance ? parseFloat(r.distance).toFixed(1) + 'km' : ''} · ${r.tel || '전화번호 없음'}</div>
+            <div style="flex:1;" onclick="Register.selectRestaurant(${i}, ${U.jsq(r.id)})">
+              <div class="modal-item-text" style="font-weight:bold;">${U.esc(r.place_name || r.name)} <span style="font-size:0.75rem; font-weight:normal; color:var(--text-400); margin-left:4px;">${U.esc(r.category || '')}</span></div>
+              <div class="modal-item-sub">${r.distance ? parseFloat(r.distance).toFixed(1) + 'km' : ''} · ${U.esc(r.tel || '전화번호 없음')}</div>
             </div>
             <button type="button" onclick="window.open('${reviewUrl}', '_blank')" style="padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:var(--text-sm); color:var(--text-600); background:transparent; cursor:pointer; white-space:nowrap;">★ 리뷰보기</button>
           </div>
@@ -1099,6 +1114,8 @@ const Register = {
   },
 
   openCompanionModal() {
+    // 카카오톡 친구 목록은 아직 연결 전 → 예시 이름을 보여 주지 않음
+    if (!this._friendsReady) { U.toast('카카오톡 친구 불러오기는 준비 중이에요. 동반자는 단체등록으로 초대해 주세요.', 3500); return; }
     let items = `
       <div style="padding: 12px 16px; border-bottom: 1px solid #f0f0f0; margin: -24px -24px 16px -24px; position: sticky; top: -24px; background: white; z-index: 10;">
         <div style="font-size: 16px; font-weight: 700; text-align: center;">카카오톡 친구 선택</div>
@@ -1106,7 +1123,7 @@ const Register = {
       </div>
       <div style="margin-bottom: 12px; position: relative;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2" style="position: absolute; left: 12px; top: 10px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="companion-search" placeholder="이름(초성), 전화번호 검색" onkeyup="Register.filterCompanions(this.value)" style="width: 100%; background: #f5f5f5; border: none; border-radius: 6px; padding: 8px 12px 8px 36px; color: #333; font-size: 14px; outline: none;">
+        <input type="text" id="companion-search" placeholder="이름(초성), 전화번호 검색" onkeyup="Register.filterCompanions(this.value)" style="width: 100%; background: #f5f5f5; border: none; border-radius: 6px; padding: 8px 12px 8px 36px; color: #333; font-size: 16px; outline: none;">
       </div>
       <div style="font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 600;">친구 ${COMPANIONS.length}</div>
       <div id="companion-list-container" style="max-height: 50vh; overflow-y: auto; margin: 0 -8px; padding: 0 8px;">

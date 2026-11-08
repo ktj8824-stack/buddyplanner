@@ -68,7 +68,8 @@ const Market = {
 
   /** 기본 목록 (서버에 상품이 없거나 연결이 안 될 때) */
   fallback() {
-    const list = this.products;
+    // 자리표시(placehold) 사진 상품은 손님에게 보이지 않게 뺌
+    const list = this.products.filter(p => !/placehold\.co/.test(p.image || ''));
     return list.map(p => ({
       id: 'l' + p.id, kind: 'affiliate', category: p.category || this.DEFAULT_CATS[p.id] || 'etc',
       brand: p.brand, title: p.title, image: p.image, link: p.link, badge: p.badge

@@ -429,6 +429,12 @@ const AI = {
 
   // Process user message & intelligent routing
   processUserMessage(text, image) {
+    // AI가 앞 질문에 답하는 중이면 보내지 않음 (두 번째 질문이 답 없이 남지 않게)
+    if (typeof AIAgent !== 'undefined' && AIAgent._sending && AIAgent.enabled && AIAgent.enabled()) {
+      U.toast('앞 질문에 답하는 중이에요. 잠시만 기다려 주세요.');
+      const inp = document.getElementById('ai-input'); if (inp && !inp.value && text) inp.value = text;
+      return;
+    }
     const userMsgId = 'u_' + Date.now();
     const userMsg = {
       id: userMsgId,

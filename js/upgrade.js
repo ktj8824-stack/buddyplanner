@@ -89,9 +89,9 @@ const Upgrade = {
       box.innerHTML = `
         <div class="upg-notice">
           <b>PRO 구독은 안드로이드 앱에서 할 수 있어요</b>
-          <p>구글 플레이 스토어에서 BuddyPlanner 앱을 설치한 뒤 구독해 주세요.</p>
+          <p>${Billing.storeName()}에서 BuddyPlanner 앱을 설치한 뒤 구독해 주세요.</p>
         </div>
-        <button class="btn-upg" onclick="Billing.openStoreListing()">구글 플레이에서 앱 받기</button>`;
+        <button class="btn-upg" onclick="Billing.openStoreListing()">${Billing.storeName()}에서 앱 받기</button>`;
       return;
     }
 
@@ -173,8 +173,8 @@ const Upgrade = {
   footerHTML() {
     return `
       <p class="upg-terms">
-        결제는 구글 플레이 계정으로 진행되며, 해지하지 않으면 구독 기간이 끝날 때 자동으로 갱신돼요.
-        해지는 언제든 구글 플레이 &gt; 결제 및 정기 결제에서 할 수 있어요.
+        결제는 ${Billing.storeName()} 계정으로 진행되며, 해지하지 않으면 구독 기간이 끝날 때 자동으로 갱신돼요.
+        해지는 언제든 ${Billing.manageHint()}에서 할 수 있어요.
       </p>
       <div class="upg-links">
         <button onclick="Upgrade.restore()">구매 복원</button>
@@ -196,7 +196,7 @@ const Upgrade = {
         <b>👑 PRO 이용 중</b>
         <p>${line}</p>
       </div>
-      ${Billing.isNative() ? `<button class="btn-upg btn-upg-outline" onclick="Billing.openManage()">구독 관리 (구글 플레이)</button>` : ''}`;
+      ${Billing.isNative() ? `<button class="btn-upg btn-upg-outline" onclick="Billing.openManage()">구독 관리 (${Billing.storeName()})</button>` : ''}`;
   },
 
   select(kind) {
@@ -230,7 +230,7 @@ const Upgrade = {
   /* ── 구매 ── */
   async buy() {
     if (this.busy) return;
-    this.setBusy(true, '구글 플레이 결제창을 여는 중...');
+    this.setBusy(true, `${Billing.storeName()} 결제창을 여는 중...`);
     try {
       const result = await Billing.purchase(this.selected);
       if (result === 'success') {

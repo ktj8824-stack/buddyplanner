@@ -123,8 +123,8 @@ const Calendar = {
 
   _selectedY: null, _selectedM: null, _selectedD: null,
 
-  deleteSchedule(idx) {
-    if (confirm("정말로 이 일정을 삭제하시겠습니까?")) {
+  async deleteSchedule(idx) {
+    if (await App.ask('일정을 삭제할까요?', '일정과 알람이 함께 지워져요.', { ok: '삭제' })) {
       const targetDate = new Date(State.schedules[idx].date);
       const y = targetDate.getFullYear();
       const m = targetDate.getMonth();

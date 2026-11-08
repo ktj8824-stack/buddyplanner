@@ -77,6 +77,20 @@ const U = {
   $(sel,p=document){return p.querySelector(sel);},
   $$(sel,p=document){return p.querySelectorAll(sel);},
   /** 사용자 입력·외부 데이터를 HTML에 넣기 전 이스케이프 */
+  /** 받침에 맞춰 조사 고르기: U.josa('식당','을/를') → '식당을' */
+  josa(word, pair){
+    const w=String(word==null?'':word); const [a,b]=pair.split('/');
+    const ch=w.trim().replace(/[)\]\s.]+$/,'').slice(-1); const code=ch.charCodeAt(0)-0xAC00;
+    let jong;
+    if(code>=0&&code<=11171) jong=code%28;
+    else if(/[0-9]/.test(ch)) jong=[21,8,0,16,0,0,1,8,8,0][+ch];          // 영 일 이 삼 사 오 육 칠 팔 구
+    else if(/[a-z]/i.test(ch)) jong=/[lr]/i.test(ch)?8:(/[mn]/i.test(ch)?4:0); // CC→씨, L→엘, M→엠
+    else return w+(pair==='으로/로'?'(으)로':a+'('+b+')');
+    if(pair==='으로/로') return w+((jong===0||jong===8)?'로':'으로');   // ㄹ받침도 '로'
+    return w+(jong?a:b);
+  },
+  /** 이름 같은 글자를 onclick 안 JS 문자열로 안전하게 넣기 (작은따옴표가 있어도 깨지지 않게) */
+  jsq(v){return U.esc(JSON.stringify(String(v==null?'':v)));},
   esc(v){return String(v==null?'':v).replace(/[&<>"'`]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','`':'&#96;'}[c]));},
   el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html)e.innerHTML=html;return e;},
 

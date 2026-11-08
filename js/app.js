@@ -746,8 +746,8 @@ const App = {
       
       resContainer.innerHTML = places.map((p, i) => `
         <div class="list-item" style="cursor:pointer" onclick="window._selectAddress(${i})">
-          <div class="item-title">${p.name || p.place_name}</div>
-          ${(p.address || p.address_name) ? `<div class="item-sub">${p.address || p.address_name}</div>` : ''}
+          <div class="item-title">${U.esc(p.name || p.place_name)}</div>
+          ${(p.address || p.address_name) ? `<div class="item-sub">${U.esc(p.address || p.address_name)}</div>` : ''}
         </div>
       `).join('');
     };
@@ -936,11 +936,11 @@ const App = {
           <p style="font-size:13px; color:#666666; margin-bottom:18px;">카카오톡으로 공유된 일정을 내 스케줄에 등록할까요?</p>
           
           <div style="background:#f4f6f8; border-radius:16px; padding:16px; text-align:left; font-size:14px; margin-bottom:22px; line-height:1.7; color:#222;">
-            <div><strong>📍 골프장:</strong> ${courseName}${courseAddr}</div>
+            <div><strong>📍 골프장:</strong> ${U.esc(courseName)}${U.esc(courseAddr)}</div>
             <div><strong>📅 라운딩 일시:</strong> ${dateStr} ${teeOff}</div>
-            ${meetingName ? `<div style="color:#007aff;"><strong>🤝 중간 집결지:</strong> ${meetingName}</div>` : ''}
-            ${mealName ? `<div style="color:#28a745;"><strong>🍽️ 식당:</strong> ${mealName}</div>` : ''}
-            <div><strong>🚗 출발지 기준:</strong> ${schedData.startPoint || '집'}</div>
+            ${meetingName ? `<div style="color:#007aff;"><strong>🤝 중간 집결지:</strong> ${U.esc(meetingName)}</div>` : ''}
+            ${mealName ? `<div style="color:#28a745;"><strong>🍽️ 식당:</strong> ${U.esc(mealName)}</div>` : ''}
+            <div><strong>🚗 출발지:</strong> 내 출발지로 다시 계산해요</div>
           </div>
 
           <div style="display:flex; gap:10px;">
@@ -962,10 +962,13 @@ const App = {
       const el = document.getElementById(modalId);
       if (el) el.remove();
       if (!Billing.guardScheduleLimit()) return;
-      State.addSchedule(schedData);
-      State.currentScheduleIdx = State.schedules.length - 1;
-      App.viewTimeline(State.currentScheduleIdx);
-      U.toast('✅ 공유받은 일정이 내 플래너에 성공적으로 등록되었습니다!');
+      // 보낸 사람의 출발지·이동 시간을 그대로 쓰지 않도록, 등록 화면을 채워서 열고 내 출발지로 계산해 저장
+      const [h, m] = String(schedData.teeOff || '07:00').split(':').map(Number);
+      App.navigate('register');
+      setTimeout(() => {
+        Register.prefill({ course: schedData.course && schedData.course.lat ? schedData.course : null, date: schedData.date, h, m });
+        U.toast('공유받은 일정을 채웠어요. 출발지를 확인하고 저장해 주세요.', 3500);
+      }, 250);
     };
   }
 };

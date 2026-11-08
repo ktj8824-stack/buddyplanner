@@ -303,7 +303,7 @@ const Profile = {
    */
   async deleteAllData() {
     const proNote = State.isPro
-      ? '\n\n※ PRO 구독은 자동으로 해지되지 않습니다. 구글 플레이 > 결제 및 정기 결제에서 직접 해지해 주세요.'
+      ? `\n\n※ PRO 구독은 자동으로 해지되지 않습니다. ${Billing.manageHint()}에서 직접 해지해 주세요.`
       : '';
     if (!confirm('회원 탈퇴 시 기기에 저장된 일정, 라운딩 기록, 사진, 포인트, 설정이 모두 삭제되며 복구할 수 없습니다.' + proNote + '\n\n계속하시겠습니까?')) return;
     if (!confirm('정말 모든 데이터를 삭제하고 탈퇴하시겠습니까?')) return;
@@ -425,6 +425,7 @@ const Profile = {
     const data = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
+      if (/session|token/i.test(key)) continue;   // 로그인 정보는 백업 파일에 넣지 않음
       data[key] = localStorage.getItem(key);
     }
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
@@ -447,10 +448,14 @@ const Profile = {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = async (ev) => {
         try {
           const data = JSON.parse(ev.target.result);
+          if (!data || typeof data !== 'object') throw new Error('bad');
+          const ok = await App.ask('데이터를 불러올까요?', '지금 기기의 일정·기록이 이 파일 내용으로 바뀌어요. 되돌릴 수 없어요.', { ok: '불러오기' });
+          if (!ok) return;
           for (const key in data) {
+            if (/session|token/i.test(key)) continue;
             localStorage.setItem(key, data[key]);
           }
           U.toast('데이터가 성공적으로 복원되었습니다.');

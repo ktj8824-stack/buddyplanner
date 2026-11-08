@@ -257,8 +257,8 @@ const Timeline = {
     }
   },
 
-  deleteSchedule() {
-    if (confirm("정말로 이 일정을 삭제하시겠습니까?")) {
+  async deleteSchedule() {
+    if (await App.ask('일정을 삭제할까요?', '일정과 알람이 함께 지워져요.', { ok: '삭제' })) {
       this.clearSchedAlarms(State.schedules[this.schedIdx], true);
       State.schedules.splice(this.schedIdx, 1);
       State.saveSchedules();
@@ -370,10 +370,29 @@ const Timeline = {
         });
       } catch (e) {
         console.error('Kakao share error:', e);
-        U.toast('카카오톡 공유 실패: ' + (e.message || e));
+        Timeline.shareFallback();
       }
     } else {
-      U.toast('카카오톡 SDK 모듈이 로드되지 않았습니다.');
+      Timeline.shareFallback();
+    }
+  },
+
+  /** 카카오톡 공유가 안 될 때: 휴대폰 기본 공유 → 안 되면 링크 복사 */
+  async shareFallback() {
+    const url = Timeline._pendingShareUrl || '';
+    const s = Timeline._pendingShareS || {};
+    const title = `⛳ ${s.course ? s.course.name : '골프장'} 라운딩 일정`;
+    if (!url) { U.toast('공유할 링크를 만들지 못했어요.'); return; }
+    try {
+      if (navigator.share) { await navigator.share({ title, text: title, url }); return; }
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      U.toast('링크를 복사했어요. 카톡방에 붙여 넣어 주세요.');
+    } catch (e) {
+      U.toast('공유하지 못했어요. 잠시 후 다시 시도해 주세요.');
     }
   },
 
@@ -485,8 +504,8 @@ const Timeline = {
             </div>
             <div class="tl-detail">집결지(${tl.meetingPointName})까지 약 ${tl.homeTravelDur}분 소요</div>
             <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
+              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
+              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
             </div>
           </div>
         </div>`;
@@ -513,12 +532,12 @@ const Timeline = {
             <div class="tl-time">${prevDay(tl.meetDepart)}</div>
             <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"></path></svg>
-              ${nextDestName}(으)로 출발
+              ${U.esc(U.josa(nextDestName, '으로/로'))} 출발
             </div>
             <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 거리로 어림잡았어요 (약 ${tl.meetTravelDur}분) · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 약 ${tl.meetTravelDur}분 소요`}</div>
             <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${tl.meetingPointName}',${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${kakaoIcon} 카카오내비</button>
+              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${tmapIcon} TMAP</button>
+              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(tl.meetingPointName)},${s.meetingPointObj?.lat||0},${s.meetingPointObj?.lng||0})">${kakaoIcon} 카카오내비</button>
             </div>
           </div>
         </div>`;
@@ -535,8 +554,8 @@ const Timeline = {
             </div>
             <div class="tl-detail">${s.routeEstimated ? `길찾기 정보를 받지 못해 ${nextDestName}까지 거리로 어림잡았어요 (약 ${tl.homeTravelDur}분) · <a class="tl-recalc" onclick="Register.edit(${this.schedIdx})">다시 계산</a>` : `예측 길찾기 기준 ${nextDestName}까지 약 ${tl.homeTravelDur}분 소요`}</div>
             <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${nextDestName}',${nextDestLat},${nextDestLng},'${startPt}',${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
+              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${tmapIcon} TMAP</button>
+              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(nextDestName)},${nextDestLat},${nextDestLng},${U.jsq(startPt)},${s.startLat||0},${s.startLng||0})">${kakaoIcon} 카카오내비</button>
             </div>
           </div>
         </div>`;
@@ -575,8 +594,8 @@ const Timeline = {
             </div>
             <div class="tl-detail">${s.course.name}까지 약 ${tl.restTravelDur}분 소요</div>
             <div class="tl-nav-btns">
-              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${s.course.name}',${s.course.lat},${s.course.lng},'${s.mealRestaurant.name}',${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${tmapIcon} TMAP</button>
-              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${s.course.name}',${s.course.lat},${s.course.lng},'${s.mealRestaurant.name}',${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${kakaoIcon} 카카오내비</button>
+              <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(s.course.name)},${s.course.lat},${s.course.lng},${U.jsq(s.mealRestaurant.name)},${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${tmapIcon} TMAP</button>
+              <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(s.course.name)},${s.course.lat},${s.course.lng},${U.jsq(s.mealRestaurant.name)},${s.mealRestaurant.lat},${s.mealRestaurant.lng})">${kakaoIcon} 카카오내비</button>
             </div>
           </div>
         </div>`;
@@ -641,8 +660,8 @@ const Timeline = {
           <div class="tl-detail">라운딩 후 식사 예정 (약 2시간)</div>
           ${postRatingHtml}
           <div class="tl-nav-btns">
-            <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${tl.postMealRestaurant.name}',${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},'${s.course.name}',${s.course.lat},${s.course.lng})">${tmapIcon} TMAP</button>
-            <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${tl.postMealRestaurant.name}',${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},'${s.course.name}',${s.course.lat},${s.course.lng})">${kakaoIcon} 카카오내비</button>
+            <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(tl.postMealRestaurant.name)},${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},${U.jsq(s.course.name)},${s.course.lat},${s.course.lng})">${tmapIcon} TMAP</button>
+            <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(tl.postMealRestaurant.name)},${tl.postMealRestaurant.lat},${tl.postMealRestaurant.lng},${U.jsq(s.course.name)},${s.course.lat},${s.course.lng})">${kakaoIcon} 카카오내비</button>
             ${roundOver ? `<button class="tl-nav-btn rating" onclick="ReviewStore.openRatingModal('${tl.postMealRestaurant.name}', '${s.course.name}')">${ratingIcon} 식당 평가하기</button>` : ''}
           </div>
         </div>
@@ -664,12 +683,12 @@ const Timeline = {
           <div class="tl-time">${tl.returnStart}</div>
           <div class="tl-event" style="display:flex; align-items:center; gap:6px;">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            ${startPt}으로 귀가
+            ${U.esc(U.josa(startPt, '으로/로'))} 귀가
           </div>
           <div class="tl-detail">약 ${tl.returnTravelDur}분 소요 예상 (도착 시간: ${tl.returnEnd})</div>
           <div class="tl-nav-btns">
-            <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap','${returnDestName}',${returnDestLat},${returnDestLng})">${tmapIcon} TMAP</button>
-            <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao','${returnDestName}',${returnDestLat},${returnDestLng})">${kakaoIcon} 카카오내비</button>
+            <button class="tl-nav-btn tmap" onclick="Timeline.openNav('tmap',${U.jsq(returnDestName)},${returnDestLat},${returnDestLng})">${tmapIcon} TMAP</button>
+            <button class="tl-nav-btn kakao" onclick="Timeline.openNav('kakao',${U.jsq(returnDestName)},${returnDestLat},${returnDestLng})">${kakaoIcon} 카카오내비</button>
           </div>
         </div>
       </div>`;
