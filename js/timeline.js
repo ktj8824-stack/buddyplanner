@@ -778,7 +778,7 @@ const Timeline = {
               } catch (e) {
                 console.warn('Notification failed:', e);
               }
-              Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon);
+              Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon, { s, time: ev.time });
             }, delay);
             this._trackTimer(s, timeoutId);
           }
@@ -859,7 +859,7 @@ const Timeline = {
             console.warn('Notification failed:', e);
           }
           
-          Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon);
+          Timeline.playAlarmSound(ev.msg, '⏰ 타임라인 알람', ev.icon, { s, time: ev.time });
         }, delay);
         this._trackTimer(s, timeoutId);
         scheduledCount++;
@@ -906,7 +906,7 @@ const Timeline = {
     }
   },
 
-  playAlarmSound(msg, title = '🚨 타임라인 알람', iconHtml = null) {
+  playAlarmSound(msg, title = '🚨 타임라인 알람', iconHtml = null, ctx = null) {
     this._lastRingAt = Date.now();   // 아이폰: 같은 알람이 알림으로 또 울리지 않게
     if (!this.audioCtx) this.initAudioContext();
     
@@ -930,58 +930,113 @@ const Timeline = {
       console.warn('Audio play failed:', e);
     }
 
-    this.showAlarmPopup(msg, title, iconHtml);
+    this.showAlarmPopup(msg, title, iconHtml, ctx);
   },
 
-  showAlarmPopup(msg, title, iconHtml) {
+  /** 알람이 어느 일정·어느 단계인지 찾기 (아이폰 알림처럼 정보가 없을 때는 지금과 가장 가까운 단계) */
+  _alarmCtx(ctx) {
+    const steps = [['prepStart', 'prep'], ['homeDepart', 'depart'], ['mealStart', 'meal'], ['restDepart', 'restDepart'], ['arrival', 'arrival'], ['teeOff', 'tee']];
+    const at = (s, t) => { try { const d = State.tlAt(s, t); return d ? d.getTime() : NaN; } catch (e) { return NaN; } };
+    const now = Date.now();
+    let best = null;
+    const list = ctx && ctx.s ? [ctx.s] : (State.schedules || []);
+    list.forEach(s => {
+      if (!s || !s.timeline) return;
+      steps.forEach(([k, kind]) => {
+        const t = s.timeline[k]; if (!t) return;
+        if (ctx && ctx.time && t !== ctx.time) return;
+        const ms = at(s, t); if (isNaN(ms)) return;
+        const gap = Math.abs(ms - now);
+        if (!ctx && gap > 3 * 3600000) return;
+        if (!best || gap < best.gap) best = { s, k, kind, t, ms, gap };
+      });
+    });
+    return best;
+  },
+
+  showAlarmPopup(msg, title, iconHtml, ctx) {
     const old = document.getElementById('tl-alarm-popup');
     if (old) old.remove();
+    const c = this._alarmCtx(ctx);
+    const s = c && c.s, tl = (s && s.timeline) || {};
+    const pad = n => String(n).padStart(2, '0');
+    const now = new Date();
+    const hm = c ? c.t : `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    const dd = c ? new Date(c.ms) : now;
+    const kindInfo = {
+      prep:       ['준비 알람', '준비할 시간이에요', '🎒 보스턴백·골프화·장갑 챙기세요'],
+      depart:     ['출발 알람', '출발할 시간이에요', '🚗 출발하면 "출발했어요"를 눌러 주세요'],
+      meal:       ['식사 알람', '식사할 시간이에요', '🍽️ 식사 후 골프장 출발 시간을 확인하세요'],
+      restDepart: ['출발 알람', '골프장으로 출발할 시간이에요', '🚗 지금 출발하면 여유 있게 도착해요'],
+      arrival:    ['도착 알람', '클럽하우스 도착 시간이에요', '👔 환복하고 연습 그린에서 몸 풀어 보세요'],
+      tee:        ['티오프 알람', '곧 티오프예요', '⛳ 멋진 라운딩 되세요'],
+    };
+    const ki = kindInfo[c ? c.kind : ''] || [String(title || '알람').replace(/^[^\w가-힣]+/, '').trim() || '알람', '알람 시간이에요', ''];
+    const course = s ? (s.course ? s.course.name : (s.courseName || '골프장')) : '';
+    const depT = tl.restDepart && c && (c.kind === 'meal' || c.kind === 'restDepart') ? tl.restDepart : tl.homeDepart;
+    let lead = '';
+    if (s && depT && tl.teeOff && c && ['prep', 'depart', 'meal', 'restDepart'].includes(c.kind)) lead = tl.arrival ? `${depT}에 나가면 ${tl.arrival} 도착해요` : `${depT}에 나가면 티오프 전에 도착해요`;
+    else if (s && tl.teeOff && c && c.kind === 'arrival') lead = `티오프 ${tl.teeOff}까지 여유 있게 준비하세요`;
+    else if (s && tl.teeOff) lead = `티오프 ${tl.teeOff}`;
+    else lead = U.esc(msg || '');
+
+    // 다음 알람
+    let next = '';
+    if (s && c) {
+      const order = ['prepStart', 'homeDepart', 'mealStart', 'restDepart', 'arrival', 'teeOff'];
+      const nm = { prepStart: '준비', homeDepart: '출발', mealStart: '식사', restDepart: '골프장 출발', arrival: '도착', teeOff: '티오프' };
+      for (let i = order.indexOf(c.k) + 1; i < order.length; i++) { if (tl[order[i]]) { next = `${tl[order[i]]}에 ${nm[order[i]]} 알림`; break; } }
+    }
+    this._snoozeLeft = (ctx && ctx._snoozeLeft != null) ? ctx._snoozeLeft : 2;
+    const left = this._snoozeLeft;
+    const foot = s ? [left > 0 ? `다시 울림 ${left}번 남았어요` : '', next].filter(Boolean).join(' · ') : '';
+    const idx = s ? State.schedules.indexOf(s) : -1;
+    this._alarmCtxLast = { s, time: c ? c.t : null, msg, title, iconHtml };
 
     const popup = document.createElement('div');
     popup.id = 'tl-alarm-popup';
-    popup.style.position = 'fixed';
-    popup.style.top = '16px';
-    popup.style.left = '16px';
-    popup.style.right = '16px';
-    popup.style.background = 'var(--bg-card)';
-    popup.style.border = '1px solid var(--accent)';
-    popup.style.borderRadius = 'var(--r-md)';
-    popup.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)';
-    popup.style.zIndex = '9999';
-    popup.style.padding = '16px';
-    popup.style.display = 'flex';
-    popup.style.alignItems = 'center';
-    popup.style.gap = '16px';
-    popup.style.transform = 'translateY(-150%)';
-    popup.style.transition = 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)';
-    
-    // 아이콘 크기 축소
-    const displayIcon = iconHtml ? iconHtml.replace('width="48"', 'width="32"').replace('height="48"', 'height="32"') : `<div style="font-size:2rem;">⏰</div>`;
-
+    popup.className = 'v2-alarm';
     popup.innerHTML = `
-      <div style="flex-shrink:0;">${displayIcon}</div>
-      <div style="flex-grow:1;">
-        <div style="font-size:12px; color:var(--accent); font-weight:var(--fw-bold); margin-bottom:4px;">${title}</div>
-        <div style="font-size:14px; font-weight:var(--fw-bold); color:var(--text-100); line-height:1.4;">${msg}</div>
-      </div>
-      <button onclick="this.parentElement.style.transform='translateY(-150%)'; setTimeout(()=>this.parentElement.remove(), 400);" style="flex-shrink:0; background:none; border:none; color:var(--text-300); padding:4px; cursor:pointer;">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-      </button>
-    `;
-
+      <div class="v2-alarm-in">
+        <div class="v2-alarm-top">${dd.getMonth() + 1}월 ${dd.getDate()}일 (${days[dd.getDay()]}) · ${U.esc(ki[0])}</div>
+        <div class="v2-alarm-time">${U.esc(hm)}</div>
+        <div class="v2-alarm-head">${U.esc(ki[1])}</div>
+        ${s ? `<div class="v2-alarm-card">
+          <div class="v2-alarm-c1">라운딩 · ${U.esc(course)}${tl.teeOff ? ' · 티오프 ' + U.esc(tl.teeOff) : ''}</div>
+          <div class="v2-alarm-c2">${lead}</div>
+          ${ki[2] ? `<div class="v2-alarm-c3">${U.esc(ki[2])}</div>` : ''}
+          ${tl.hasMeetingPoint && c && ['prep', 'depart'].includes(c.kind) ? `<div class="v2-alarm-c4">📍 집결지 · ${U.esc(tl.meetingPointName || (s.meetingPointObj || {}).name || '집결지')}${tl.meetArrival ? ' ' + U.esc(tl.meetArrival) + ' 도착' : ''}</div>` : ''}
+        </div>` : (msg ? `<div class="v2-alarm-card"><div class="v2-alarm-c2">${U.esc(msg)}</div></div>` : '')}
+        <div class="v2-alarm-btns">
+          <button class="v2-alarm-ok" onclick="Timeline.closeAlarm()">확인했어요</button>
+          ${idx >= 0 ? `<div class="v2-alarm-row">
+            <button onclick="Timeline.snoozeAlarm()" ${left > 0 ? '' : 'disabled'}>5분 뒤 다시</button>
+            <button onclick="Timeline.closeAlarm(${idx})">타임라인 보기</button>
+          </div>` : ''}
+        </div>
+        ${foot ? `<div class="v2-alarm-foot">${U.esc(foot)}</div>` : ''}
+      </div>`;
     document.body.appendChild(popup);
+    requestAnimationFrame(() => popup.classList.add('on'));
+    try { U.haptic && U.haptic(); } catch (e) {}
+  },
 
-    requestAnimationFrame(() => {
-      popup.style.transform = 'translateY(0)';
-    });
+  closeAlarm(idx) {
+    const p = document.getElementById('tl-alarm-popup');
+    if (p) { p.classList.remove('on'); setTimeout(() => p.remove(), 250); }
+    if (typeof idx === 'number' && idx >= 0 && App.viewTimeline) App.viewTimeline(idx);
+  },
 
-    // 10초 뒤 자동 숨김
-    setTimeout(() => {
-      if (popup.parentElement) {
-        popup.style.transform = 'translateY(-150%)';
-        setTimeout(() => popup.remove(), 400);
-      }
-    }, 10000);
+  snoozeAlarm() {
+    const last = this._alarmCtxLast || {};
+    const left = Math.max(0, (this._snoozeLeft || 0) - 1);
+    clearTimeout(this._snoozeTimer);
+    this._snoozeTimer = setTimeout(() => {
+      this.playAlarmSound(last.msg, last.title, last.iconHtml, last.s ? { s: last.s, time: last.time, _snoozeLeft: left } : null);
+    }, 5 * 60000);
+    this.closeAlarm();
+    U.toast('5분 뒤에 다시 알려 드릴게요');
   },
 
   startBannerUpdater() {

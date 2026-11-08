@@ -545,3 +545,23 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .v2-new-card .v2-new-ico.img img { width: 32px; height: 32px; }
 .v2-new-card b { font-size: 1rem; }
 .v2-new-card small { font-size: min(0.8125rem, 3.25vw); letter-spacing: -0.2px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ===== 풀스크린 알람 (마이플래너 스타일) ===== */
+.v2-alarm{position:fixed;inset:0;z-index:10050;background:radial-gradient(120% 70% at 50% 0%,#17346f 0%,#0b1d45 55%,#071431 100%);color:#fff;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 24px) 22px calc(env(safe-area-inset-bottom) + 24px);opacity:0;transition:opacity .25s ease}
+.v2-alarm.on{opacity:1}
+.v2-alarm-in{width:100%;max-width:420px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.v2-alarm-top{font-size:0.9375rem;color:rgba(255,255,255,.7);font-weight:600;letter-spacing:-.01em}
+.v2-alarm-time{font-size:min(6.5rem,26vw);line-height:1;font-weight:800;color:#2fd8a0;letter-spacing:-.04em;margin:14px 0 10px;font-variant-numeric:tabular-nums;text-shadow:0 6px 30px rgba(18,184,134,.35)}
+.v2-alarm-head{font-size:1.375rem;font-weight:800;letter-spacing:-.02em;margin-bottom:26px}
+.v2-alarm-card{width:100%;text-align:left;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:7px;margin-bottom:26px}
+.v2-alarm-c1{font-size:0.8125rem;color:rgba(255,255,255,.6);font-weight:600}
+.v2-alarm-c2{font-size:1.0625rem;font-weight:800;line-height:1.4}
+.v2-alarm-c3{font-size:0.875rem;color:#ffd166;font-weight:600}
+.v2-alarm-c4{font-size:0.875rem;color:rgba(255,255,255,.75)}
+.v2-alarm-btns{width:100%;display:flex;flex-direction:column;gap:10px}
+.v2-alarm-ok{width:100%;height:58px;border:0;border-radius:16px;background:#12b886;color:#fff;font-size:1.125rem;font-weight:800;box-shadow:0 10px 24px -10px rgba(18,184,134,.8)}
+.v2-alarm-row{display:flex;gap:10px}
+.v2-alarm-row button{flex:1;height:50px;border-radius:14px;background:transparent;border:1px solid rgba(255,255,255,.28);color:#fff;font-size:0.9375rem;font-weight:700}
+.v2-alarm-row button:disabled{opacity:.35}
+.v2-alarm button:active{transform:scale(.98)}
+.v2-alarm-foot{margin-top:18px;font-size:0.8125rem;color:rgba(255,255,255,.55)}
