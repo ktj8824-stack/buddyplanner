@@ -242,23 +242,24 @@ const Group = {
         <div class="gp-item-m">⛳ ${U.esc(x.course_name)} · ${this._date(x.round_date)} ${U.esc(x.tee_off)}</div>
         <div class="gp-item-c">참석 ${x.yes_count}/${x.total}</div>
       </div>`).join('');
+    const back = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    const cards = (this.list || []).map(x => `
+      <div class="v2-card" style="cursor:pointer;" onclick="Group.openCode(${U.jsq(x.code)})">
+        <div class="v2-rcard-top"><b>${U.esc(x.title)}</b><span class="v2-pill ${x.i_am_owner ? 'blue' : 'green'}">${x.i_am_owner ? '총무' : '참석'}</span></div>
+        <div class="v2-hint" style="margin-top:6px;">${U.esc(x.course_name)} · ${this._date(x.round_date)} ${U.esc(x.tee_off)}</div>
+        <div class="v2-rcard-foot"><span class="st">참석 ${x.yes_count}/${x.total}</span><span class="v2-link">열기</span></div>
+      </div>`).join('');
     el.innerHTML = `
-      <div class="gp-wrap">
-        <div class="gp-top"><button class="gp-back" onclick="App.navigate('home')">‹ 홈</button>
-          <div class="gp-top-t">단체 일정</div><div class="gp-top-m">모임 라운딩의 참석·조 편성·차량을 한 곳에서</div></div>
-        <div class="gp-sec">
-          <button class="gp-btn navy" onclick="Group.startCreate()">＋ 새 단체 일정 만들기</button>
-          ${!signed ? `<div class="gp-note">단체 일정을 만들려면 로그인이 필요해요. 받은 링크로 참석하는 건 로그인 없이도 돼요.</div>` : ''}
-          ${items ? `<div class="gp-lab">내 단체 일정</div>${items}` : `
-          <div class="gp-how">
-            <div class="gp-how-t">이렇게 써요</div>
-            <div>1. 총무가 골프장·날짜·참석자 이름을 넣어 만들어요</div>
-            <div>2. 카톡 단톡방에 링크를 보내요</div>
-            <div>3. 각자 링크를 열고 내 이름을 골라 참석을 눌러요 (로그인 없어도 돼요)</div>
-            <div>4. 단체 톡방에서 차 같이 탈 사람을 얘기하고, 총무가 조·차를 정해요</div>
-          </div>`}
-        </div>
-      </div>`;
+      <div class="v2-pagehead"><button class="v2-iconbtn" style="margin-left:-10px;" onclick="App.navigate('home')" aria-label="뒤로가기">${back}</button><h1 style="font-size:1.25rem;">단체 일정</h1></div>
+      <div class="v2-scroll"><div class="v2-body">
+        <button class="v2-btn-navy" onclick="Group.startCreate()">＋ 새 단체 일정 만들기</button>
+        ${!signed ? `<p class="v2-hint" style="margin:0 4px;">단체 일정을 만들려면 로그인이 필요해요. 받은 링크로 참석하는 건 로그인 없이도 돼요.</p>` : ''}
+        ${cards ? `<div class="v2-sec-title">내 단체 일정</div>${cards}` : `
+        <div class="v2-card">
+          <div class="v2-h2" style="margin-bottom:10px;">이렇게 써요</div>
+          <div class="v2-hint" style="margin:0; line-height:1.8;">1. 총무가 골프장·날짜·참석자 이름을 넣어 만들어요<br>2. 카톡 단톡방에 링크를 보내요<br>3. 각자 링크를 열고 내 이름을 골라 참석을 눌러요 (로그인 없어도 돼요)<br>4. 단체 톡방에서 차 같이 탈 사람을 얘기하고, 총무가 조·차를 정해요</div>
+        </div>`}
+      </div></div>`;
   },
 
   /** 만들기는 PRO (받는 사람은 무료). 결제를 열기 전까지는 config의 GROUP_PRO_ONLY가 true일 때만 막음 */
@@ -628,35 +629,74 @@ const Group = {
       }
     }
 
+    // ── 2026.11 개편 화면 ──
+    const no = e.members.filter(m => m.status === 'no').length;
+    const wait = e.members.length - yes - no;
+    const rd = new Date(e.round_date + 'T00:00:00'); const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    const dd = Math.round((rd - t0) / 864e5);
+    const nTeams = [...new Set(e.members.map(m => m.team_no).filter(Boolean))].length;
+    const back = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    const chip = (m) => `<button class="v2-gp-chip ${m.status === 'yes' ? 'yes' : m.status === 'no' ? 'no' : 'wait'}${me && me.id === m.id ? ' me' : ''}" ${owner ? `onclick="Group.openAssign(${m.id})"` : ''}>${U.esc(m.name)}${m.is_owner ? ' · 총무' : ''}</button>`;
+    const teamRows = teamKeys.filter(k => k > 0).map(k => {
+      const t = this._teamMeta(k);
+      const names = teams[k].map(m => U.esc(m.name) + (m.status === 'no' ? '(불참)' : '')).join(' · ');
+      return `<div class="v2-gp-team"><b>${k}조</b><span>${names}${t && t.course ? ` <em>${U.esc(t.course)}</em>` : ''}</span><i>${U.esc((t && t.tee) || e.tee_off || '')}</i>
+        ${owner && teams[k].some(m => m.phone && !m.is_owner) ? `<button class="v2-link" style="font-size:0.8125rem; padding:0 0 0 6px;" onclick="Group.smsTeam(${k})">문자</button>` : ''}</div>`;
+    }).join('');
+    const unassigned = (teams[0] || []).filter(m => m.status !== 'no');
+    const carRows = drivers.map(d => {
+      const riders = e.members.filter(x => x.car_driver_id === d.id);
+      return `<div class="v2-gp-car"><span>${U.esc(d.name)} 차${riders.length ? ` · ${riders.map(r => U.esc(r.name)).join(', ')}` : ''}</span><b class="${riders.length ? '' : 'ok'}">${riders.length ? `${riders.length}명 탑승` : '혼자 가요'}</b></div>`;
+    }).join('');
+
     el.innerHTML = `
-      <div class="gp-wrap">
-        <div class="gp-top">
-          <button class="gp-back" onclick="Group.openList()">‹ 단체 일정</button>
-          ${owner ? `<button class="gp-edit" onclick="Group.startEdit()">수정</button>` : ''}
-          <div class="gp-top-t">${U.esc(e.title)}</div>
-          <div class="gp-top-m">⛳ ${U.esc(e.course.name)} · ${this._date(e.round_date)} · ${teamMode && e.teams.length > 1 ? '첫 조' : '티오프'} <span class="gold">${U.esc(e.tee_off)}</span></div>
-        </div>
-        <div class="gp-sec">
-          <div class="gp-card gp-meet">
-            ${teamMode ? `<div class="gp-meet-s">조별 티업</div>
-            <div class="gp-lineup">${e.teams.filter(t => t.tee && e.members.some(m => m.team_no === t.no)).map(t => `<div><b>${t.no}조</b><span>${U.esc(t.tee)}</span>${t.course ? `<em>${U.esc(t.course)}</em>` : ''}</div>`).join('')}</div>`
-            : `<div class="gp-meet-s">다 같이 모이는 시간</div>
-            <div class="gp-meet-b">${U.esc(meet)} 클럽하우스</div>`}
-            ${e.meal_before ? `<div class="gp-meet-s">🍲 아침 ${e.meal_time ? U.esc(e.meal_time) + ' ' : ''}${U.esc(e.meal_before.name)}</div>` : ''}
-            ${e.meal_after ? `<div class="gp-meet-s">🍻 뒤풀이 ${U.esc(e.meal_after.name)}</div>` : ''}
-            ${e.memo ? `<div class="gp-memo">📢 ${U.esc(e.memo)}</div>` : ''}
+      <div class="v2-pagehead">
+        <button class="v2-iconbtn" style="margin-left:-10px;" onclick="Group.openList()" aria-label="뒤로가기">${back}</button>
+        <h1 style="font-size:1.25rem; flex:1;">단체 일정</h1>
+        ${owner ? `<button class="v2-link" style="padding:8px;" onclick="Group.startEdit()">수정</button>` : ''}
+      </div>
+      <div class="v2-scroll"><div class="v2-body">
+        <div class="v2-gp-hero">
+          <div class="tag">${owner ? '내가 총무' : '참석 일정'} · ${dd > 0 ? 'D-' + dd : dd === 0 ? 'D-Day' : '지난 일정'}</div>
+          <h3>${U.esc(e.title)}</h3>
+          <div class="sub">${this._date(e.round_date)} · ${U.esc(e.course.name)} · ${U.esc(e.tee_off)}${nTeams ? ` · ${nTeams}팀` : ''}</div>
+          <div class="stats">
+            <div class="yes"><span>참석</span><b>${yes}</b></div>
+            <div class="no"><span>불참</span><b>${no}</b></div>
+            <div class="wait"><span>미응답</span><b>${wait}</b></div>
           </div>
-          ${notices}
-          ${myPanel}
-          <div class="gp-lab">우리 조 <span>참석 ${yes}/${e.members.length}</span></div>
-          ${membersHtml}
-          ${owner ? `<div class="gp-note">이름을 누르면 조와 차를 정할 수 있어요.</div>` : ''}
-          ${cars || needRide.length ? `<div class="gp-lab">차량</div><div class="gp-card">${cars}
-            ${needRide.length ? `<div class="gp-car-row warn"><b>🙋 차 필요</b><span>${needRide.map(r => U.esc(r.name) + (r.ride_note ? `(${U.esc(r.ride_note)})` : '')).join(', ')}</span></div>` : ''}</div>` : ''}
-          <button class="gp-btn kakao" onclick="Group.share()">💬 카톡으로 ${owner ? '조 시간표 보내기' : '공유하기'}</button>
-          <button class="gp-btn line" onclick="Group.openChat()">👥 단체 톡방${e.chat_count ? ` (${e.chat_count})` : ''}</button>
+          <div class="btns">
+            <button class="kakao" onclick="Group.share()">${owner ? '카톡으로 링크 보내기' : '카톡으로 공유하기'}</button>
+            ${owner && pending.length ? `<button class="white" onclick="Group.share('remind')">미응답 ${pending.length}명 다시 알림</button>` : `<button class="white" onclick="Group.openChat()">단체 톡방${e.chat_count ? ` (${e.chat_count})` : ''}</button>`}
+          </div>
         </div>
-      </div>`;
+        ${notices}
+        ${!owner ? myPanel : (teamMode && ownerMe && ownerMe.team_no ? this._myCardHTML(ownerMe) : '')}
+        <div class="v2-card">
+          <div class="v2-gp-h"><b>참석자</b><span>받은 링크로 로그인 없이 응답해요</span></div>
+          <div class="v2-gp-chips">${e.members.map(chip).join('')}</div>
+          ${owner ? `<p class="v2-hint" style="margin-top:10px;">이름을 누르면 조와 차를 정할 수 있어요.</p>` : ''}
+        </div>
+        ${hasTeams || owner ? `<div class="v2-card">
+          <div class="v2-gp-h"><b>조 편성</b>${owner ? `<button class="v2-gp-mini" onclick="Group.startEdit()">조 편성 수정</button>` : ''}</div>
+          ${teamRows || '<p class="v2-hint" style="margin:0;">아직 조를 정하지 않았어요.</p>'}
+          ${unassigned.length && hasTeams ? `<div class="v2-gp-team"><b style="color:#64748b;">미정</b><span>${unassigned.map(m => U.esc(m.name)).join(' · ')}</span><i></i></div>` : ''}
+        </div>` : ''}
+        <div class="v2-card">
+          <div class="v2-gp-h"><b>차량 · 카풀</b></div>
+          ${carRows || '<p class="v2-hint" style="margin:0 0 4px;">아직 직접 운전하는 사람이 없어요.</p>'}
+          ${needRide.length ? `<p class="v2-hint" style="margin-top:8px;">차 없는 참석자 ${needRide.length}명 · ${needRide.map(r => U.esc(r.name) + (r.ride_note ? `(${U.esc(r.ride_note)})` : '')).join(', ')} · 카풀을 정하면 각자 출발 시간도 바뀌어요</p>` : ''}
+        </div>
+        <div class="v2-card" style="padding:14px 18px;">
+          ${teamMode ? `<div class="v2-gp-info"><span>조별 티업</span><b>${e.teams.filter(t => t.tee && e.members.some(m => m.team_no === t.no)).map(t => `${t.no}조 ${U.esc(t.tee)}`).join(' · ')}</b></div>`
+            : `<div class="v2-gp-info"><span>모이는 시간</span><b>${U.esc(meet)} 클럽하우스</b></div>`}
+          ${e.meal_before ? `<div class="v2-gp-info"><span>아침</span><b>${e.meal_time ? U.esc(e.meal_time) + ' ' : ''}${U.esc(e.meal_before.name)}</b></div>` : ''}
+          ${e.meal_after ? `<div class="v2-gp-info"><span>뒤풀이</span><b>${U.esc(e.meal_after.name)}</b></div>` : ''}
+          ${e.memo ? `<div class="v2-gp-info"><span>공지</span><b>${U.esc(e.memo)}</b></div>` : ''}
+        </div>
+        ${owner ? `<button class="v2-btn-line" onclick="Group.addToMine()">내 일정에도 등록 (출발 시간·알람 계산)</button>
+          <button class="v2-btn-line" onclick="Group.openChat()">단체 톡방${e.chat_count ? ` (${e.chat_count})` : ''}</button>` : ''}
+      </div></div>`;
   },
 
   /* ── 변경 안내 ── */

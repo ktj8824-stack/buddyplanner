@@ -51,7 +51,7 @@ const Community = {
     if (State.screen === 'community') this.render();
   },
 
-  setCat(c) { if (this.cat === c) return; this.cat = c; this.load(true); },
+  setCat(c) { if (this.cat === c) return; this.cat = c; this.weekOnly = false; this.load(true); },
   find(id) { return this.posts.find(p => String(p.id) === String(id)); },
 
   /* ── 표시 도우미 ── */
@@ -73,91 +73,98 @@ const Community = {
     return colors[h % colors.length];
   },
 
+  TABS: [['join', '조인 모집'], ['review', '라운딩 후기'], ['carpool', '카풀'], ['free', '자유']],
+  weekOnly: false,
+
   render() {
     const el = U.$('#screen-community');
     if (!el) return;
+    if (!this.cat) this.cat = 'join';
     let body;
+    let posts = this.posts;
+    if (this.weekOnly) { const lim = Date.now() + 7 * 864e5; posts = posts.filter(p => !p.round_at || (new Date(p.round_at) <= lim)); }
     if (typeof Cloud === 'undefined' || !Cloud.isConfigured()) {
       body = this.empty('💬', '커뮤니티를 준비하고 있어요', '곧 조인 모집과 라운딩 후기를 나눌 수 있어요.');
     } else if (!Cloud.isSignedIn()) {
-      body = this.empty('🔒', '로그인하고 함께해요', '커뮤니티는 로그인한 회원만 이용할 수 있어요.', `<button class="btn-join" onclick="App.navigate('login')">로그인하기</button>`);
+      body = this.empty('🔒', '로그인하고 함께해요', '커뮤니티는 로그인한 회원만 이용할 수 있어요.', `<button class="v2-btn-navy" style="margin-top:12px;" onclick="App.navigate('login')">로그인하기</button>`);
     } else if (this.loading && !this.posts.length) {
-      body = `<div class="cm-empty"><div class="spinner" style="margin:0 auto 10px;"></div>불러오는 중...</div>`;
+      body = `<div class="v2-empty" style="border-style:solid;">불러오는 중...</div>`;
     } else if (this.error && !this.posts.length) {
-      body = this.empty('📡', '글을 불러오지 못했어요', this.error === 'offline' ? '인터넷 연결을 확인해 주세요.' : '잠시 후 다시 시도해 주세요.', `<button class="btn-goodshot" onclick="Community.load(true)">다시 시도</button>`);
-    } else if (!this.posts.length) {
-      body = this.empty('🏌️', this.cat ? '아직 이 분류의 글이 없어요' : '첫 글을 남겨 보세요', '조인 멤버를 모으거나 라운딩 후기를 나눠 보세요.', `<button class="btn-join" onclick="Community.openWrite()">글쓰기</button>`);
+      body = this.empty('📡', '글을 불러오지 못했어요', this.error === 'offline' ? '인터넷 연결을 확인해 주세요.' : '잠시 후 다시 시도해 주세요.', `<button class="v2-btn-line" style="margin-top:12px;" onclick="Community.load(true)">다시 시도</button>`);
+    } else if (!posts.length) {
+      body = this.empty('🏌️', '아직 글이 없어요', this.cat === 'join' ? '첫 조인 모집 글을 올려 보세요.' : '첫 글을 남겨 보세요.');
     } else {
-      body = this.posts.map(p => this.card(p)).join('')
-        + (this.hasMore ? `<button class="cm-more" onclick="Community.load(false)">${this.loading ? '불러오는 중...' : '더 보기'}</button>` : '');
+      body = posts.map(p => this.card(p)).join('')
+        + (this.hasMore ? `<button class="v2-btn-line" onclick="Community.load(false)">${this.loading ? '불러오는 중...' : '더 보기'}</button>` : '');
     }
     const signed = this.available();
+    const joinish = this.cat === 'join' || this.cat === 'carpool';
+    const back = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
     el.innerHTML = `
-      <div class="screen-scroll" style="background:#f8fafc; padding-top:var(--header-h); padding-bottom:calc(var(--safe-bottom) + 120px);">
-        <div class="community-header">
-          <h2>버디 커뮤니티</h2>
-          ${signed ? `<div class="cm-head-actions">
-            <button class="cm-icon-btn" onclick="Community.openMyRequests()">내 신청</button>
-            <button class="cm-icon-btn" onclick="Community.openSettings()" aria-label="커뮤니티 설정">⋯</button>
-          </div>` : ''}
+      <div class="v2-pagehead" style="flex-direction:column; align-items:stretch; padding-bottom:0; gap:6px;">
+        <div style="display:flex; align-items:center; gap:4px;">
+          <button class="v2-iconbtn" style="margin-left:-10px;" onclick="App.navigate('home')" aria-label="뒤로가기">${back}</button>
+          <h1 style="font-size:1.25rem; flex:1;">커뮤니티</h1>
+          ${signed ? `<button class="v2-link" style="font-size:0.875rem; padding:8px;" onclick="Community.openMyRequests()">내 신청</button>
+          <button class="v2-iconbtn" onclick="Community.openSettings()" aria-label="커뮤니티 설정">⋯</button>` : ''}
         </div>
-        ${signed ? `<div class="community-cats">
-          ${this.CATS.map(([k, label]) => `<button class="comm-cat-pill ${this.cat === k ? 'active' : ''}" onclick="Community.setCat('${k}')">${label}</button>`).join('')}
-        </div>` : ''}
-        <div class="feed-list">${body}</div>
+        <div class="v2-cm-tabs">${this.TABS.map(([k, l]) => `<button class="${this.cat === k ? 'on' : ''}" onclick="Community.setCat('${k}')">${l}</button>`).join('')}</div>
       </div>
-      ${signed ? `<button class="cm-fab" onclick="Community.openWrite()" aria-label="글쓰기">＋ 글쓰기</button>` : ''}
+      <div class="v2-scroll" style="padding-bottom:calc(var(--nav-h) + var(--safe-bottom) + 96px);">
+        <div class="v2-body">
+          ${signed && joinish ? `<div class="v2-cm-filters"><button class="${this.weekOnly ? 'on' : ''}" onclick="Community.weekOnly=!Community.weekOnly; Community.render();">이번 주</button><button class="${!this.weekOnly ? 'on' : ''}" onclick="Community.weekOnly=false; Community.render();">전체 기간</button></div>` : ''}
+          ${body}
+        </div>
+      </div>
+      ${signed ? `<button class="v2-cm-fab" onclick="Community.openWrite()">＋ ${joinish ? (this.cat === 'carpool' ? '카풀 모집하기' : '조인 모집하기') : '글쓰기'}</button>` : ''}
     `;
   },
 
   empty(icon, title, desc, action = '') {
-    return `<div class="cm-empty"><div style="font-size:38px;">${icon}</div><b>${title}</b><span>${desc}</span>${action}</div>`;
+    return `<div class="v2-empty"><div style="font-size:2rem;">${icon}</div><b style="display:block; color:var(--v2-ink); font-size:1rem; margin:6px 0 4px;">${title}</b>${desc}${action}</div>`;
+  },
+
+  _date(iso) {
+    const d = new Date(iso); const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${d.getMonth() + 1}월 ${d.getDate()}일 (${days[d.getDay()]}) ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   },
 
   card(p) {
     const joinable = p.category === 'join' || p.category === 'carpool';
-    const full = joinable && p.accepted_count >= (p.slots || 0);
-    let tags = p.pinned ? `<span class="tag-pin">📌 공지</span>` : '';
-    if (!p.pinned || joinable) tags += `<span class="tag-join">${this.LABEL[p.category] || ''}${joinable ? ` (${p.accepted_count}/${p.slots}명)` : ''}</span>`;
-    if (p.course_name) tags += `<span class="tag-course">${U.esc(p.course_name)}</span>`;
-    if (joinable && p.round_at) tags += `<span class="tag-when">${this.when(p.round_at)}</span>`;
-    if (joinable && p.status === 'closed') tags += `<span class="tag-closed">모집 마감</span>`;
-
-    let action = '';
+    const menu = `<button class="v2-iconbtn" style="width:32px; height:32px; margin:-6px -8px 0 0;" onclick="Community.openPostMenu(${p.id})" aria-label="더보기">⋯</button>`;
+    const hidden = p.hidden ? `<div class="v2-hint warn" style="margin:0 0 8px;">신고가 누적되어 다른 회원에게는 보이지 않는 글이에요.</div>` : '';
     if (joinable) {
-      if (p.is_mine) {
-        action = `<button class="btn-join" onclick="Community.openRequests(${p.id})">신청자 보기${p.pending_count ? ` <b class="cm-dot">${p.pending_count}</b>` : ''}</button>`;
-      } else if (p.my_request === 'accepted') {
-        action = `<button class="btn-join cm-accepted" onclick="Community.openContact(${p.id})">✓ 참여 확정${p.has_contact ? ' · 연락하기' : ''}</button>`;
-      } else if (p.my_request === 'pending') {
-        action = `<button class="btn-join cm-pending" onclick="Community.cancelJoin(${p.id})">신청 대기중 · 취소</button>`;
-      } else if (p.my_request === 'declined') {
-        action = `<button class="btn-join cm-disabled" disabled>참여가 어려워요</button>`;
-      } else if (p.status === 'closed' || full || (p.round_at && new Date(p.round_at) < new Date())) {
-        action = `<button class="btn-join cm-disabled" disabled>모집 마감</button>`;
-      } else {
-        action = `<button class="btn-join" onclick="Community.openJoin(${p.id})">참여 신청하기</button>`;
-      }
+      const left = Math.max(0, (p.slots || 0) - (p.accepted_count || 0));
+      const past = p.round_at && new Date(p.round_at) < new Date();
+      const closed = p.status === 'closed' || left <= 0 || past;
+      let action;
+      if (p.is_mine) action = `<button class="v2-cm-btn" onclick="Community.openRequests(${p.id})">신청자 보기${p.pending_count ? ` · ${p.pending_count}명 대기` : ''}</button>`;
+      else if (p.my_request === 'accepted') action = `<button class="v2-cm-btn ok" onclick="Community.openContact(${p.id})">✓ 참여 확정${p.has_contact ? ' · 연락하기' : ''}</button>`;
+      else if (p.my_request === 'pending') action = `<button class="v2-cm-btn line" onclick="Community.cancelJoin(${p.id})">신청 대기중 · 취소</button>`;
+      else if (p.my_request === 'declined') action = `<button class="v2-cm-btn off" disabled>참여가 어려워요</button>`;
+      else if (closed) action = `<button class="v2-cm-btn off" disabled>모집 마감</button>`;
+      else action = `<button class="v2-cm-btn" onclick="Community.openJoin(${p.id})">${p.category === 'carpool' ? '카풀 신청' : '조인 신청'}</button>`;
+      return `
+        <div class="v2-cm-card${p.hidden ? ' hid' : ''}">
+          ${hidden}
+          <div class="hd"><b>${U.esc(p.course_name || (p.category === 'carpool' ? '카풀 모집' : '조인 모집'))}</b>
+            <span class="v2-pill ${closed ? '' : 'green'}" style="${closed ? 'background:#eef2f7; color:#64748b;' : ''}">${closed ? '마감' : left + '자리'}</span>${menu}</div>
+          ${p.round_at ? `<div class="dt">${this._date(p.round_at)}${p.category === 'carpool' ? ' · 카풀' : ''}</div>` : ''}
+          <div class="tags"><span>모집자 ${U.esc(p.author_name)}${p.is_official ? ' · 운영팀' : ''}</span>${p.is_mine ? '<span>내 글</span>' : ''}${p.pinned ? '<span>📌 공지</span>' : ''}</div>
+          ${p.content ? `<div class="ct">${U.esc(p.content)}</div>` : ''}
+          ${action}
+        </div>`;
     }
     return `
-      <div class="feed-card${p.hidden ? ' cm-hidden' : ''}${p.is_official ? ' cm-official' : ''}">
-        ${p.hidden ? `<div class="cm-hidden-note">신고가 누적되어 다른 회원에게는 보이지 않는 글이에요.</div>` : ''}
-        <div class="feed-author">
-          ${p.is_official
-            ? `<div class="author-avatar cm-avatar cm-official-avatar" aria-label="BuddyPlanner 운영팀"></div>`
-            : `<div class="author-avatar cm-avatar" style="background:${this.avatarColor(p.author_name)};">${U.esc(String(p.author_name).charAt(0))}</div>`}
-          <div class="author-info" style="flex:1; min-width:0;">
-            <div class="author-name-row"><span class="author-name">${U.esc(p.author_name)}</span>${p.is_official ? '<span class="author-badge cm-staff">운영팀</span>' : (p.is_mine ? '<span class="author-badge">내 글</span>' : '')}</div>
-            <span class="feed-time">${this.ago(p.created_at)}</span>
-          </div>
-          <button class="cm-more-btn" onclick="Community.openPostMenu(${p.id})" aria-label="더보기">⋯</button>
+      <div class="v2-cm-card${p.hidden ? ' hid' : ''}">
+        ${hidden}
+        <div class="au">
+          <span class="av" style="background:${p.is_official ? 'var(--v2-navy)' : this.avatarColor(p.author_name)};">${U.esc(String(p.author_name).charAt(0))}</span>
+          <div style="flex:1; min-width:0;"><b>${U.esc(p.author_name)}</b>${p.is_official ? '<span class="v2-pill blue" style="margin-left:6px; padding:2px 8px; font-size:0.75rem;">운영팀</span>' : ''}<small>${this.ago(p.created_at)}${p.course_name ? ' · ' + U.esc(p.course_name) : ''}</small></div>
+          ${menu}
         </div>
-        <div class="feed-tags">${tags}</div>
-        <div class="feed-content">${U.esc(p.content)}</div>
-        <div class="feed-actions">
-          <button class="btn-goodshot ${p.liked ? 'active' : ''}" onclick="Community.toggleLike(${p.id}, this)"><span>👍</span><span>굿샷 ${p.like_count}</span></button>
-          ${action}
-        </div>
+        <div class="ct full">${U.esc(p.content)}</div>
+        <button class="v2-cm-like ${p.liked ? 'active' : ''}" onclick="Community.toggleLike(${p.id}, this)"><span>👍</span><span>굿샷 ${p.like_count}</span></button>
       </div>`;
   },
 
@@ -234,7 +241,7 @@ const Community = {
       const r = official
         ? await this.rpc('community_create_official_post', { ...body, p_pin: true })
         : await this.rpc('community_create_post', { p_author: this.myName(), ...body });
-      if (r && r.ok) { App.closeModal(); U.toast('글을 올렸어요.'); this.cat = ''; this.load(true); return; }
+      if (r && r.ok) { App.closeModal(); U.toast('글을 올렸어요.'); this.cat = k; this.load(true); return; }
       U.toast(msg[r && r.error] || '글을 올리지 못했어요.');
     } catch (e) { U.toast('글을 올리지 못했어요. 인터넷 연결을 확인해 주세요.'); }
     btn.disabled = false; btn.textContent = '올리기';

@@ -418,180 +418,192 @@ const Record = {
     // 수정할 때 원래 키를 기억 (날짜를 바꾸면 새 날짜로 옮겨짐)
     this._editingKey = existingRecord ? editKey : null;
 
+    // 그날 일정 (골프장·동반자 표시용)
+    const sched = this.schedulesOn(todayStr)[0] || null;
+    const comp = sched ? (sched.companions || []).length : 0;
+    const fromSched = !existingRecord && sched;
+    const hasHoles = !!(existingRecord && Array.isArray(existingRecord.holes) && existingRecord.holes.length === 18);
+    this._mode = existingRecord && !hasHoles && typeof existingRecord.score === 'number' ? 'total' : 'holes';
+    this._hole = 0;
+    const [ry, rm, rd] = todayStr.split('-').map(Number);
+    const rdate = new Date(ry, rm - 1, rd);
+    const dlabel = `${rm}월 ${rd}일 (${['일', '월', '화', '수', '목', '금', '토'][rdate.getDay()]})`;
+    const back = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    const photo = (kind, i, label) => `
+      <div class="v2-sc-ph">
+        <input type="file" id="upload-${kind === 'score' ? 'scorecard' : 'diary'}-${i}" accept="image/*" style="display:none;" onchange="Record.handle${kind === 'score' ? 'Score' : 'Diary'}Upload(${i}, event)">
+        <div id="${kind}-upload-box-${i}" class="add" onclick="document.getElementById('upload-${kind === 'score' ? 'scorecard' : 'diary'}-${i}').click()">${label}</div>
+        <div id="${kind}-preview-box-${i}" class="pv" style="display:none;">
+          <img id="${kind}-preview-img-${i}" src="" alt="">
+          <button onclick="Record.remove${kind === 'score' ? 'Score' : 'Diary'}(${i})" aria-label="사진 빼기">✕</button>
+        </div>
+      </div>`;
+
     const html = `
-      <div id="${modalId}" class="modal-overlay" style="display:flex; justify-content:center; align-items:flex-end; background:rgba(0,0,0,0.6); position:fixed; top:0; left:0; width:100%; height:100%; z-index:999; opacity:0; transition: opacity 0.3s;">
-        <div style="background:#ffffff; width:100%; max-width:var(--max-width); height:auto; max-height:88vh; border-radius:20px 20px 0 0; display:flex; flex-direction:column; overflow:hidden; transform:translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);">
-          
-          <!-- Header -->
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f1f5f9;">
-            <div style="font-size:16px; font-weight:800; color:#0f172a; letter-spacing:-0.3px;">${existingRecord ? '라운드 기록 수정' : '스코어 및 일지 등록'}</div>
-            <button onclick="Record.closeRecordForm()" style="color:#64748b; padding:4px; border:none; background:transparent; cursor:pointer;" aria-label="닫기">
-              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
+      <div id="${modalId}" class="modal-overlay v2-sc-overlay" style="opacity:0;">
+        <div class="v2-sc-sheet" style="transform:translateY(100%);">
+          <div class="v2-pagehead center" style="position:relative; padding-top:calc(env(safe-area-inset-top, 0px) + 12px);">
+            <button class="v2-iconbtn" onclick="Record.closeRecordForm()" aria-label="닫기">${back}</button>
+            <h1>${existingRecord ? '라운드 기록 수정' : '스코어 직접 입력'}</h1>
+            <span style="width:40px;"></span>
           </div>
-
-          <!-- Form Content -->
-          <div class="screen-scroll" style="padding:14px 16px; flex:1; display:flex; flex-direction:column; gap:14px; background:#f8fafc;">
-            
-            <!-- 1. Date & Schedule -->
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:8px; display:flex; align-items:center; gap:5px;">
-                <span>📋</span> 1. 기본 정보
+          <div class="v2-sc-body">
+            <div class="v2-card v2-sc-info">
+              <div class="row">
+                <div style="flex:1; min-width:0;">
+                  <b id="sc-title">${U.esc(defaultCourse || '골프장')} · <span id="sc-holes-lbl">${existingRecord && this.isNine(existingRecord) ? '9홀' : '18홀'}</span></b>
+                  <small>${dlabel} ${U.esc(defaultTime)}${comp ? ` · 동반자 ${comp}명` : ''}${fromSched ? ' · 일정에서 가져왔어요' : ''}</small>
+                </div>
+                <button class="v2-me-edit" onclick="Record.toggleInfo()">변경</button>
               </div>
-              <div style="display:flex; flex-direction:column; gap:8px;">
-                
-                <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 날짜</label>
-                  <div class="picker-btn" onclick="Record.openDatePicker()" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-                    <span class="picker-val" id="record-date-display" style="font-size:13px; font-weight:700; color:#0f172a;">${todayStr}</span>
-                    <span class="picker-ico" style="font-size:14px;">📅</span>
-                    <input type="hidden" id="record-date" value="${todayStr}">
-                  </div>
+              <div id="sc-info-edit" style="display:${defaultCourse ? 'none' : 'block'}; margin-top:14px;">
+                <div class="v2-field2">
+                  <button class="v2-field" onclick="Record.openDatePicker()"><span>날짜</span><b id="record-date-display">${todayStr}</b></button>
+                  <button class="v2-field" onclick="Record.openTimePicker()"><span>티업 시간</span><b id="record-time-display">${defaultTime}</b></button>
                 </div>
-
-                <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 구장 선택</label>
-                  <div class="field-input" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                    <input type="text" id="record-course" value="${U.esc(defaultCourse)}" placeholder="예: 남서울CC" style="width:100%; font-size:16px; font-weight:700; color:#0f172a; background:transparent; border:none; outline:none;"/>
-                    <span class="fi-icon" style="font-size:13.5px; opacity:0.5;">🔍</span>
-                  </div>
-                </div>
-
-                <div class="field" style="margin:0;">
-                  <label class="field-label" style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:3px;"><span class="req" style="color:#ef4444;">*</span> 티업시간</label>
-                  <div class="picker-btn" onclick="Record.openTimePicker()" style="height:38px; padding:0 12px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; cursor:pointer;">
-                    <span class="picker-val" id="record-time-display" style="font-size:13px; font-weight:700; color:#0f172a;">${defaultTime}</span>
-                    <span class="picker-ico" style="font-size:14px;">⏰</span>
-                    <input type="hidden" id="record-time" value="${defaultTime}">
-                  </div>
-                </div>
-
+                <input type="hidden" id="record-date" value="${todayStr}">
+                <input type="hidden" id="record-time" value="${defaultTime}">
+                <div class="v2-search" style="margin-top:8px;"><input type="text" id="record-course" value="${U.esc(defaultCourse)}" placeholder="골프장 이름 (예: 남서울CC)" oninput="Record.syncTitle()"></div>
               </div>
             </div>
 
-            <!-- 2. Score Info (Photo Only) -->
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:3px; display:flex; align-items:center; gap:5px;">
-                <span>⛳</span> 2. 스코어 등록
-              </div>
-              <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:8px;">스코어카드 사진을 함께 남겨 두세요. (PRO는 AI 비서에게 사진을 보내면 타수를 자동으로 읽어 드려요)</div>
-              <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" class="hide-scrollbar">
-                ${[1, 2].map(i => `
-                <div style="flex:0 0 auto;">
-                  <input type="file" id="upload-scorecard-${i}" accept="image/*" style="display:none;" onchange="Record.handleScoreUpload(${i}, event)">
-                  <div id="score-upload-box-${i}" style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; width:68px; height:68px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:all 0.15s ease;" onclick="document.getElementById('upload-scorecard-${i}').click()">
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="#007aff" stroke-width="2" fill="none" style="margin-bottom:2px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                    <div style="font-size:10.5px; font-weight:700; color:#475569;">${i === 1 ? '전반' : '후반'}</div>
-                  </div>
-                  <div id="score-preview-box-${i}" style="display:none; position:relative; width:68px; height:68px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1; background:#f1f5f9;">
-                    <img id="score-preview-img-${i}" src="" style="width:100%; height:100%; object-fit:contain; padding:2px; box-sizing:border-box;">
-                    <div style="position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.5); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;" onclick="Record.removeScore(${i})">
-                      <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </div>
-                  </div>
-                </div>
-                `).join('')}
-              </div>
-              
-              <!-- Manual Score Input (3-Column compact layout) -->
-              <div style="margin-top:10px;">
-                <div style="font-size:11.5px; font-weight:700; color:#64748b; margin-bottom:6px;">스코어 직접 입력</div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
-                  <div class="field" style="margin:0;">
-                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">전반 스코어</label>
-                    <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                      <input type="number" id="manual-score-out" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
-                    </div>
-                  </div>
-                  <div class="field" style="margin:0;">
-                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">후반 스코어</label>
-                    <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                      <input type="number" id="manual-score-in" placeholder="36" oninput="Record.calculateTotalScore()" style="width:100%; font-size:14px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
-                    </div>
-                  </div>
-                  <div class="field" style="margin:0;">
-                    <label class="field-label" style="font-size:10.5px; font-weight:700; color:#64748b; margin-bottom:2px;">총 타수</label>
-                    <div class="field-input" style="height:36px; padding:0 8px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center;">
-                      <input type="number" id="manual-score" placeholder="72" style="width:100%; font-size:16px; font-weight:800; color:#0f172a; background:transparent; border:none; outline:none; text-align:center;"/>
-                      <span style="font-size:11.5px; font-weight:600; color:#94a3b8; flex-shrink:0;">타</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <label class="rec-nine-check"><input type="checkbox" id="record-nine" ${existingRecord && this.isNine(existingRecord) ? 'checked' : ''}> 9홀 라운드예요 <span>(평균·베스트 계산에서 빠져요)</span></label>
-
-              <!-- 홀별 직접 입력 (선택) -->
-              <details class="rec-holes" id="rec-holes" ${existingRecord && Array.isArray(existingRecord.holes) && existingRecord.holes.length === 18 ? 'open' : ''}>
-                <summary>홀별 스코어 입력 <span>(선택)</span></summary>
-                ${[0, 9].map(start => `
-                <div class="rec-holes-label">${start ? '후반 IN (10~18번)' : '전반 OUT (1~9번)'}</div>
-                <div class="rec-holes-grid">
-                  ${Array.from({ length: 9 }, (_, k) => start + k).map(h => `
-                  <label><span>${h + 1}</span><input type="number" inputmode="numeric" min="1" max="15" id="hole-${h}" oninput="Record.onHoleInput()"></label>`).join('')}
-                </div>`).join('')}
-                <div class="rec-holes-hint">18홀을 모두 입력하면 전반·후반·총 타수가 자동으로 채워져요.</div>
-              </details>
+            <div class="v2-seg" id="sc-mode">
+              <button class="${this._mode === 'holes' ? 'on' : ''}" data-m="holes" onclick="Record.setMode('holes')">홀별 입력</button>
+              <button class="${this._mode === 'total' ? 'on' : ''}" data-m="total" onclick="Record.setMode('total')">총 타수만</button>
             </div>
 
-            <!-- 3. Story & Photos -->
-            <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 13px; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-              <div style="font-size:13.5px; font-weight:800; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
-                <span>📝</span> 3. 일지 작성
-              </div>
-              
-              <div style="margin-bottom:8px;">
-                <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:6px;">추억을 남길 사진이나 골프장 풍경 사진 (최대 4장)</div>
-                <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;" class="hide-scrollbar">
-                  ${[1, 2, 3, 4].map(i => `
-                  <div style="flex:0 0 auto;">
-                    <input type="file" id="upload-diary-${i}" accept="image/*" style="display:none;" onchange="Record.handleDiaryUpload(${i}, event)">
-                    <div id="diary-upload-box-${i}" style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:8px; width:64px; height:64px; display:flex; flex-direction:column; justify-content:center; align-items:center; cursor:pointer; transition:all 0.15s ease;" onclick="document.getElementById('upload-diary-${i}').click()">
-                      <svg viewBox="0 0 24 24" width="20" height="20" stroke="#94a3b8" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    </div>
-                    <div id="diary-preview-box-${i}" style="display:none; position:relative; width:64px; height:64px; border-radius:8px; overflow:hidden; border:1px solid #cbd5e1;">
-                      <img id="diary-preview-img-${i}" src="" style="width:100%; height:100%; object-fit:cover;">
-                      <div style="position:absolute; top:3px; right:3px; background:rgba(0,0,0,0.5); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer;" onclick="Record.removeDiary(${i})">
-                        <svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                      </div>
-                    </div>
-                  </div>
-                  `).join('')}
+            <div id="sc-holes-wrap" style="display:${this._mode === 'holes' ? 'block' : 'none'};">
+              <div class="v2-card" style="padding:14px;">
+                <div class="v2-sc-half">
+                  <button id="sc-half-0" class="on" onclick="Record.pickHole(0)">전반 1~9</button>
+                  <button id="sc-half-1" onclick="Record.pickHole(9)">후반 10~18</button>
                 </div>
+                <div class="v2-sc-cells" id="sc-cells"></div>
+                <div class="v2-sc-legend"><span><i style="background:var(--v2-blue);border-radius:50%;"></i>버디 이하</span><span><i style="border:1.5px solid #94a3b8;"></i>파</span><span><i style="background:#fde68a;"></i>보기</span><span><i style="background:#fca5a5;"></i>더블 이상</span></div>
               </div>
-
-              <textarea id="record-diary" placeholder="오늘 라운딩에 남기고 싶은 말을 기록해보세요." style="width:100%; height:64px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; font-size:16px; font-family:inherit; resize:none; outline:none; box-sizing:border-box; color:#0f172a;"></textarea>
+              <div class="v2-sc-pad">
+                <div class="hd"><b id="sc-pad-title">1번 홀</b><span id="sc-pad-par">파 4</span></div>
+                <div class="step">
+                  <button onclick="Record.stepHole(-1)" aria-label="한 타 빼기">−</button>
+                  <b id="sc-pad-val">4</b>
+                  <button onclick="Record.stepHole(1)" aria-label="한 타 더하기">+</button>
+                </div>
+                <div class="quick">
+                  <button onclick="Record.quickHole(-1)">버디</button><button onclick="Record.quickHole(0)">파</button><button onclick="Record.quickHole(1)">보기</button><button onclick="Record.quickHole(2)">더블</button>
+                </div>
+                <p>빠른 버튼을 누르면 다음 홀로 넘어가요 · 파는 일반 코스 기준</p>
+              </div>
+              <div style="display:none;">${Array.from({ length: 18 }, (_, h) => `<input type="number" id="hole-${h}" oninput="Record.onHoleInput()">`).join('')}</div>
             </div>
 
-            <div style="height: 10px;"></div>
-          </div>
+            <div id="sc-total-wrap" class="v2-card" style="display:${this._mode === 'total' ? 'block' : 'none'};">
+              <div class="v2-sc-tot">
+                <label><span>전반</span><input type="number" inputmode="numeric" id="manual-score-out" placeholder="—" oninput="Record.calculateTotalScore(); Record.updateFoot()"></label>
+                <label><span>후반</span><input type="number" inputmode="numeric" id="manual-score-in" placeholder="—" oninput="Record.calculateTotalScore(); Record.updateFoot()"></label>
+                <label class="sum"><span>총 타수</span><input type="number" inputmode="numeric" id="manual-score" placeholder="—" oninput="Record.updateFoot()"></label>
+              </div>
+              <label class="rec-nine-check"><input type="checkbox" id="record-nine" ${existingRecord && this.isNine(existingRecord) ? 'checked' : ''} onchange="Record.syncTitle()"> 9홀 라운드예요 <span>(평균·베스트 계산에서 빠져요)</span></label>
+              <div class="v2-sc-sub">스코어카드 사진</div>
+              <div class="v2-sc-photos" style="grid-template-columns:repeat(4,1fr);">${photo('score', 1, '전반')}${photo('score', 2, '후반')}</div>
+            </div>
 
-          <!-- Footer Action -->
-          <div style="padding:10px 16px; background:#fff; border-top:1px solid #f1f5f9; padding-bottom: max(10px, env(safe-area-inset-bottom)); display:flex; gap:8px;">
-            ${existingRecord ? `<button onclick="Record.deleteRecord()" style="flex:0 0 auto; height:44px; padding:0 16px; background:#fff; color:#ef4444; font-size:14px; font-weight:800; border-radius:10px; border:1px solid #fecaca; cursor:pointer;">삭제</button>` : ''}
-            <button onclick="Record.saveRecord()" style="flex:1; width:100%; height:44px; background:linear-gradient(135deg, #007aff 0%, #0056b3 100%); color:#fff; font-size:14.5px; font-weight:800; border-radius:10px; border:none; box-shadow:0 3px 12px rgba(0,122,255,0.25); cursor:pointer; display:flex; align-items:center; justify-content:center;">
-              ${existingRecord ? '수정 완료' : '저장하기'}
-            </button>
+            <div class="v2-card">
+              <div class="v2-h2" style="font-size:1.0625rem; margin-bottom:12px;">사진 · 메모 (선택)</div>
+              <div class="v2-sc-photos">${[1, 2, 3, 4].map(i => photo('diary', i, '+')).join('')}</div>
+              <div class="v2-sc-sub">한 줄 메모</div>
+              <textarea id="record-diary" rows="2" placeholder="예: 드라이버가 잘 맞은 날"></textarea>
+            </div>
           </div>
-
+          <div class="v2-sc-foot">
+            <div class="sum"><span id="sc-foot-l">전반 – · 후반 –</span><span>합계 <b id="sc-foot-t">–</b></span></div>
+            <div style="display:flex; gap:8px;">
+              ${existingRecord ? `<button class="v2-sc-del" onclick="Record.deleteRecord()">삭제</button>` : ''}
+              <button class="v2-btn-navy" id="sc-save" onclick="Record.saveV2()">${existingRecord ? '수정 완료' : '저장하기'}</button>
+            </div>
+          </div>
         </div>
       </div>
-      <style>
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-      </style>
     `;
 
     document.body.insertAdjacentHTML('beforeend', html);
     modal = U.$(`#${modalId}`);
     if (existingRecord) this._fillForm(existingRecord);
-    
-    // Animate in
+    this.renderCells(); this.updatePad(); this.updateFoot();
     setTimeout(() => {
       modal.style.opacity = '1';
       modal.children[0].style.transform = 'translateY(0)';
     }, 10);
+  },
+
+  /* ── 스코어 직접 입력 도우미 ── */
+  PARS: [4, 5, 4, 3, 4, 4, 5, 3, 4, 4, 3, 4, 5, 4, 4, 3, 5, 4],
+  _holeVal(h) { const el = document.getElementById(`hole-${h}`); const n = el ? parseInt(el.value, 10) : NaN; return isFinite(n) && n > 0 ? n : null; },
+  toggleInfo() { const e = U.$('#sc-info-edit'); if (e) e.style.display = e.style.display === 'none' ? 'block' : 'none'; },
+  syncTitle() {
+    const c = (U.$('#record-course') || {}).value || '골프장';
+    const nine = (U.$('#record-nine') || {}).checked;
+    const t = U.$('#sc-title'); if (t) t.innerHTML = `${U.esc(c)} · <span id="sc-holes-lbl">${nine ? '9홀' : '18홀'}</span>`;
+  },
+  setMode(m) {
+    this._mode = m;
+    U.$$('#sc-mode button').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+    U.$('#sc-holes-wrap').style.display = m === 'holes' ? 'block' : 'none';
+    U.$('#sc-total-wrap').style.display = m === 'total' ? 'block' : 'none';
+    this.updateFoot();
+  },
+  pickHole(h) { this._hole = h; this.renderCells(); this.updatePad(); },
+  renderCells() {
+    const box = U.$('#sc-cells'); if (!box) return;
+    const start = this._hole < 9 ? 0 : 9;
+    ['#sc-half-0', '#sc-half-1'].forEach((id, i) => { const b = U.$(id); if (b) b.classList.toggle('on', (start === 9) === (i === 1)); });
+    box.innerHTML = Array.from({ length: 9 }, (_, k) => start + k).map(h => {
+      const v = this._holeVal(h), par = this.PARS[h];
+      const cls = v == null ? '' : v <= par - 1 ? 'bird' : v === par ? 'par' : v === par + 1 ? 'bogey' : 'dbl';
+      return `<button class="${h === this._hole ? 'cur ' : ''}${cls}" onclick="Record.pickHole(${h})"><span>${h + 1}</span><small>P${par}</small><b>${v == null ? '–' : v}</b></button>`;
+    }).join('');
+  },
+  updatePad() {
+    const h = this._hole, par = this.PARS[h], v = this._holeVal(h);
+    const t = U.$('#sc-pad-title'); if (!t) return;
+    t.textContent = `${h + 1}번 홀`;
+    U.$('#sc-pad-par').textContent = `파 ${par}`;
+    const val = U.$('#sc-pad-val'); val.textContent = v == null ? par : v; val.classList.toggle('dim', v == null);
+  },
+  _setHole(h, n) {
+    const el = document.getElementById(`hole-${h}`); if (!el) return;
+    el.value = n == null ? '' : Math.max(1, Math.min(15, n));
+    this.onHoleInput(); this.renderCells(); this.updatePad(); this.updateFoot();
+  },
+  stepHole(d) { const h = this._hole; const cur = this._holeVal(h); this._setHole(h, (cur == null ? this.PARS[h] : cur) + (cur == null ? 0 : d)); U.haptic(); },
+  quickHole(d) {
+    const h = this._hole; this._setHole(h, this.PARS[h] + d); U.haptic();
+    if (h < 17) { this._hole = h + 1; this.renderCells(); this.updatePad(); }
+  },
+  updateFoot() {
+    const L = U.$('#sc-foot-l'), T = U.$('#sc-foot-t'), btn = U.$('#sc-save'); if (!L) return;
+    const num = id => { const el = document.getElementById(id); const n = el ? parseInt(el.value, 10) : NaN; return isFinite(n) ? n : null; };
+    let out, inn, tot, left = 0;
+    if (this._mode === 'holes') {
+      const { vals, filled } = this.readHoles();
+      const sum = a => a.every(v => v != null) ? a.reduce((t, n) => t + n, 0) : null;
+      out = sum(vals.slice(0, 9)); inn = sum(vals.slice(9)); tot = filled ? vals.reduce((t, n) => t + (n || 0), 0) : null;
+      left = 18 - filled;
+    } else { out = num('manual-score-out'); inn = num('manual-score-in'); tot = num('manual-score'); }
+    L.innerHTML = `전반 <b>${out == null ? '–' : out}</b> · 후반 <b>${inn == null ? '–' : inn}</b>`;
+    T.textContent = tot == null ? '–' : tot;
+    const editing = !!this._editingKey;
+    const pending = this._mode === 'holes' && left > 0 && left < 18;
+    btn.classList.toggle('wait', pending);
+    btn.textContent = pending ? `${left}홀 남았어요` : (editing ? '수정 완료' : '저장하기');
+  },
+  /** 저장: '총 타수만'이면 홀별 칸은 비우고 저장 */
+  saveV2() {
+    if (this._mode === 'total') { for (let h = 0; h < 18; h++) { const el = document.getElementById(`hole-${h}`); if (el) el.value = ''; } }
+    else {
+      const { filled } = this.readHoles();
+      if (filled > 0 && filled < 18) { U.toast(`${18 - filled}홀이 남았어요. 9홀 라운드면 '총 타수만'에서 9홀로 저장해 주세요.`); return; }
+    }
+    this.saveRecord();
   },
 
   readHoles() {
@@ -634,10 +646,10 @@ const Record = {
     [rec.dImg1, rec.dImg2, rec.dImg3, rec.dImg4].forEach((src, i) => show('diary', i + 1, src));
   },
 
-  deleteRecord() {
+  async deleteRecord() {
     const key = this._editingKey;
     if (!key || !this.records[key]) return;
-    if (!confirm('이 라운드 기록을 삭제할까요? 사진과 일지도 함께 지워져요.')) return;
+    if (!(await App.ask('기록을 삭제할까요?', '사진과 메모도 함께 지워져요.', { ok: '삭제' }))) return;
     delete this.records[key];
     localStorage.setItem('bp_records_v1', JSON.stringify(this.records));
     this._editingKey = null;

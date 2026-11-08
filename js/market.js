@@ -92,42 +92,41 @@ const Market = {
   setCat(c) { this.cat = c; this.render(); },
 
   card(p) {
-    const img = /^(https:\/\/|\.\/img\/|img\/)/.test(String(p.image || '')) ? p.image : 'img/buddybirdie_app_icon.png';
-    const badge = p.badge ? `<div class="market-badge">${U.esc(p.badge)}</div>` : '';
-    let price;
-    if (p.kind === 'direct' && typeof p.price === 'number') {
-      const off = p.list_price && p.list_price > p.price ? Math.round((1 - p.price / p.list_price) * 100) : 0;
-      price = `<div class="market-price-wrap">${off ? `<span class="market-discount">${off}%</span>` : ''}<span class="market-price">${p.price.toLocaleString()}원</span></div>
-               ${off ? `<div class="market-original-price">${p.list_price.toLocaleString()}원</div>` : ''}
-               <div class="market-soon">판매 준비 중</div>`;
-    } else if (typeof p.ref_price === 'number' && p.ref_price > 0) {
-      // 제휴 상품: 쿠팡 가격은 자주 바뀌므로 '참고 가격 + 기준 날짜'로 표시
-      const d = p.ref_price_at ? new Date(p.ref_price_at + 'T00:00:00') : null;
-      const when = d && !isNaN(d) ? `${d.getMonth() + 1}/${d.getDate()} 기준` : '참고 가격';
-      price = `<div class="market-price-wrap"><span class="market-price">${p.ref_price.toLocaleString()}원</span></div>
-               <div class="market-ref-note">${when} · 쿠팡에서 확인 ›</div>`;
-    } else {
-      // 가격 정보가 없는 제휴 상품
-      price = `<div class="market-price-wrap"><span class="market-price" style="font-size:13px;">쿠팡에서 가격 확인 ›</span></div>`;
-    }
-    const rocket = p.rocket ? `<div class="market-rocket">로켓배송</div>` : '';
-    const click = p.kind === 'direct' ? `Market.soon()` : `Market.openLink('${U.esc(String(p.link || '').replace(/'/g, ''))}')`;
+    const img = /^(https:\/\/|\.\/img\/|img\/)/.test(String(p.image || '')) ? p.image : '';
+    const badge = p.badge ? `<span class="v2-mk-badge">${U.esc(p.badge)}</span>` : '';
+    let foot;
+    if (p.kind === 'direct' && typeof p.price === 'number') foot = `<div class="v2-mk-price">${p.price.toLocaleString()}원</div><div class="v2-mk-soon">판매 준비 중</div>`;
+    else foot = `<div class="v2-mk-go">쿠팡 가격 보기</div>`;
+    const click = p.kind === 'direct' ? `Market.soon()` : `Market.openLink(${U.jsq(String(p.link || ''))})`;
     return `
-      <div class="market-card" onclick="${click}">
-        <div class="market-img-wrap">
-          <img src="${U.esc(img)}" class="market-img" alt="${U.esc(p.title)}" onerror="this.onerror=null; this.src='img/buddybirdie_app_icon.png'; this.classList.add('is-fallback');">
-          ${badge}
-        </div>
-        <div class="market-info">
-          ${rocket}<div class="market-brand">${U.esc(p.brand || '')}</div>
-          <div class="market-title">${U.esc(p.title)}</div>
-          ${price}
+      <div class="v2-mk-card" onclick="${click}">
+        <div class="v2-mk-img">${img ? `<img src="${U.esc(img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<span class="ph">상품 사진</span>${badge}</div>
+        <div class="v2-mk-info">
+          <div class="v2-mk-brand">${U.esc(p.brand || '')}</div>
+          <div class="v2-mk-title">${U.esc(p.title)}</div>
+          ${foot}
         </div>
       </div>`;
   },
 
   soon() {
     U.toast('버디마켓 직접 판매는 곧 시작해요!');
+  },
+
+  /** 다음 라운딩에 맞춘 '챙길 것' (계절·시간대) */
+  packHint() {
+    const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+    const next = (State.schedules || []).filter(s => s && s.date && new Date(s.date) >= t0).sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+    const d = next ? new Date(next.date) : new Date();
+    const m = d.getMonth() + 1;
+    const h = next ? parseInt(String(next.teeOff || '9').split(':')[0], 10) : 9;
+    const when = h < 8 ? '새벽' : h < 12 ? '오전' : '오후';
+    const items = (m >= 11 || m <= 2) ? [['골프공', 'ball'], ['장갑', 'glove_cap'], ['핫팩', 'etc']]
+      : (m >= 6 && m <= 8) ? [['골프공', 'ball'], ['선크림', 'life'], ['쿨토시', 'wear']]
+      : [['골프공', 'ball'], ['장갑', 'glove_cap'], ['바람막이', 'wear']];
+    let tag = '이번 달 추천';
+    if (next) { const diff = Math.round((new Date(d).setHours(0, 0, 0, 0) - t0) / 864e5); tag = `${next.course ? next.course.name : '다음 라운딩'} · ${diff <= 0 ? 'D-Day' : 'D-' + diff}`; }
+    return { tag, items, sub: `${m}월 ${when} 라운딩 기준 · 날씨와 일정에 맞춰 바뀌어요` };
   },
 
   render() {
@@ -138,27 +137,32 @@ const Market = {
     const hasAffiliate = items.some(p => p.kind !== 'direct');
     const usedCats = new Set(items.map(p => p.category));
     const cats = this.CATEGORIES.filter(([k]) => k === 'all' || usedCats.has(k));
+    const hint = this.packHint();
+    const pts = (typeof Points !== 'undefined') ? Points.balance() : 0;
+    const back = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
 
     container.innerHTML = `
-      <div class="market-container">
-        <h2 style="font-size:24px; font-weight:900; margin-bottom:20px; color:var(--text-100);">버디마켓</h2>
-
-        <div class="market-banner" onclick="App.navigate('raffle')" style="cursor:pointer;">
-          <div class="market-banner-sub">포인트 럭키드로우</div>
-          <div class="market-banner-title">광고 보고 모은 포인트로<br>골프 용품에 응모하세요</div>
-          <div class="market-banner-btn">응모하러 가기</div>
+      <div class="v2-pagehead"><button class="v2-iconbtn" style="margin-left:-10px;" onclick="App.navigate('home')" aria-label="뒤로가기">${back}</button><h1 style="font-size:1.25rem;">마켓</h1></div>
+      <div class="v2-scroll">
+        <div class="v2-body">
+          <div class="v2-mk-hero">
+            <div class="tag">${U.esc(hint.tag)}</div>
+            <h3>라운딩 전에 챙길 것</h3>
+            <div class="chips">${hint.items.map(([l, c]) => `<button onclick="${usedCats.has(c) ? `Market.setCat('${c}')` : ''}">${l}</button>`).join('')}</div>
+            <div class="sub">${hint.sub}</div>
+          </div>
+          <div class="v2-mk-raffle">
+            <div><b>포인트 럭키드로우</b><small>내 포인트 ${pts.toLocaleString()}P · 광고 보고 모아서 응모</small></div>
+            <button onclick="App.navigate('raffle')">응모하기</button>
+          </div>
+          <div class="v2-mk-cats">
+            ${cats.map(([k, label]) => `<button class="${this.cat === k ? 'on' : ''}" onclick="Market.setCat('${k}')">${k === 'all' ? '추천' : label}</button>`).join('')}
+          </div>
+          <div class="v2-mk-head"><b>${this.cat === 'all' ? '이번 라운딩 추천' : U.esc((this.CATEGORIES.find(c => c[0] === this.cat) || [, ''])[1])}</b>${hasAffiliate ? '<span>쿠팡 파트너스 · 수수료를 받아요</span>' : ''}</div>
+          ${shown.length ? `<div class="v2-mk-grid">${shown.map(p => this.card(p)).join('')}</div>`
+            : `<div class="v2-empty">이 분류에는 아직 상품이 없어요.</div>`}
+          ${hasAffiliate ? `<p class="v2-mk-note">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다. 가격은 쿠팡에서 확인해 주세요.</p>` : ''}
         </div>
-
-        <div class="market-categories">
-          ${cats.map(([k, label]) => `<div class="market-cat-btn ${this.cat === k ? 'active' : ''}" onclick="Market.setCat('${k}')">${label}</div>`).join('')}
-        </div>
-
-        ${shown.length ? `<div class="market-grid">${shown.map(p => this.card(p)).join('')}</div>`
-          : `<div style="text-align:center; color:var(--text-400); padding:40px 0; font-size:14px;">이 분류에는 아직 상품이 없어요.</div>`}
-
-        ${hasAffiliate ? `<div style="margin-top:30px; text-align:center; color:var(--text-400); font-size:12px; line-height:1.5;">
-          이 포스팅은 쿠팡 파트너스 활동의 일환으로,<br>이에 따른 일정액의 수수료를 제공받습니다.<br>표시된 가격은 기준일의 참고 가격이며, 실제 가격은 쿠팡에서 확인해 주세요.
-        </div>` : ''}
       </div>
     `;
   },

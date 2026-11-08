@@ -80,7 +80,14 @@ const Restaurant = {
     { name:'계절 특선 메뉴',           reason:'제철 재료를 쓴 계절 메뉴가 있다면 함께 맛보세요.', tag:'🌱 제철 재료', kcal:'약 450 kcal' },
   ],
 
-  init() { this.view = this.view || 'start'; this.render(); },
+  init() {
+    this.view = this.view || 'start';
+    // 처음 열 때 다가오는 라운딩이 있으면 그 골프장 주변을 바로 보여줌
+    if (this.view === 'start' && !this._autoDone && this.upcoming()[0] && typeof Cloud !== 'undefined' && Cloud.isConfigured() && Cloud.isSignedIn()) {
+      this._autoDone = true; this.searchNext(); return;
+    }
+    this.render();
+  },
 
   findMenuKey(category) {
     const cat = category || '';
@@ -235,47 +242,43 @@ const Restaurant = {
     this.renderStart(el);
   },
 
+  _back: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  _flag: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h10l-2.5 4L16 12H6"/></svg>',
+  _head(title, backFn) {
+    return `<div class="v2-pagehead"><button class="v2-iconbtn" style="margin-left:-10px;" onclick="${backFn}" aria-label="뒤로가기">${this._back}</button><h1 style="font-size:1.25rem;">${title}</h1></div>`;
+  },
+  HOW: '골프장에서 <b>가까운 곳</b>부터, 카카오에서 <b>많이 찾는 곳</b>을 위로 올려요. 우리 앱 사용자의 <b>버디 평가</b>를 함께 보여 주고, <b>운영팀 추천</b> 집은 맨 위에 고정해요.',
+
   renderStart(el) {
     const next = this.upcoming()[0];
     const recent = this.recent();
-    const nextHtml = next ? `
-      <div class="fd-lab">📅 다음 라운딩</div>
-      <div class="fd-next" onclick="Restaurant.searchNext()">
-        <div class="fd-next-ic">⛳</div>
-        <div class="fd-next-info"><div class="fd-next-t">${U.esc(next.s.course.name)}</div>
-          <div class="fd-next-m">${this._dateLabel(next.s.date)} ${U.esc(next.s.teeOff || '')} 티오프</div></div>
-        <div class="fd-next-go">맛집 보기</div>
-      </div>` : '';
-    const recentHtml = recent.length ? `
-      <div class="fd-lab" style="margin-top:24px">최근 찾아본 골프장</div>
-      <div class="fd-recent">${recent.map((r, i) => `<button onclick="Restaurant.searchRecent(${i})">${U.esc(r.name)}</button>`).join('')}</div>` : '';
-    const err = this.view === 'error' ? `<div class="fd-err">${U.esc(this.errMsg)}</div>` : '';
     el.innerHTML = `
-      <div class="fd-wrap">
-        <div class="discovery-hero">
-          <div class="fd-hero-s">골프장 주변 맛집 추천</div>
-          <h2>어느 골프장에 가세요?<br><span class="gold-text">주변 맛집을 찾아드릴게요</span></h2>
-          <div class="search-bar" onclick="Restaurant.searchArea()">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <span style="font-weight:600;">골프장 이름을 입력하세요</span>
+      ${this._head('추천 맛집', "App.navigate('home')")}
+      <div class="v2-scroll"><div class="v2-body">
+        ${this.view === 'error' ? `<div class="v2-hint warn" style="margin:0 4px;">${U.esc(this.errMsg)}</div>` : ''}
+        <div class="v2-card">
+          <div class="v2-q" style="margin-bottom:12px;">어느 골프장 주변을 볼까요?</div>
+          <div class="v2-search" style="cursor:pointer;" onclick="Restaurant.searchArea()">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <span style="font-size:1rem; color:#94a3b8;">골프장 이름으로 검색</span>
           </div>
+          ${recent.length ? `<div class="v2-chips">${recent.map((r, i) => `<button class="v2-chip" onclick="Restaurant.searchRecent(${i})">${U.esc(r.name)}</button>`).join('')}</div>` : ''}
         </div>
-        <div class="fd-sec">
-          ${err}
-          ${nextHtml}
-          ${recentHtml}
-          <div class="fd-lab" style="margin-top:24px">이렇게 추천해요</div>
-          <div class="fd-how">· 골프장에서 <b>가까운 곳</b>부터, 카카오에서 <b>많이 찾는 곳</b>을 위로<br>· 우리 앱 사용자의 <b>버디 평가</b>를 함께 보여줘요<br>· <b>운영팀 추천</b> 집은 맨 위에 고정</div>
-        </div>
-      </div>`;
+        ${next ? `<div class="v2-fd-course" onclick="Restaurant.searchNext()">
+          <span class="ic">${this._flag}</span>
+          <div class="t"><b>${U.esc(next.s.course.name)}</b><small>${this._dateLabel(next.s.date)} · 티오프 ${U.esc(next.s.teeOff || '')} · 다음 라운딩</small></div>
+          <span class="v2-link">맛집 보기</span>
+        </div>` : ''}
+        <details class="v2-fd-how"><summary>추천 순서는 이렇게 정해요</summary><p>${this.HOW}</p></details>
+      </div></div>`;
   },
 
   renderLoading(el) {
     el.innerHTML = `
-      <div class="fd-wrap">
-        <div class="fd-rh"><button class="fd-back" onclick="Restaurant.reset()">‹ 맛집</button><div class="fd-rh-t">${U.esc(this.course ? this.course.name : '')} 주변</div></div>
-        <div class="fd-loading"><div class="fd-spin"></div><p>🔎 골프장 주변 맛집을 찾고 있어요…</p></div>
-      </div>`;
+      ${this._head('추천 맛집', 'Restaurant.reset()')}
+      <div class="v2-scroll"><div class="v2-body">
+        <div class="v2-empty" style="border-style:solid;">🔎 ${U.esc(this.course ? this.course.name : '')} 주변 맛집을 찾고 있어요…</div>
+      </div></div>`;
   },
 
   reset() { this.view = 'start'; this.data = null; this.render(); },
@@ -333,80 +336,80 @@ const Restaurant = {
     return p.buddy_count ? `<b>★ ${U.esc(p.buddy_rating)}</b> 버디 평가 ${U.esc(p.buddy_count)}` : '아직 버디 평가가 없어요';
   },
 
-  _card(p, label) {
-    const id = U.esc(p.id);
+  _emoji(cat) {
+    const c = String(cat || '');
+    if (/국밥|해장|탕|순대|곰/.test(c)) return '🍲';
+    if (/한우|갈비|고기|삼겹|구이/.test(c)) return '🥩';
+    if (/회|일식|초밥|스시|해산/.test(c)) return '🍣';
+    if (/중식|짜장|중국/.test(c)) return '🥟';
+    if (/카페|커피|디저트/.test(c)) return '☕';
+    if (/면|국수|냉면/.test(c)) return '🍜';
+    return '🍽️';
+  },
+
+  _card(p, g) {
+    const id = U.jsq(p.id);
     const admin = typeof Admin !== 'undefined' && Admin.isAdmin === true && this.data.course.id;
+    const cat = String(p.category || g.label || '음식점').split('>').pop().trim();
+    const km = Number(p.distance_km);
+    const mins = isFinite(km) ? Math.max(3, Math.round(km * 1.4 / 40 * 60 + 2)) : null;
+    const badge = p.pick ? '운영팀 추천' : (g && g.label ? g.label : '');
     return `
-      <div class="fd-card">
-        <span class="fd-rank ${p.pick ? 'pick' : ''}">${p.pick ? '★ 운영팀 추천' : label}</span>
-        <div class="fd-ct"><span class="fd-n">${U.esc(p.name)}</span>${p.distance_km != null ? `<span class="fd-dist">${U.esc(p.distance_km)}km</span>` : ''}</div>
-        <div class="fd-meta">${U.esc(p.category || '음식점')}${p.address ? ` · ${U.esc(p.address.split(' ').slice(0, 2).join(' '))}` : ''}</div>
-        ${p.pick && p.note ? `<div class="fd-why pick">운영팀 한마디 · ${U.esc(p.note)}</div>` : (p.why ? `<div class="fd-why">${U.esc(p.why)}</div>` : '')}
-        <button class="fd-add" onclick="Restaurant.openAdd('${id}')">＋ 일정에 추가</button>
-        <div class="fd-foot">
-          <span class="fd-rate">${this._ratingHtml(p)}</span>
-          <div class="fd-btns">
-            <button class="fd-btn" onclick="Restaurant.openNaver('${id}')">네이버 리뷰</button>
-            <button class="fd-btn k" onclick="Restaurant.openRoute('${id}')">길찾기</button>
+      <div class="v2-fd-card">
+        <div class="top">
+          <div class="ph">${this._emoji(cat + ' ' + (g ? g.label : ''))}</div>
+          <div class="info">
+            <div class="nm"><b>${U.esc(p.name)}</b>${badge ? `<span class="v2-fd-badge${p.pick ? ' pick' : ''}">${U.esc(badge)}</span>` : ''}</div>
+            <div class="m">${U.esc(cat)}${mins ? ` · 차로 ${mins}분` : ''}${isFinite(km) ? ` · ${km}km` : ''}</div>
+            <div class="r">${p.buddy_count ? `<b>★ ${U.esc(p.buddy_rating)}</b> 버디 평가 ${U.esc(p.buddy_count)}개` : '아직 버디 평가가 없어요'}</div>
+            ${p.pick && p.note ? `<div class="why">운영팀 한마디 · ${U.esc(p.note)}</div>` : (p.why ? `<div class="why">${U.esc(p.why)}</div>` : '')}
           </div>
         </div>
-        ${admin ? `<button class="fd-admin" onclick="Restaurant.togglePick('${id}')">${p.pick ? '운영팀 추천 해제' : '☆ 운영팀 추천으로 고정'}</button>` : ''}
+        <div class="btns">
+          <button class="navy" onclick="Restaurant.openAdd(${id})">일정에 넣기</button>
+          <button onclick="Restaurant.callOrInfo(${id})">${p.phone ? '전화 · 예약' : '리뷰 · 길찾기'}</button>
+        </div>
+        ${admin ? `<button class="v2-tl-del" style="padding:8px 0 0;" onclick="Restaurant.togglePick(${id})">${p.pick ? '운영팀 추천 해제' : '☆ 운영팀 추천으로 고정'}</button>` : ''}
       </div>`;
   },
 
-  _mini(p, n) {
-    return `
-      <div class="fd-mini" onclick="Restaurant.openMini('${U.esc(p.id)}')">
-        <span class="fd-mini-r">${n}</span>
-        <div class="fd-mini-info"><div class="fd-mini-n">${U.esc(p.name)}</div><div class="fd-mini-m">${U.esc(p.category || '음식점')}</div></div>
-        ${p.distance_km != null ? `<span class="fd-mini-d">${U.esc(p.distance_km)}km</span>` : ''}
-      </div>`;
+  /** 전화가 있으면 전화, 없으면 리뷰·길찾기 고르기 */
+  callOrInfo(id) {
+    const f = this._find(id); if (!f) return;
+    if (f.p.phone) { window.location.href = 'tel:' + String(f.p.phone).replace(/[^0-9+]/g, ''); return; }
+    this.openMini(id);
   },
 
-  _group(g, single) {
-    if (!g.items.length) return '';
-    const big = single ? g.items : g.items.slice(0, 3);
-    const rest = single ? [] : g.items.slice(3);
-    let n = 0;
-    const bigHtml = big.map(p => this._card(p, p.pick ? '' : `${++n}순위`)).join('');
-    const restHtml = rest.length
-      ? (this.open[g.key] ? rest.map(p => this._mini(p, ++n)).join('') : rest.map(p => this._mini(p, ++n)).slice(0, 2).join(''))
-      : '';
-    return `
-      <div class="fd-gh"><span class="fd-g">${g.emoji} ${U.esc(g.label)}</span>
-        ${single ? `<span class="fd-more">가까운 곳·많이 찾는 곳 순</span>` : `<span class="fd-more" onclick="Restaurant.setCat('${g.key}')">${g.items.length}곳 ›</span>`}</div>
-      ${bigHtml}${restHtml}`;
-  },
+  showMore() { this._more = true; this.render(); },
 
   renderResult(el) {
     const d = this.data;
-    const groups = d[this.tab] || [];
-    const visible = groups.filter(g => g.items.length);
-    const chips = [{ key: 'all', label: '전체' }].concat(visible).map(g =>
-      `<button class="fd-chip ${this.cat === g.key ? 'on' : ''}" onclick="Restaurant.setCat('${g.key}')">${U.esc(g.label)}</button>`).join('');
-    const count = groups.reduce((n, g) => n + g.items.length, 0);
-    let body;
-    if (!visible.length) body = `<div class="fd-empty">반경 10km 안에서 ${this.tab === 'before' ? '라운딩 전' : '라운딩 후'}에 갈 만한 식당을 찾지 못했어요.</div>`;
-    else if (this.cat === 'all') body = visible.map(g => this._group(g, false)).join('');
-    else { const g = groups.find(x => x.key === this.cat); body = g ? this._group(g, true) : ''; }
+    const groups = (d[this.tab] || []).filter(g => g.items.length);
+    // 카테고리별 목록을 한 줄로: 운영팀 추천 → 각 분류 1위부터 번갈아
+    const seen = new Set(), list = [];
+    groups.forEach(g => g.items.filter(p => p.pick).forEach(p => { if (!seen.has(p.id)) { seen.add(p.id); list.push({ p, g }); } }));
+    const maxLen = Math.max(0, ...groups.map(g => g.items.length));
+    for (let i = 0; i < maxLen; i++) groups.forEach(g => { const p = g.items[i]; if (p && !seen.has(p.id)) { seen.add(p.id); list.push({ p, g }); } });
+    const shown = this._more ? list : list.slice(0, 6);
+    const next = this.upcoming().find(x => x.s.course && x.s.course.name && d.course.name && x.s.course.name.replace(/\s+/g, '') === d.course.name.replace(/\s+/g, ''));
     el.innerHTML = `
-      <div class="fd-wrap">
-        <div class="fd-rh">
-          <button class="fd-back" onclick="Restaurant.reset()">‹ 맛집</button>
-          <button class="fd-chg" onclick="Restaurant.searchArea()">골프장 변경</button>
-          <div class="fd-rh-t">${U.esc(d.course.name)} 주변</div>
-          <div class="fd-rh-m">반경 10km · ${count}곳 · 카카오 장소 검색 기준${d.curated_by === 'ai' ? ' · AI 정리' : ''}</div>
+      ${this._head('추천 맛집', 'Restaurant.reset()')}
+      <div class="v2-scroll"><div class="v2-body">
+        <div class="v2-fd-course">
+          <span class="ic">${this._flag}</span>
+          <div class="t"><b>${U.esc(d.course.name)}</b><small>${next ? `${this._dateLabel(next.s.date)} · 티오프 ${U.esc(next.s.teeOff || '')} · 다음 라운딩` : `반경 10km · ${list.length}곳`}</small></div>
+          <button class="v2-link" onclick="Restaurant.searchArea()">변경</button>
         </div>
-        <div class="premium-tabs">
-          <div class="premium-tab ${this.tab === 'before' ? 'active' : ''}" onclick="Restaurant.switchTab('before')">🌅 라운딩 전</div>
-          <div class="premium-tab ${this.tab === 'after' ? 'active' : ''}" onclick="Restaurant.switchTab('after')">🏆 라운딩 후</div>
+        <div class="v2-seg">
+          <button class="${this.tab === 'before' ? 'on' : ''}" onclick="Restaurant._more=false; Restaurant.switchTab('before')">라운딩 전 아침</button>
+          <button class="${this.tab === 'after' ? 'on' : ''}" onclick="Restaurant._more=false; Restaurant.switchTab('after')">라운딩 후 식사</button>
         </div>
-        <div class="fd-chips">${chips}</div>
-        <div class="fd-list">
-          ${body}
-          <div class="fd-src">장소 정보: 카카오 · 버디 평가: BuddyPlanner 사용자${d.curated_by === 'ai' ? ' · 추천 이유는 AI가 음식 종류·거리로 작성' : ''}</div>
-        </div>
-      </div>`;
+        <p class="v2-hint" style="margin:0 4px;">${this.tab === 'before' ? '골프장 가는 길에 들를 수 있는 곳이에요' : '라운딩 끝나고 동반자와 가기 좋은 곳이에요'}</p>
+        ${shown.length ? shown.map(x => this._card(x.p, x.g)).join('') : `<div class="v2-empty">반경 10km 안에서 ${this.tab === 'before' ? '라운딩 전' : '라운딩 후'}에 갈 만한 식당을 찾지 못했어요.</div>`}
+        ${!this._more && list.length > shown.length ? `<button class="v2-btn-line" onclick="Restaurant.showMore()">${list.length - shown.length}곳 더 보기</button>` : ''}
+        <details class="v2-fd-how"><summary>추천 순서는 이렇게 정해요</summary><p>${this.HOW}</p></details>
+        <p class="v2-mk-note">장소 정보: 카카오 · 버디 평가: BuddyPlanner 사용자${d.curated_by === 'ai' ? ' · 추천 이유는 AI가 음식 종류·거리로 작성' : ''}</p>
+      </div></div>`;
     if (typeof Ratings !== 'undefined') Ratings.fillDom(el);
   },
 
