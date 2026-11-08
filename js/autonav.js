@@ -9,7 +9,9 @@
 const AutoNav = {
   LINK: 'https://buddyplanner.kr/?go=next',
   WAIT_MS: 8000,
-  LATE_MIN: 45,          // 출발 시각이 45분 넘게 지난 구간은 이미 지나간 것으로 봄
+  LATE_MIN: 45,          // 골프장 쪽 구간은 티오프 + 45분까지 유효
+  EARLY_MIN: 30,         // 다음 구간 출발 30분 전부터는 그 구간으로 봄 (식당에서 조금 일찍 나서도 골프장으로)
+  HOME_GRACE: 180,       // 귀가 출발 후 3시간이 지나면 오늘 이동은 끝난 것으로 봄
   _timer: null,
 
   // 주소에 go=next 가 있으면 지우고 true
@@ -53,7 +55,7 @@ const AutoNav = {
     legs.push({ dep: tl.returnStart, from: post || course, to: home, label: '집으로 귀가' });
     // 구간마다 '언제까지 이 구간이 맞는지(until)'를 붙임 (라운딩 날 0시 기준 분, 전날 밤 출발은 음수)
     //  - 골프장 쪽으로 가는 구간: 티오프 + 45분까지 (늦게 출발해도 골프장으로 안내)
-    //  - 뒷풀이 식당: 귀가 출발 시각까지 / 집으로 귀가: 자정까지
+    //  - 뒷풀이 식당: 귀가 출발 시각까지 / 집으로 귀가: 귀가 출발 + 3시간까지
     const tee = this._min(s.teeOff);
     const out = [];
     for (const l of legs) {
@@ -64,7 +66,7 @@ const AutoNav = {
       let until;
       if (toCourseSide) until = (tee != null ? tee : dep) + this.LATE_MIN;
       else if (l.label === '뒷풀이 식당으로') until = this._min(tl.returnStart) != null ? this._min(tl.returnStart) : 1440;
-      else until = 1440;
+      else until = dep + this.HOME_GRACE;
       out.push({ ...l, depMin: dep, until });
     }
     return out;
@@ -91,9 +93,13 @@ const AutoNav = {
         if (legs[0].depMin >= 0 || cur < legs[0].depMin - 180) return;
       }
       todayCount++;
-      for (const l of legs) {
-        if (cur < l.until) { cands.push({ ...l, depMin: l.depMin + diff * 1440, s }); break; }
-      }
+      // 아직 유효한 구간 중, 출발 시각(30분 일찍까지)이 된 마지막 구간 = 지금 타야 하는 구간
+      //   예) 06:45 식당 앞 → '식당→골프장' / 07:40 늦게 출발 → 그래도 '식당→골프장' / 05:10 집 → '집→식당'
+      const open = legs.filter(l => cur < l.until);
+      if (!open.length) return;
+      let pick = open[0];
+      for (const l of open) if (l.depMin <= cur + this.EARLY_MIN) pick = l;
+      cands.push({ ...pick, depMin: pick.depMin + diff * 1440, s });
     });
     // 후보가 여럿이면 출발 시각이 지금과 가장 가까운 구간 (예: 밤 11시 45분 = 오늘 귀가보다 오늘 밤 출발하는 내일 새벽 라운딩)
     cands.sort((a, b) => Math.abs(a.depMin - nowMin) - Math.abs(b.depMin - nowMin));
