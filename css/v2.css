@@ -568,3 +568,8 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .v2-alarm-c3.soft{color:rgba(255,255,255,.8)}
 .v2-alarm-c5{font-size:0.875rem;color:rgba(255,255,255,.8);font-weight:600}
 .v2-alarm-c5.warn{color:#ff8a7a}
+/* 알람: 내용은 위로, 버튼은 아래로 */
+.v2-alarm{align-items:stretch;padding-top:calc(env(safe-area-inset-top) + 36px)}
+.v2-alarm-in{height:100%;margin:0 auto}
+.v2-alarm-btns{margin-top:auto}
+.v2-alarm-card{margin-bottom:16px}
