@@ -538,3 +538,10 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
   -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
   mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
 }
+
+/* 홈 '새 라운딩 등록' 카드: 설명 한 줄 + 칸 작게 */
+.v2-new-card { padding: 12px 14px; gap: 12px; border-radius: 18px; }
+.v2-new-card .v2-new-ico { width: 42px; height: 42px; border-radius: 12px; }
+.v2-new-card .v2-new-ico.img img { width: 32px; height: 32px; }
+.v2-new-card b { font-size: 1rem; }
+.v2-new-card small { font-size: 0.8125rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
