@@ -533,3 +533,8 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .v2-tile i.img { width: 46px; height: 46px; border-radius: 14px; }
 .v2-tile i.img img { width: 34px; height: 34px; object-fit: contain; pointer-events: none; }
 .v2-new-ico.img img { width: 38px; height: 38px; object-fit: contain; pointer-events: none; }
+/* 골퍼 그림 양옆을 부드럽게 흐리게 (잘린 가장자리가 티 나지 않게) */
+.home-glounge-hero .glounge-hero-figure {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%);
+}
