@@ -735,9 +735,9 @@ const App = {
       const resContainer = U.$('#addr-search-results');
       resContainer.innerHTML = '<div style="padding:var(--sp-4);text-align:center;color:var(--text-light)">검색 중...</div>';
       
-      const places = await TmapAPI.searchPlace(keyword, false);
+      const places = await TmapAPI.searchPlace(keyword, false, { quiet: true });
       if (!places || places.length === 0) {
-        resContainer.innerHTML = '<div style="padding:var(--sp-4);text-align:center;color:var(--text-light)">검색 결과가 없습니다.</div>';
+        resContainer.innerHTML = `<div style="padding:var(--sp-4);text-align:center;color:var(--text-light)">${TmapAPI.searchFailText() || '검색 결과가 없습니다.'}</div>`;
         return;
       }
       

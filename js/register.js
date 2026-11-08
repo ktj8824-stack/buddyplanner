@@ -358,10 +358,12 @@ const Register = {
     drop.innerHTML = '<div class="search-item" style="justify-content:center;color:var(--text-500)">검색 중...</div>';
     drop.classList.add('show');
     
-    this.searchResults = await TmapAPI.searchPlace(q);
+    this.searchResults = await TmapAPI.searchPlace(q, true, { quiet: true });
     
     if (!this.searchResults || !this.searchResults.length) { 
-      drop.innerHTML = '<div class="search-item" style="justify-content:center;color:var(--text-500)">검색 결과 없음</div>'; 
+      // 검색이 실패했으면 '결과 없음' 대신 실패 안내 하나만 (인터넷이 끊겼으면 연결 확인 안내)
+      const msg = TmapAPI.searchFailText() || '검색 결과 없음';
+      drop.innerHTML = `<div class="search-item" style="justify-content:center;color:var(--text-500)">${msg}</div>`; 
       return; 
     }
     
@@ -396,12 +398,7 @@ const Register = {
     }
     
     // Clear restaurant when course changes
-    this.mealRestaurant = null;
-    const restDisplay = U.$('#r-restaurant');
-    if (restDisplay) {
-      restDisplay.textContent = '식당을 선택하세요';
-      restDisplay.classList.add('empty');
-    }
+    this.resetMealDisplay();
     
     U.toast(`⛳ ${c.name} 선택 완료`); U.haptic();
   },
@@ -829,8 +826,15 @@ const Register = {
     this.course = c;
     U.$('#r-search').value = c.name;
     const hint = U.$('#r-hint'); if (hint) { hint.innerHTML = `📍 ${U.esc(c.addr || '')}`; hint.style.color = 'var(--accent)'; }
-    this.mealRestaurant = null;
+    this.resetMealDisplay();
     U.haptic();
+  },
+
+  /** 골프장이 바뀌면 고른 식당을 지우고 표시도 '식당을 선택하세요'로 되돌림 */
+  resetMealDisplay() {
+    this.mealRestaurant = null;
+    const d = U.$('#r-restaurant');
+    if (d) { d.textContent = '식당을 선택하세요'; d.classList.add('is-empty', 'empty'); }
   },
 
   searchCustomAddress() {

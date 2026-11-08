@@ -38,7 +38,7 @@
 /* 폼 */
 .gp-form label { display: block; font-size: 13px; font-weight: 800; color: #334155; margin: 14px 2px 6px; }
 .gp-hint { font-weight: 500; color: #94a3b8; font-size: 12px; margin-left: 4px; }
-.gp-form input, .gp-form textarea, .gp-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px 12px; font-size: 15px; color: #0f172a; background: #fff; font-family: inherit; }
+.gp-form input, .gp-form textarea, .gp-input { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 10px; padding: 11px 12px; font-size: 16px; color: #0f172a; background: #fff; font-family: inherit; }
 .gp-form textarea { resize: none; line-height: 1.5; }
 .gp-row2 { display: flex; gap: 10px; }
 .gp-row2 > div { flex: 1; min-width: 0; }
@@ -103,7 +103,7 @@
 .gp-msg.mine .gp-msg-b { background: #fee500; border-radius: 14px 4px 14px 14px; }
 .gp-msg-t { font-size: 10.5px; color: #475569; flex-shrink: 0; }
 .gp-chat-in { display: flex; gap: 8px; padding: 10px 12px calc(var(--nav-h, 64px) + 14px); background: #fff; border-top: 1px solid #e2e8f0; }
-.gp-chat-in input { flex: 1; min-width: 0; border: 1px solid #cbd5e1; border-radius: 999px; padding: 10px 14px; font-size: 15px; }
+.gp-chat-in input { flex: 1; min-width: 0; border: 1px solid #cbd5e1; border-radius: 999px; padding: 10px 14px; font-size: 16px; }
 .gp-chat-in button { border: 0; border-radius: 999px; background: #0f172a; color: #d4af37; font-weight: 800; padding: 0 16px; font-size: 14px; cursor: pointer; }
 
 /* 변경 안내 */
@@ -126,7 +126,7 @@
 .gt-del { flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px; border: 1px solid #fecaca; background: #fff; color: #dc2626; font-size: 14px; cursor: pointer; }
 .gt-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
 .gt-no { width: 18px; flex-shrink: 0; text-align: center; font-size: 12px; font-weight: 800; color: #94a3b8; }
-.gp-form .gt-row input { min-width: 0; padding: 9px 10px; font-size: 15px; }
+.gp-form .gt-row input { min-width: 0; padding: 9px 10px; font-size: 16px; } /* 아이폰 확대 방지 */
 .gp-form .gt-row input:nth-of-type(1) { flex: 1; }
 .gp-form .gt-row input:nth-of-type(2) { flex: 1.3; }
 .gt-add { width: 100%; padding: 12px; border-radius: 12px; border: 1.5px dashed #94a3b8; background: #fff; color: #0f172a; font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 4px; }

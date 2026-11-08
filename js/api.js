@@ -30,7 +30,16 @@ const PlaceAPI = {
 const TmapAPI = {
   APP_KEY: (window.APP_CONFIG || {}).TMAP_APP_KEY || '',
 
-  async searchPlace(keyword, isGolfCourse = true) {
+  /** 마지막 검색이 실패했으면 화면에 보여 줄 안내, 아니면 null (결과 없음과 구분) */
+  lastSearchError: null,
+  searchFailText() {
+    if (!this.lastSearchError) return null;
+    return this.lastSearchError === 'offline' ? '인터넷 연결을 확인해 주세요' : '검색이 잠시 안 돼요. 잠시 후 다시 시도해 주세요.';
+  },
+
+  /** opts.quiet: 실패해도 토스트를 띄우지 않음 (부르는 쪽이 검색 결과 칸에 안내를 직접 표시할 때) */
+  async searchPlace(keyword, isGolfCourse = true, opts = {}) {
+    this.lastSearchError = null;
     if (!keyword || keyword.trim() === '') return [];
 
     try {
@@ -82,7 +91,8 @@ const TmapAPI = {
       });
     } catch (error) {
       console.error('티맵 검색 오류:', error);
-      U.toast('검색이 잠시 안 돼요. 잠시 후 다시 시도해 주세요.');
+      TmapAPI.lastSearchError = navigator.onLine === false ? 'offline' : 'fail';
+      if (!opts.quiet) U.toast(TmapAPI.searchFailText());
       return [];
     }
   },
