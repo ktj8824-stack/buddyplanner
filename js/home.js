@@ -208,7 +208,7 @@ const Home = {
         <div class="home-glounge-sheet v2-home-sheet">
         <div class="v2-home-body">
           <div class="v2-new-card" onclick="App.navigate('register')">
-            <div class="v2-new-ico">${ico.plus}</div>
+            <div class="v2-new-ico img"><img src="img/icons/register.png?v=1" alt=""></div>
             <div style="flex:1; min-width:0;"><b>새 라운딩 등록</b><small>골프장과 티오프만 넣으면 출발 시간을 계산해 드려요</small></div>
             <span class="v2-chev">${ico.chev}</span>
           </div>
