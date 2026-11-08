@@ -124,7 +124,7 @@ const Profile = {
   },
 
   previewAlarm() {
-    try { Timeline.initAudioContext(); Timeline.playAlarmSound('출발 시간이 되면 이 소리로 알려 드려요.', '🔔 버디 알람 미리 듣기'); }
+    try { Timeline.initAudioContext(); Timeline.playAlarmSound('출발 시간이 되면 이 소리로 알려 드려요.', '🔔 버디 알람 미리 듣기', null, { preview: true }); }
     catch (e) { U.toast('알람 소리를 재생하지 못했어요.'); }
   },
 
