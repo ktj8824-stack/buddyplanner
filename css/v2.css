@@ -330,13 +330,13 @@
 .v2-home-sheet { background: var(--v2-bg); }
 .v2-home-sheet .v2-home-body { padding: 0; }
 
-/* 홈 히어로 글씨 키움 (2026.11) */
+/* 홈 히어로 글씨 키움 (2026.11): 문구 23px · 시간 15px · 이름표 11px, 골퍼 그림 크기는 그대로 (좁으면 그림 양옆만 잘라냄) */
 .home-glounge-hero { padding-right: 12px; }
 .home-glounge-hero .hero-sub-tag { font-size: 0.875rem; margin-bottom: 8px; }
-.home-glounge-hero .hero-main-title { font-size: 1.5rem; line-height: 1.3; margin-bottom: 14px; }
-.home-glounge-hero .hero-inline-timeline { max-width: none; padding: 10px 12px; border-radius: 16px; }
-.home-glounge-hero .mini-tl-tag { font-size: 0.75rem; padding: 2px 6px; margin-bottom: 4px; }
-.home-glounge-hero .mini-tl-val { font-size: 1.0625rem; }
-.home-glounge-hero .mini-tl-arrow { padding: 0 3px; }
-.home-glounge-hero .glounge-pill-btn { font-size: 0.9375rem; padding: 10px 20px; }
-.home-glounge-hero .glounge-hero-figure { width: 138px; height: 150px; margin-left: 0; }
+.home-glounge-hero .hero-main-title { font-size: 1.4375rem; line-height: 1.3; margin-bottom: 14px; }
+.home-glounge-hero .hero-inline-timeline { max-width: none; padding: 9px 11px; border-radius: 15px; }
+.home-glounge-hero .mini-tl-tag { font-size: 0.6875rem; padding: 2px 6px; margin-bottom: 3px; }
+.home-glounge-hero .mini-tl-val { font-size: 0.9375rem; }
+.home-glounge-hero .glounge-pill-btn { font-size: 0.875rem; padding: 9px 19px; }
+.home-glounge-hero .glounge-hero-figure { width: 150px; height: 168px; margin-left: 0; overflow: hidden; }
+.home-glounge-hero .glounge-hero-figure img { width: 168px; height: 168px; flex-shrink: 0; max-width: none; }
