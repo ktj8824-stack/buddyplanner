@@ -712,9 +712,14 @@ const Group = {
   syncMine() {
     const e = this.ev; const mine = this._linkedSchedule(); if (!e || !mine) return;
     const idx = State.schedules.indexOf(mine);
-    mine.date = new Date(e.round_date + 'T00:00:00');
-    mine.teeOff = this._teeFor(this._member(this.pickId) || (e.i_am_owner ? e.members.find(x => x.is_owner) : null));
-    State.updateSchedule(idx, mine);
+    if (idx < 0) return;
+    // 예전 시각으로 걸린 알람을 먼저 지움 → 바뀐 시각으로 한 번만 울림 (일정 수정 화면·AI 변경과 같은 순서)
+    if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(mine, true);
+    const next = Object.assign({}, mine);
+    next.date = new Date(e.round_date + 'T00:00:00');
+    next.teeOff = this._teeFor(this._member(this.pickId) || (e.i_am_owner ? e.members.find(x => x.is_owner) : null));
+    State.updateSchedule(idx, next);
+    if (State.saveFailed) { State.schedules[idx] = mine; try { Timeline.autoScheduleAllAlarms(); } catch (err) {} return; }
     try { if (typeof Timeline !== 'undefined') Timeline.autoScheduleAllAlarms(); } catch (err) {}
     U.toast('내 일정을 단체 일정에 맞췄어요. 출발 시간도 다시 계산했어요.');
     this.render();
