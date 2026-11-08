@@ -717,9 +717,10 @@ const Timeline = {
       // 카카오내비 앱으로 바로 길안내 (카카오 JS SDK의 Navi.start, 앱이 없으면 설치 화면).
       // SDK가 없거나 실패하면 예전처럼 카카오맵 길찾기로
       try {
-        if (typeof Kakao !== 'undefined' && Kakao.Navi && Kakao.Navi.start && destLat && destLng) {
+        // 카카오 SDK는 init을 해야 Navi가 생김 → 먼저 init
+        if (typeof Kakao !== 'undefined' && destLat && destLng) {
           if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY) Kakao.init(Login.KAKAO_JS_KEY);
-          if (Kakao.isInitialized()) {
+          if (Kakao.isInitialized() && Kakao.Navi && Kakao.Navi.start) {
             U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${destName}`);
             Kakao.Navi.start({ name: String(destName || '목적지').slice(0, 50), x: Number(destLng), y: Number(destLat), coordType: 'wgs84' });
             return;
