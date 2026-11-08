@@ -544,4 +544,4 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .v2-new-card .v2-new-ico { width: 42px; height: 42px; border-radius: 12px; }
 .v2-new-card .v2-new-ico.img img { width: 32px; height: 32px; }
 .v2-new-card b { font-size: 1rem; }
-.v2-new-card small { font-size: 0.8125rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.v2-new-card small { font-size: min(0.8125rem, 3.25vw); letter-spacing: -0.2px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

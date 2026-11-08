@@ -209,7 +209,7 @@ const Home = {
         <div class="v2-home-body">
           <div class="v2-new-card" onclick="App.navigate('register')">
             <div class="v2-new-ico img"><img src="img/icons/register.png?v=1" alt=""></div>
-            <div style="flex:1; min-width:0;"><b>새 라운딩 등록</b><small>티오프만 넣으면 출발 시간 계산</small></div>
+            <div style="flex:1; min-width:0;"><b>새 라운딩 등록</b><small>골프장, 티오프만 넣으면 출발시간 자동계산</small></div>
             <span class="v2-chev">${ico.chev}</span>
           </div>
           <div class="v2-card">
