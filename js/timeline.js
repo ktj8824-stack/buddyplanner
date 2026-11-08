@@ -1006,6 +1006,8 @@ const Timeline = {
           <div class="v2-alarm-c1">라운딩 · ${U.esc(course)}${tl.teeOff ? ' · 티오프 ' + U.esc(tl.teeOff) : ''}</div>
           <div class="v2-alarm-c2">${lead}</div>
           ${ki[2] ? `<div class="v2-alarm-c3">${U.esc(ki[2])}</div>` : ''}
+          <div class="v2-alarm-c3" id="v2-alarm-wx" hidden></div>
+          ${c && ['prep', 'depart', 'meal', 'restDepart'].includes(c.kind) ? `<div class="v2-alarm-c5" id="v2-alarm-tr">🚗 내 위치에서 실시간 길 확인 중…</div>` : ''}
           ${tl.hasMeetingPoint && c && ['prep', 'depart'].includes(c.kind) ? `<div class="v2-alarm-c4">📍 집결지 · ${U.esc(tl.meetingPointName || (s.meetingPointObj || {}).name || '집결지')}${tl.meetArrival ? ' ' + U.esc(tl.meetArrival) + ' 도착' : ''}</div>` : ''}
         </div>` : (msg ? `<div class="v2-alarm-card"><div class="v2-alarm-c2">${U.esc(msg)}</div></div>` : '')}
         <div class="v2-alarm-btns">
@@ -1020,6 +1022,54 @@ const Timeline = {
     document.body.appendChild(popup);
     requestAnimationFrame(() => popup.classList.add('on'));
     try { U.haptic && U.haptic(); } catch (e) {}
+    if (c) { this._alarmWeather(c).catch(() => {}); this._alarmTraffic(c).catch(() => {}); }
+  },
+
+  /** 알람 카드: 골프장 티오프 시각 날씨 */
+  async _alarmWeather(c) {
+    const s = c.s, el = () => document.getElementById('v2-alarm-wx');
+    if (!s.course || !s.course.lat || !s.course.lng || typeof WeatherAPI === 'undefined') return;
+    const fc = await WeatherAPI.fetchRoundForecast(s.course.lat, s.course.lng, s.date, (s.timeline || {}).teeOff || s.teeOff);
+    const h = fc && fc.hours && fc.hours[0]; const e = el();
+    if (!h || !e) return;
+    const maxPop = Math.max(...fc.hours.map(x => x.pop || 0));
+    if (maxPop >= 50) { e.textContent = `☔ 비 예보 ${maxPop}% · 우산·여벌 옷 챙기세요`; }
+    else if (h.temp <= 3) { e.textContent = `🧣 티오프 ${h.temp}° · 쌀쌀해요, 보온 챙기세요`; }
+    else { e.textContent = `${h.icon || '🌤️'} 티오프 ${h.text || ''} ${h.temp}°${h.wind ? ' · 바람 ' + h.wind + 'm/s' : ''}`; e.classList.add('soft'); }
+    e.hidden = false;
+  },
+
+  /** 알람 카드: 로드플래너처럼 내 위치 → 다음 목적지 실시간 소요시간 (평소보다 막히는지) */
+  async _alarmTraffic(c) {
+    const s = c.s, tl = s.timeline || {};
+    const el = () => document.getElementById('v2-alarm-tr');
+    const done = (txt, cls) => { const e = el(); if (!e) return; if (!txt) { e.remove(); return; } e.textContent = txt; if (cls) e.classList.add(cls); };
+    if (typeof TmapAPI === 'undefined' || !TmapAPI.getRouteTime) return done('');
+    const pt = o => o && (o.lat || o.y) && (o.lng || o.x) ? { lat: +(o.lat || o.y), lng: +(o.lng || o.x), name: o.name } : null;
+    let dest = null, plan = 0, target = '';
+    if (c.kind === 'meal' || c.kind === 'restDepart') { dest = pt(s.course); plan = tl.restTravelDur; target = tl.arrival; }
+    else if (tl.hasMeetingPoint && pt(s.meetingPointObj)) { dest = pt(s.meetingPointObj); plan = tl.homeTravelDur; target = tl.meetArrival; }
+    else if (tl.restaurantName && pt(s.mealRestaurant)) { dest = pt(s.mealRestaurant); plan = tl.homeTravelDur; target = tl.mealStart; }
+    else { dest = pt(s.course); plan = tl.homeTravelDur || s.travelTime; target = tl.arrival; }
+    if (!dest) return done('');
+    let from = null;
+    if (navigator.geolocation) {
+      const pos = await new Promise(res => { try { navigator.geolocation.getCurrentPosition(p => res(p), () => res(null), { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }); } catch (e) { res(null); } });
+      if (pos) from = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    }
+    if (!from && s.startLat && s.startLng && c.kind !== 'meal' && c.kind !== 'restDepart') from = { lat: +s.startLat, lng: +s.startLng };
+    if (!from) return done('');
+    const eta = await TmapAPI.getRouteTime(from.lng, from.lat, dest.lng, dest.lat);
+    if (!eta || eta > 600) return done('');
+    const pad = n => String(n).padStart(2, '0');
+    const arr = new Date(Date.now() + eta * 60000);
+    const arrive = `${pad(arr.getHours())}:${pad(arr.getMinutes())}`;
+    const diff = plan ? eta - plan : 0;
+    let late = 0;
+    if (target) { const t = State.tlAt(s, target); if (t) late = Math.round((arr - t) / 60000); }
+    if (diff >= 5) done(`🚦 평소보다 ${diff}분 막혀요 · 지금 나가면 ${arrive} 도착`, late > 0 ? 'warn' : '');
+    else if (diff <= -5) done(`🚗 평소보다 ${-diff}분 빨라요 · 지금 나가면 ${arrive} 도착`);
+    else done(`🚗 지금 길 ${eta}분 · 지금 나가면 ${arrive} 도착`);
   },
 
   closeAlarm(idx) {

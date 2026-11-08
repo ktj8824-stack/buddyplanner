@@ -565,3 +565,6 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .v2-alarm-row button:disabled{opacity:.35}
 .v2-alarm button:active{transform:scale(.98)}
 .v2-alarm-foot{margin-top:18px;font-size:0.8125rem;color:rgba(255,255,255,.55)}
+.v2-alarm-c3.soft{color:rgba(255,255,255,.8)}
+.v2-alarm-c5{font-size:0.875rem;color:rgba(255,255,255,.8);font-weight:600}
+.v2-alarm-c5.warn{color:#ff8a7a}
