@@ -522,3 +522,9 @@
 .v2-sc-foot .sum #sc-foot-t { font-size: 1.25rem; }
 #sc-save.wait { background: #e2e8f0; color: #475569; }
 .v2-sc-del { flex-shrink: 0; height: 54px; padding: 0 18px; border-radius: 16px; border: 1px solid #fecaca; background: #fff; color: #dc2626; font-size: 1rem; font-weight: 800; cursor: pointer; }
+
+/* ── 아이폰: 문서 전체가 튕기며(바운스) 하단 메뉴가 위로 딸려 올라가던 문제 ──
+   문서는 고정하고 화면(.screen) 안에서만 스크롤 → 하단 메뉴는 항상 바닥에 붙어 있음 */
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+#app { height: 100%; min-height: 0; }
+.screen.active { height: 100vh; height: 100dvh; min-height: 0; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }

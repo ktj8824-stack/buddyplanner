@@ -32,6 +32,14 @@ const App = {
       window.visualViewport.addEventListener('resize', fit);
       window.visualViewport.addEventListener('scroll', fit);
     }
+    // 아이폰: 키보드가 내려간 뒤 문서가 밀린 채 남으면 하단 메뉴가 떠 보임 → 제자리로
+    document.addEventListener('focusout', () => {
+      setTimeout(() => {
+        const a = document.activeElement;
+        if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+        if (window.scrollY || document.documentElement.scrollTop) window.scrollTo(0, 0);
+      }, 120);
+    });
     // 클라우드 동기화 준비 (설정이 없으면 아무 동작 안 함). 웹 카카오 로그인에서 돌아온 경우 그 정보를 받음
     const cloudRedirect = (typeof Cloud !== 'undefined') ? Cloud.init() : null;
 
@@ -221,6 +229,9 @@ const App = {
     // 시작 화면에서 미뤄 둔 배너는 광고 보이는 화면에 처음 왔을 때 띄움
     if (!shouldHideBanner && this._bannerPending && !this.adMobActive) this.renderAdBanner();
     window.scrollTo(0,0);
+    // 화면 안에서 스크롤하므로 화면을 바꿀 때 맨 위로
+    const act = U.$(`#screen-${name}`);
+    if (act) { act.scrollTop = 0; act.querySelectorAll('.v2-scroll, .screen-scroll').forEach(x => { x.scrollTop = 0; }); }
   },
 
   viewTimeline(idx) {
