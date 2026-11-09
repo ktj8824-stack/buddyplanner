@@ -114,6 +114,8 @@ const AutoNav = {
       if (r && r.leg) return this._ready(r.leg);
       if (Date.now() - began < this.WAIT_MS) { this._timer = setTimeout(tick, 500); return; }
       if (r && r.todayCount) return this._message('오늘 이동이 모두 끝났어요', '수고하셨습니다. 즐거운 라운딩이었길 바라요! ⛳');
+      if (typeof Cloud !== 'undefined' && Cloud.isConfigured && Cloud.isConfigured() && !Cloud.isSignedIn())
+        return this._message('로그인이 필요해요', '사파리에서 버디플래너에 로그인해 주세요. 그래야 앱에 넣은 오늘 라운딩을 찾을 수 있어요.');
       return this._message('오늘 라운딩 일정이 없어요', '라운딩 날 차에 타면 골프장으로 바로 안내해 드려요.');
     };
     tick();

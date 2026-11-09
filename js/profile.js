@@ -376,11 +376,17 @@ const Profile = {
     App.navigate('admin');
   },
 
+  /** 백업·불러오기에서 빼는 값: 로그인·동기화 상태·구독 캐시·기기별 알람 예약 (다른 기기·계정을 덮어쓰지 않게) */
+  _skipBackupKey(key) {
+    return /session|token/i.test(key) || /^bp_sync_/.test(key) || /^sb-/.test(key)
+      || ['bp_pro_cache', 'bp_cloud_session', 'bp_logged_in', 'bp_ios_ack_at', 'bp_ios_snooze'].includes(key);
+  },
+
   exportData() {
     const data = {};
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (/session|token/i.test(key)) continue;   // 로그인 정보는 백업 파일에 넣지 않음
+      if (this._skipBackupKey(key)) continue;   // 로그인·동기화·구독 정보는 백업 파일에 넣지 않음
       data[key] = localStorage.getItem(key);
     }
     const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
@@ -410,7 +416,8 @@ const Profile = {
           const ok = await App.ask('데이터를 불러올까요?', '지금 기기의 일정·기록이 이 파일 내용으로 바뀌어요. 되돌릴 수 없어요.', { ok: '불러오기' });
           if (!ok) return;
           for (const key in data) {
-            if (/session|token/i.test(key)) continue;
+            if (this._skipBackupKey(key) || !/^bp_|^buddy/.test(key)) continue;   // 버디플래너 값만, 로그인·동기화 값은 빼고
+            if (typeof data[key] !== 'string') continue;
             localStorage.setItem(key, data[key]);
           }
           U.toast('데이터가 성공적으로 복원되었습니다.');

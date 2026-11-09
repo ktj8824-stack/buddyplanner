@@ -112,6 +112,17 @@ const U = {
     });
   },
 
+  /** 캘린더 종료 시각: 타임라인의 라운딩 종료(roundEnd)가 있으면 그 시각, 없으면 9홀 2.5시간·18홀 5시간. 자정을 넘기면 다음 날 */
+  _roundEndStr(s, d, th, tm) {
+    const pad = (n) => String(n).padStart(2,'0');
+    const startMin = th * 60 + tm;
+    let len = String(s.roundLength || '18') === '9' ? 150 : 300;
+    const re = s.timeline && (s.timeline.roundEnd || s.timeline.roundFinish);
+    if (re && /^\d{1,2}:\d{2}$/.test(re)) { const [eh, em] = re.split(':').map(Number); let m = eh * 60 + em - startMin; if (m <= 0) m += 1440; if (m > 0 && m < 720) len = m; }
+    const end = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, startMin + len);
+    return `${end.getFullYear()}${pad(end.getMonth()+1)}${pad(end.getDate())}T${pad(end.getHours())}${pad(end.getMinutes())}00`;
+  },
+
   /* ── iCalendar (.ics) Generation ── */
   generateICS(schedule) {
     const s = schedule;
@@ -120,9 +131,7 @@ const U = {
     const [th,tm] = s.teeOff.split(':').map(Number);
 
     const dtStart = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(th)}${pad(tm)}00`;
-    // 라운딩은 보통 5시간
-    const endH = th + 5;
-    const dtEnd = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(endH % 24)}${pad(tm)}00`;
+    const dtEnd = this._roundEndStr(s, d, th, tm);
 
     // 알림: 준비 시작 시간
     const tl = s.timeline;
@@ -158,8 +167,7 @@ const U = {
     const d = s.date;
     const [th,tm] = s.teeOff.split(':').map(Number);
     const startStr = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(th)}${pad(tm)}00`;
-    const endH = th + 5;
-    const endStr = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(endH % 24)}${pad(tm)}00`;
+    const endStr = this._roundEndStr(s, d, th, tm);
     
     const title = encodeURIComponent(`⛳ ${s.course.name} 라운딩`);
     const tl = s.timeline;
@@ -276,7 +284,15 @@ const U = {
     const msg = encodeURIComponent(`BuddyPlanner 기상 (${s.course.name})`);
     
     const isAndroid = /Android/.test(navigator.userAgent);
-    
+    // 아이폰 앱: 시계 앱에 알람을 넣을 수 없음 → 앱이 폰 알림으로 단계마다 예약해 둠
+    const C = window.Capacitor;
+    if (!isAndroid && C && C.getPlatform && C.getPlatform() === 'ios') {
+      if (s.alarmOff && typeof Timeline !== 'undefined' && Timeline.alarmOn) { Timeline.schedIdx = idx; try { Timeline.alarmOn(); } catch (e) { } }
+      try { if (window.NativeApp && NativeApp.resyncAlarms) NativeApp.resyncAlarms(); } catch (e) { }
+      this.toast(`⏰ ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} 준비 시작부터 단계마다 알림으로 깨워 드릴게요.`, 3500);
+      return;
+    }
+
     if (isAndroid) {
       // Android Intent for Clock App
       const intentUrl = `intent://#Intent;action=android.intent.action.SET_ALARM;i.android.intent.extra.alarm.HOUR=${h};i.android.intent.extra.alarm.MINUTES=${m};S.android.intent.extra.alarm.MESSAGE=${msg};B.android.intent.extra.alarm.SKIP_UI=false;end`;

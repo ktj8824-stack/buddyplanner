@@ -908,11 +908,11 @@ const Timeline = {
     const st = row.querySelector('.comp-status');
     if (btn.textContent.trim() === '출발함') {
       btn.textContent = '도착함'; st.textContent = '🚗 이동 중'; st.className = 'comp-status departed';
-      U.toast(`${U.esc(name)}님에게 출발 알림을 보냈습니다 🚗`);
+      U.toast(`${U.esc(name)}님 출발로 표시했어요 🚗`);
     } else {
       btn.textContent = '완료'; btn.disabled = true; btn.style.opacity = '0.4';
       st.textContent = '✅ 도착 완료'; st.className = 'comp-status arrived';
-      U.toast(`${U.esc(name)}님에게 도착 알림을 보냈습니다 ✅`);
+      U.toast(`${U.esc(name)}님 도착으로 표시했어요 ✅`);
     }
     U.haptic();
   },
@@ -1055,12 +1055,13 @@ const Timeline = {
     document.body.appendChild(popup);
     requestAnimationFrame(() => popup.classList.add('on'));
     try { U.haptic && U.haptic(); } catch (e) {}
-    if (c) { this._alarmWeather(c).catch(() => {}); this._alarmTraffic(c).catch(() => {}); }
+    if (c) { this._alarmWeather(c, popup).catch(() => {}); this._alarmTraffic(c, popup).catch(() => {}); }
   },
 
   /** 알람 카드: 골프장 티오프 시각 날씨 */
-  async _alarmWeather(c) {
-    const s = c.s, el = () => document.getElementById('v2-alarm-wx');
+  async _alarmWeather(c, popup) {
+    // 이 알람 화면 안에서만 찾음 (앞 알람의 늦은 결과가 다음 알람 화면에 들어가지 않게)
+    const s = c.s, el = () => (popup && popup.isConnected) ? popup.querySelector('#v2-alarm-wx') : null;
     if (!s.course || !s.course.lat || !s.course.lng || typeof WeatherAPI === 'undefined') return;
     const fc = await WeatherAPI.fetchRoundForecast(s.course.lat, s.course.lng, s.date, (s.timeline || {}).teeOff || s.teeOff);
     const h = fc && fc.hours && fc.hours[0]; const e = el();
@@ -1073,9 +1074,9 @@ const Timeline = {
   },
 
   /** 알람 카드: 로드플래너처럼 내 위치 → 다음 목적지 실시간 소요시간 (평소보다 막히는지) */
-  async _alarmTraffic(c) {
+  async _alarmTraffic(c, popup) {
     const s = c.s, tl = s.timeline || {};
-    const el = () => document.getElementById('v2-alarm-tr');
+    const el = () => (popup && popup.isConnected) ? popup.querySelector('#v2-alarm-tr') : null;
     const done = (txt, cls) => { const e = el(); if (!e) return; if (!txt) { e.remove(); return; } e.textContent = txt; if (cls) e.classList.add(cls); };
     if (typeof TmapAPI === 'undefined' || !TmapAPI.getRouteTime) return done('');
     const pt = o => o && (o.lat || o.y) && (o.lng || o.x) ? { lat: +(o.lat || o.y), lng: +(o.lng || o.x), name: o.name } : null;
@@ -1092,7 +1093,8 @@ const Timeline = {
     }
     if (!from && s.startLat && s.startLng && c.kind !== 'meal' && c.kind !== 'restDepart') from = { lat: +s.startLat, lng: +s.startLng };
     if (!from) return done('');
-    const eta = await TmapAPI.getRouteTime(from.lng, from.lat, dest.lng, dest.lat);
+    // 길 찾기가 10초 넘게 걸리면 '확인 중'을 지움
+    const eta = await Promise.race([TmapAPI.getRouteTime(from.lng, from.lat, dest.lng, dest.lat), new Promise(r => setTimeout(() => r(null), 10000))]);
     if (!eta || eta > 600) return done('');
     const pad = n => String(n).padStart(2, '0');
     const arr = new Date(Date.now() + eta * 60000);
@@ -1100,7 +1102,8 @@ const Timeline = {
     const diff = plan ? eta - plan : 0;
     let late = 0;
     if (target) { const t = State.tlAt(s, target); if (t) late = Math.round((arr - t) / 60000); }
-    if (diff >= 5) done(`🚦 평소보다 ${diff}분 막혀요 · 지금 나가면 ${arrive} 도착`, late > 0 ? 'warn' : '');
+    if (late > 0) done(`⏰ 지금 나가도 목표 ${target} 도착보다 ${late}분 늦어요 · ${arrive} 도착`, 'warn');
+    else if (diff >= 5) done(`🚦 평소보다 ${diff}분 막혀요 · 지금 나가면 ${arrive} 도착`);
     else if (diff <= -5) done(`🚗 평소보다 ${-diff}분 빨라요 · 지금 나가면 ${arrive} 도착`);
     else done(`🚗 지금 길 ${eta}분 · 지금 나가면 ${arrive} 도착`);
   },

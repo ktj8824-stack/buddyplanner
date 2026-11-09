@@ -467,7 +467,7 @@ const Register = {
     if (selDate.getMonth() !== m) { U.toast(`${m + 1}월 ${d}일은 없는 날짜예요. 날짜를 다시 골라 주세요.`); return; }
     const today = new Date(); today.setHours(0, 0, 0, 0);
     if (selDate < today) {
-      App.ask('지난 날짜예요', `${U.fmtDateShort(selDate)}은 이미 지난 날짜예요. 그래도 이 날짜로 할까요?`, { ok: '이 날짜로' })
+      App.ask('지난 날짜예요', `${U.fmtDateShort(selDate)}, 이미 지난 날짜예요. 그래도 이 날짜로 할까요?`, { ok: '이 날짜로' })
         .then(ok => { if (ok) this.selectDate(selDate.toISOString()); });
       return;
     }
@@ -1233,7 +1233,16 @@ const Register = {
 
     try {
       if (this.hasMeal && this.mealRestaurant) {
-        restTravelDur = this.mealRestaurant.distMin || 15;
+        // 식당 → 골프장: 실제 길찾기로 계산 (실패하면 거리로 어림). 늘 15분으로 잡던 것 고침
+        restTravelDur = null;
+        const R = this.mealRestaurant, C = this.course;
+        const near = R && C && Math.abs(Number(R.lat) - Number(C.lat)) < 1e-6 && Math.abs(Number(R.lng) - Number(C.lng)) < 1e-6;
+        if (R && C && R.lat && C.lat && !near) {
+          try { restTravelDur = await TmapAPI.getRouteTime(R.lng, R.lat, C.lng, C.lat); } catch (e) { restTravelDur = null; }
+          if (!restTravelDur) { estimated = true; restTravelDur = this.estimateDriveMin(R.lng, R.lat, C.lng, C.lat); }
+        }
+        if (!restTravelDur) restTravelDur = R.distMin || 15;
+        this.mealRestaurant.distMin = restTravelDur;
         const restArrivalTime = new Date(arrivalTime.getTime() - restTravelDur * 60000 - this.mealDuration * 60000);
 
         if (this.hasMeetingPoint && this.meetingPointObj) {

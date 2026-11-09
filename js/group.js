@@ -413,9 +413,14 @@ const Group = {
     const f = this.form; if (!f) return;
     if (v('gp-title') !== null) f.title = v('gp-title');
     if (v('gp-date') !== null) f.date = v('gp-date');
+    const prevMe = f.me;
     if (v('gp-me') !== null) f.me = v('gp-me');
     if (v('gp-memo') !== null) f.memo = v('gp-memo');
     if (v('gp-mealtime') !== null) f.mealTime = v('gp-mealtime');
+    // 1조 1번 칸에 미리 채워 둔 내 이름은 '내 이름(총무)'을 고치면 같이 바뀜 (명단에 두 번 들어가지 않게)
+    const first = f.teams[0] && f.teams[0].members[0];
+    const firstEl = U.$('#gt-0-n0');
+    if (first && prevMe && f.me !== prevMe && firstEl && firstEl.value === prevMe) firstEl.value = f.me;
     f.teams.forEach((t, i) => {
       // 자동으로 채워 보인 값(앞 조 +7분)은 저장하지 않음 → 앞 조를 바꾸면 따라감
       const el = U.$(`#gt-${i}-tee`);
@@ -526,6 +531,8 @@ const Group = {
     if (!f.title.trim()) return U.toast('모임 이름을 적어 주세요.');
     if (this.view === 'create' && !f.course) return U.toast('골프장을 골라 주세요.');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date)) return U.toast('날짜를 골라 주세요.');
+    { const t = new Date(); const p = n => String(n).padStart(2, '0'); const ymd = `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`;
+      if (f.date < ymd) return U.toast('이미 지난 날짜예요. 날짜를 다시 골라 주세요.'); }
     if (!/^\d{2}:\d{2}$/.test(f.tee)) return U.toast('티오프 시간을 골라 주세요.');
     if (this.view === 'create' && !f.me.trim()) return U.toast('내 이름(총무)을 적어 주세요.');
     const meet = /^\d{2}:\d{2}$/.test(f.meet) ? f.meet : this._minus(f.tee, 30);

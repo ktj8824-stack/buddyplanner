@@ -283,10 +283,12 @@ const AIAgent = {
       const name = snap ? snap.name : s ? s.course.name : a.course_name;
       const oldDate = snap ? snap.oldDate : s ? U.fmtDateShort(s.date) : a.old_date;
       const oldTee = snap ? snap.oldTee : s ? s.teeOff : a.old_tee_off;
+      const newDate = a.new_date ? (() => { const [y, mo, d] = String(a.new_date).split('-').map(Number); return (y && mo && d) ? U.fmtDateShort(new Date(y, mo - 1, d)) : a.new_date; })() : '';
+      const newTee = a.new_tee_off ? (U.fmtTimeKo ? U.fmtTimeKo(a.new_tee_off) : a.new_tee_off) : '';
       const rows = a.cancel
         ? `<div><span>날짜</span><b>${U.esc(oldDate)}</b></div><div><span>티오프</span><b>${U.esc(oldTee)}</b></div>`
-        : `${a.new_date ? `<div><span>날짜</span><b>${U.esc(oldDate)} → ${U.esc(a.new_date)}</b></div>` : `<div><span>날짜</span><b>${U.esc(oldDate)}</b></div>`}
-           ${a.new_tee_off ? `<div><span>티오프</span><b>${U.esc(oldTee)} → ${U.esc(a.new_tee_off)}</b></div>` : ''}`;
+        : `${a.new_date ? `<div><span>날짜</span><b>${U.esc(oldDate)} → ${U.esc(newDate)}</b></div>` : `<div><span>날짜</span><b>${U.esc(oldDate)}</b></div>`}
+           ${a.new_tee_off ? `<div><span>티오프</span><b>${U.esc(U.fmtTimeKo && oldTee ? U.fmtTimeKo(oldTee) : oldTee)} → ${U.esc(newTee)}</b></div>` : ''}`;
       return `
         <div class="ai-act-card">
           <div class="ai-act-title">${a.cancel ? '🗑️ 라운딩 일정 취소' : '⛳ 라운딩 일정 변경'}</div>
@@ -429,6 +431,9 @@ const AIAgent = {
       next.date = new Date(y, mo - 1, d);
     }
     if (a.new_tee_off) next.teeOff = a.new_tee_off;
+    // 예전에 받은 카드를 나중에 누르면 이미 지난 시각일 수 있음 → 막기
+    { const [th, tm] = String(next.teeOff || '').split(':').map(Number); const d = new Date(next.date);
+      if (isFinite(th) && isFinite(tm) && !isNaN(d.getTime()) && new Date(d.getFullYear(), d.getMonth(), d.getDate(), th, tm).getTime() < Date.now()) { U.toast('이미 지난 시각이에요. 새 날짜·시간으로 다시 말해 주세요.'); return; } }
     // 이전 시각으로 걸린 알람을 먼저 지움 → 바뀐 시각으로 한 번만 울림 (일정 수정 화면과 같은 순서)
     if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(s, true);
     State.updateSchedule(idx, next);
