@@ -26,6 +26,12 @@
   const REPEAT = [1, 2];       // 알람은 1분·2분 뒤 다시 울림
   const LOG = (...a) => console.log('[iOS 알람]', ...a);
   // State·Timeline·App·U는 const로 선언된 전역이라 window.에 붙지 않음 → 이름으로 직접 찾기
+  // 알람 화면에서 '확인했어요'·'5분 뒤 다시'를 누르거나 알림을 눌러 연 시각.
+  // 이 시각보다 먼저 울린 알람의 1·2분 뒤 다시 울림은 다시 맞출 때 넣지 않음 (확인한 알람이 또 울리지 않게)
+  const ACK_KEY = 'bp_ios_ack_at';
+  const SNOOZE_KEY = 'bp_ios_snooze';   // '5분 뒤 다시' 예약 (앱을 닫거나 잠가도 울리게 폰 알림으로)
+  const ackAt = () => { try { return Number(localStorage.getItem(ACK_KEY)) || 0; } catch (e) { return 0; } };
+  const snoozes = () => { try { const a = JSON.parse(localStorage.getItem(SNOOZE_KEY) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
   const g = (name) => { try { return (0, eval)(`typeof ${name} !== 'undefined' ? ${name} : null`); } catch (e) { return null; } };
 
   /** 문자열 → 32비트 양의 정수 (일정·종류마다 고유한 알림 번호) */
@@ -56,6 +62,8 @@
     const now = Date.now();
     const S = g('State'), T = g('Timeline'), UU = g('U');
     if (!S || !T || !Array.isArray(S.schedules)) return out;
+    const acked = ackAt();
+    snoozes().forEach(z => { if (z && z.t > now) out.push({ key: `snooze:${z.t}`, t: z.t, title: z.title || '⏰ 다시 알림', body: z.body || '5분이 지났어요.', alarm: true, aid: z.aid || '' }); });
     S.schedules.forEach((s, idx) => {
       if (!s || !s.date || s.alarmOff) return;
       if (!s.timeline) { try { S.calculateTimeline(idx); } catch (e) { return; } }
@@ -74,6 +82,7 @@
         if (!at) return;
         const t = at.getTime();
         if (t > now) out.push({ key: `${aid}:${kind}`, t, title, body, alarm: true, aid });
+        if (t <= acked) return;   // 이미 확인한 알람 → 다시 울림 없음
         REPEAT.forEach(m => {
           const tr = t + m * 60000;
           if (tr > now) out.push({ key: `${aid}:${kind}:r${m}`, t: tr, title, body: `${m}분 지났어요. ${body}`, alarm: true, repeat: true, aid });
@@ -146,6 +155,12 @@
     if (idx >= 0 && A && A.viewTimeline) A.viewTimeline(idx);
   }
 
+  /** 알람을 확인함 → 지금까지 울린 알람의 다시 울림을 모두 빼고 다시 맞춤 */
+  function ack() {
+    try { localStorage.setItem(ACK_KEY, String(Date.now())); } catch (e) { }
+    schedule(0);
+  }
+
   let lastRing = 0;
   function listen() {
     const LN = plugin();
@@ -166,7 +181,7 @@
       // 알림을 누름 → 다시 울림 취소 + 그 일정 타임라인
       LN.addListener('localNotificationActionPerformed', (ev) => {
         const ex = (ev && ev.notification && ev.notification.extra) || {};
-        if (ex.alarm) cancelRepeats(ex.key);
+        if (ex.alarm) { ack(); cancelRepeats(ex.key); }
         setTimeout(() => openSchedule(ex.aid), 600);
       });
     } catch (e) { console.warn('[iOS 알람] 알림 연결 실패', e); }
@@ -183,6 +198,16 @@
     },
     cancelAlarm() { if (!capture) schedule(); },
     resyncAlarms() { schedule(0); },
+    // 알람 화면에서 확인·다시 알림을 누름
+    ackAlarm() { ack(); },
+    // '5분 뒤 다시': 앱 안 타이머만으로는 화면을 잠그면 안 울림 → 폰 알림으로도 예약
+    snoozeAlarm(atMs, title, body, aid) {
+      const now = Date.now();
+      const list = snoozes().filter(z => z && z.t > now);
+      list.push({ t: Number(atMs), title: String(title || ''), body: String(body || ''), aid: String(aid || '') });
+      try { localStorage.setItem(SNOOZE_KEY, JSON.stringify(list.slice(-5))); } catch (e) { }
+      ack();
+    },
     // 아이폰에는 '다른 앱 위에 표시' 기능이 없음 → 안내 팝업을 띄우지 않게 true
     canDrawOverlays() { return true; },
     openOverlaySettings() { }

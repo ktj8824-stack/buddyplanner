@@ -343,13 +343,13 @@ const AIAgent = {
     let course = null;
     const sc = a.course;
     if (sc && sc.name && isFinite(sc.lat) && isFinite(sc.lng)) {
-      course = { id: sc.id, name: sc.name, region: String(sc.addr || '').split(' ').slice(0, 2).join(' '), addr: sc.addr, lat: Number(sc.lat), lng: Number(sc.lng) };
+      course = { id: sc.id, name: sc.name, region: (typeof Register !== 'undefined' && Register.regionOf) ? Register.regionOf(sc.addr || '') : String(sc.addr || '').split(' ').slice(0, 2).join(' '), addr: sc.addr, lat: Number(sc.lat), lng: Number(sc.lng) };
     } else {
       try {
         const found = await TmapAPI.searchPlace(a.course_name);
         if (found && found.length) {
           const c = found[0];
-          course = { id: c.id, name: c.place_name, region: String(c.address_name || '').split(' ').slice(0, 2).join(' '), addr: c.address_name, lat: parseFloat(c.y), lng: parseFloat(c.x) };
+          course = { id: c.id, name: c.place_name, region: (typeof Register !== 'undefined' && Register.regionOf) ? Register.regionOf(c.address_name || '') : String(c.address_name || '').split(' ').slice(0, 2).join(' '), addr: c.address_name, lat: parseFloat(c.y), lng: parseFloat(c.x) };
         }
       } catch (e) { /* 검색 실패 시 사용자가 직접 선택 */ }
     }

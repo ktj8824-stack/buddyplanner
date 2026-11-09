@@ -522,7 +522,7 @@ const Timeline = {
       try {
         // 카카오 SDK는 init을 해야 Navi가 생김 → 먼저 init
         if (typeof Kakao !== 'undefined' && destLat && destLng) {
-          if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY) Kakao.init(Login.KAKAO_JS_KEY);
+          if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') Kakao.init(Login.KAKAO_JS_KEY);
           if (Kakao.isInitialized() && Kakao.Navi && Kakao.Navi.start) {
             U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${destName}`);
             Kakao.Navi.start({ name: String(destName || '목적지').slice(0, 50), x: Number(destLng), y: Number(destLat), coordType: 'wgs84' });
@@ -967,6 +967,7 @@ const Timeline = {
 
   /** 알람이 어느 일정·어느 단계인지 찾기 (아이폰 알림처럼 정보가 없을 때는 지금과 가장 가까운 단계) */
   _alarmCtx(ctx) {
+    if (ctx && ctx.preview) return null;   // 마이 화면 '알람 미리 듣기'는 실제 일정 알람 화면으로 만들지 않음
     const steps = [['prepStart', 'prep'], ['homeDepart', 'depart'], ['mealStart', 'meal'], ['restDepart', 'restDepart'], ['arrival', 'arrival'], ['teeOff', 'tee']];
     const at = (s, t) => { try { const d = State.tlAt(s, t); return d ? d.getTime() : NaN; } catch (e) { return NaN; } };
     const now = Date.now();
@@ -1104,7 +1105,9 @@ const Timeline = {
     else done(`🚗 지금 길 ${eta}분 · 지금 나가면 ${arrive} 도착`);
   },
 
-  closeAlarm(idx) {
+  closeAlarm(idx, opt) {
+    // 아이폰: 확인한 알람이 1·2분 뒤 또 울리지 않게 (다시 알림은 snoozeAlarm에서 따로 알림)
+    if (!(opt && opt.snooze) && window.NativeApp && NativeApp.ackAlarm) { try { NativeApp.ackAlarm(); } catch (e) { } }
     const p = document.getElementById('tl-alarm-popup');
     if (p) { p.classList.remove('on'); setTimeout(() => p.remove(), 250); }
     if (typeof idx === 'number' && idx >= 0 && App.viewTimeline) App.viewTimeline(idx);
@@ -1114,10 +1117,16 @@ const Timeline = {
     const last = this._alarmCtxLast || {};
     const left = Math.max(0, (this._snoozeLeft || 0) - 1);
     clearTimeout(this._snoozeTimer);
+    const at = Date.now() + 5 * 60000;
     this._snoozeTimer = setTimeout(() => {
+      if (this._lastRingAt && Date.now() - this._lastRingAt < 60000) return;   // 아이폰 알림이 먼저 울렸으면 한 번만
       this.playAlarmSound(last.msg, last.title, last.iconHtml, last.s ? { s: last.s, time: last.time, _snoozeLeft: left } : null);
     }, 5 * 60000);
-    this.closeAlarm();
+    // 아이폰: 앱을 닫거나 화면을 잠가도 5분 뒤 울리게 폰 알림으로도 예약 (앱이 켜져 있으면 위 타이머가 먼저 울리고 알림은 건너뜀)
+    if (window.NativeApp && NativeApp.snoozeAlarm) {
+      try { NativeApp.snoozeAlarm(at, last.title || '⏰ 다시 알림', '5분이 지났어요. ' + String(last.msg || ''), last.s && State.aidOf ? State.aidOf(last.s) : ''); } catch (e) { }
+    }
+    this.closeAlarm(undefined, { snooze: true });
     U.toast('5분 뒤에 다시 알려 드릴게요');
   },
 
