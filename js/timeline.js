@@ -517,6 +517,8 @@ const Timeline = {
     } else if (app === 'kakao') {
       // 카카오내비 앱으로 바로 길안내 (카카오 JS SDK의 Navi.start, 앱이 없으면 설치 화면).
       // SDK가 없거나 실패하면 예전처럼 카카오맵 길찾기로
+      // 아이폰 앱: 웹용 SDK는 앱 주소(capacitor://localhost)라 카카오내비 인증이 거절됨 → 아이폰 SDK와 같은 형식으로 직접 호출
+      if (destLat && destLng && this._kakaoNaviIOS(destName, destLat, destLng, startName, startLat, startLng)) return;
       try {
         // 카카오 SDK는 init을 해야 Navi가 생김 → 먼저 init
         if (typeof Kakao !== 'undefined' && destLat && destLng) {
@@ -535,6 +537,36 @@ const Timeline = {
         window.location.href = `https://map.kakao.com/link/to/${encodeURIComponent(destName)},${destLat},${destLng}`;
       }
     }
+  },
+
+  /** 아이폰 앱에서 카카오내비 길안내 (카카오 iOS SDK의 NaviApi.navigateUrl과 같은 URL: 네이티브 앱 키 + 번들 ID로 인증) */
+  _kakaoNaviIOS(destName, destLat, destLng, startName, startLat, startLng) {
+    const C = window.Capacitor;
+    if (!C || !C.getPlatform || C.getPlatform() !== 'ios') return false;
+    const key = (window.APP_CONFIG || {}).KAKAO_NATIVE_APP_KEY;
+    if (!key) return false;
+    const go = (bundleId, ver) => {
+      const param = { destination: { name: String(destName || '목적지').slice(0, 50), x: String(destLng), y: String(destLat) }, option: { coord_type: 'wgs84' } };
+      const lang = (navigator.language || 'ko-KR');
+      const os = ((navigator.userAgent.match(/OS (\d+)_(\d+)/) || []).slice(1).join('.')) || '17.0';
+      const ka = `sdk/2.30.0 sdk_type/swift os/ios-${os} lang/${lang} res/${screen.width}x${screen.height} device/iPhone origin/${bundleId} app_ver/${ver} module_type/open`;
+      const url = 'kakaonavi-sdk://navigate?param=' + encodeURIComponent(JSON.stringify(param))
+        + '&appkey=' + encodeURIComponent(key) + '&apiver=1.0'
+        + '&extras=' + encodeURIComponent(JSON.stringify({ KA: ka, appPkg: bundleId }));
+      U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${destName}`);
+      window.location.href = url;
+      // 카카오내비가 없으면 앱이 그대로 → 카카오맵 길찾기로
+      setTimeout(() => {
+        if (document.hidden) return;
+        window.location.href = startLat && startLng
+          ? `kakaomap://route?sp=${startLat},${startLng}&ep=${destLat},${destLng}&by=CAR`
+          : `https://map.kakao.com/link/to/${encodeURIComponent(destName)},${destLat},${destLng}`;
+      }, 1800);
+    };
+    const A = C.Plugins && C.Plugins.App;
+    if (A && A.getInfo) A.getInfo().then(i => go(i.id || 'com.myB', i.version || '1.0')).catch(() => go('com.myB', '1.0'));
+    else go('com.myB', '1.0');
+    return true;
   },
 
   /** 한 일정에 걸린 앱 안 타이머(앱 켤 때 자동 예약분 포함)를 모두 지움. native=true면 폰 알람도 취소 */

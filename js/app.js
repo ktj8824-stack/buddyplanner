@@ -48,6 +48,7 @@ const App = {
     this.loadPreferences();
     // PRO 여부를 먼저 복원해야 PRO 회원에게 광고가 뜨지 않음
     Billing.loadCachedStatus();
+    document.body.classList.toggle('is-pro', !!State.isPro);
     this.renderNav();
     this.renderAdBanner();
     this.initRewardedAd();
@@ -277,7 +278,7 @@ const App = {
         <span class="nav-label">일정</span>
       </button>
       <button class="gnb-item gnb-item-ai" data-s="ai" onclick="App.navigate('ai')">
-        <div class="gnb-ai-btn-bubble">
+        <div class="gnb-ai-btn-bubble"><b class="pro-tag">PRO</b>
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
           </svg>
@@ -316,7 +317,7 @@ const App = {
       { s: 'market', icon: '🛍️', name: '버디 마켓', desc: '골프용품 · 차량용품' },
       { s: 'raffle', icon: '🎁', name: '포인트 럭키드로우', desc: '무료 포인트로 응모' },
       { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
-      { s: 'upgrade', icon: '👑', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 무제한 일정 · 당일 예보 · 광고 제거' }
+      { s: 'upgrade', icon: '👑', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 단체 등록 · 무제한 일정 · 당일 예보 · 광고 제거' }
     ];
     this.showModal('전체 메뉴', `
       <div class="menu-sheet">
@@ -355,6 +356,7 @@ const App = {
 
   /** 구독 상태가 바뀌었을 때 광고 표시를 맞춤 (Billing에서 호출) */
   applyProStatus() {
+    document.body.classList.toggle('is-pro', !!State.isPro);
     const badge = U.$('#nav-pro-badge');
     if (badge) badge.style.display = State.isPro ? '' : 'none';
     const adfit = U.$('#adfit-banner-wrap');
