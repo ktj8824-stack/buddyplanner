@@ -201,7 +201,7 @@ export function systemRules(): string {
 - 날짜는 직접 계산하지 말고 아래 [날짜표]에서 그대로 찾아 씁니다. 도구에는 YYYY-MM-DD를 넣습니다.
 - 답에서 날짜는 "11월 8일(일)"처럼 말합니다. "2026-11-08" 같은 표기는 답에 쓰지 않습니다. 다가오는 일정은 목록의 when(오늘·내일·N일 뒤)과 date_ko를 그대로 씁니다.
 - 시각은 답에서 "오전 7시 40분"처럼 오전/오후를 붙여 말하고, 도구에는 24시간 HH:MM을 넣습니다. "반"은 30분.
-- 티오프 시각에 오전/오후를 말하지 않으면 5~11시는 오전, 12시는 낮 12시, 1~4시는 오후로 봅니다. 애매하면 물어봅니다.
+- 티오프 시각에 오전/오후를 말하지 않으면 7~11시는 오전, 12시는 낮 12시, 1~4시는 오후로 봅니다. 5~6시는 새벽인지 저녁인지 물어봅니다. 그 밖에도 애매하면 물어봅니다.
 - 지난 날짜(어제, 지난주 등)나 오늘 이미 지난 시각으로는 일정을 만들지 않습니다. "이미 지난 날짜라 등록할 수 없어요"라고 말하고, 지난 라운딩이면 스코어 기록을 도와드릴지 물어봅니다.
 - 달력에 없는 날짜(11월 31일 등)를 말하면 날짜를 다시 물어봅니다.
 - 음성 입력이라 글자가 틀릴 수 있습니다("레이크 사이드 씨씨"=레이크사이드CC, "티업"=티오프). 뜻이 분명하면 바로잡아 쓰고, 애매하면 물어봅니다.
@@ -223,7 +223,7 @@ export function systemRules(): string {
 - (목록에 내일 남서울CC 일정 idx 3이 있을 때) "내일 티오프 7시 40분으로 바뀌었어" → propose_update {schedule_index:3, new_tee_off:"07:40"}
 - (목록에 토요일 일정 idx 5가 있을 때) "토요일 라운딩 취소됐어" → propose_update {schedule_index:5, cancel:true}
 - "어제 8시 남서울 라운딩 등록해 줘" → 도구 없이 "어제는 이미 지난 날짜라 일정으로 등록할 수 없어요. 그날 스코어를 기록해 드릴까요?"
-- "토요일 라운딩 있어" → 골프장과 티오프를 모르므로 "어느 골프장, 몇 시 티오프인가요?"라고 물음`;
+- "토요일 라운딩 있어" → 골프장과 티오프를 모르므로 먼저 "어느 골프장인가요?"라고 하나만 물음 (답을 들은 뒤 티오프 시각을 물음)`;
 }
 
 /** 사용자마다·날마다 바뀌는 부분 (캐시하지 않음) */
@@ -254,8 +254,8 @@ function systemBlocks(ctx: Json): Json[] {
 /** tools 마지막 항목에 캐시 표시 */
 const TOOLS_CACHED = TOOLS.map((t, i) => i === TOOLS.length - 1 ? { ...t, cache_control: { type: 'ephemeral' } } : t);
 
-const HAN = /[\u4E00-\u9FFF]/;
-const NOTE = /\[\s*note/i;
+const HAN = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
+const NOTE = /[\[(]\s*note\b|^\s*note\s*:/im;
 /** 사용자에게 보이면 안 되는 것: 한자, AI 내부 메모 */
 export function hasLeak(t: string): boolean { return HAN.test(t) || NOTE.test(t); }
 export function stripLeak(t: string): string { return t.split('\n').filter((l) => !hasLeak(l)).join('\n').trim(); }
