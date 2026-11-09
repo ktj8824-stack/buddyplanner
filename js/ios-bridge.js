@@ -42,18 +42,18 @@
     return (Math.abs(h) % 2000000000) + 1;
   };
 
-  let permission = null;   // 권한은 처음 한 번만 물어봄
+  let asked = false, warned = false;   // 권한 창은 처음 한 번만, 거절 안내도 한 번만
+  // 허용 여부는 매번 다시 확인 (설정에서 알림을 켜고 돌아오면 바로 예약되게)
   async function ensurePermission(LN) {
-    if (permission) return permission;
-    permission = (async () => {
-      try {
-        let st = await LN.checkPermissions();
-        if (st.display !== 'granted') st = await LN.requestPermissions();
-        LOG('알림 권한', st.display);
-        return st.display === 'granted';
-      } catch (e) { console.warn('[iOS 알람] 권한 확인 실패', e); return false; }
-    })();
-    return permission;
+    try {
+      let st = await LN.checkPermissions();
+      if (st.display !== 'granted' && !asked) { asked = true; st = await LN.requestPermissions(); }
+      LOG('알림 권한', st.display);
+      if (st.display === 'granted') { warned = false; return true; }
+    } catch (e) { console.warn('[iOS 알람] 권한 확인 실패', e); }
+    const UU = g('U');
+    if (!warned && UU && UU.toast) { warned = true; UU.toast('알림이 꺼져 있어 알람이 울리지 않아요. 설정 › 버디플래너 › 알림을 켜 주세요.', 5000); }
+    return false;
   }
 
   /** 저장된 일정 전체에서 예약할 알림 목록 만들기 */
