@@ -191,13 +191,11 @@ const Upgrade = {
     // 웹 결제로 산 PRO (앱 결제가 아닐 때)
     if (!Billing.rcPro && Billing.webPro && Billing.webProUntil) {
       const d = new Date(Billing.webProUntil);
-      const ds = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
       return `
       <div class="upg-notice is-pro">
         <b>👑 PRO 이용 중</b>
-        <p>${ds}까지 이용할 수 있어요. 자동으로 결제되지 않아요.</p>
-      </div>
-      ${!Billing.isNative() ? `<button class="btn-upg btn-upg-outline" onclick="Upgrade.renderWebPay(U.$('#upg-action'), true)">1개월 연장하기 (${Billing.WEB_PRICE.toLocaleString()}원)</button>` : ''}`;
+        <p>다음 결제일 ${d.getMonth() + 1}월 ${d.getDate()}일 · 매달 ${Billing.WEB_PRICE.toLocaleString()}원 자동결제<br>해지해도 ${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일까지 계속 쓸 수 있어요.</p>
+      </div>`;
     }
     if (ent && ent.expirationDate) {
       const d = new Date(ent.expirationDate);
@@ -304,25 +302,29 @@ const Upgrade = {
     });
   },
 
-  async renderWebPay(box, extend = false) {
+  // 웹 결제: 로드플래너 개인 매니저와 같은 흐름 — 월 정기결제 안내 · 동의 체크 · 결제창
+  async renderWebPay(box) {
     if (!box) return;
     const price = Billing.WEB_PRICE;
+    const priceLine = `<div class="upg-plan-web"><b>PRO 월 정기</b><span>${price.toLocaleString()}원</span></div>
+      <p class="upg-web-note">부가세 포함 · 매달 자동결제 · 언제든 해지</p>`;
     if (typeof Cloud === 'undefined' || !Cloud.isSignedIn()) {
-      box.innerHTML = `
-        <div class="upg-plan-web"><b>PRO 1개월</b><span>${price.toLocaleString()}원</span></div>
+      box.innerHTML = `${priceLine}
         <div class="upg-notice"><b>로그인 후 결제할 수 있어요</b><p>결제한 PRO는 같은 계정으로 로그인한 앱에서도 그대로 쓸 수 있어요.</p></div>
         <button class="btn-upg" onclick="App.navigate('login')">로그인하기</button>`;
       return;
     }
     const test = !(window.APP_CONFIG || {}).TOSS_CLIENT_KEY || /^test_/.test(this.tossClientKey());
-    box.innerHTML = `
-      <div class="upg-plan-web"><b>PRO 1개월${extend ? ' 연장' : ''}</b><span>${price.toLocaleString()}원</span></div>
-      <p class="upg-web-note">한 번 결제하면 1개월 동안 PRO를 쓸 수 있어요. 자동으로 다시 결제되지 않아요.${extend ? ' 남은 기간 뒤에 1개월이 더해져요.' : ''}</p>
+    const day = new Date().getDate();
+    box.innerHTML = `${priceLine}
       ${test ? '<div class="upg-notice"><b>테스트 결제</b><p>지금은 테스트 모드라 실제로 돈이 나가지 않아요.</p></div>' : ''}
       <div id="toss-methods"></div>
       <div id="toss-agreement"></div>
+      <label class="upg-agree"><input type="checkbox" id="upg-agree" onchange="Upgrade.syncWebBtn()">
+        <span>매달 ${day}일 ${price.toLocaleString()}원 자동결제에 동의해요<small>언제든 해지할 수 있고, 해지해도 결제한 기간까지는 계속 쓸 수 있어요.</small></span></label>
       <button class="btn-upg" id="upg-web-buy" onclick="Upgrade.payWeb()" disabled><span>결제창 준비 중...</span></button>
       <div class="upg-links"><a href="./privacy.html">개인정보처리방침</a></div>`;
+    this._webReady = false;
     try {
       await this._loadToss();
       const toss = window.TossPayments(this.tossClientKey());
@@ -331,7 +333,8 @@ const Upgrade = {
       await this._widgets.setAmount({ currency: 'KRW', value: price });
       await this._widgets.renderPaymentMethods({ selector: '#toss-methods', variantKey: 'DEFAULT' });
       await this._widgets.renderAgreement({ selector: '#toss-agreement', variantKey: 'AGREEMENT' });
-      const b = U.$('#upg-web-buy'); if (b) { b.disabled = false; b.querySelector('span').textContent = `${price.toLocaleString()}원 결제하기`; }
+      this._webReady = true;
+      this.syncWebBtn();
     } catch (e) {
       console.error('[Upgrade] 토스 결제위젯 오류:', e);
       const b = U.$('#upg-web-buy'); if (b) b.querySelector('span').textContent = '결제창을 불러오지 못했어요';
@@ -339,8 +342,17 @@ const Upgrade = {
     }
   },
 
+  /** 동의에 체크하고 결제창이 준비돼야 결제 버튼이 켜짐 */
+  syncWebBtn() {
+    const b = U.$('#upg-web-buy'), a = U.$('#upg-agree');
+    if (!b || this.busy) return;
+    if (this._webReady) b.querySelector('span').textContent = `월 ${Billing.WEB_PRICE.toLocaleString()}원 정기결제 시작`;
+    b.disabled = !(this._webReady && a && a.checked);
+  },
+
   async payWeb() {
     if (this.busy || !this._widgets) return;
+    if (!(U.$('#upg-agree') && U.$('#upg-agree').checked)) { U.toast('자동결제 동의에 체크해 주세요.'); return; }
     this.busy = true;
     const b = U.$('#upg-web-buy'); if (b) { b.disabled = true; b.querySelector('span').textContent = '결제창을 여는 중...'; }
     try {
@@ -358,9 +370,9 @@ const Upgrade = {
     } catch (e) {
       if (e && (e.code === 'USER_CANCEL' || /취소/.test(e.message || ''))) U.toast('결제를 취소했어요.');
       else { console.error('[Upgrade] 웹 결제 오류:', e); U.toast((e && e.message && e.message.length < 80) ? e.message : '결제 중 문제가 발생했어요.'); }
-      if (b) { b.disabled = false; b.querySelector('span').textContent = `${Billing.WEB_PRICE.toLocaleString()}원 결제하기`; }
     } finally {
       this.busy = false;
+      this.syncWebBtn();
     }
   },
 
@@ -371,8 +383,9 @@ const Upgrade = {
     if (!pay) return;
     history.replaceState(null, document.title, location.pathname);
     if (pay === 'fail') {
-      const msg = q.get('message');
-      U.toast(q.get('code') === 'PAY_PROCESS_CANCELED' ? '결제를 취소했어요.' : (msg ? `결제하지 못했어요: ${msg.slice(0, 60)}` : '결제하지 못했어요.'), 3500);
+      const code = q.get('code'), msg = q.get('message');
+      if (code === 'PAY_PROCESS_CANCELED' || code === 'USER_CANCEL') { U.toast('결제를 취소했어요.'); return; }
+      this.showFail(msg || '결제를 완료하지 못했어요.', code);
       return;
     }
     const paymentKey = q.get('paymentKey'), orderId = q.get('orderId'), amount = Number(q.get('amount'));
@@ -382,27 +395,49 @@ const Upgrade = {
       const r = await Billing.payApi('confirm', { paymentKey, orderId, amount });
       if (r && r.status === 'DONE') {
         await Billing.refreshWebPro(true);
-        const d = new Date(r.periodEnd);
         App.navigate('upgrade');
-        this.showSuccess(`${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일까지 PRO를 쓸 수 있어요.`);
+        this.showSuccess(r);
       } else if (r && r.status === 'WAITING_FOR_DEPOSIT') {
         U.toast('입금을 기다리고 있어요. 입금이 확인되면 PRO가 적용돼요.', 4000);
       }
     } catch (e) {
       console.error('[Upgrade] 결제 승인 오류:', e);
-      U.toast('결제 승인에 실패했어요. 돈이 빠져나갔다면 고객센터로 알려 주세요.', 4500);
+      this.showFail((e && e.message) || '결제 승인에 실패했어요. 돈은 빠져나가지 않았어요.', e && e.code);
     }
   },
 
-  showSuccess(detail) {
-    App.showModal('구독 완료', `
+  /** 결제 실패: 이유 + 다시 결제하기 (자동으로 다른 화면으로 넘어가지 않음) */
+  showFail(reason, code) {
+    App.navigate('upgrade');
+    App.showModal('결제가 안 됐어요', `
+      <div class="pay-success">
+        <p style="margin-bottom:10px;">돈은 빠져나가지 않았어요.</p>
+        <div class="pay-fail-reason"><b>이유</b><br>${U.esc(String(reason).slice(0, 120))}${code ? ` <small style="color:#9aa3b2;">(${U.esc(code)})</small>` : ''}</div>
+        <button class="btn-primary" style="width:100%; margin-bottom:var(--sp-2);" onclick="App.closeModal(); Upgrade.renderAction();">다른 카드로 결제하기</button>
+        <button class="btn-ghost" style="width:100%;" onclick="App.closeModal();">닫기</button>
+      </div>`);
+  },
+
+  /** 결제 완료: 주문번호 · 금액 · 다음 결제일 (자동으로 다른 화면으로 넘어가지 않음) */
+  showSuccess(r) {
+    const won = (n) => Number(n || 0).toLocaleString() + '원';
+    const md = (s) => { const d = new Date(s); return `${d.getMonth() + 1}월 ${d.getDate()}일`; };
+    const rows = r && typeof r === 'object' ? `
+        <div class="pay-rows">
+          <div><span>주문번호</span><b>${U.esc(r.orderId || '')}</b></div>
+          <div><span>결제 금액</span><b>${won(r.amount)} (부가세 포함)</b></div>
+          ${r.method ? `<div><span>결제 수단</span><b>${U.esc(r.method)}</b></div>` : ''}
+          ${r.periodEnd ? `<div><span>다음 결제일</span><b>${md(r.periodEnd)} (매달 자동결제)</b></div>` : ''}
+        </div>` : '';
+    App.showModal('결제 완료', `
       <div class="pay-success">
         <div class="pay-success-icon">
           <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
-        <h3>PRO 회원이 되셨어요!</h3>
-        <p>${detail || '지금부터 모든 프리미엄 혜택이 적용돼요.'}</p>
-        <button class="btn-primary" style="width:100%; margin-top:var(--sp-4);" onclick="App.closeModal(); App.navigate('profile');">확인</button>
+        <h3>PRO가 시작됐어요</h3>
+        ${rows || `<p>${typeof r === 'string' ? r : '지금부터 모든 프리미엄 혜택이 적용돼요.'}</p>`}
+        <p style="font-size:0.8rem;">카드 매출전표가 결제 증빙이 돼요. 해지해도 결제한 기간까지는 계속 쓸 수 있어요.</p>
+        <button class="btn-primary" style="width:100%; margin-top:var(--sp-2);" onclick="App.closeModal(); App.navigate('profile');">확인</button>
       </div>
     `);
   }

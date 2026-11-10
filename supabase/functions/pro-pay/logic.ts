@@ -1,13 +1,21 @@
 // BuddyPlanner PRO 웹 결제 로직 (로드플래너 payments 함수를 바탕으로 함)
 // 금액은 서버가 정하고, 토스 승인 결과를 서버가 확인한 뒤에만 PRO 기간을 늘립니다.
-// 1회 결제 = 1개월 이용권 (자동결제 아님). 이미 PRO면 남은 기간 뒤에 이어 붙입니다.
-export const PRICE = { monthly: 4900 };
-export const ORDER_NAME = 'BuddyPlanner PRO (1개월)';
+// 화면은 로드플래너 개인 매니저와 같이 "매달 자동결제" 기준 (토스 빌링 연결 전에는 1회 결제 = 1개월, 남은 기간 뒤에 이어 붙임)
+export const PRICE = { monthly: 4900 };   // 부가세 포함
+export const ORDER_NAME = 'BuddyPlanner PRO (월 정기)';
 export const DOCS_TEST_SECRET = 'test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6'; // 토스 문서 공개 테스트 키 (실제 돈 안 나감)
 
 export class PayError extends Error {
   status: number; code: string;
   constructor(status: number, code: string, message: string) { super(message); this.status = status; this.code = code; }
+}
+
+// 주문번호: 문의·환불 때 불러 주기 쉽게 "BP-날짜(한국)-영문숫자 6자리" (예: BP-20261110-8F3K2A)
+export function makeOrderId(now: Date) {
+  const k = new Date(now.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/-/g, '');
+  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 헷갈리는 0·O·1·I 빼고
+  const r = crypto.getRandomValues(new Uint8Array(6));
+  return `BP-${k}-${Array.from(r, (b) => abc[b % abc.length]).join('')}`;
 }
 
 export function addMonth(from: Date) {
@@ -20,7 +28,7 @@ export function addMonth(from: Date) {
 // toss: (paymentKey, orderId, amount) => { ok, status, body }
 export async function handle(action: string, body: Record<string, unknown>, userId: string, db: any, toss: any, mode: string, now = new Date()) {
   if (action === 'prepare') {
-    const orderId = `BP-PRO-${now.getTime()}-${crypto.randomUUID().slice(0, 8)}`;
+    const orderId = makeOrderId(now);
     await db.insertPayment({ order_id: orderId, user_id: userId, amount: PRICE.monthly, order_name: ORDER_NAME, status: 'READY', mode });
     return { orderId, amount: PRICE.monthly, orderName: ORDER_NAME, mode };
   }

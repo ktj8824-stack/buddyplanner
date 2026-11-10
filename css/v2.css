@@ -594,6 +594,14 @@ body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
 .upg-plan-web b{font-size:1.0625rem;font-weight:800;color:var(--v2-navy)}
 .upg-plan-web span{font-size:1.375rem;font-weight:900;color:var(--v2-navy)}
 .upg-web-note{font-size:0.8125rem;color:#5b6475;margin:0 4px 12px;line-height:1.5}
+.upg-agree{display:flex;gap:10px;align-items:flex-start;padding:14px 16px;margin:10px 0;border:1px solid #e3e7ee;border-radius:14px;background:#fff;cursor:pointer;font-size:0.875rem;font-weight:700;color:var(--v2-navy);line-height:1.5;text-align:left}
+.upg-agree input{-webkit-appearance:checkbox;appearance:auto;display:inline-block;opacity:1;position:static;width:22px;height:22px;flex-shrink:0;accent-color:var(--v2-green);margin-top:1px}
+.upg-agree small{display:block;font-weight:500;color:#5b6475;font-size:0.78rem}
+.pay-rows{width:100%;text-align:left;border:1px solid #e3e7ee;border-radius:14px;padding:4px 14px;margin:4px 0 12px}
+.pay-rows div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2f5;font-size:0.875rem}
+.pay-rows div:last-child{border-bottom:none}
+.pay-rows span{color:#5b6475}.pay-rows b{color:var(--v2-navy);text-align:right;word-break:break-all}
+.pay-fail-reason{width:100%;text-align:left;background:#fff4f2;color:#a63a24;border-radius:12px;padding:10px 12px;font-size:0.875rem;line-height:1.5;margin-bottom:12px}
 #toss-methods,#toss-agreement{margin:0 -8px}
 
 /* 럭키드로우: 출석·포인트 안내·연장 */
