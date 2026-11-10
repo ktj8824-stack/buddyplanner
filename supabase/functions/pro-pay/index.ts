@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
       getPayment: async (id: string) => must(await db.from('bp_pro_payments').select('*').eq('order_id', id).maybeSingle()),
       insertPayment: async (row: unknown) => must(await db.from('bp_pro_payments').insert(row)),
       updatePayment: async (id: string, patch: unknown) => must(await db.from('bp_pro_payments').update(patch).eq('order_id', id)),
+      finishPayment: async (id: string, patch: unknown) => ((must(await db.from('bp_pro_payments').update(patch).eq('order_id', id).eq('status', 'READY').select('order_id')) as unknown[]) || []).length > 0,
       proUntil: async (uid: string, m: string) => must(await db.rpc('bp_web_pro_until', { p_user: uid, p_mode: m })) as string | null,
       recentPayments: async (uid: string) => must(await db.from('bp_pro_payments').select('order_id, amount, status, method, approved_at, period_end, mode, created_at').eq('user_id', uid).neq('status', 'READY').order('created_at', { ascending: false }).limit(12)),
     };

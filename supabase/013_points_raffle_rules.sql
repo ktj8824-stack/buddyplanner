@@ -45,6 +45,8 @@ create or replace function public._expire_points(p_user uuid)
 returns integer language plpgsql security definer set search_path = '' as $$
 declare days int := public._setting('point_expire_days', '365')::int; old_earned int; spent int; n int;
 begin
+  -- 같은 사람 소멸 계산이 동시에 두 번 돌아 두 번 빠지지 않게 (enter_raffle 과 같은 잠금, 2026-11-11 점검)
+  perform pg_advisory_xact_lock(hashtext('pts:' || p_user::text));
   select coalesce(sum(delta), 0) into old_earned from public.point_ledger
     where user_id = p_user and delta > 0 and created_at < now() - make_interval(days => days);
   if old_earned = 0 then return 0; end if;
