@@ -78,13 +78,7 @@ const Raffle = {
     }
 
     el.innerHTML = `
-      <div class="header">
-        <button class="back-btn" onclick="App.navigate('home')" aria-label="뒤로">
-          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <div class="header-title">포인트 럭키드로우</div>
-        <div style="width:24px;"></div>
-      </div>
+      <div class="v2-pagehead"><button class="v2-iconbtn" style="margin-left:-10px;" onclick="App.navigate('home')" aria-label="뒤로가기"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button><h1 style="font-size:1.25rem;">럭키드로우</h1></div>
       <div class="screen-scroll bg-light rf-wrap">
         <div class="rf-points">
           <div>

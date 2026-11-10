@@ -200,17 +200,23 @@ const Home = {
     const pm = Points.meta();
     const third = App.COMMUNITY_OPEN
       ? `<div class="v2-tile" onclick="App.navigate('community')"><i class="img" style="background:#faf5ff"><img src="img/icons/community.png?v=1" alt=""></i><span>커뮤니티</span></div>`
-      : `<div class="v2-tile" onclick="App.navigate('raffle')"><i class="img" style="background:#faf5ff"><img src="img/icons/raffle.png?v=1" alt=""></i><span>럭키드로우</span></div>`;
+      : '';
 
     el.innerHTML = `
       <div class="screen-scroll dash-scroll bg-light">
         ${heroHtml}
         <div class="home-glounge-sheet v2-home-sheet">
         <div class="v2-home-body">
-          <div class="v2-new-card" onclick="App.navigate('register')">
-            <div class="v2-new-ico img"><img src="img/icons/register.png?v=1" alt=""></div>
-            <div style="flex:1; min-width:0;"><b>새 라운딩 등록</b><small>골프장, 티오프만 넣으면 출발시간 자동계산</small></div>
-            <span class="v2-chev">${ico.chev}</span>
+          <div class="v2-new-pair">
+            <div class="v2-new-card" onclick="App.navigate('register')">
+              <div class="v2-new-ico img"><img src="img/icons/register.png?v=1" alt=""></div>
+              <div class="v2-new-txt"><b>새 라운딩 등록</b><small>출발시간 자동계산</small></div>
+            </div>
+            <div class="v2-new-card" onclick="Group.openList()">
+              <b class="pro-tag">PRO</b>
+              <div class="v2-new-ico img" style="background:#fef9c3"><img src="img/icons/group.png?v=1" alt=""></div>
+              <div class="v2-new-txt"><b>단체 등록</b><small>링크로 한 번에 공유</small></div>
+            </div>
           </div>
           <div class="v2-card">
             <div class="v2-week-head"><span class="v2-h2">이번 주</span><button class="v2-link" onclick="App.navigate('calendar')">전체 일정</button></div>
@@ -218,7 +224,7 @@ const Home = {
           </div>
           ${scoreHtml}
           <div class="v2-tiles">
-            <div class="v2-tile" onclick="Group.openList()"><b class="pro-tag">PRO</b><i class="img" style="background:#fef9c3"><img src="img/icons/group.png?v=1" alt=""></i><span>단체등록</span></div>
+            <div class="v2-tile" onclick="App.navigate('raffle')"><i class="img" style="background:#fdf2f8"><img src="img/icons/raffle.png?v=1" alt=""></i><span>럭키드로우</span></div>
             <div class="v2-tile" onclick="App.navigate('restaurant')"><i class="img" style="background:#fff7ed"><img src="img/icons/restaurant.png?v=1" alt=""></i><span>추천맛집</span></div>
             ${third}
             <div class="v2-tile" onclick="App.navigate('market')"><i class="img" style="background:#ecfeff"><img src="img/icons/market.png?v=1" alt=""></i><span>마켓</span></div>

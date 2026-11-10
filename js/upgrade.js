@@ -16,8 +16,8 @@ const Upgrade = {
 
     el.innerHTML = `
       <div class="header" style="background:transparent; border-bottom:none; position:absolute; width:100%; z-index:10;">
-        <button class="header-btn" onclick="App.navigate('profile')" aria-label="뒤로가기">
-          <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <button class="v2-iconbtn" style="margin:calc(env(safe-area-inset-top, 0px) + 10px) 0 0 10px;" onclick="App.navigate(App.prevScreen && App.prevScreen !== 'upgrade' ? App.prevScreen : 'home')" aria-label="뒤로가기">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
       </div>
 
