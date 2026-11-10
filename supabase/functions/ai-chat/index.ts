@@ -9,6 +9,7 @@
 // 필요한 비밀값 (supabase secrets set ...):
 //   ANTHROPIC_API_KEY, KAKAO_REST_API_KEY, REVENUECAT_SECRET_KEY
 // 선택: AI_ALLOW_ALL_USERS=true (RevenueCat 연결 전 테스트용, 출시 전 반드시 삭제)
+//       PRO_PAY_TEST_OK=true (웹 테스트 결제로 산 PRO도 인정, 출시 전 삭제)
 //       AI_DAILY_CHAT_LIMIT (기본 60), AI_DAILY_IMAGE_LIMIT (기본 15)
 // 자동 제공: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 // =====================================================================
@@ -330,6 +331,13 @@ async function getUser(env: Env, authHeader: string, f: typeof fetch) {
 
 async function isPro(env: Env, userId: string, f: typeof fetch): Promise<boolean> {
   if (env.AI_ALLOW_ALL_USERS === 'true') return true;
+  // 웹 결제(토스) PRO — 실결제(live)만 인정, 테스트 결제는 PRO_PAY_TEST_OK=true일 때만
+  try {
+    for (const m of env.PRO_PAY_TEST_OK === 'true' ? ['live', 'test'] : ['live']) {
+      const until = await rpc(env, 'bp_web_pro_until', { p_user: userId, p_mode: m }, f);
+      if (until && Date.parse(String(until)) > Date.now()) return true;
+    }
+  } catch (_) { /* 웹 결제 확인 실패 → 앱 결제(RevenueCat)로 확인 */ }
   if (!env.REVENUECAT_SECRET_KEY) return false;
   const res = await f(`https://api.revenuecat.com/v1/subscribers/${encodeURIComponent(userId)}`, {
     headers: { Authorization: `Bearer ${env.REVENUECAT_SECRET_KEY}` },

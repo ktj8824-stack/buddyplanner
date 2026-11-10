@@ -57,6 +57,7 @@ const App = {
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     // 구글 플레이 결제(RevenueCat)로 실제 구독 상태 확인 (비동기)
     Billing.init();
+    if (typeof Upgrade !== 'undefined' && !Billing.isNative()) setTimeout(() => Upgrade.handleReturn(), 600);   // 웹 결제(토스)에서 돌아온 경우
 
     // Automatically schedule alarms for today's events in the background
     Timeline.autoScheduleAllAlarms();

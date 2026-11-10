@@ -2,7 +2,8 @@
    BuddyPlanner — 결제 (구글 플레이 결제 + RevenueCat)
 
    - 실제 결제는 구글 플레이가 처리하고, 결제 검증·구독 상태는 RevenueCat이 관리합니다.
-   - PRO 여부는 RevenueCat의 "pro" 권한(Entitlement)이 활성인지로만 판단합니다.
+   - PRO 여부 = 앱 결제(RevenueCat "pro" 권한) 또는 웹 결제(buddyplanner.kr 토스페이먼츠, 서버 pro-pay 함수) 중 하나라도 유효.
+   - 웹 결제는 웹에서만 열립니다. 앱 안에서는 웹 결제로 안내하지 않고, 웹에서 산 PRO를 인정만 합니다 (앱스토어 규정).
    - localStorage에는 오프라인 시작용 캐시만 저장하며, 앱이 켜질 때마다 서버 기준으로 다시 맞춥니다.
    ========================================= */
 
@@ -15,6 +16,12 @@ const Billing = {
   packages: { monthly: null, annual: null },
   activeEntitlement: null,        // { expirationDate, willRenew, productIdentifier, ... }
   _lastRefresh: 0,
+  WEB_PRICE: 4900,                // 웹 결제 PRO 1개월 (서버 pro-pay 함수가 실제 금액을 정함)
+  rcPro: false,                   // 앱 결제(RevenueCat)로 PRO
+  webPro: false,                  // 웹 결제(토스)로 PRO
+  webProUntil: null,
+  payMode: null,                  // 'test' | 'live' (서버 결제 키 기준)
+  _lastWeb: 0,
 
   /* ── 환경 확인 ── */
   isNative() {
@@ -47,15 +54,14 @@ const Billing = {
   loadCachedStatus() {
     // 이전 버전의 가짜 결제 플래그는 더 이상 사용하지 않음
     localStorage.removeItem('bp_pro');
-    State.isPro = this.isNative() && localStorage.getItem(this.CACHE_KEY) === 'true';
+    State.isPro = localStorage.getItem(this.CACHE_KEY) === 'true';
   },
 
   async init() {
-    if (!this.isAvailable()) {
-      // 웹이거나 키가 없으면 PRO를 켤 방법이 없음
-      if (!this.isNative()) this._setPro(false);
-      return;
-    }
+    // 웹 결제 PRO는 앱·웹 모두에서 확인 (로그인한 경우)
+    this.refreshWebPro(true);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.refreshWebPro(); });
+    if (!this.isAvailable()) return;
     try {
       // 클라우드 로그인 사용자는 Supabase 사용자 ID로 결제 계정을 연결 (서버가 PRO 여부를 확인할 수 있게)
       const uid = (typeof Cloud !== 'undefined' && Cloud.userId()) || null;
@@ -94,7 +100,34 @@ const Billing = {
     const active = info && info.entitlements && info.entitlements.active;
     const ent = active ? active[this.ENTITLEMENT_ID] : null;
     this.activeEntitlement = ent || null;
-    this._setPro(!!ent);
+    this.rcPro = !!ent;
+    this._setPro(this.rcPro || this.webPro);
+  },
+
+  /* ── 웹 결제(토스) PRO ── */
+  async payApi(action, extra = {}) {
+    if (typeof Cloud === 'undefined' || !Cloud.isSignedIn()) { const e = new Error('로그인이 필요해요.'); e.code = 'LOGIN'; throw e; }
+    return await Cloud._api('functions/v1/pro-pay', { method: 'POST', body: Object.assign({ action }, extra) });
+  },
+
+  async refreshWebPro(force = false) {
+    if (typeof Cloud === 'undefined' || !Cloud.isSignedIn()) {
+      this.webPro = false; this.webProUntil = null;
+      if (!this.rcPro && (!this.isNative() || !this.isAvailable())) this._setPro(false);
+      return false;
+    }
+    if (!force && Date.now() - this._lastWeb < 60 * 1000) return this.webPro;
+    this._lastWeb = Date.now();
+    try {
+      const r = await this.payApi('status');
+      this.webPro = !!(r && r.active);
+      this.webProUntil = (r && r.proUntil) || null;
+      this.payMode = (r && r.mode) || null;
+      this._setPro(this.rcPro || this.webPro);
+    } catch (e) {
+      console.warn('[Billing] 웹 결제 상태 확인 실패:', e && e.message);   // 네트워크 오류 시 캐시 유지
+    }
+    return this.webPro;
   },
 
   _setPro(isPro) {
@@ -164,10 +197,13 @@ const Billing = {
       this._applyCustomerInfo(res && (res.customerInfo || res));
     } catch (e) { console.warn('[Billing] 결제 계정 연결 실패', e); }
   },
+  /** 로그인 직후 공통: 앱 결제 연결 + 웹 결제 PRO 확인 */
+  async onSignedIn() { await this.linkCloudUser(); await this.refreshWebPro(true); },
 
   /** 로그아웃: 결제 계정을 익명으로 되돌림 */
   async unlinkCloudUser() {
-    if (!this.configured) return;
+    this.webPro = false; this.webProUntil = null;
+    if (!this.configured) { this._setPro(false); return; }
     try {
       const res = await this.plugin().logOut();
       this._applyCustomerInfo(res && (res.customerInfo || res));

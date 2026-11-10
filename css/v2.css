@@ -588,3 +588,10 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .gnb-ai-btn-bubble{position:relative}
 .gnb-ai-btn-bubble .pro-tag{top:-6px;right:-10px;border:2px solid #fff;height:19px}
 body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
+
+/* PRO 웹 결제 (토스) */
+.upg-plan-web{display:flex;justify-content:space-between;align-items:baseline;padding:16px 18px;border:2px solid var(--v2-green);border-radius:16px;background:#f0fbf6;margin-bottom:10px}
+.upg-plan-web b{font-size:1.0625rem;font-weight:800;color:var(--v2-navy)}
+.upg-plan-web span{font-size:1.375rem;font-weight:900;color:var(--v2-navy)}
+.upg-web-note{font-size:0.8125rem;color:#5b6475;margin:0 4px 12px;line-height:1.5}
+#toss-methods,#toss-agreement{margin:0 -8px}

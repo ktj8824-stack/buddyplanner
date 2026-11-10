@@ -91,14 +91,9 @@ const Upgrade = {
       return;
     }
 
-    // 2) 웹(PWA): 결제는 앱에서만 가능
+    // 2) 웹(buddyplanner.kr): 토스페이먼츠로 1개월 이용권 결제
     if (!Billing.isNative()) {
-      box.innerHTML = `
-        <div class="upg-notice">
-          <b>PRO 구독은 버디플래너 앱에서 할 수 있어요</b>
-          <p>${Billing.storeName()}에서 BuddyPlanner 앱을 설치한 뒤 구독해 주세요.</p>
-        </div>
-        <button class="btn-upg" onclick="Billing.openStoreListing()">${Billing.storeName()}에서 앱 받기</button>`;
+      this.renderWebPay(box);
       return;
     }
 
@@ -193,6 +188,17 @@ const Upgrade = {
   proStatusHTML() {
     const ent = Billing.activeEntitlement;
     let line = '모든 PRO 혜택을 이용하고 있어요.';
+    // 웹 결제로 산 PRO (앱 결제가 아닐 때)
+    if (!Billing.rcPro && Billing.webPro && Billing.webProUntil) {
+      const d = new Date(Billing.webProUntil);
+      const ds = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+      return `
+      <div class="upg-notice is-pro">
+        <b>👑 PRO 이용 중</b>
+        <p>${ds}까지 이용할 수 있어요. 자동으로 결제되지 않아요.</p>
+      </div>
+      ${!Billing.isNative() ? `<button class="btn-upg btn-upg-outline" onclick="Upgrade.renderWebPay(U.$('#upg-action'), true)">1개월 연장하기 (${Billing.WEB_PRICE.toLocaleString()}원)</button>` : ''}`;
+    }
     if (ent && ent.expirationDate) {
       const d = new Date(ent.expirationDate);
       const ds = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
@@ -263,7 +269,9 @@ const Upgrade = {
   async restore() {
     if (this.busy) return;
     if (!Billing.isAvailable()) {
-      U.toast('구매 복원은 안드로이드 앱에서 할 수 있어요.');
+      const ok = await Billing.refreshWebPro(true);
+      U.toast(ok ? '✅ PRO 이용 내역을 확인했어요.' : '복원할 구독 내역이 없어요.');
+      if (ok) this.render();
       return;
     }
     this.busy = true;
@@ -280,14 +288,120 @@ const Upgrade = {
     }
   },
 
-  showSuccess() {
+  /* ── 웹 결제 (토스페이먼츠 결제위젯) ── */
+  TOSS_SDK: 'https://js.tosspayments.com/v2/standard',
+  TOSS_DOCS_CLIENT_KEY: 'test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm',   // 토스 문서 공개 테스트 키 (실제 돈 안 나감)
+  _widgets: null,
+
+  tossClientKey() { return (window.APP_CONFIG || {}).TOSS_CLIENT_KEY || this.TOSS_DOCS_CLIENT_KEY; },
+
+  _loadToss() {
+    if (window.TossPayments) return Promise.resolve();
+    return new Promise((ok, fail) => {
+      const sc = document.createElement('script');
+      sc.src = this.TOSS_SDK; sc.onload = ok; sc.onerror = () => fail(new Error('토스 결제창을 불러오지 못했어요.'));
+      document.head.appendChild(sc);
+    });
+  },
+
+  async renderWebPay(box, extend = false) {
+    if (!box) return;
+    const price = Billing.WEB_PRICE;
+    if (typeof Cloud === 'undefined' || !Cloud.isSignedIn()) {
+      box.innerHTML = `
+        <div class="upg-plan-web"><b>PRO 1개월</b><span>${price.toLocaleString()}원</span></div>
+        <div class="upg-notice"><b>로그인 후 결제할 수 있어요</b><p>결제한 PRO는 같은 계정으로 로그인한 앱에서도 그대로 쓸 수 있어요.</p></div>
+        <button class="btn-upg" onclick="App.navigate('login')">로그인하기</button>`;
+      return;
+    }
+    const test = !(window.APP_CONFIG || {}).TOSS_CLIENT_KEY || /^test_/.test(this.tossClientKey());
+    box.innerHTML = `
+      <div class="upg-plan-web"><b>PRO 1개월${extend ? ' 연장' : ''}</b><span>${price.toLocaleString()}원</span></div>
+      <p class="upg-web-note">한 번 결제하면 1개월 동안 PRO를 쓸 수 있어요. 자동으로 다시 결제되지 않아요.${extend ? ' 남은 기간 뒤에 1개월이 더해져요.' : ''}</p>
+      ${test ? '<div class="upg-notice"><b>테스트 결제</b><p>지금은 테스트 모드라 실제로 돈이 나가지 않아요.</p></div>' : ''}
+      <div id="toss-methods"></div>
+      <div id="toss-agreement"></div>
+      <button class="btn-upg" id="upg-web-buy" onclick="Upgrade.payWeb()" disabled><span>결제창 준비 중...</span></button>
+      <div class="upg-links"><a href="./privacy.html">개인정보처리방침</a></div>`;
+    try {
+      await this._loadToss();
+      const toss = window.TossPayments(this.tossClientKey());
+      const customerKey = 'bp_' + String(Cloud.userId() || '').replace(/[^A-Za-z0-9_\-=.@]/g, '').slice(0, 40);
+      this._widgets = toss.widgets({ customerKey });
+      await this._widgets.setAmount({ currency: 'KRW', value: price });
+      await this._widgets.renderPaymentMethods({ selector: '#toss-methods', variantKey: 'DEFAULT' });
+      await this._widgets.renderAgreement({ selector: '#toss-agreement', variantKey: 'AGREEMENT' });
+      const b = U.$('#upg-web-buy'); if (b) { b.disabled = false; b.querySelector('span').textContent = `${price.toLocaleString()}원 결제하기`; }
+    } catch (e) {
+      console.error('[Upgrade] 토스 결제위젯 오류:', e);
+      const b = U.$('#upg-web-buy'); if (b) b.querySelector('span').textContent = '결제창을 불러오지 못했어요';
+      U.toast('결제창을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+    }
+  },
+
+  async payWeb() {
+    if (this.busy || !this._widgets) return;
+    this.busy = true;
+    const b = U.$('#upg-web-buy'); if (b) { b.disabled = true; b.querySelector('span').textContent = '결제창을 여는 중...'; }
+    try {
+      const order = await Billing.payApi('prepare');   // 금액·주문번호는 서버가 정함
+      await this._widgets.setAmount({ currency: 'KRW', value: order.amount });
+      const base = location.origin + location.pathname;
+      const u = Cloud.session() && Cloud.session().user;
+      await this._widgets.requestPayment({
+        orderId: order.orderId,
+        orderName: order.orderName,
+        successUrl: `${base}?pay=success`,
+        failUrl: `${base}?pay=fail`,
+        customerEmail: (u && u.email) || undefined,
+      });
+    } catch (e) {
+      if (e && (e.code === 'USER_CANCEL' || /취소/.test(e.message || ''))) U.toast('결제를 취소했어요.');
+      else { console.error('[Upgrade] 웹 결제 오류:', e); U.toast((e && e.message && e.message.length < 80) ? e.message : '결제 중 문제가 발생했어요.'); }
+      if (b) { b.disabled = false; b.querySelector('span').textContent = `${Billing.WEB_PRICE.toLocaleString()}원 결제하기`; }
+    } finally {
+      this.busy = false;
+    }
+  },
+
+  /** 토스 결제창에서 돌아왔을 때 (?pay=success&paymentKey=…&orderId=…&amount=…) — 앱 시작 시 한 번 */
+  async handleReturn() {
+    const q = new URLSearchParams(location.search);
+    const pay = q.get('pay');
+    if (!pay) return;
+    history.replaceState(null, document.title, location.pathname);
+    if (pay === 'fail') {
+      const msg = q.get('message');
+      U.toast(q.get('code') === 'PAY_PROCESS_CANCELED' ? '결제를 취소했어요.' : (msg ? `결제하지 못했어요: ${msg.slice(0, 60)}` : '결제하지 못했어요.'), 3500);
+      return;
+    }
+    const paymentKey = q.get('paymentKey'), orderId = q.get('orderId'), amount = Number(q.get('amount'));
+    if (!paymentKey || !orderId) return;
+    U.toast('결제를 확인하고 있어요...');
+    try {
+      const r = await Billing.payApi('confirm', { paymentKey, orderId, amount });
+      if (r && r.status === 'DONE') {
+        await Billing.refreshWebPro(true);
+        const d = new Date(r.periodEnd);
+        App.navigate('upgrade');
+        this.showSuccess(`${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일까지 PRO를 쓸 수 있어요.`);
+      } else if (r && r.status === 'WAITING_FOR_DEPOSIT') {
+        U.toast('입금을 기다리고 있어요. 입금이 확인되면 PRO가 적용돼요.', 4000);
+      }
+    } catch (e) {
+      console.error('[Upgrade] 결제 승인 오류:', e);
+      U.toast('결제 승인에 실패했어요. 돈이 빠져나갔다면 고객센터로 알려 주세요.', 4500);
+    }
+  },
+
+  showSuccess(detail) {
     App.showModal('구독 완료', `
       <div class="pay-success">
         <div class="pay-success-icon">
           <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
         <h3>PRO 회원이 되셨어요!</h3>
-        <p>지금부터 모든 프리미엄 혜택이 적용돼요.</p>
+        <p>${detail || '지금부터 모든 프리미엄 혜택이 적용돼요.'}</p>
         <button class="btn-primary" style="width:100%; margin-top:var(--sp-4);" onclick="App.closeModal(); App.navigate('profile');">확인</button>
       </div>
     `);
