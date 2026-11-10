@@ -213,9 +213,8 @@ const Home = {
               <div class="v2-new-txt"><b>새 라운딩 등록</b><small>출발시간 자동계산</small></div>
             </div>
             <div class="v2-new-card" onclick="Group.openList()">
-              <b class="pro-tag">PRO</b>
               <div class="v2-new-ico img" style="background:#fef9c3"><img src="img/icons/group.png?v=1" alt=""></div>
-              <div class="v2-new-txt"><b>단체 등록</b><small>링크로 한 번에 공유</small></div>
+              <div class="v2-new-txt"><b>단체 등록<i class="pro-tag inline">PRO</i></b><small>링크로 한 번에 공유</small></div>
             </div>
           </div>
           <div class="v2-card">

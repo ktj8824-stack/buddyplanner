@@ -612,10 +612,10 @@ body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
 .rf-how ul{margin:8px 0 2px;padding-left:18px;line-height:1.7}
 .rf-ext{font-size:0.75rem;color:#b45309;background:#fffbeb;border-radius:8px;padding:6px 8px;margin:6px 0}
 
-/* 홈: 새 라운딩 등록 + 단체 등록 2칸 */
+/* 홈: 새 라운딩 등록 + 단체 등록 2칸 (아이콘 왼쪽 · 글자 오른쪽) */
 .v2-new-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.v2-new-pair .v2-new-card{position:relative;flex-direction:column;align-items:flex-start;gap:10px;padding:14px}
-.v2-new-pair .v2-new-txt{min-width:0;width:100%}
-.v2-new-pair .v2-new-card b{font-size:1rem;white-space:nowrap}
-.v2-new-pair .v2-new-card small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.v2-new-pair .v2-new-card b.pro-tag{display:inline-flex;font-size:0.625rem;font-weight:900;top:10px;right:10px}
+.v2-new-pair .v2-new-card{gap:10px;padding:12px}
+.v2-new-pair .v2-new-txt{min-width:0;flex:1}
+.v2-new-pair .v2-new-card b{display:flex;align-items:center;font-size:0.95rem;white-space:nowrap;letter-spacing:-0.3px}
+.v2-new-pair .v2-new-card small{font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2-new-pair .pro-tag.inline{margin-left:5px;height:16px;padding:0 5px;font-size:0.6rem;box-shadow:none}
