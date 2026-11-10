@@ -65,3 +65,29 @@
 .adm-apps-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
 .adm-app-tags { display: flex; gap: 4px; flex-wrap: wrap; margin: 2px 0 4px; }
 .adm-app-tags span { font-size: 10.5px; font-weight: 700; color: #475569; background: #f1f5f9; border-radius: 6px; padding: 1px 6px; }
+
+/* 관리자 탭 + 럭키드로우 회차 관리 */
+.adm-tabs{margin-bottom:12px}
+.arf-card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.arf-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+.arf-top b{font-size:16px;color:#0f172a}
+.arf-st{font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;background:#e8f7f1;color:#0f8a63;white-space:nowrap}
+.arf-st.drawn{background:#eef2ff;color:#4338ca}.arf-st.cancelled{background:#f1f5f9;color:#64748b}
+.arf-sub{font-size:13px;color:#475569;line-height:1.55;margin-top:2px}
+.arf-tag{display:inline-block;font-size:11px;font-weight:800;color:#b45309;background:#fef3c7;border-radius:6px;padding:1px 6px}
+.arf-prog{height:8px;border-radius:99px;background:#f1f5f9;overflow:hidden;margin:10px 0 4px}
+.arf-prog i{display:block;height:100%;background:#12b886;border-radius:99px}
+.arf-acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.arf-acts button,.arf-w button{border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:7px 12px;font-size:13px;font-weight:700;color:#0f172a}
+.arf-acts button.danger{color:#b91c1c;border-color:#fecaca}
+.arf-win{margin-top:12px;border-top:1px dashed #e2e8f0;padding-top:10px;display:flex;flex-direction:column;gap:10px}
+.arf-w{font-size:13px;color:#0f172a}
+.arf-w button{margin-top:6px;margin-right:6px}
+.arf-wst{font-size:12px;color:#64748b;margin-left:4px}
+.arf-ship{font-size:12.5px;color:#334155;background:#f8fafc;border-radius:8px;padding:6px 8px;margin-top:4px;line-height:1.5}
+.arf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.arf-check{display:flex;gap:8px;align-items:flex-start;font-size:13.5px;font-weight:700;color:#0f172a;margin:14px 0 4px;line-height:1.4}
+.arf-check input{margin-top:2px;width:18px;height:18px}
+.arf-row > div{min-width:0}
+.arf-row .adm-input,.adm-sheet input[type=datetime-local]{width:100%;min-width:0;box-sizing:border-box}
+.arf-check input[type=checkbox]{-webkit-appearance:checkbox;appearance:auto;display:inline-block;opacity:1;position:static;flex:0 0 auto;accent-color:#12b886}

@@ -422,9 +422,10 @@
 
 /* ── 전체 메뉴 시트 ── */
 .menu-sheet { display: flex; flex-direction: column; gap: 4px; padding: 4px 0 8px; }
-.menu-sheet-item { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 8px; border-radius: 14px; background: none; border: none; text-align: left; color: var(--text-400); }
+.menu-sheet-item { display: flex; align-items: center; gap: 14px; width: 100%; padding: 10px 8px; border-radius: 14px; background: none; border: none; text-align: left; color: var(--text-400); }
 .menu-sheet-item:active { background: var(--bg-input); }
-.menu-sheet-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; font-size: 22px; flex: none; }
+.menu-sheet-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; font-size: 24px; flex: none; }
+.menu-sheet-icon img { width: 34px; height: 34px; object-fit: contain; pointer-events: none; }
 .menu-sheet-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.menu-sheet-text b { font-size: 16px; color: var(--text-100); }
+.menu-sheet-text b { font-size: 16px; font-weight: 800; color: var(--text-100); letter-spacing: -0.3px; }
 .menu-sheet-text small { font-size: 13px; color: var(--text-500); }

@@ -521,6 +521,7 @@ const Ratings = {
       }]
     });
     delete this._cache[this.key(name)];
+    if (typeof Points !== 'undefined') setTimeout(() => Points.noticeEarned('맛집 별점'), 800);
     return true;
   },
 

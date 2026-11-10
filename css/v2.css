@@ -588,3 +588,34 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .gnb-ai-btn-bubble{position:relative}
 .gnb-ai-btn-bubble .pro-tag{top:-6px;right:-10px;border:2px solid #fff;height:19px}
 body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
+
+/* PRO 웹 결제 (토스) */
+.upg-plan-web{display:flex;justify-content:space-between;align-items:baseline;padding:16px 18px;border:2px solid var(--v2-green);border-radius:16px;background:#f0fbf6;margin-bottom:10px}
+.upg-plan-web b{font-size:1.0625rem;font-weight:800;color:var(--v2-navy)}
+.upg-plan-web span{font-size:1.375rem;font-weight:900;color:var(--v2-navy)}
+.upg-web-note{font-size:0.8125rem;color:#5b6475;margin:0 4px 12px;line-height:1.5}
+.upg-agree{display:flex;gap:10px;align-items:flex-start;padding:14px 16px;margin:10px 0;border:1px solid #e3e7ee;border-radius:14px;background:#fff;cursor:pointer;font-size:0.875rem;font-weight:700;color:var(--v2-navy);line-height:1.5;text-align:left}
+.upg-agree input{-webkit-appearance:checkbox;appearance:auto;display:inline-block;opacity:1;position:static;width:22px;height:22px;flex-shrink:0;accent-color:var(--v2-green);margin-top:1px}
+.upg-agree small{display:block;font-weight:500;color:#5b6475;font-size:0.78rem}
+.pay-rows{width:100%;text-align:left;border:1px solid #e3e7ee;border-radius:14px;padding:4px 14px;margin:4px 0 12px}
+.pay-rows div{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2f5;font-size:0.875rem}
+.pay-rows div:last-child{border-bottom:none}
+.pay-rows span{color:#5b6475}.pay-rows b{color:var(--v2-navy);text-align:right;word-break:break-all}
+.pay-fail-reason{width:100%;text-align:left;background:#fff4f2;color:#a63a24;border-radius:12px;padding:10px 12px;font-size:0.875rem;line-height:1.5;margin-bottom:12px}
+#toss-methods,#toss-agreement{margin:0 -8px}
+
+/* 럭키드로우: 출석·포인트 안내·연장 */
+.rf-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.rf-att.done{opacity:.55}
+.rf-how{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:10px 14px;margin:0 0 12px;font-size:0.8125rem;color:#334155}
+.rf-how summary{font-weight:800;color:#0b1d45;cursor:pointer}
+.rf-how ul{margin:8px 0 2px;padding-left:18px;line-height:1.7}
+.rf-ext{font-size:0.75rem;color:#b45309;background:#fffbeb;border-radius:8px;padding:6px 8px;margin:6px 0}
+
+/* 홈: 새 라운딩 등록 + 단체 등록 2칸 (아이콘 왼쪽 · 글자 오른쪽) */
+.v2-new-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.v2-new-pair .v2-new-card{gap:10px;padding:12px}
+.v2-new-pair .v2-new-txt{min-width:0;flex:1}
+.v2-new-pair .v2-new-card b{display:flex;align-items:center;font-size:0.95rem;white-space:nowrap;letter-spacing:-0.3px}
+.v2-new-pair .v2-new-card small{font-size:0.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2-new-pair .pro-tag.inline{margin-left:5px;height:16px;padding:0 5px;font-size:0.6rem;box-shadow:none}

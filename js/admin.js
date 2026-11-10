@@ -66,11 +66,31 @@ const Admin = {
   appName(k) { const a = this.APPS.find(x => x[0] === k); return a ? a[1] : k; },
   setAppFilter(k) { this.appFilter = k; this.render(); },
 
+  tab: 'market',
+  setTab(k) {
+    this.tab = k;
+    if (k === 'raffle' && typeof AdminRaffle !== 'undefined' && !AdminRaffle.list.length && !AdminRaffle.loading) AdminRaffle.load();
+    this.render();
+  },
+
   render() {
     const screen = document.getElementById('screen-admin');
     if (!screen) return;
     const n = this.items.length;
     let body;
+    const tabs = `<div class="adm-apps-tabs adm-tabs">${[['market', '마켓 상품'], ['raffle', '럭키드로우']].map(([k, l]) =>
+      `<button class="adm-chip ${this.tab === k ? 'on' : ''}" onclick="Admin.setTab('${k}')">${l}</button>`).join('')}</div>`;
+    if (this.tab === 'raffle' && typeof AdminRaffle !== 'undefined') {
+      screen.innerHTML = `
+      <div class="adm-wrap">
+        <div class="adm-head">
+          <div class="adm-head-title">관리자</div>
+          <button class="adm-close" onclick="App.navigate('profile')" aria-label="닫기">✕</button>
+        </div>
+        <div class="adm-body">${tabs}${AdminRaffle.render()}</div>
+      </div>`;
+      return;
+    }
     if (this.loading && !n) body = `<div class="adm-empty"><div class="spinner" style="margin:0 auto;"></div></div>`;
     else if (this.error) body = `<div class="adm-empty">${U.esc(this.error)}</div>`;
     else if (!n) body = `<div class="adm-empty">아직 등록된 상품이 없어요.<br>위 버튼으로 첫 상품을 추가해 보세요.</div>`;
@@ -86,10 +106,11 @@ const Admin = {
     screen.innerHTML = `
       <div class="adm-wrap">
         <div class="adm-head">
-          <div class="adm-head-title">마켓 상품 관리</div>
+          <div class="adm-head-title">관리자</div>
           <button class="adm-close" onclick="App.navigate('profile')" aria-label="닫기">✕</button>
         </div>
         <div class="adm-body">
+          ${tabs}
           <button class="adm-add" onclick="Admin.openEditor()" ${this.error ? 'disabled' : ''}>＋ 쿠팡 상품 추가</button>
           ${body}
         </div>

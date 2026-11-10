@@ -57,6 +57,7 @@ const App = {
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     // 구글 플레이 결제(RevenueCat)로 실제 구독 상태 확인 (비동기)
     Billing.init();
+    if (typeof Upgrade !== 'undefined' && !Billing.isNative()) setTimeout(() => Upgrade.handleReturn(), 600);   // 웹 결제(토스)에서 돌아온 경우
 
     // Automatically schedule alarms for today's events in the background
     Timeline.autoScheduleAllAlarms();
@@ -144,6 +145,7 @@ const App = {
 
   navigate(name) {
     if (!this.screens.includes(name)) return;
+    if (State.screen && State.screen !== name) this.prevScreen = State.screen;
     if (name === 'community' && !this.COMMUNITY_OPEN) { U.toast('커뮤니티는 곧 오픈해요!'); return; }
     // 일정 수정 중 다른 화면으로 나가면 수정 상태를 끝냄 (다음 '일정등록'이 새 일정으로 열리게)
     if (name !== 'register' && typeof Register !== 'undefined') Register.editIdx = null;
@@ -313,17 +315,17 @@ const App = {
   /** 상단 ≡ 전체 메뉴: 하단 탭에 없는 화면으로 이동 */
   openMenu() {
     const items = [
-      ...(this.COMMUNITY_OPEN ? [{ s: 'community', icon: '💬', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' }] : []),
-      { s: 'market', icon: '🛍️', name: '버디 마켓', desc: '골프용품 · 차량용품' },
-      { s: 'raffle', icon: '🎁', name: '포인트 럭키드로우', desc: '무료 포인트로 응모' },
-      { s: 'restaurant', icon: '🍽️', name: '추천 맛집', desc: '골프장 근처 식당' },
-      { s: 'upgrade', icon: '👑', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 단체 등록 · 무제한 일정 · 당일 예보 · 광고 제거' }
+      ...(this.COMMUNITY_OPEN ? [{ s: 'community', img: 'community', bg: '#faf5ff', name: '버디 커뮤니티', desc: '조인 모집 · 라운딩 후기' }] : []),
+      { s: 'market', img: 'market', bg: '#ecfeff', name: '버디 마켓', desc: '골프용품 · 차량용품' },
+      { s: 'raffle', img: 'raffle', bg: '#fdf2f8', name: '럭키드로우', desc: '무료 포인트로 경품 응모' },
+      { s: 'restaurant', img: 'restaurant', bg: '#fff7ed', name: '추천 맛집', desc: '골프장 근처 식당' },
+      { s: 'upgrade', icon: '👑', bg: '#fef9c3', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 단체 등록 · 광고 제거' }
     ];
     this.showModal('전체 메뉴', `
       <div class="menu-sheet">
         ${items.map(i => `
           <button class="menu-sheet-item" onclick="App.closeModal(); App.navigate('${i.s}')">
-            <span class="menu-sheet-icon">${i.icon}</span>
+            <span class="menu-sheet-icon" style="background:${i.bg}">${i.img ? `<img src="img/icons/${i.img}.png?v=1" alt="">` : i.icon}</span>
             <span class="menu-sheet-text"><b>${i.name}</b><small>${i.desc}</small></span>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
           </button>`).join('')}

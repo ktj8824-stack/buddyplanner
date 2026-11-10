@@ -1008,6 +1008,7 @@ const Record = {
       this.render();
       this.selectDate(dd);
       U.toast('라운딩 기록을 저장했어요 ⛳');
+      if (rec.score && rec.diary && typeof Points !== 'undefined') setTimeout(() => Points.earnRound(key), 1500);   // 라운딩 후기 포인트
     } catch (e) {
       console.error(e);
       U.toast('저장 중 문제가 생겼어요. 사진 수를 줄여 다시 시도해 주세요.');

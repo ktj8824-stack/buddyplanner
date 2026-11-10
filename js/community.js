@@ -241,7 +241,7 @@ const Community = {
       const r = official
         ? await this.rpc('community_create_official_post', { ...body, p_pin: true })
         : await this.rpc('community_create_post', { p_author: this.myName(), ...body });
-      if (r && r.ok) { App.closeModal(); U.toast('글을 올렸어요.'); this.cat = k; this.load(true); return; }
+      if (r && r.ok) { App.closeModal(); U.toast('글을 올렸어요.'); this.cat = k; this.load(true); if (!official && typeof Points !== 'undefined') setTimeout(() => Points.noticeEarned('글쓰기'), 1200); return; }
       U.toast(msg[r && r.error] || '글을 올리지 못했어요.');
     } catch (e) { U.toast('글을 올리지 못했어요. 인터넷 연결을 확인해 주세요.'); }
     btn.disabled = false; btn.textContent = '올리기';
