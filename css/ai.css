@@ -188,7 +188,7 @@
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 18px 16px 165px 16px;
+  padding: 18px 16px 157px 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -654,7 +654,7 @@
 /* ── Bottom Input Bar Wrap (Floating Pill) ── */
 .ai-input-bar-wrap {
   position: absolute;
-  bottom: calc(var(--nav-h) + 32px); /* 가운데 버디 AI 버튼·PRO 표시와 겹치지 않게 */
+  bottom: calc(var(--nav-h) + 24px); /* 가운데 버디 AI 버튼·PRO 표시와 겹치지 않게 */
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
