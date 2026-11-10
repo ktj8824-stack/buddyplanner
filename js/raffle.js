@@ -91,8 +91,21 @@ const Raffle = {
             <div class="rf-points-label">내 포인트</div>
             <div class="rf-points-val"><span data-points>${signedIn ? Points.balance().toLocaleString() : '-'}</span> P</div>
           </div>
-          <button class="rf-ad-btn" onclick="Profile.watchAd()">광고 보고 ${pm.ad_points}P <span data-ad-count>${pm.ad_today}/${pm.ad_limit}</span></button>
+          <div class="rf-btns">
+            <button class="rf-ad-btn rf-att ${pm.attended_today ? 'done' : ''}" onclick="Points.checkIn()" ${pm.attended_today ? 'disabled' : ''}>${pm.attended_today ? '출석 완료' : `출석 +${pm.rules.attend}P`}</button>
+            <button class="rf-ad-btn" onclick="Profile.watchAd()">광고 보고 ${pm.ad_points}P <span data-ad-count>${pm.ad_today}/${pm.ad_limit}</span></button>
+          </div>
         </div>
+        <details class="rf-how"><summary>포인트 모으는 방법</summary>
+          <ul>
+            <li>출석 체크 ${pm.rules.attend}P · ${pm.rules.streak_days}일 연속이면 +${pm.rules.streak_bonus}P</li>
+            <li>광고 끝까지 보기 ${pm.ad_points}P · 하루 ${pm.ad_limit}번</li>
+            <li>라운딩 후기 (스코어 + 한 줄 일기) ${pm.rules.round}P · 하루 1번</li>
+            <li>맛집 별점 남기기 ${pm.rules.food}P · 하루 ${pm.rules.food_limit}번, 같은 식당은 1번</li>
+            <li>커뮤니티 글쓰기 ${pm.rules.post}P · 하루 ${pm.rules.post_limit}번 (삭제·숨김 시 회수)</li>
+            <li>포인트는 쌓인 날부터 1년 뒤 사라져요${pm.expiring_soon ? ` · <b>30일 안에 ${pm.expiring_soon.toLocaleString()}P 소멸 예정</b>` : ''}</li>
+          </ul>
+        </details>
         <div class="rf-notice">무료로 모은 포인트로만 응모해요. 포인트는 돈으로 판매하지 않아요.</div>
         ${body}
         <div style="height:calc(var(--safe-bottom, 0px) + 40px);"></div>
@@ -102,7 +115,9 @@ const Raffle = {
   },
 
   cardOpen(r) {
-    const pct = Math.min(100, Math.round((r.entries / r.max_entries) * 100));
+    const goal = r.min_entries > 0 ? r.min_entries : (r.max_entries < 100000 ? r.max_entries : 0);
+    const pct = goal ? Math.min(100, Math.round((r.entries / goal) * 100)) : 100;
+    const need = r.min_entries > 0 ? Math.max(0, r.min_entries - r.entries) : 0;
     const img = this.safeImg(r.image_url);
     const odds = this.odds(r);
     const left = r.per_user_limit - r.my_entries;
@@ -115,7 +130,8 @@ const Raffle = {
           <div class="rf-prize">${U.esc(r.prize_name)}${r.prize_value ? ` <span>· 시가 ${Number(r.prize_value).toLocaleString()}원</span>` : ''}</div>
           ${r.description ? `<div class="rf-desc">${U.esc(r.description)}</div>` : ''}
           <div class="rf-bar"><div style="width:${pct}%"></div></div>
-          <div class="rf-row"><span>응모 ${r.entries.toLocaleString()} / ${r.max_entries.toLocaleString()}건</span><span>마감 ${this.fmtDate(r.ends_at)}</span></div>
+          <div class="rf-row"><span>응모 ${r.entries.toLocaleString()}건${need ? ` · 추첨까지 ${need.toLocaleString()}건 남음` : (r.min_entries > 0 ? ' · 추첨 확정' : '')}</span><span>마감 ${this.fmtDate(r.ends_at)}</span></div>
+          ${r.extended ? `<div class="rf-ext">응모가 모자라 마감을 ${r.extend_days || 7}일 연장했어요. 이번에도 모자라면 취소되고 포인트를 돌려드려요.</div>` : ''}
           <div class="rf-chips">
             <span>1회 ${r.entry_cost.toLocaleString()}P</span><span>1인 최대 ${r.per_user_limit}회</span><span>당첨 ${r.winners_count}명</span>
           </div>
@@ -199,7 +215,8 @@ const Raffle = {
     if (btn) { btn.disabled = true; btn.textContent = '응모 중...'; }
     const msg = {
       closed: '응모가 마감됐어요.', full: '응모 정원이 다 찼어요.', user_limit: '1인 응모 한도를 넘었어요.',
-      not_enough_points: '포인트가 부족해요.', not_found: '럭키드로우를 찾을 수 없어요.', bad_count: '응모 횟수를 확인해 주세요.'
+      not_enough_points: '포인트가 부족해요.', not_found: '럭키드로우를 찾을 수 없어요.', bad_count: '응모 횟수를 확인해 주세요.',
+      admin_blocked: '운영자 계정은 응모할 수 없어요.'
     };
     try {
       const r = await Points.rpc('enter_raffle', { p_id: id, p_count: this._count || 1 });
@@ -268,14 +285,15 @@ const Raffle = {
       ['주최', 'BuddyPlanner (문의: privacy@buddyplanner.kr)'],
       ['응모 자격', 'BuddyPlanner에 로그인한 만 14세 이상 회원'],
       ['응모 방법', `광고 시청 등으로 무료로 받은 포인트로 응모합니다. 1회 ${r.entry_cost.toLocaleString()}P, 1인 최대 ${r.per_user_limit}회. 포인트는 돈으로 판매하지 않으며, 구매나 결제 없이 참여할 수 있습니다.`],
-      ['기간', `${this.fmtDate(r.starts_at)} ~ ${this.fmtDate(r.ends_at)}. 응모가 ${r.max_entries.toLocaleString()}건에 도달하면 즉시 마감합니다.`],
-      ['경품·당첨자 수', `${r.prize_name}${r.prize_value ? ` (시가 ${Number(r.prize_value).toLocaleString()}원)` : ''}, ${r.winners_count}명`],
+      ['기간', `${this.fmtDate(r.starts_at)} ~ ${this.fmtDate(r.ends_at)}.${r.max_entries < 100000 ? ` 응모가 ${r.max_entries.toLocaleString()}건에 도달하면 즉시 마감합니다.` : ''}`],
+      ['경품·당첨자 수', `${r.prize_name}${r.prize_value ? ` (시가 ${Number(r.prize_value).toLocaleString()}원)` : ''}, ${r.winners_count}명. 예비 당첨자도 함께 뽑아, 당첨자가 기한 안에 배송지를 넣지 않으면 예비 당첨자에게 넘어갑니다.`],
       ['추첨·발표', `마감 즉시 서버에서 무작위로 추첨하고 앱의 이 화면에 발표합니다(당첨자 닉네임 일부 가림). 응모 건수가 많을수록 당첨 확률이 높아지며, 한 사람은 한 번만 당첨됩니다. 당첨 확률 = 내 응모 건수 ÷ 전체 응모 건수 × 당첨자 수(최대 100%).`],
-      ...(r.min_entries ? [['취소', `마감 때 응모가 ${r.min_entries.toLocaleString()}건 미만이면 추첨을 취소하고 사용한 포인트를 모두 돌려드립니다.`]] : []),
+      ...(r.min_entries ? [['연장·취소', `마감 때 응모가 ${r.min_entries.toLocaleString()}건(회차 성립 기준) 미만이면 응모 기간을 ${r.extend_days || 7}일 한 번 연장하고 앱에 알립니다. 연장 후에도 미만이면 추첨을 취소하고 사용한 포인트를 모두 돌려드립니다.`]] : []),
       ['경품 수령', `당첨자는 발표 후 ${r.claim_days}일 안에 앱에서 배송지를 입력해야 하며, 기한이 지나면 당첨이 취소됩니다. 경품은 현금으로 바꿔 드리지 않습니다.`],
       ['제세공과금', tax],
       ['개인정보', '경품 배송을 위해 당첨자의 이름·휴대폰 번호·주소를 받으며, 발송 30일 뒤 파기합니다.'],
-      ['부정 참여', '여러 계정 사용, 앱 변조 등 부정한 방법으로 참여한 경우 당첨을 취소하고 포인트를 회수할 수 있습니다.'],
+      ['부정 참여', '여러 계정 사용, 앱 변조 등 부정한 방법으로 참여한 경우 당첨을 취소하고 포인트를 회수할 수 있습니다. 운영자와 그 가족은 응모할 수 없습니다.'],
+      ['포인트', '포인트는 쌓인 날부터 1년이 지나면 사라지며, 현금·상품권으로 바꾸거나 다른 회원에게 줄 수 없습니다.'],
       ['기타', '이 이벤트는 Google 또는 Apple이 후원하거나 관련된 것이 아닙니다.'],
     ];
     return items;

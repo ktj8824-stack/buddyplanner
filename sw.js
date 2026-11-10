@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buddyplanner-v208-cache';
+const CACHE_NAME = 'buddyplanner-v209-cache';
 const ASSETS = [
   './',
   './index.html',
@@ -49,6 +49,7 @@ const ASSETS = [
   './js/community.js',
   './js/market.js',
   './js/admin.js',
+  './js/admin-raffle.js',
   './js/insurance.js',
   './js/event.js',
   './js/raffle.js',

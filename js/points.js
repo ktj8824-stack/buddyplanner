@@ -26,7 +26,9 @@ const Points = {
     let m = {};
     try { m = JSON.parse(localStorage.getItem(this.META_KEY) || '{}') || {}; } catch (e) { m = {}; }
     if (m.day !== this._today()) m.ad_today = 0;
-    return { ad_today: m.ad_today || 0, ad_limit: m.ad_limit || 20, ad_points: m.ad_points || 50, ad_mode: m.ad_mode || 'client' };
+    const rules = Object.assign({ attend: 3, streak_days: 7, streak_bonus: 10, round: 20, food: 10, post: 5, food_limit: 2, post_limit: 2, expire_days: 365 }, m.rules || {});
+    return { ad_today: m.ad_today || 0, ad_limit: m.ad_limit || 10, ad_points: m.ad_points || 10, ad_mode: m.ad_mode || 'client',
+      attended_today: m.day === this._today() && !!m.attended_today, expiring_soon: m.expiring_soon || 0, rules };
   },
 
   /** 서버 응답으로 표시용 값 갱신 */
@@ -34,7 +36,7 @@ const Points = {
     if (!r || typeof r !== 'object') return;
     if (typeof r.balance === 'number') localStorage.setItem(this.CACHE_KEY, String(r.balance));
     const m = this.meta();
-    ['ad_today', 'ad_limit', 'ad_points', 'ad_mode'].forEach(k => { if (r[k] != null) m[k] = r[k]; });
+    ['ad_today', 'ad_limit', 'ad_points', 'ad_mode', 'attended_today', 'expiring_soon', 'rules'].forEach(k => { if (r[k] != null) m[k] = r[k]; });
     m.day = this._today();
     localStorage.setItem(this.META_KEY, JSON.stringify(m));
     this.updateUI();
@@ -98,6 +100,45 @@ const Points = {
   },
 
   _busy: false,
+
+  /** 출석 체크 (하루 1번, 연속 출석 보너스는 서버가 계산) */
+  async checkIn() {
+    if (!this.requireLogin('포인트')) return;
+    try {
+      const r = await this.rpc('daily_check_in');
+      if (r && r.ok) {
+        this._apply({ balance: r.balance, attended_today: true });
+        U.toast(r.bonus ? `🎉 ${r.streak}일 연속 출석! ${r.earned}P 적립` : `출석 완료! ${r.earned}P 적립 (연속 ${r.streak}일)`);
+        U.haptic && U.haptic();
+      } else if (r && r.error === 'already') {
+        this._apply({ balance: r.balance, attended_today: true });
+        U.toast('오늘은 이미 출석했어요. 내일 또 만나요!');
+      }
+    } catch (e) { U.toast('출석하지 못했어요. 인터넷 연결을 확인해 주세요.'); }
+    if (State.screen === 'raffle' && typeof Raffle !== 'undefined') Raffle.render();
+  },
+
+  /** 활동(글·별점) 뒤 포인트가 늘었으면 알려 줌 — 적립은 서버가 자동으로 함 */
+  async noticeEarned(label) {
+    if (!this.available()) return;
+    const before = this.balance();
+    const r = await this.refresh();
+    if (r && typeof r.balance === 'number' && r.balance > before) U.toast(`${label} +${r.balance - before}P 적립됐어요`);
+  },
+
+  /** 라운딩 후기 (스코어 + 한 줄 일기): 서버 동기화가 끝난 뒤 적립 요청 */
+  async earnRound(dateStr) {
+    if (!this.available() || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr || '')) return;
+    try { if (typeof Cloud !== 'undefined' && Cloud.push) await Cloud.push(); } catch (e) { }
+    for (const wait of [0, 4000]) {
+      if (wait) await new Promise(res => setTimeout(res, wait));
+      try {
+        const r = await this.rpc('earn_round_review', { p_date: dateStr });
+        if (r && r.ok) { this._apply({ balance: r.balance }); U.toast(`라운딩 후기 +${r.earned}P 적립됐어요`); return; }
+        if (r && r.error !== 'no_review') return;   // 이미 받음·하루 한도·오래된 기록
+      } catch (e) { return; }
+    }
+  },
 
   /** 광고를 끝까지 봤을 때 */
   async onAdRewarded() {
