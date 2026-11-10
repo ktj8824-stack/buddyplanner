@@ -194,7 +194,7 @@ const Upgrade = {
       return `
       <div class="upg-notice is-pro">
         <b>👑 PRO 이용 중</b>
-        <p>다음 결제일 ${d.getMonth() + 1}월 ${d.getDate()}일 · 매달 ${Billing.WEB_PRICE.toLocaleString()}원 자동결제<br>해지해도 ${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일까지 계속 쓸 수 있어요.</p>
+        <p>${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일까지 이용할 수 있어요.<br>자동으로 결제되지 않아요. 아래에서 결제하면 이 날짜 뒤로 1개월이 더해져요.</p>
       </div>`;
     }
     if (ent && ent.expirationDate) {
@@ -302,12 +302,12 @@ const Upgrade = {
     });
   },
 
-  // 웹 결제: 로드플래너 개인 매니저와 같은 흐름 — 월 정기결제 안내 · 동의 체크 · 결제창
+  // 웹 결제: 1개월 이용권(자동결제 아님) 안내 · 동의 체크 · 결제창
   async renderWebPay(box) {
     if (!box) return;
     const price = Billing.WEB_PRICE;
-    const priceLine = `<div class="upg-plan-web"><b>PRO 월 정기</b><span>${price.toLocaleString()}원</span></div>
-      <p class="upg-web-note">부가세 포함 · 매달 자동결제 · 언제든 해지</p>`;
+    const priceLine = `<div class="upg-plan-web"><b>PRO 1개월 이용권</b><span>${price.toLocaleString()}원</span></div>
+      <p class="upg-web-note">부가세 포함 · 자동결제 아님 · 1회 결제로 1개월</p>`;
     if (typeof Cloud === 'undefined' || !Cloud.isSignedIn()) {
       box.innerHTML = `${priceLine}
         <div class="upg-notice"><b>로그인 후 결제할 수 있어요</b><p>결제한 PRO는 같은 계정으로 로그인한 앱에서도 그대로 쓸 수 있어요.</p></div>
@@ -315,13 +315,12 @@ const Upgrade = {
       return;
     }
     const test = !(window.APP_CONFIG || {}).TOSS_CLIENT_KEY || /^test_/.test(this.tossClientKey());
-    const day = new Date().getDate();
     box.innerHTML = `${priceLine}
       ${test ? '<div class="upg-notice"><b>테스트 결제</b><p>지금은 테스트 모드라 실제로 돈이 나가지 않아요.</p></div>' : ''}
       <div id="toss-methods"></div>
       <div id="toss-agreement"></div>
       <label class="upg-agree"><input type="checkbox" id="upg-agree" onchange="Upgrade.syncWebBtn()">
-        <span>매달 ${day}일 ${price.toLocaleString()}원 자동결제에 동의해요<small>언제든 해지할 수 있고, 해지해도 결제한 기간까지는 계속 쓸 수 있어요.</small></span></label>
+        <span>PRO 1개월 이용권(${price.toLocaleString()}원) 결제에 동의해요<small>다음 달에 자동으로 결제되지 않아요. 이미 PRO라면 남은 기간 뒤에 1개월이 더해져요.</small></span></label>
       <button class="btn-upg" id="upg-web-buy" onclick="Upgrade.payWeb()" disabled><span>결제창 준비 중...</span></button>
       <div class="upg-links"><a href="./privacy.html">개인정보처리방침</a></div>`;
     this._webReady = false;
@@ -346,13 +345,13 @@ const Upgrade = {
   syncWebBtn() {
     const b = U.$('#upg-web-buy'), a = U.$('#upg-agree');
     if (!b || this.busy) return;
-    if (this._webReady) b.querySelector('span').textContent = `월 ${Billing.WEB_PRICE.toLocaleString()}원 정기결제 시작`;
+    if (this._webReady) b.querySelector('span').textContent = `${Billing.WEB_PRICE.toLocaleString()}원 결제하기`;
     b.disabled = !(this._webReady && a && a.checked);
   },
 
   async payWeb() {
     if (this.busy || !this._widgets) return;
-    if (!(U.$('#upg-agree') && U.$('#upg-agree').checked)) { U.toast('자동결제 동의에 체크해 주세요.'); return; }
+    if (!(U.$('#upg-agree') && U.$('#upg-agree').checked)) { U.toast('결제 동의에 체크해 주세요.'); return; }
     this.busy = true;
     const b = U.$('#upg-web-buy'); if (b) { b.disabled = true; b.querySelector('span').textContent = '결제창을 여는 중...'; }
     try {
@@ -427,7 +426,7 @@ const Upgrade = {
           <div><span>주문번호</span><b>${U.esc(r.orderId || '')}</b></div>
           <div><span>결제 금액</span><b>${won(r.amount)} (부가세 포함)</b></div>
           ${r.method ? `<div><span>결제 수단</span><b>${U.esc(r.method)}</b></div>` : ''}
-          ${r.periodEnd ? `<div><span>다음 결제일</span><b>${md(r.periodEnd)} (매달 자동결제)</b></div>` : ''}
+          ${r.periodEnd ? `<div><span>이용 기간</span><b>${md(r.periodEnd)}까지 (자동결제 아님)</b></div>` : ''}
         </div>` : '';
     App.showModal('결제 완료', `
       <div class="pay-success">
@@ -436,7 +435,7 @@ const Upgrade = {
         </div>
         <h3>PRO가 시작됐어요</h3>
         ${rows || `<p>${typeof r === 'string' ? r : '지금부터 모든 프리미엄 혜택이 적용돼요.'}</p>`}
-        <p style="font-size:0.8rem;">카드 매출전표가 결제 증빙이 돼요. 해지해도 결제한 기간까지는 계속 쓸 수 있어요.</p>
+        <p style="font-size:0.8rem;">카드 매출전표가 결제 증빙이 돼요. 다음 달에 자동으로 결제되지 않아요.</p>
         <button class="btn-primary" style="width:100%; margin-top:var(--sp-2);" onclick="App.closeModal(); App.navigate('profile');">확인</button>
       </div>
     `);

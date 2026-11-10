@@ -1,8 +1,8 @@
 // BuddyPlanner PRO 웹 결제 로직 (로드플래너 payments 함수를 바탕으로 함)
 // 금액은 서버가 정하고, 토스 승인 결과를 서버가 확인한 뒤에만 PRO 기간을 늘립니다.
-// 화면은 로드플래너 개인 매니저와 같이 "매달 자동결제" 기준 (토스 빌링 연결 전에는 1회 결제 = 1개월, 남은 기간 뒤에 이어 붙임)
+// 1회 결제 = 1개월 이용권 (자동결제 아님). 이미 PRO면 남은 기간 뒤에 이어 붙입니다.
 export const PRICE = { monthly: 4900 };   // 부가세 포함
-export const ORDER_NAME = 'BuddyPlanner PRO (월 정기)';
+export const ORDER_NAME = 'BuddyPlanner PRO 1개월 이용권';
 export const DOCS_TEST_SECRET = 'test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6'; // 토스 문서 공개 테스트 키 (실제 돈 안 나감)
 
 export class PayError extends Error {
