@@ -368,7 +368,7 @@ const App = {
       if (adfit) adfit.style.display = 'none';
       if (AdMob && this.adMobActive) {
         AdMob.removeBanner().catch(e => console.warn('AdMob remove Error', e));
-        this.adMobActive = false;
+        this.adMobActive = false; document.body.classList.remove('has-admob');
       }
     } else {
       this.renderAdBanner();
@@ -483,6 +483,9 @@ const App = {
           
           // 전역 광고 상태 저장 (앱 전환 시 숨김/보임 처리용)
           this.adMobActive = true;
+          // 아래 고정 버튼(새 라운딩 등록의 '스마트 플랜 만들기' 등)이 광고에 가리지 않게 광고 높이만큼 올림
+          document.documentElement.style.setProperty('--admob-h', (bottomMargin + 50) + 'px');
+          document.body.classList.add('has-admob');
           return;
         } catch (e) {
           console.error('AdMob Init/Show Error:', e);
