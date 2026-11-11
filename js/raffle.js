@@ -94,7 +94,7 @@ const Raffle = {
           <ul>
             <li>출석 체크 ${pm.rules.attend}P · ${pm.rules.streak_days}일 연속이면 +${pm.rules.streak_bonus}P</li>
             <li>광고 끝까지 보기 ${pm.ad_points}P · 하루 ${pm.ad_limit}번</li>
-            <li>라운딩 후기 (스코어 + 한 줄 일기) ${pm.rules.round}P · 하루 1번</li>
+            <li>라운딩 후기 (스코어 + 한 줄 일기) ${pm.rules.round}P · 하루 1번, 미리 등록한 일정이 있는 날만</li>
             <li>맛집 별점 남기기 ${pm.rules.food}P · 하루 ${pm.rules.food_limit}번, 같은 식당은 1번</li>
             <li>커뮤니티 글쓰기 ${pm.rules.post}P · 하루 ${pm.rules.post_limit}번 (삭제·숨김 시 회수)</li>
             <li>포인트는 쌓인 날부터 1년 뒤 사라져요${pm.expiring_soon ? ` · <b>30일 안에 ${pm.expiring_soon.toLocaleString()}P 소멸 예정</b>` : ''}</li>

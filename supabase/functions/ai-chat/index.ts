@@ -272,14 +272,28 @@ function upcomingByIdx(ctx: Json, idx: Json): Json | null {
   return (ctx.upcoming || []).find((u: Json) => u && Number(u.idx) === Number(idx)) || null;
 }
 
+/** 5~6시처럼 새벽·저녁 둘 다 되는 시각인데 사용자가 어느 쪽인지 말하지 않았으면 되묻게 함 */
+const AMPM_WORD = /새벽|아침|오전|저녁|오후|밤|낮|am|pm/i;
+export function ambiguousHour(t: string, said: string): string | null {
+  if (!HM.test(t || '')) return null;
+  const h = parseInt(t.slice(0, 2), 10);
+  if (!((h >= 5 && h <= 6) || (h >= 17 && h <= 18))) return null;
+  if (AMPM_WORD.test(said || '')) return null;
+  if (/(^|[^\d])(0[56]|1[78]):?\d{2}/.test(said || '') || /(^|[^\d])1[78]시/.test(said || '')) return null;   // '05:30', '17:40'처럼 24시간으로 말한 경우
+  const hh = h >= 17 ? h - 12 : h, m = t.slice(3);
+  const say = `${hh}시${m !== '00' ? ` ${parseInt(m, 10)}분` : ''}`;
+  return `${say}가 새벽(${String(hh).padStart(2, '0')}:${m})인지 저녁(${hh + 12}:${m})인지 사용자가 말하지 않았습니다. 일정을 만들지 말고 "새벽 ${say}인가요, 저녁 ${say}인가요?"라고 짧게 물어보세요`;
+}
+
 /** AI가 만든 제안이 앱에서 쓸 수 있는 형태인지 저장 전에 확인 (문제가 있으면 AI에게 돌려보내 다시 묻게 함) */
-export function checkAction(name: string, input: Json, ctx0: Json): string | null {
+export function checkAction(name: string, input: Json, ctx0: Json, said: string | null = null): string | null {
   const ctx = normalizeCtx(ctx0);
   const today = ctx.today, now = ctx.now;
   if (name === 'propose_schedule') {
     if (!String(input.course_name || '').trim()) return '골프장 이름(course_name)이 필요합니다. 모르면 사용자에게 물어보세요';
     if (!realDate(input.date || '')) return 'date는 YYYY-MM-DD이고 달력에 있는 날짜여야 합니다. 날짜표에서 고르거나 사용자에게 다시 물어보세요';
     if (!HM.test(input.tee_off || '')) return 'tee_off는 HH:MM(24시간)이어야 합니다. 티오프 시각을 사용자에게 확인하세요';
+    if (said != null) { const amb = ambiguousHour(input.tee_off, said); if (amb) return amb; }
     if (input.date < today) return `${koDate(input.date)}은 이미 지난 날짜라 일정으로 만들 수 없습니다. 사용자에게 그렇게 말하고, 지난 라운딩이면 스코어 기록을 도와드릴지 물어보세요`;
     if (input.date === today && input.tee_off <= now) return `오늘 ${input.tee_off}은 이미 지난 시각입니다(지금 ${now}). 날짜나 시각을 사용자에게 확인하세요`;
     if (!input.allow_duplicate) {
@@ -295,6 +309,7 @@ export function checkAction(name: string, input: Json, ctx0: Json): string | nul
     if (!input.cancel && !input.new_date && !input.new_tee_off) return '무엇을 바꿀지(new_date, new_tee_off) 넣거나 취소면 cancel:true를 넣으세요';
     if (input.new_date && !realDate(input.new_date)) return 'new_date는 YYYY-MM-DD이고 달력에 있는 날짜여야 합니다';
     if (input.new_tee_off && !HM.test(input.new_tee_off)) return 'new_tee_off는 HH:MM(24시간)이어야 합니다';
+    if (input.new_tee_off && said != null) { const amb = ambiguousHour(input.new_tee_off, said); if (amb) return amb; }
     if (!input.cancel) {
       const d = input.new_date || String(u.date || '').slice(0, 10);
       const t = input.new_tee_off || String(u.tee_off || '');
@@ -510,6 +525,8 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
   messages.push({ role: 'user', content: userContent });
 
   const ctx = normalizeCtx(body.context);
+  // 시각 되묻기용: 이번 말 + 최근 사용자 말 2개 (사진이면 예약 화면의 24시간 표기를 믿고 검사 안 함)
+  const userSaid = image ? null : [...history.filter((m: Json) => m && m.role !== 'assistant').slice(-2).map((m: Json) => String(m.content || '')), text].join(' ');
   const actions: Json[] = [];
   const restaurants: Json[] = [];
   const knownRestaurants: Record<string, Json> = {};
@@ -543,7 +560,7 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
             }
           } else {
             // 저장 전 서버 검사: 지난 날짜·없는 날짜·잘못된 시각·중복 등은 AI에게 돌려보내 다시 묻게 함
-            const problem = checkAction(u.name, u.input || {}, ctx);
+            const problem = checkAction(u.name, u.input || {}, ctx, userSaid);
             if (problem) { isError = true; result = problem; }
             else if (u.name === 'propose_schedule' || u.name === 'propose_score_record') {
               const act: Json = { type: u.name.replace('propose_', ''), ...u.input };

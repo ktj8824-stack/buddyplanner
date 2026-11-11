@@ -37,6 +37,7 @@ const Profile = {
     const prep = (() => { const v = parseInt(localStorage.getItem('bp_last_prep'), 10); return v > 0 ? v : 30; })();
     const navPref = (typeof AutoNav !== 'undefined' ? AutoNav.pref() : 'choice');
     const navName = { tmap: 'TMAP', kakao: '카카오내비', choice: '매번 선택' }[navPref] || '매번 선택';
+    const alarmSt = Profile.alarmStatusText();
     const cloudOn = typeof Cloud !== 'undefined' && Cloud.isConfigured() && Cloud.isSignedIn();
     const seg = (cur, items, fn) => items.map(([v, l]) => `<button class="setting-opt-btn ${cur === v ? 'on active' : ''}" onclick="${fn}('${v}', this)">${l}</button>`).join('');
     const homeRow = homeName
@@ -71,7 +72,7 @@ const Profile = {
             <button class="v2-li" onclick="Profile.searchAndSaveAddress('work')"><span class="k">회사 주소</span><span class="v">${workName ? U.esc(workName) : '등록'}</span>${chev}</button>
             <button class="v2-li" onclick="Profile.pickPrep()"><span class="k">기본 준비 시간</span><span class="v">${prep}분</span>${chev}</button>
             <button class="v2-li" onclick="AutoNav.openGuide()"><span class="k">길안내 앱<small>차에 타면 자동 길안내도 여기서 켜요</small></span><span class="v">${navName}</span>${chev}</button>
-            <button class="v2-li" onclick="Profile.previewAlarm()"><span class="k">알람 소리</span><span class="v">버디 알람</span>${chev}</button>
+            <button class="v2-li" onclick="Profile.previewAlarm()"><span class="k">알람 소리<small data-alarm-status style="${alarmSt ? '' : 'display:none'}">${alarmSt}</small></span><span class="v">버디 알람</span>${chev}</button>
           </div>
 
           <div class="v2-sec-title">화면</div>
@@ -121,6 +122,17 @@ const Profile = {
   setPrep(t) {
     try { localStorage.setItem('bp_last_prep', String(t)); } catch (e) {}
     App.closeModal(); U.toast(`기본 준비 시간을 ${t}분으로 바꿨어요.`); this.render();
+  },
+
+  /** 아이폰 앱이 실제로 예약한 알람 상태 한 줄 (앱에서 예약을 마친 뒤에만) */
+  alarmStatusText() {
+    const s = window.__bpAlarmSync;
+    if (!s) return '';
+    if (s.denied) return '알림이 꺼져 있어 알람이 울리지 않아요';
+    if (!s.n) return '예약된 알람 없음';
+    const d = new Date(s.first), dow = '일월화수목금토'[d.getDay()];
+    const h = d.getHours(), ap = h < 12 ? '오전' : '오후', h12 = h % 12 || 12;
+    return `예약된 알람 ${s.n}개 · 가장 가까운 알람 ${d.getMonth() + 1}/${d.getDate()}(${dow}) ${ap} ${h12}:${String(d.getMinutes()).padStart(2, '0')}`;
   },
 
   previewAlarm() {

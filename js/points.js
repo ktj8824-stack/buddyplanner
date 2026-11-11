@@ -135,6 +135,7 @@ const Points = {
       try {
         const r = await this.rpc('earn_round_review', { p_date: dateStr });
         if (r && r.ok) { this._apply({ balance: r.balance }); U.toast(`라운딩 후기 +${r.earned}P 적립됐어요`); return; }
+        if (r && r.error === 'no_schedule') { U.toast('미리 등록한 라운딩 일정이 있는 날만 후기 포인트가 쌓여요', 3200); return; }
         if (r && r.error !== 'no_review') return;   // 이미 받음·하루 한도·오래된 기록
       } catch (e) { return; }
     }

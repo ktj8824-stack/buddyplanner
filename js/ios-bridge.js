@@ -100,6 +100,16 @@
   let capture = null;     // scheduleReminders()가 부르는 setReminder를 모으는 동안만 배열
   let timer = null, running = false, again = false;
 
+  /** 마이 화면 '알람 소리' 줄에 예약 상태 표시 (실제로 아이폰에 예약된 결과) */
+  function report(st) {
+    window.__bpAlarmSync = { ...st, at: Date.now() };
+    try {
+      const P = g('Profile');
+      const t = P && P.alarmStatusText ? P.alarmStatusText() : '';
+      document.querySelectorAll('[data-alarm-status]').forEach(el => { el.textContent = t; el.style.display = t ? '' : 'none'; });
+    } catch (e) { /* 화면 갱신 실패는 무시 */ }
+  }
+
   /** 예약된 알림을 모두 지우고 일정 전체 기준으로 다시 예약 */
   async function sync() {
     if (running) { again = true; return; }
@@ -108,7 +118,7 @@
       const LN = plugin();
       if (!LN) return;
       const list = buildList();
-      if (list.length && !(await ensurePermission(LN))) return;
+      if (list.length && !(await ensurePermission(LN))) { report({ denied: true }); return; }
       try {
         const pending = await LN.getPending();
         const ids = (pending && pending.notifications || []).map(n => ({ id: n.id }));
@@ -126,6 +136,8 @@
           }))
         });
       }
+      const alarms = list.filter(a => a.alarm);
+      report({ n: alarms.length, first: (alarms[0] || {}).t || null });
       const first = list[0];
       LOG(`예약 ${list.length}개 (알람 ${list.filter(a => a.alarm).length}개)`, first ? `가장 가까운 것: ${new Date(first.t).toLocaleString()}` : '');
     } catch (e) {
