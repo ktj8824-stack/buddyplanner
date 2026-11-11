@@ -221,6 +221,7 @@ const Home = {
             <div class="v2-week-head"><span class="v2-h2">이번 주</span><button class="v2-link" onclick="App.navigate('calendar')">전체 일정</button></div>
             <div class="v2-week">${weekHtml}</div>
           </div>
+          ${typeof AutoNav !== 'undefined' && AutoNav.promoHtml ? AutoNav.promoHtml() : ''}
           ${scoreHtml}
           <div class="v2-tiles">
             <div class="v2-tile" onclick="App.navigate('raffle')"><i class="img" style="background:#fdf2f8"><img src="img/icons/raffle.png?v=1" alt=""></i><span>럭키드로우</span></div>

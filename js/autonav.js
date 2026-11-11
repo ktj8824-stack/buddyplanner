@@ -146,6 +146,7 @@ const AutoNav = {
   },
 
   start() {
+    try { localStorage.setItem('bp_autonav_used', String(Date.now())); } catch (e) { }   // 한 번 실행됨 → 홈 홍보 줄 숨김
     this._overlay('<div class="an-t">오늘 일정을 확인하는 중…</div>', false);
     const began = Date.now();
     const tick = () => {
@@ -252,6 +253,24 @@ const AutoNav = {
     else prompt('아래 링크를 복사하세요', this.LINK);
   },
 
+  // 홈 화면 홍보 줄: 한 번도 실행된 적 없고 ✕를 안 눌렀을 때만
+  promoHtml() {
+    try { if (localStorage.getItem('bp_autonav_used') || localStorage.getItem('bp_autonav_promo_off')) return ''; } catch (e) { return ''; }
+    const os = /Android/i.test(navigator.userAgent) ? 'android' : 'ios';
+    return `<div class="anp" role="note">
+      <a class="anp-go" href="autonav-guide.html?os=${os}">
+        <span class="anp-ic" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.5-5h9L18 17M7.5 12l1.2-3.6A2 2 0 0 1 10.6 7h2.8a2 2 0 0 1 1.9 1.4L16.5 12"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg></span>
+        <span class="anp-t"><b>차에 타면 길안내가 저절로</b><small>차에 연결되면 골프장 내비 자동 실행</small></span>
+        <span class="anp-btn">1분 설정</span>
+      </a>
+      <button type="button" class="anp-x" aria-label="다시 보지 않기" onclick="AutoNav.hidePromo()">✕</button>
+    </div>`;
+  },
+  hidePromo() {
+    try { localStorage.setItem('bp_autonav_promo_off', '1'); } catch (e) { }
+    document.querySelectorAll('.anp').forEach(el => el.remove());
+  },
+
   // 내 정보 > 차에 타면 자동 길안내
   openGuide() {
     const isAndroid = /Android/i.test(navigator.userAgent);
@@ -284,7 +303,8 @@ const AutoNav = {
       </div>
       <div style="font-weight:800;font-size:15px;margin:18px 0 0;">3. 휴대폰에 자동 실행 등록</div>
       ${isAndroid ? android + ios : ios + android}
-      <button type="button" onclick="App.closeModal(); AutoNav.start()" style="width:100%;height:46px;margin-top:18px;border-radius:12px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-weight:800;font-size:15px;cursor:pointer;">지금 시험해 보기</button>`;
+      <a href="autonav-guide.html?os=${isAndroid ? 'android' : 'ios'}" style="display:flex;align-items:center;justify-content:center;width:100%;height:46px;margin-top:18px;border-radius:12px;background:#059669;color:#fff;font-weight:800;font-size:15px;text-decoration:none;">그림으로 보는 설정 가이드</a>
+      <button type="button" onclick="App.closeModal(); AutoNav.start()" style="width:100%;height:46px;margin-top:8px;border-radius:12px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-weight:800;font-size:15px;cursor:pointer;">지금 시험해 보기</button>`;
     App.showModal('🚗 차에 타면 자동 길안내', html);
   },
 };
