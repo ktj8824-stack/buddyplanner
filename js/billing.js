@@ -102,6 +102,7 @@ const Billing = {
     const ent = active ? active[this.ENTITLEMENT_ID] : null;
     this.activeEntitlement = ent || null;
     this.rcPro = !!ent;
+    this._rcChecked = true;
     this._setPro(this.rcPro || this.webPro);
   },
 
@@ -124,7 +125,9 @@ const Billing = {
       this.webPro = !!(r && r.active);
       this.webProUntil = (r && r.proUntil) || null;
       this.payMode = (r && r.mode) || null;
-      this._setPro(this.rcPro || this.webPro);
+      // 앱 구독(RevenueCat) 확인이 아직이면 웹 결과만으로 PRO 를 끄지 않음 (앱에서 구독한 사람이 켤 때 PRO 가 풀리던 문제, 2026-11-11 점검)
+      const rcPending = this.isNative() && this.isAvailable() && !this._rcChecked;
+      if (this.webPro || this.rcPro || !rcPending) this._setPro(this.rcPro || this.webPro);
     } catch (e) {
       console.warn('[Billing] 웹 결제 상태 확인 실패:', e && e.message);   // 네트워크 오류 시 캐시 유지
     }

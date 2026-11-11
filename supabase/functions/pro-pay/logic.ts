@@ -24,7 +24,7 @@ export function addMonth(from: Date) {
   return d;
 }
 
-// db: { getPayment, insertPayment, updatePayment, proUntil, recentPayments }
+// db: { getPayment, insertPayment, updatePayment, finishPayment(orderId, patch) → READY 줄을 바꿨으면 true, proUntil, recentPayments }
 // toss: (paymentKey, orderId, amount) => { ok, status, body }
 export async function handle(action: string, body: Record<string, unknown>, userId: string, db: any, toss: any, mode: string, now = new Date()) {
   if (action === 'prepare') {
@@ -56,7 +56,14 @@ export async function handle(action: string, body: Record<string, unknown>, user
     const start = cur && new Date(cur) > now ? new Date(cur) : now;
     const periodEnd = addMonth(start);
     const approvedAt = r.body.approvedAt || now.toISOString();
-    await db.updatePayment(orderId, { status: 'DONE', payment_key: paymentKey, method: String(r.body.method || ''), approved_at: approvedAt, period_end: periodEnd.toISOString() });
+    const patch = { status: 'DONE', payment_key: paymentKey, method: String(r.body.method || ''), approved_at: approvedAt, period_end: periodEnd.toISOString() };
+    // READY 일 때만 DONE 으로 — 같은 주문 승인이 동시에 두 번 와도 1개월만 붙게 (2026-11-11 점검)
+    const changed = db.finishPayment ? await db.finishPayment(orderId, patch) : (await db.updatePayment(orderId, patch), true);
+    if (!changed) {
+      const done = await db.getPayment(orderId);
+      if (done && done.status === 'DONE') return { status: 'DONE', orderId, amount: done.amount, method: done.method, approvedAt: done.approved_at, periodEnd: done.period_end, mode: done.mode };
+      throw new PayError(409, 'ORDER_CLOSED', '이미 처리된 주문이에요.');
+    }
     return { status: 'DONE', orderId, amount: row.amount, method: r.body.method, approvedAt, periodEnd: periodEnd.toISOString(), mode: row.mode };
   }
 
