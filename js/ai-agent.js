@@ -231,8 +231,8 @@ const AIAgent = {
         <div class="ai-rest-meta">${meta}</div>
         <div class="ai-rest-addr">${U.esc(r.address || '')}</div>
         <div class="ai-rest-btns">
-          ${r.url ? `<button onclick="AIAgent.openUrl('${U.esc(r.url)}')">카카오맵</button>` : ''}
-          ${r.phone ? `<button onclick="AIAgent.openUrl('tel:${U.esc(r.phone)}')">전화</button>` : ''}
+          ${r.url ? `<button onclick="AIAgent.openUrl(${U.jsq(r.url)})">카카오맵</button>` : ''}
+          ${r.phone ? `<button onclick="AIAgent.openUrl(${U.jsq('tel:' + r.phone)})">전화</button>` : ''}
           <button onclick="ReviewStore.openRatingModal(this.dataset.name)" data-name="${U.esc(r.name)}">평가하기</button>
         </div>
       </div>`;
@@ -250,8 +250,8 @@ const AIAgent = {
           <div class="ai-act-title">⛳ 라운딩 일정 등록</div>
           <div class="ai-act-body">
             <div><span>골프장</span><b>${U.esc(a.course_name)}</b></div>
-            <div><span>날짜</span><b>${U.esc(a.date)}</b></div>
-            <div><span>티오프</span><b>${U.esc(a.tee_off)}</b></div>
+            <div><span>날짜</span><b>${U.esc(this._koDate(a.date))}</b></div>
+            <div><span>티오프</span><b>${U.esc(/^\d{1,2}:\d{2}$/.test(a.tee_off || '') ? U.fmtTimeKo(a.tee_off) : a.tee_off)}</b></div>
             ${a.companions_count != null ? `<div><span>동반자</span><b>${Number(a.companions_count)}명</b></div>` : ''}
           </div>
           <p class="ai-act-note">등록 화면에서 출발지를 확인하면 이동 시간까지 계산돼요.</p>
@@ -265,7 +265,7 @@ const AIAgent = {
         <div class="ai-act-card">
           <div class="ai-act-title">📝 스코어 기록</div>
           <div class="ai-act-body">
-            <div><span>날짜</span><b>${U.esc(a.date)}</b></div>
+            <div><span>날짜</span><b>${U.esc(this._koDate(a.date))}</b></div>
             <div><span>골프장</span><b>${U.esc(a.course_name)}</b></div>
             <div><span>총 타수</span><b>${Number(a.total_score)}타</b></div>
             ${a.putts_total ? `<div><span>퍼팅</span><b>${Number(a.putts_total)}개</b></div>` : ''}
@@ -336,9 +336,18 @@ const AIAgent = {
   },
 
   /** 일정: 등록 화면을 내용이 채워진 상태로 열기 (출발지·이동시간 계산은 기존 흐름 사용) */
+  /** '2026-11-14' → '11월 14일 (토)' (형식이 다르면 그대로) */
+  _koDate(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ''));
+    return m ? U.fmtDateShort(new Date(+m[1], +m[2] - 1, +m[3])) : String(v || '');
+  },
+
   async confirmSchedule(msgId, i) {
     const { msg, a } = this._action(msgId, i);
     if (!a) return;
+    // 며칠 전에 받은 카드를 지금 누르면 지난 날짜로 만들어지지 않게
+    { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(a.date || '')), t = /^(\d{1,2}):(\d{2})$/.exec(String(a.tee_off || ''));
+      if (m && new Date(+m[1], +m[2] - 1, +m[3], t ? +t[1] : 23, t ? +t[2] : 59) < new Date()) { U.toast('이미 지난 시각이에요. 새 날짜·시간으로 다시 말해 주세요.'); return; } }
     if (typeof Billing !== 'undefined' && !Billing.guardScheduleLimit()) return;
 
     // 골프장 위치는 서버(AI)가 카드에 붙여서 보내줌 → 앱에는 카카오 키가 필요 없음

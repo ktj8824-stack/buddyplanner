@@ -901,7 +901,8 @@ const Register = {
     // 골프장에서 가까운 순으로 정렬
     const sorted = (rests || []).sort((a, b) => parseFloat(a.distance || 999) - parseFloat(b.distance || 999));
     window._nearbyRestsAll = sorted;
-    Register.renderRestaurantModalList(title, '골퍼추천');
+    const hasPicks = (GOLFER_PICKS[(this.course && this.course.region) || ''] || []).length > 0;
+    Register.renderRestaurantModalList(title, hasPicks ? '골퍼추천' : '');
   },
   
   
@@ -990,7 +991,7 @@ const Register = {
               <div class="modal-item-text" style="font-weight:bold;">${U.esc(r.place_name || r.name)} <span style="font-size:0.75rem; font-weight:normal; color:var(--text-400); margin-left:4px;">${U.esc(r.category || '')}</span></div>
               <div class="modal-item-sub">${r.distance ? parseFloat(r.distance).toFixed(1) + 'km' : ''} · ${U.esc(r.tel || '전화번호 없음')}</div>
             </div>
-            <button type="button" onclick="window.open('${reviewUrl}', '_blank')" style="padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:var(--text-sm); color:var(--text-600); background:transparent; cursor:pointer; white-space:nowrap;">★ 리뷰보기</button>
+            <button type="button" onclick="window.open(${U.jsq(reviewUrl)}, '_blank')" style="padding:4px 8px; border:1px solid var(--border); border-radius:4px; font-size:var(--text-sm); color:var(--text-600); background:transparent; cursor:pointer; white-space:nowrap;">★ 리뷰보기</button>
           </div>
         `}).join('');
       }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buddyplanner-v219-cache';
+const CACHE_NAME = 'buddyplanner-v220-cache';
 const ASSETS = [
   './',
   './index.html',
@@ -32,6 +32,7 @@ const ASSETS = [
   './js/data.js',
   './js/api.js',
   './js/billing.js',
+  './js/points.js',
   './js/utils.js',
   './js/ios-bridge.js',
   './js/cloud.js',
@@ -96,6 +97,8 @@ self.addEventListener('message', event => {
 
 // Fetch Event (Network First, fallback to Cache)
 self.addEventListener('fetch', e => {
+  // 내 사이트 파일만 (길찾기·서버 응답·POST 는 캐시하지 않음)
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
     fetch(e.request)
       .then(response => {
@@ -108,7 +111,7 @@ self.addEventListener('fetch', e => {
       })
       .catch(() => {
         // 네트워크 실패 시 캐시 반환
-        return caches.match(e.request);
+        return caches.match(e.request, { ignoreSearch: true });
       })
   );
 });

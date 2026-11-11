@@ -15,7 +15,7 @@ const EventPage = {
       </div>
       <div class="screen-scroll bg-light" style="display:flex; flex-direction:column; padding: 20px;">
         
-        <div style="background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px;">
+        <div style="flex-shrink:0; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px;">
           <div style="background: linear-gradient(135deg, #f59e0b, #ea580c); padding: 40px 20px; text-align: center; color: #fff;">
             <div style="font-size:36px; margin-bottom:12px;">🍂</div>
             <h2 style="font-size:22px; font-weight:800; margin-bottom:8px;">가을 라운딩 리뷰 이벤트!</h2>
@@ -38,7 +38,7 @@ const EventPage = {
           </div>
         </div>
         
-        <div style="background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05); opacity: 0.6;">
+        <div style="flex-shrink:0; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.05); opacity: 0.6;">
           <div style="background: #e2e8f0; padding: 24px 20px; text-align: center; color: #64748b;">
             <div style="font-size:28px; margin-bottom:8px;">🎁</div>
             <h2 style="font-size:18px; font-weight:700;">앱 런칭 기념 포인트 2배</h2>

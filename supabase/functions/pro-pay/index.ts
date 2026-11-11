@@ -55,7 +55,10 @@ Deno.serve(async (req) => {
       let b: any = {}; try { b = await res.json(); } catch { /* */ }
       return { ok: res.ok, status: res.status, body: b };
     };
-    return reply(200, await handle(String(body.action || ''), body, u.user.id, store, toss, mode));
+    const out: any = await handle(String(body.action || ''), body, u.user.id, store, toss, mode);
+    // 실결제 키를 넣기 전(시험 키)에는 시험 결제로 PRO 를 열지 않음 — 시험할 때만 PRO_PAY_TEST_OK=true (2026-11-11 점검)
+    if (String(body.action) === 'status' && mode === 'test' && Deno.env.get('PRO_PAY_TEST_OK') !== 'true') out.active = false;
+    return reply(200, out);
   } catch (e) {
     if (e instanceof PayError) return reply(e.status, { error: { code: e.code, message: e.message } });
     console.error('pro-pay error', e instanceof Error ? e.message : e);

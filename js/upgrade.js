@@ -206,7 +206,7 @@ const Upgrade = {
       return `
       <div class="upg-notice is-pro">
         <b>👑 PRO 이용 중</b>
-        <p>${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일까지 이용할 수 있어요.<br>자동으로 결제되지 않아요. 아래에서 결제하면 이 날짜 뒤로 1개월이 더해져요.</p>
+        <p>${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일까지 이용할 수 있어요.<br>자동으로 결제되지 않아요.</p>
       </div>`;
     }
     if (ent && ent.expirationDate) {
@@ -413,16 +413,18 @@ const Upgrade = {
       }
     } catch (e) {
       console.error('[Upgrade] 결제 승인 오류:', e);
-      this.showFail((e && e.message) || '결제 승인에 실패했어요. 돈은 빠져나가지 않았어요.', e && e.code);
+      // 토스가 거절한 경우(402)만 돈이 안 나간 게 확실함. 그 밖(서버 저장 오류 등)은 주문번호로 확인 안내
+      const declined = e && e.status === 402;
+      this.showFail((e && e.message) || '결제 승인에 실패했어요.', e && e.code, declined ? null : orderId);
     }
   },
 
   /** 결제 실패: 이유 + 다시 결제하기 (자동으로 다른 화면으로 넘어가지 않음) */
-  showFail(reason, code) {
+  showFail(reason, code, checkOrderId) {
     App.navigate('upgrade');
-    App.showModal('결제가 안 됐어요', `
+    App.showModal(checkOrderId ? '결제 확인 중 문제가 생겼어요' : '결제가 안 됐어요', `
       <div class="pay-success">
-        <p style="margin-bottom:10px;">돈은 빠져나가지 않았어요.</p>
+        <p style="margin-bottom:10px;">${checkOrderId ? `결제가 됐는지 확인이 필요해요. 카드 결제 문자가 왔다면 주문번호 <b>${U.esc(checkOrderId)}</b>로 문의해 주세요. 잠시 뒤 PRO가 켜질 수도 있어요.` : '돈은 빠져나가지 않았어요.'}</p>
         <div class="pay-fail-reason"><b>이유</b><br>${U.esc(String(reason).slice(0, 120))}${code ? ` <small style="color:#9aa3b2;">(${U.esc(code)})</small>` : ''}</div>
         <button class="btn-primary" style="width:100%; margin-bottom:var(--sp-2);" onclick="App.closeModal(); Upgrade.renderAction();">다른 카드로 결제하기</button>
         <button class="btn-ghost" style="width:100%;" onclick="App.closeModal();">닫기</button>

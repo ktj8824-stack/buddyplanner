@@ -98,13 +98,16 @@ const TmapAPI = {
     }
   },
 
+  /** 길찾기 8초 제한 — 신호가 약해 오래 걸리면 끊고 어림값으로 넘어감 */
+  _timeout(ms = 8000) { try { return AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined; } catch (e) { return undefined; } },
+
   async getRouteTime(startX, startY, endX, endY) {
     if (!startX || !startY || !endX || !endY) return null;
 
     try {
       const qs = `version=1&startX=${startX}&startY=${startY}&endX=${endX}&endY=${endY}&reqCoordType=WGS84GEO&resCoordType=WGS84GEO&searchOption=0&trafficInfo=Y&appKey=${TmapAPI.APP_KEY}`;
       const response = await fetch('https://apis.openapi.sk.com/tmap/routes?' + qs, {
-        method: 'GET'
+        method: 'GET', signal: TmapAPI._timeout()
       });
 
       if (!response.ok) {
@@ -137,7 +140,7 @@ const TmapAPI = {
       if (dateObj.getTime() < Date.now()) {
         console.log('과거 시간 탐색 요청이므로 기본 라우팅으로 Fallback 합니다.');
         const qs = `version=1&startX=${startX}&startY=${startY}&endX=${endX}&endY=${endY}&reqCoordType=WGS84GEO&resCoordType=WGS84GEO&searchOption=0&trafficInfo=N&appKey=${TmapAPI.APP_KEY}`;
-        const res = await fetch('https://apis.openapi.sk.com/tmap/routes?' + qs, { method: 'GET' });
+        const res = await fetch('https://apis.openapi.sk.com/tmap/routes?' + qs, { method: 'GET', signal: TmapAPI._timeout() });
         if(res.ok) {
           const d = await res.json();
           if (d?.features?.[0]) return Math.ceil(d.features[0].properties.totalTime / 60);
@@ -169,6 +172,7 @@ const TmapAPI = {
       };
 
       const response = await fetch('https://apis.openapi.sk.com/tmap/routes/prediction?' + qs, {
+        signal: TmapAPI._timeout(),
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

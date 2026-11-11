@@ -226,8 +226,11 @@ const Cloud = {
     const res = await fetch(`${url}/${path}`, { method: opts.method || 'GET', headers, body });
     if (!res.ok) {
       const t = await res.text().catch(() => '');
-      const err = new Error(`서버 오류 (${res.status}) ${t.slice(0, 200)}`);
+      let j = null; try { j = JSON.parse(t); } catch (e) { /* 글자 응답 */ }
+      const je = j && (j.error && typeof j.error === 'object' ? j.error : j);
+      const err = new Error((je && typeof je.message === 'string' && je.message) || `서버 오류 (${res.status})`);
       err.status = res.status;
+      if (je && je.code) err.code = je.code;
       throw err;
     }
     if (opts.raw) return res;

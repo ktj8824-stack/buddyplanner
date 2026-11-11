@@ -537,7 +537,7 @@ const Group = {
     if (this.view === 'create' && !f.course) return U.toast('골프장을 골라 주세요.');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date)) return U.toast('날짜를 골라 주세요.');
     { const t = new Date(); const p = n => String(n).padStart(2, '0'); const ymd = `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`;
-      if (f.date < ymd) return U.toast('이미 지난 날짜예요. 날짜를 다시 골라 주세요.'); }
+      if (this.view === 'create' && f.date < ymd) return U.toast('이미 지난 날짜예요. 날짜를 다시 골라 주세요.'); }   // 지난 모임도 메모·조편성은 고칠 수 있게
     if (!/^\d{2}:\d{2}$/.test(f.tee)) return U.toast('티오프 시간을 골라 주세요.');
     if (this.view === 'create' && !f.me.trim()) return U.toast('내 이름(총무)을 적어 주세요.');
     const meet = /^\d{2}:\d{2}$/.test(f.meet) ? f.meet : this._minus(f.tee, 30);
