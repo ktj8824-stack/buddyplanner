@@ -437,7 +437,13 @@ async function callClaude(env: Env, body: Json, f: typeof fetch) {
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(`Claude API 오류 (${res.status}) ${data?.error?.message || ''}`);
+  if (!res.ok) {
+    const msg = String(data?.error?.message || '');
+    const e: Json = new Error(`Claude API 오류 (${res.status}) ${msg}`);
+    // 월 사용 한도·잔액 부족: 이번 달은 더 못 씀 (일시적 오류와 구분해서 안내)
+    e.quota = /usage limit|spend limit|credit balance|billing/i.test(msg);
+    throw e;
+  }
   return data;
 }
 
@@ -477,6 +483,13 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
   } catch (e) {
     return json(500, { error: 'usage_check_failed', message: '잠시 후 다시 시도해 주세요.' });
   }
+  /** AI가 답을 못 했으면 오늘 사용 횟수를 돌려줌 */
+  const refund = async () => {
+    try {
+      await rpc(env, 'ai_refund_use', { p_user: user.id, p_kind: 'chat' }, f);
+      if (image) await rpc(env, 'ai_refund_use', { p_user: user.id, p_kind: 'image' }, f);
+    } catch (_) { /* 돌려주기 실패해도 응답은 계속 */ }
+  };
 
   // 대화 기록(최근 12개, 텍스트만) + 이번 메시지
   const history = Array.isArray(body.history) ? body.history.slice(-12) : [];
@@ -594,6 +607,10 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
     }
   } catch (e) {
     console.error(e);
+    await refund();
+    if ((e as Json)?.quota) {
+      return json(503, { error: 'ai_paused', message: '이번 달 AI 비서 이용이 많아 잠시 쉬고 있어요. 일정·알람·맛집 등 다른 기능은 그대로 쓸 수 있어요.' });
+    }
     return json(502, { error: 'ai_failed', message: 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.' });
   }
 
