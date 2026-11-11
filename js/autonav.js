@@ -155,8 +155,8 @@ const AutoNav = {
     this._close();
     if (!l) return;
     const app = appArg || this.pref();
-    const from = l.from && l.from.lat && l.from.lng ? l.from : { name: '', lat: 0, lng: 0 };
-    if (typeof Timeline !== 'undefined' && Timeline.openNav) Timeline.openNav(app === 'kakao' ? 'kakao' : 'tmap', l.to.name, l.to.lat, l.to.lng, from.name, from.lat, from.lng);
+    // 출발지는 넘기지 않음 → 내비가 지금 차가 있는 곳(현재 위치)에서 안내 (집에서 늦게 나오거나 다른 곳에서 출발해도 맞게)
+    if (typeof Timeline !== 'undefined' && Timeline.openNav) Timeline.openNav(app === 'kakao' ? 'kakao' : 'tmap', l.to.name, l.to.lat, l.to.lng);
   },
 
   cancel() { clearTimeout(this._timer); this._close(); },
