@@ -800,6 +800,8 @@ const Timeline = {
               }
             }
             const timeoutId = setTimeout(() => {
+              // 앱이 잠들어 있다 늦게 깨면 지난 알람이 한꺼번에 울림 → 폰 알람이 이미 울렸으니 2분 넘게 늦으면 건너뜀
+              if (window.NativeApp && Date.now() - targetTime > 2 * 60000) return;
               try {
                 if ('Notification' in window && Notification.permission === 'granted') {
                   new Notification('BuddyPlanner 타임라인', {
@@ -880,6 +882,8 @@ const Timeline = {
         // setTimeout은 약 24.8일(2^31-1ms)을 넘기면 바로 실행돼 버림 → 먼 일정은 앱 안 타이머를 걸지 않음 (폰 알람은 위에서 예약)
         if (delay >= 2147483647) { scheduledCount++; return; }
         const timeoutId = setTimeout(() => {
+          // 앱이 잠들어 있다 늦게 깨면 지난 알람이 한꺼번에 울림 → 폰 알람이 이미 울렸으니 2분 넘게 늦으면 건너뜀
+          if (window.NativeApp && Date.now() - targetTime > 2 * 60000) return;
           try {
             if ('Notification' in window && Notification.permission === 'granted') {
               new Notification('BuddyPlanner 타임라인', {
@@ -1123,6 +1127,7 @@ const Timeline = {
     const at = Date.now() + 5 * 60000;
     this._snoozeTimer = setTimeout(() => {
       if (this._lastRingAt && Date.now() - this._lastRingAt < 60000) return;   // 아이폰 알림이 먼저 울렸으면 한 번만
+      if (window.NativeApp && Date.now() - at > 2 * 60000) return;   // 잠금 중 폰 알림이 이미 울림 → 앱을 연 뒤 또 울리지 않게
       this.playAlarmSound(last.msg, last.title, last.iconHtml, last.s ? { s: last.s, time: last.time, _snoozeLeft: left } : null);
     }, 5 * 60000);
     // 아이폰: 앱을 닫거나 화면을 잠가도 5분 뒤 울리게 폰 알림으로도 예약 (앱이 켜져 있으면 위 타이머가 먼저 울리고 알림은 건너뜀)
