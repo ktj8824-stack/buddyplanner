@@ -13,6 +13,7 @@ const Upgrade = {
   render() {
     const el = U.$('#screen-upgrade');
     if (!el) return;
+    const promo = !State.isPro && Billing.promoActive();
 
     el.innerHTML = `
       <div class="header" style="background:transparent; border-bottom:none; position:absolute; width:100%; z-index:10;">
@@ -27,11 +28,11 @@ const Upgrade = {
             <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M2 19h20v2H2v-2zm19-11c-.55 0-1 .45-1 1v4l-3-2-2 3-3-4-3 4-2-3-3 2v-4c0-.55-.45-1-1-1s-1 .45-1 1v7h20V9c0-.55-.45-1-1-1zM7 6c.83 0 1.5-.67 1.5-1.5S7.83 3 7 3s-1.5.67-1.5 1.5S6.17 6 7 6zm10 0c.83 0 1.5-.67 1.5-1.5S17.83 3 17 3s-1.5.67-1.5 1.5S16.17 6 17 6zm-5-2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
           </div>
           <h2 class="upg-title">BuddyPlanner PRO</h2>
-          <p class="upg-subtitle">프리미엄 혜택으로 골프 라이프를 완벽하게</p>
+          <p class="upg-subtitle">${promo ? `출시 기념! ${Billing.promoLabel()}까지 PRO 기능 무료` : '프리미엄 혜택으로 골프 라이프를 완벽하게'}</p>
         </div>
 
         <div class="upg-content">
-          <h3 class="upg-feature-title">PRO 멤버십 혜택</h3>
+          <h3 class="upg-feature-title">${promo ? '지금 무료로 쓸 수 있는 PRO 기능' : 'PRO 멤버십 혜택'}</h3>
           <div class="feat-list">
             <div class="feat-item stag">
               <div class="feat-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
@@ -61,13 +62,13 @@ const Upgrade = {
                 <p>모임 라운딩을 만들고 카톡으로 링크만 보내면 참석·조 편성·카풀까지 한 번에 정리돼요. 받은 분들은 무료예요.</p>
               </div>
             </div>
-            <div class="feat-item stag">
+            ${promo ? '' : `<div class="feat-item stag">
               <div class="feat-icon green"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div>
               <div class="feat-text">
                 <h4>광고 완벽 제거</h4>
                 <p>모든 화면에서 광고가 제거되어 더욱 쾌적한 앱 사용이 가능합니다.</p>
               </div>
-            </div>
+            </div>`}
           </div>
         </div>
 
@@ -88,6 +89,17 @@ const Upgrade = {
     // 1) 이미 PRO 회원
     if (State.isPro) {
       box.innerHTML = this.proStatusHTML();
+      return;
+    }
+
+    // 1-1) 출시 기념 무료 기간: 결제 화면 대신 안내만 (결제 버튼 없음)
+    if (Billing.promoActive()) {
+      box.innerHTML = `
+        <div class="upg-promo">
+          <b>🎉 출시 기념 PRO 무료</b>
+          <p>${Billing.promoLabel()}까지 위 기능을 모두 무료로 쓸 수 있어요.<br>따로 신청하거나 결제할 필요 없어요.</p>
+          <button class="btn-primary" style="width:100%;" onclick="App.navigate('home')">바로 써보기</button>
+        </div>`;
       return;
     }
 

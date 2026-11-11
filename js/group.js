@@ -288,7 +288,7 @@ const Group = {
   _emptyTeam() { return { tee: '', course: '', members: [0, 1, 2, 3].map(() => ({ name: '', phone: '' })) }; },
   startCreate() {
     if (!this.signedIn()) { U.toast('단체 일정을 만들려면 로그인해 주세요.'); App.navigate('login'); return; }
-    if (this.proOnly() && !State.isPro) {
+    if (this.proOnly() && !Billing.hasPro()) {
       U.toast('단체 등록은 PRO 기능이에요. 링크를 받은 분들은 무료로 볼 수 있어요.', 3500);
       if (typeof App.openUpgrade === 'function') App.openUpgrade(); else App.navigate('upgrade');
       return;

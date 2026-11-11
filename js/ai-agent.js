@@ -19,7 +19,7 @@ const AIAgent = {
   lockState() {
     if (!this.enabled()) return null;
     if (!Cloud.isSignedIn()) return 'login';
-    if (!State.isPro && this.serverAllowed !== true) return 'pro';
+    if (!Billing.hasPro() && this.serverAllowed !== true) return 'pro';
     return null;
   },
 
@@ -31,7 +31,7 @@ const AIAgent = {
   serverAllowed: null,
   _checkedFor: null,
   async checkServerAccess() {
-    if (!this.enabled() || !Cloud.isSignedIn() || State.isPro) return;
+    if (!this.enabled() || !Cloud.isSignedIn() || Billing.hasPro()) return;
     const uid = Cloud.userId && Cloud.userId();
     if (this._checkedFor === uid) return;
     this._checkedFor = uid;

@@ -319,7 +319,7 @@ const App = {
       { s: 'market', img: 'market', bg: '#ecfeff', name: '버디 마켓', desc: '골프용품 · 차량용품' },
       { s: 'raffle', img: 'raffle', bg: '#fdf2f8', name: '럭키드로우', desc: '무료 포인트로 경품 응모' },
       { s: 'restaurant', img: 'restaurant', bg: '#fff7ed', name: '추천 맛집', desc: '골프장 근처 식당' },
-      { s: 'upgrade', icon: '👑', bg: '#fef9c3', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : 'AI 비서 · 단체 등록 · 광고 제거' }
+      { s: 'upgrade', icon: '👑', bg: '#fef9c3', name: 'BuddyPlanner PRO', desc: State.isPro ? 'PRO 이용 중' : (Billing.promoActive() ? `출시 기념 무료 · ${Billing.promoLabel()}까지` : 'AI 비서 · 단체 등록 · 광고 제거') }
     ];
     this.showModal('전체 메뉴', `
       <div class="menu-sheet">
@@ -584,7 +584,7 @@ const App = {
     // 2. 현재 날씨 + (PRO) 라운딩 당일 예보를 함께 조회
     const [weather, forecast] = await Promise.all([
       WeatherAPI.fetchWeather(targetLat, targetLng),
-      (roundSched && State.isPro)
+      (roundSched && Billing.hasPro())
         ? WeatherAPI.fetchRoundForecast(targetLat, targetLng, roundSched.date, roundSched.teeOff)
         : Promise.resolve(null)
     ]);
@@ -642,7 +642,7 @@ const App = {
     const d = new Date(sched.date);
     const title = `⛳ 라운딩 당일 예보 · ${d.getMonth() + 1}/${d.getDate()} ${U.esc(sched.teeOff || '')} 티오프`;
 
-    if (!State.isPro) {
+    if (!Billing.hasPro()) {
       return `
           <div class="wx-round is-locked">
             <div class="wx-round-title">${title}</div>

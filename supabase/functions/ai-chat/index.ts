@@ -10,7 +10,7 @@
 //   ANTHROPIC_API_KEY, KAKAO_REST_API_KEY, REVENUECAT_SECRET_KEY
 // 선택: AI_ALLOW_ALL_USERS=true (RevenueCat 연결 전 테스트용, 출시 전 반드시 삭제)
 //       PRO_PAY_TEST_OK=true (웹 테스트 결제로 산 PRO도 인정, 출시 전 삭제)
-//       AI_DAILY_CHAT_LIMIT (기본 60), AI_DAILY_IMAGE_LIMIT (기본 15)
+//       AI_DAILY_CHAT_LIMIT (기본 20), AI_DAILY_IMAGE_LIMIT (기본 3)
 // 자동 제공: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 // =====================================================================
 
@@ -331,6 +331,12 @@ async function getUser(env: Env, authHeader: string, f: typeof fetch) {
 
 async function isPro(env: Env, userId: string, f: typeof fetch): Promise<boolean> {
   if (env.AI_ALLOW_ALL_USERS === 'true') return true;
+  // 출시 기념 PRO 무료 기간 (app_settings.pro_free_until) — 기간 안이면 로그인 사용자 모두 허용
+  try {
+    const st = await rpc(env, 'bp_public_settings', {}, f);
+    const until = st && (st as Json).pro_free_until;
+    if (until && Date.parse(String(until)) > Date.now()) return true;
+  } catch (_) { /* 설정 확인 실패 → 결제 상태로 확인 */ }
   // 웹 결제(토스) PRO — 실결제(live)만 인정, 테스트 결제는 PRO_PAY_TEST_OK=true일 때만
   try {
     for (const m of env.PRO_PAY_TEST_OK === 'true' ? ['live', 'test'] : ['live']) {
@@ -459,8 +465,8 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
   if (image && image.data.length > 2_800_000) return json(413, { error: 'image_too_large', message: '사진 용량이 너무 커요.' });
 
   // 하루 사용 한도
-  const chatLimit = parseInt(env.AI_DAILY_CHAT_LIMIT || '60', 10);
-  const imageLimit = parseInt(env.AI_DAILY_IMAGE_LIMIT || '15', 10);
+  const chatLimit = parseInt(env.AI_DAILY_CHAT_LIMIT || '20', 10);
+  const imageLimit = parseInt(env.AI_DAILY_IMAGE_LIMIT || '3', 10);
   try {
     if (!(await rpc(env, 'ai_try_use', { p_user: user.id, p_kind: 'chat', p_limit: chatLimit }, f))) {
       return json(429, { error: 'daily_limit', message: `오늘 AI 비서 사용 한도(${chatLimit}회)를 모두 썼어요. 내일 다시 이용해 주세요.` });

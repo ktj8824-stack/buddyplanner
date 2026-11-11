@@ -60,8 +60,8 @@ const Profile = {
               <small>광고 보고 ${pm.ad_points}P 받기 · 오늘 <span data-ad-count>${pm.ad_today}/${pm.ad_limit}</span></small>
             </div>
             <div class="v2-me-box pro" onclick="App.navigate('upgrade')">
-              <span>현재 이용권</span><b>${State.isPro ? 'PRO' : '무료'}</b>
-              <small>${State.isPro ? 'PRO 이용 중 · 관리' : 'PRO 혜택 보기'}</small>
+              <span>현재 이용권</span><b>${State.isPro || Billing.promoActive() ? 'PRO' : '무료'}</b>
+              <small>${State.isPro ? 'PRO 이용 중 · 관리' : (Billing.promoActive() ? `출시 기념 무료 · ${Billing.promoLabel()}까지` : 'PRO 혜택 보기')}</small>
             </div>
           </div>
 

@@ -58,6 +58,7 @@ const Billing = {
   },
 
   async init() {
+    this.refreshPromo();
     // 웹 결제 PRO는 앱·웹 모두에서 확인 (로그인한 경우)
     this.refreshWebPro(true);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.refreshWebPro(); });
@@ -210,6 +211,41 @@ const Billing = {
     } catch (e) { /* 이미 익명 */ }
   },
 
+  /* ── 출시 기념 PRO 무료 기간 ──
+     기간 동안 PRO 기능(AI 비서·단체 등록·무제한 일정·당일 예보)을 모두에게 열어 줌.
+     광고 제거는 포함하지 않음 (State.isPro = 실제 유료 PRO만).
+     마감일은 서버 app_settings.pro_free_until 로 바꿀 수 있고, 못 받아오면 아래 기본값 사용. */
+  PROMO_DEFAULT: '2027-03-31T23:59:59+09:00',
+  PROMO_KEY: 'bp_promo_until',
+  promoUntil() {
+    let v = null;
+    try { v = localStorage.getItem(this.PROMO_KEY); } catch (e) { /* */ }
+    const d = new Date(v || this.PROMO_DEFAULT);
+    return isNaN(d) ? new Date(this.PROMO_DEFAULT) : d;
+  },
+  promoActive() { return Date.now() < this.promoUntil().getTime(); },
+  promoLabel() {
+    const d = new Date(this.promoUntil().getTime() + 9 * 3600 * 1000);
+    return `${d.getUTCFullYear()}년 ${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일`;
+  },
+  /** PRO 기능을 쓸 수 있는지 (유료 PRO 또는 무료 기간) — 광고 여부는 State.isPro로 따로 판단 */
+  hasPro() { return !!State.isPro || this.promoActive(); },
+  async refreshPromo() {
+    try {
+      if (typeof Cloud === 'undefined' || !Cloud.isConfigured()) return;
+      const { url, key } = Cloud.cfg();
+      const res = await fetch(`${url}/rest/v1/rpc/bp_public_settings`, {
+        method: 'POST', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: '{}',
+      });
+      if (!res.ok) return;
+      const j = await res.json();
+      const v = j && j.pro_free_until;
+      const before = this.promoActive();
+      try { if (v) localStorage.setItem(this.PROMO_KEY, v); else localStorage.removeItem(this.PROMO_KEY); } catch (e) { /* */ }
+      if (before !== this.promoActive() && typeof App !== 'undefined' && App.applyProStatus) App.applyProStatus();
+    } catch (e) { /* 네트워크 오류 시 저장된 값 유지 */ }
+  },
+
   /* ── 무료 사용자 일정 개수 제한 ── */
   FREE_SCHEDULE_LIMIT: 3,
 
@@ -221,7 +257,7 @@ const Billing = {
   },
 
   canAddSchedule() {
-    return State.isPro || this.upcomingScheduleCount() < this.FREE_SCHEDULE_LIMIT;
+    return this.hasPro() || this.upcomingScheduleCount() < this.FREE_SCHEDULE_LIMIT;
   },
 
   /** 새 일정을 추가할 수 있으면 true, 아니면 PRO 안내를 띄우고 false */
