@@ -211,6 +211,11 @@ const Group = {
         <div class="gm-row"><span>🕖 티업</span><b class="gold">${U.esc(tee)}</b></div>
         ${meal}
         ${wake}
+        ${typeof AutoNav !== 'undefined' ? AutoNav.quickHTML([
+          e.meal_before ? { label: '아침 식당', name: e.meal_before.name, lat: e.meal_before.lat, lng: e.meal_before.lng } : null,
+          e.course ? { label: '골프장', name: e.course.name, lat: e.course.lat, lng: e.course.lng } : null,
+          e.meal_after ? { label: '뒷풀이', name: e.meal_after.name, lat: e.meal_after.lat, lng: e.meal_after.lng } : null,
+        ]) : ''}
       </div>`;
   },
   /** 기준: 집 주소가 있으면 집, 없으면 지금 위치 (앱 없이 카톡 링크로 열어도 동작) */

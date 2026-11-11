@@ -912,6 +912,11 @@ const App = {
 
   handleIncomingUrl(urlStr) {
     if (!urlStr) return null;
+    // 차에 타면 자동 길안내 (아이폰 앱 전용 주소)
+    if (typeof AutoNav !== 'undefined' && AutoNav.isAppLink && AutoNav.isAppLink(urlStr)) {
+      if (!AutoNav._launched) { AutoNav._launched = true; setTimeout(() => { AutoNav._launched = false; }, 4000); setTimeout(() => AutoNav.start(), 300); }
+      return 'autonav';
+    }
     // 단체 일정 링크 (?g=코드) → 로그인 없이 바로 단체 일정 화면
     const gm = /[?&]g=([0-9a-fA-F]{16})/.exec(urlStr);
     if (gm && typeof Group !== 'undefined') {
@@ -957,6 +962,11 @@ const App = {
             ${mealName ? `<div style="color:#28a745;"><strong>🍽️ 식당:</strong> ${U.esc(mealName)}</div>` : ''}
             <div><strong>🚗 출발지:</strong> 내 출발지로 다시 계산해요</div>
           </div>
+          ${typeof AutoNav !== 'undefined' ? AutoNav.quickHTML([
+            schedData.hasMeetingPoint && schedData.meetingPointObj ? { label: '모임장소', ...schedData.meetingPointObj } : null,
+            schedData.hasMeal && schedData.mealRestaurant ? { label: '식당', ...schedData.mealRestaurant } : null,
+            schedData.course ? { label: '골프장', ...schedData.course } : null,
+          ]) : ''}
 
           <div style="display:flex; gap:10px;">
             <button id="btn-cancel-shared-sched" style="flex:1; padding:14px; border:none; background:#e9ecef; color:#495057; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer;">취소</button>

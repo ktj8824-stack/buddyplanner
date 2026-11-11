@@ -624,3 +624,17 @@ body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
 .upg-promo{margin:4px 0 8px;padding:18px 16px;border-radius:18px;background:linear-gradient(135deg,#fff7d6,#ffefc2);border:1px solid #fde68a;text-align:center}
 .upg-promo b{display:block;font-size:1.1rem;font-weight:900;color:#92400e;margin-bottom:6px}
 .upg-promo p{font-size:0.875rem;color:#78350f;line-height:1.55;margin-bottom:14px}
+
+/* 공유 화면: 바로 길안내 (로그인 없이) */
+.qnav{margin-top:14px;padding:14px;border-radius:16px;background:#f0f7ff;border:1px solid #dbeafe;text-align:left}
+.qnav-h{font-size:15px;font-weight:800;color:#0f172a}
+.qnav-h small{display:block;font-size:12.5px;font-weight:600;color:#64748b;margin-top:2px}
+.qnav-dest{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.qnav-chip{height:32px;padding:0 12px;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#334155;font-size:13px;font-weight:700;cursor:pointer}
+.qnav-chip.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff}
+.qnav-to{margin-top:10px;font-size:14px;color:#334155;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qnav-b{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.qnav-btn{height:46px;border-radius:12px;border:0;font-size:15px;font-weight:800;cursor:pointer}
+.qnav-btn.tmap{background:#3461e6;color:#fff}
+.qnav-btn.kakao{background:#fbe54d;color:#1f2937}
+.modal-card .qnav{margin:-8px 0 18px}

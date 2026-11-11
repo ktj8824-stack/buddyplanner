@@ -7,7 +7,13 @@
    가야 할 곳: 집 → (모임장소) → (식당) → 골프장 → (뒷풀이 식당) → 집
    ========================================= */
 const AutoNav = {
-  LINK: 'https://buddyplanner.kr/?go=next',
+  WEB_LINK: 'https://buddyplanner.kr/?go=next',
+  APP_LINK: 'buddyplanner://next',   // 아이폰 앱: 사파리 대신 앱이 바로 열림 → 내비 열 때 'TMAP에서 열겠습니까?' 확인창 없음
+  /** 단축어에 넣을 링크: 아이폰 앱에서는 앱 전용 주소, 그 밖(웹·안드로이드)은 웹 주소 */
+  get LINK() { return this._isIOSApp() ? this.APP_LINK : this.WEB_LINK; },
+  _isIOSApp() { const C = window.Capacitor; return !!(C && C.getPlatform && C.getPlatform() === 'ios'); },
+  /** 앱 전용 주소로 열렸는지 (buddyplanner://next, buddyplanner://go=next 등) */
+  isAppLink(url) { return /^buddyplanner:\/\/(go[=/])?next\b/i.test(String(url || '')); },
   WAIT_MS: 8000,
   LATE_MIN: 45,          // 골프장 쪽 구간은 티오프 + 45분까지 유효
   EARLY_MIN: 30,         // 다음 구간 출발 30분 전부터는 그 구간으로 봄 (식당에서 조금 일찍 나서도 골프장으로)
@@ -29,8 +35,41 @@ const AutoNav = {
   },
 
   init() {
-    if (!this._consumeFlag()) return;
-    this.start();
+    if (this._consumeFlag()) { this.start(); return; }
+    // 아이폰 앱이 앱 전용 주소로 처음 켜진 경우 (이미 켜져 있을 때는 appUrlOpen에서 처리)
+    try {
+      const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+      if (A && A.getLaunchUrl) A.getLaunchUrl().then(r => { if (r && this.isAppLink(r.url) && !this._launched) { this._launched = true; this.start(); } }).catch(() => {});
+    } catch (e) { /* */ }
+  },
+
+  /* ── 공유 화면용 '바로 길안내' (로그인 없이, 지금 있는 곳에서 출발) ── */
+  _quick: [], _quickSel: 0,
+  /** dests: [{label, name, lat, lng}] — 위치가 있는 곳만 버튼으로 */
+  quickHTML(dests) {
+    const esc = this._esc;
+    const list = (dests || []).filter(d => d && d.lat && d.lng);
+    if (!list.length) return '';
+    this._quick = list; this._quickSel = 0;
+    return `
+      <div class="qnav" id="qnav">
+        <div class="qnav-h">🚗 바로 길안내 <small>지금 있는 곳에서 출발해요</small></div>
+        ${list.length > 1 ? `<div class="qnav-dest">${list.map((d, i) => `<button type="button" class="qnav-chip${i === 0 ? ' on' : ''}" onclick="AutoNav.quickPick(${i})">${esc(d.label)}</button>`).join('')}</div>` : ''}
+        <div class="qnav-to">📍 <b id="qnav-name">${esc(list[0].name)}</b></div>
+        <div class="qnav-b">
+          <button type="button" class="qnav-btn tmap" onclick="AutoNav.quickGo('tmap')">티맵</button>
+          <button type="button" class="qnav-btn kakao" onclick="AutoNav.quickGo('kakao')">카카오내비</button>
+        </div>
+      </div>`;
+  },
+  quickPick(i) {
+    this._quickSel = i;
+    document.querySelectorAll('#qnav .qnav-chip').forEach((b, j) => b.classList.toggle('on', j === i));
+    const n = document.getElementById('qnav-name'); if (n && this._quick[i]) n.textContent = this._quick[i].name;
+  },
+  quickGo(app) {
+    const d = this._quick[this._quickSel || 0];
+    if (d && typeof Timeline !== 'undefined' && Timeline.openNav) Timeline.openNav(app, d.name, d.lat, d.lng);
   },
 
   _min(hm) {
@@ -115,7 +154,7 @@ const AutoNav = {
       if (Date.now() - began < this.WAIT_MS) { this._timer = setTimeout(tick, 500); return; }
       if (r && r.todayCount) return this._message('오늘 이동이 모두 끝났어요', '수고하셨습니다. 즐거운 라운딩이었길 바라요! ⛳');
       if (typeof Cloud !== 'undefined' && Cloud.isConfigured && Cloud.isConfigured() && !Cloud.isSignedIn())
-        return this._message('로그인이 필요해요', '사파리에서 버디플래너에 로그인해 주세요. 그래야 앱에 넣은 오늘 라운딩을 찾을 수 있어요.');
+        return this._message('로그인이 필요해요', (this._isIOSApp() ? '버디플래너 앱에' : '사파리에서 버디플래너에') + ' 로그인해 주세요. 그래야 오늘 라운딩을 찾을 수 있어요.');
       return this._message('오늘 라운딩 일정이 없어요', '라운딩 날 차에 타면 골프장으로 바로 안내해 드려요.');
     };
     tick();
@@ -226,7 +265,7 @@ const AutoNav = {
         <li><b>CarPlay</b> 선택 → <b>연결될 때</b> → <b>즉시 실행</b></li>
         <li>동작에서 <b>URL 열기</b> 추가 → 아래 링크 붙여넣기</li>
       </ol>
-      <div style="font-size:12.5px;color:#64748b;margin-top:6px;">CarPlay가 없으면 2번에서 <b>블루투스</b> → 차량 이름을 고르세요. 버디플래너에 로그인된 Safari에서 열립니다.</div>`;
+      <div style="font-size:12.5px;color:#64748b;margin-top:6px;">CarPlay가 없으면 2번에서 <b>블루투스</b> → 차량 이름을 고르세요. ${this._isIOSApp() ? '버디플래너 앱이 바로 열려요. 예전에 웹 주소(https://…)를 넣었다면 이 링크로 바꿔 주세요.' : '버디플래너에 로그인된 Safari에서 열립니다. 버디플래너 앱을 쓰면 앱에서 이 링크를 복사해 넣으세요. 내비를 열 때 확인 창이 뜨지 않아요.'}</div>`;
     const android = `
       <div style="font-weight:800;font-size:15px;margin:14px 0 6px;">갤럭시</div>
       <ol style="${S}padding-left:22px;margin:0;list-style:decimal;">
