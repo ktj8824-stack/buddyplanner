@@ -62,7 +62,7 @@ const Profile = {
             </div>
             <div class="v2-me-box pro" onclick="App.navigate('upgrade')">
               <span>현재 이용권</span><b>${State.isPro || Billing.promoActive() ? 'PRO' : '무료'}</b>
-              <small>${State.isPro ? 'PRO 이용 중 · 관리' : (Billing.promoActive() ? `출시 기념 무료 · ${Billing.promoLabel()}까지` : 'PRO 혜택 보기')}</small>
+              <small>${State.isPro ? 'PRO 이용 중 · 관리' : (Billing.promoActive() ? `출시 기념 무료 <b class="v2-me-dday">${Billing.promoDaysLeft()}일</b> 남음<br>${Billing.promoLabel()}까지` : 'PRO 혜택 보기')}</small>
             </div>
           </div>
 
@@ -72,7 +72,7 @@ const Profile = {
             <button class="v2-li" onclick="Profile.searchAndSaveAddress('work')"><span class="k">회사 주소</span><span class="v">${workName ? U.esc(workName) : '등록'}</span>${chev}</button>
             <button class="v2-li" onclick="Profile.pickPrep()"><span class="k">기본 준비 시간</span><span class="v">${prep}분</span>${chev}</button>
             <button class="v2-li" onclick="AutoNav.openGuide()"><span class="k">길안내 앱<small>차에 타면 자동 길안내도 여기서 켜요</small></span><span class="v">${navName}</span>${chev}</button>
-            <button class="v2-li" onclick="Profile.previewAlarm()"><span class="k">알람 소리<small data-alarm-status style="${alarmSt ? '' : 'display:none'}">${alarmSt}</small></span><span class="v">버디 알람</span>${chev}</button>
+            <button class="v2-li" onclick="Profile.openAlarm()"><span class="k">알람 소리<small data-alarm-status style="${alarmSt ? '' : 'display:none'}">${alarmSt}</small></span><span class="v">버디 알람</span>${chev}</button>
           </div>
 
           <div class="v2-sec-title">화면</div>
@@ -134,6 +134,40 @@ const Profile = {
     const d = new Date(s.first), dow = '일월화수목금토'[d.getDay()];
     const h = d.getHours(), ap = h < 12 ? '오전' : '오후', h12 = h % 12 || 12;
     return `예약된 알람 ${s.n}개 · 가장 가까운 알람 ${d.getMonth() + 1}/${d.getDate()}(${dow}) ${ap} ${h12}:${String(d.getMinutes()).padStart(2, '0')}`;
+  },
+
+  _fmtWhen(t) {
+    const d = new Date(t), dow = '일월화수목금토'[d.getDay()];
+    const h = d.getHours(), ap = h < 12 ? '오전' : '오후', h12 = h % 12 || 12;
+    return `${d.getMonth() + 1}/${d.getDate()}(${dow}) ${ap} ${h12}:${String(d.getMinutes()).padStart(2, '0')}`;
+  },
+
+  /** 알람 소리 줄: 아이폰 앱에서 예약 결과가 있으면 가까운 알람 목록 창, 아니면 소리 미리 듣기 */
+  openAlarm() {
+    const s = window.__bpAlarmSync;
+    if (!s) return this.previewAlarm();
+    const strip = v => U.esc(String(v || '').replace(/^[^\p{L}\p{N}]+/u, ''));
+    let body;
+    if (s.denied) {
+      body = `<p class="al-sheet-warn">아이폰 설정에서 버디플래너 알림이 꺼져 있어 알람이 울리지 않아요.</p>
+        <button class="btn-primary" style="width:100%;margin-bottom:8px;" onclick="Profile.openNotifSettings()">알림 설정 열기</button>
+        <p class="al-sheet-hint">설정 › 버디플래너 › 알림 › 알림 허용을 켜 주세요.</p>`;
+    } else if (s.failed) {
+      body = `<p class="al-sheet-warn">알람 예약에 실패했어요. 앱을 완전히 닫았다가 다시 열면 다시 예약해요.</p>`;
+    } else if (!s.n || !(s.next || []).length) {
+      body = `<p class="al-sheet-hint">예약된 알람이 없어요. 라운딩을 등록하면 준비·출발 시각에 맞춰 알람이 예약돼요.</p>`;
+    } else {
+      body = `<ul class="al-sheet-list">${s.next.map(a => `<li><b>${this._fmtWhen(a.t)}</b><span>${strip(a.title)}</span><small>${U.esc(a.body || '')}</small></li>`).join('')}</ul>
+        <p class="al-sheet-hint">예약된 알람 ${s.n}개 중 가까운 ${s.next.length}개예요. 놓치면 1·2분 뒤 한 번씩 더 울려요.</p>`;
+    }
+    App.showModal('예약된 알람', `<div class="al-sheet">${body}
+      <button class="btn-ghost" style="width:100%;margin-top:4px;" onclick="App.closeModal();Profile.previewAlarm()">알람 소리 미리 듣기</button></div>`);
+  },
+
+  openNotifSettings() {
+    App.closeModal();
+    if (window.NativeApp && NativeApp.openNotifSettings) NativeApp.openNotifSettings();
+    else U.toast('휴대폰 설정 › 버디플래너 › 알림에서 켜 주세요');
   },
 
   previewAlarm() {

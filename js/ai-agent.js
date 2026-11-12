@@ -443,13 +443,66 @@ const AIAgent = {
     // 예전에 받은 카드를 나중에 누르면 이미 지난 시각일 수 있음 → 막기
     { const [th, tm] = String(next.teeOff || '').split(':').map(Number); const d = new Date(next.date);
       if (isFinite(th) && isFinite(tm) && !isNaN(d.getTime()) && new Date(d.getFullYear(), d.getMonth(), d.getDate(), th, tm).getTime() < Date.now()) { U.toast('이미 지난 시각이에요. 새 날짜·시간으로 다시 말해 주세요.'); return; } }
+    // 날짜·시각이 바뀌면 그 시각의 길 상황으로 이동 시간을 다시 계산 (못 받으면 예전 값 유지)
+    const oldTravel = Number(s.travelTime) || 0;
+    if (a.new_date || a.new_tee_off) {
+      if (a._busy) return;   // 계산 중 두 번 누름 방지
+      a._busy = true;
+      U.toast('바뀐 시각의 길 상황으로 이동 시간을 다시 계산하고 있어요…');
+      let t = null;
+      try { t = await this._retime(next); } finally { a._busy = false; }
+      if (t) Object.assign(next, t);
+      if (State.schedules[idx] !== s) { U.toast('그사이 일정이 바뀌었어요. 다시 말해 주세요.'); return; }
+    }
     // 이전 시각으로 걸린 알람을 먼저 지움 → 바뀐 시각으로 한 번만 울림 (일정 수정 화면과 같은 순서)
     if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(s, true);
     State.updateSchedule(idx, next);
     if (State.saveFailed) { State.schedules[idx] = s; try { Timeline.autoScheduleAllAlarms(); } catch (e) {} return; }
     try { if (typeof Timeline !== 'undefined') Timeline.autoScheduleAllAlarms(); } catch (e) {}
     this._finish(msg, a, 'done');
-    U.toast(`⛳ ${next.course.name} ${U.fmtDateShort(next.date)} ${U.fmtTimeKo(next.teeOff)}으로 바꿨어요.`);
+    const nt = Number(next.travelTime) || 0;
+    const moved = oldTravel && nt && Math.abs(nt - oldTravel) >= 5 ? ` 이동 시간 ${oldTravel}분 → ${nt}분` : '';
+    U.toast(`⛳ ${next.course.name} ${U.fmtDateShort(next.date)} ${U.fmtTimeKo(next.teeOff)}으로 바꿨어요.${moved}`, moved ? 3500 : undefined);
+  },
+
+  /** 새 날짜·티오프 기준으로 이동 시간을 다시 계산 (일정 등록 화면과 같은 방식, 식당→골프장 시간은 그대로)
+   *  돌려주는 값: { travelTime, travelToRestaurant, travelToMeeting, routeEstimated } 또는 null(계산 못 함) */
+  async _retime(s) {
+    try {
+      if (typeof TmapAPI === 'undefined' || !s || !s.course || !s.startLat || !s.startLng) return null;
+      const [th, tm] = String(s.teeOff || '').split(':').map(Number);
+      const d = new Date(s.date); d.setHours(th, tm, 0, 0);
+      if (isNaN(d.getTime())) return null;
+      const meal = !!(s.hasMeal && s.mealRestaurant && s.mealRestaurant.lat);
+      const meet = !!(s.hasMeetingPoint && s.meetingPointObj && s.meetingPointObj.lat);
+      const arrival = new Date(d.getTime() - (meal ? 30 : 40) * 60000);
+      const leg = async (x1, y1, x2, y2, at) => {
+        let v = null;
+        try { v = await TmapAPI.getPredictiveRouteTime(x1, y1, x2, y2, at.toISOString(), 'W02'); } catch (e) { v = null; }
+        if (!v) { try { v = await TmapAPI.getRouteTime(x1, y1, x2, y2); } catch (e) { v = null; } }
+        return v ? Math.round(v) : null;
+      };
+      const sx = s.startLng, sy = s.startLat, M = s.meetingPointObj, R = s.mealRestaurant, C = s.course;
+      const WAIT = 10;
+      if (meal) {
+        const restDur = Number(R.distMin) || 15;
+        const restArrival = new Date(arrival.getTime() - restDur * 60000 - (Number(s.mealDuration) || 0) * 60000);
+        if (meet) {
+          const toRest = await leg(M.lng, M.lat, R.lng, R.lat, restArrival); if (!toRest) return null;
+          const toMeet = await leg(sx, sy, M.lng, M.lat, new Date(restArrival.getTime() - (toRest + WAIT) * 60000)); if (!toMeet) return null;
+          return { travelTime: toMeet + WAIT + toRest + restDur, travelToRestaurant: toRest, travelToMeeting: toMeet, routeEstimated: false };
+        }
+        const toRest = await leg(sx, sy, R.lng, R.lat, restArrival); if (!toRest) return null;
+        return { travelTime: toRest + restDur, travelToRestaurant: toRest, routeEstimated: false };
+      }
+      if (meet) {
+        const toGolf = await leg(M.lng, M.lat, C.lng, C.lat, arrival); if (!toGolf) return null;
+        const toMeet = await leg(sx, sy, M.lng, M.lat, new Date(arrival.getTime() - (toGolf + WAIT) * 60000)); if (!toMeet) return null;
+        return { travelTime: toMeet + WAIT + toGolf, travelToMeeting: toMeet, routeEstimated: false };
+      }
+      const t = await leg(sx, sy, C.lng, C.lat, arrival); if (!t) return null;
+      return { travelTime: t, routeEstimated: false };
+    } catch (e) { console.warn('[AI 변경] 이동 시간 재계산 실패', e); return null; }
   },
 
   /** 식사: 일정 수정 화면을 열고 식당을 넣어둠 (저장은 사용자가) */

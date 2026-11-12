@@ -276,7 +276,9 @@ const Group = {
       <div class="v2-pagehead"><button class="v2-iconbtn" style="margin-left:-10px;" onclick="App.navigate('home')" aria-label="뒤로가기">${back}</button><h1 style="font-size:1.25rem;">단체 일정</h1></div>
       <div class="v2-scroll"><div class="v2-body">
         <button class="v2-btn-navy" onclick="Group.startCreate()">＋ 새 단체 일정 만들기 <b class="pro-tag inline">PRO</b></button>
-        <p class="v2-hint pro-note" style="margin:0 4px;">👑 단체 일정 만들기는 PRO 기능이에요. 링크를 받은 참석자는 무료로 볼 수 있어요.</p>
+        ${Billing.promoActive() && !State.isPro
+          ? `<p class="v2-hint" style="margin:0 4px;">출시 기념으로 ${Billing.promoLabel()}까지 단체 일정을 무료로 만들 수 있어요. 링크를 받은 참석자도 무료예요.</p>`
+          : `<p class="v2-hint pro-note" style="margin:0 4px;">👑 단체 일정 만들기는 PRO 기능이에요. 링크를 받은 참석자는 무료로 볼 수 있어요.</p>`}
         ${!signed ? `<p class="v2-hint" style="margin:0 4px;">단체 일정을 만들려면 로그인이 필요해요. 받은 링크로 참석하는 건 로그인 없이도 돼요.</p>` : ''}
         ${cards ? `<div class="v2-sec-title">내 단체 일정</div>${cards}` : `
         <div class="v2-card">

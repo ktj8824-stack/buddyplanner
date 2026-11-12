@@ -49,6 +49,7 @@ const App = {
     // PRO 여부를 먼저 복원해야 PRO 회원에게 광고가 뜨지 않음
     Billing.loadCachedStatus();
     document.body.classList.toggle('is-pro', !!State.isPro);
+    document.body.classList.toggle('is-promo', !State.isPro && typeof Billing !== 'undefined' && Billing.promoActive());   // 무료 기간: PRO 표시를 '무료'로
     this.renderNav();
     this.renderAdBanner();
     this.initRewardedAd();
@@ -359,6 +360,7 @@ const App = {
   /** 구독 상태가 바뀌었을 때 광고 표시를 맞춤 (Billing에서 호출) */
   applyProStatus() {
     document.body.classList.toggle('is-pro', !!State.isPro);
+    document.body.classList.toggle('is-promo', !State.isPro && typeof Billing !== 'undefined' && Billing.promoActive());   // 무료 기간: PRO 표시를 '무료'로
     const badge = U.$('#nav-pro-badge');
     if (badge) badge.style.display = State.isPro ? '' : 'none';
     const adfit = U.$('#adfit-banner-wrap');

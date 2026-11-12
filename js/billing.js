@@ -232,6 +232,11 @@ const Billing = {
     const d = new Date(this.promoUntil().getTime() + 9 * 3600 * 1000);
     return `${d.getUTCFullYear()}년 ${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일`;
   },
+  /** 무료 기간 남은 날 (한국 날짜 기준, 마지막 날 = 1일) */
+  promoDaysLeft() {
+    const kst = t => Math.floor((t + 9 * 3600 * 1000) / 86400000);
+    return Math.max(0, kst(this.promoUntil().getTime()) - kst(Date.now()) + 1);
+  },
   /** PRO 기능을 쓸 수 있는지 (유료 PRO 또는 무료 기간) — 광고 여부는 State.isPro로 따로 판단 */
   hasPro() { return !!State.isPro || this.promoActive(); },
   async refreshPromo() {

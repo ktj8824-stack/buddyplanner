@@ -282,12 +282,41 @@ const Timeline = {
     const d = new Date(s.date); d.setHours(0, 0, 0, 0);
     if (!s.tlDone || s.tlDone.day !== d.getTime()) s.tlDone = { day: d.getTime(), keys: [] };
     if (s.tlDone.keys.indexOf(st.key) < 0) s.tlDone.keys.push(st.key);
+    this._tripOf(s).left[st.key] = Date.now();   // 실제 출발 시각 (나중에 준비 시간 맞춤에 씀)
     State.saveSchedules();
     U.toast('안전 운전하세요! 🚗');
     this.render();
   },
 
   hidePastItems() { this.markSteps(); },
+
+  /** 라운딩 당일 기록: 알람 확인·다시 알림 시각(ack/snooze), '출발했어요' 시각(left), 예정 시각(plan)
+   *  나중에 '보통 몇 분 늦게 나가는지'를 계산해 준비 시간을 맞춰 주는 재료 */
+  _tripOf(s) {
+    const d = new Date(s.date); d.setHours(0, 0, 0, 0);
+    if (!s.trip || s.trip.day !== d.getTime()) s.trip = { day: d.getTime(), ack: {}, snooze: {}, left: {}, plan: {} };
+    const tl = s.timeline || {};
+    ['prepStart', 'homeDepart', 'restDepart', 'arrival', 'teeOff'].forEach(k => { if (tl[k] && !s.trip.plan[k]) s.trip.plan[k] = tl[k]; });
+    return s.trip;
+  },
+  _logTrip(type) {
+    try {
+      const last = this._alarmCtxLast || {};
+      const s = last.s;
+      if (!s || !last.kind || State.schedules.indexOf(s) < 0) return;
+      const trip = this._tripOf(s);
+      if (type === 'snooze') trip.snooze[last.kind] = (trip.snooze[last.kind] || 0) + 1;
+      else if (!trip.ack[last.kind]) {
+        trip.ack[last.kind] = Date.now();
+        // 준비 알람을 확인했으면 타임라인의 '준비 시작'은 지난 것으로 (그날만)
+        if (last.kind === 'prep') {
+          if (!s.tlDone || s.tlDone.day !== trip.day) s.tlDone = { day: trip.day, keys: [] };
+          if (s.tlDone.keys.indexOf('prep') < 0) s.tlDone.keys.push('prep');
+        }
+      }
+      State.saveSchedules();
+    } catch (e) { console.warn('[알람 기록] 저장 실패', e); }
+  },
 
   async deleteSchedule() {
     if (await App.ask('일정을 삭제할까요?', '일정과 알람이 함께 지워져요.', { ok: '삭제' })) {
@@ -1029,7 +1058,7 @@ const Timeline = {
     const left = this._snoozeLeft;
     const foot = s ? [left > 0 ? `다시 울림 ${left}번 남았어요` : '', next].filter(Boolean).join(' · ') : '';
     const idx = s ? State.schedules.indexOf(s) : -1;
-    this._alarmCtxLast = { s, time: c ? c.t : null, msg, title, iconHtml };
+    this._alarmCtxLast = { s, time: c ? c.t : null, kind: c ? c.kind : null, msg, title, iconHtml };
 
     const popup = document.createElement('div');
     popup.id = 'tl-alarm-popup';
@@ -1115,6 +1144,8 @@ const Timeline = {
   closeAlarm(idx, opt) {
     // 아이폰: 확인한 알람이 1·2분 뒤 또 울리지 않게 (다시 알림은 snoozeAlarm에서 따로 알림)
     if (!(opt && opt.snooze) && window.NativeApp && NativeApp.ackAlarm) { try { NativeApp.ackAlarm(); } catch (e) { } }
+    if (!(opt && opt.snooze)) this._logTrip('ack');
+    else this._logTrip('snooze');
     const p = document.getElementById('tl-alarm-popup');
     if (p) { p.classList.remove('on'); setTimeout(() => p.remove(), 250); }
     if (typeof idx === 'number' && idx >= 0 && App.viewTimeline) App.viewTimeline(idx);
@@ -1125,14 +1156,18 @@ const Timeline = {
     const left = Math.max(0, (this._snoozeLeft || 0) - 1);
     clearTimeout(this._snoozeTimer);
     const at = Date.now() + 5 * 60000;
+    // 안드로이드는 폰 알람을 20초 늦게 걸어, 앱이 켜져 있으면 앱 안 타이머가 먼저 울리고 폰 알람을 지울 시간을 줌
+    const nativeAt = window.NativeApp && NativeApp.cancelSnooze ? at + 20000 : at;
     this._snoozeTimer = setTimeout(() => {
       if (this._lastRingAt && Date.now() - this._lastRingAt < 60000) return;   // 아이폰 알림이 먼저 울렸으면 한 번만
-      if (window.NativeApp && NativeApp.snoozeAlarm && Date.now() - at > 2 * 60000) return;   // 아이폰: 잠금 중 폰 알림이 이미 울림 → 앱을 연 뒤 또 울리지 않게 (안드로이드는 폰 알림이 없어 늦게라도 울림)
+      if (window.NativeApp && NativeApp.snoozeAlarm && Date.now() - at > 2 * 60000) return;   // 잠금 중 폰 알람이 이미 울림 → 앱을 연 뒤 또 울리지 않게
+      // 안드로이드: 앱 안에서 제때 울리면 같은 시각 폰 알람은 지움 (두 번 울리지 않게)
+      if (window.NativeApp && NativeApp.cancelSnooze) { try { NativeApp.cancelSnooze(nativeAt); } catch (e) { } }
       this.playAlarmSound(last.msg, last.title, last.iconHtml, last.s ? { s: last.s, time: last.time, _snoozeLeft: left } : null);
     }, 5 * 60000);
-    // 아이폰: 앱을 닫거나 화면을 잠가도 5분 뒤 울리게 폰 알림으로도 예약 (앱이 켜져 있으면 위 타이머가 먼저 울리고 알림은 건너뜀)
+    // 아이폰·안드로이드: 앱을 닫거나 화면을 잠가도 5분 뒤 울리게 폰 알람으로도 예약 (앱이 켜져 있으면 위 타이머가 먼저 울리고 폰 알람은 건너뜀/지움)
     if (window.NativeApp && NativeApp.snoozeAlarm) {
-      try { NativeApp.snoozeAlarm(at, last.title || '⏰ 다시 알림', '5분이 지났어요. ' + String(last.msg || ''), last.s && State.aidOf ? State.aidOf(last.s) : ''); } catch (e) { }
+      try { NativeApp.snoozeAlarm(nativeAt, last.title || '⏰ 다시 알림', '5분이 지났어요. ' + String(last.msg || ''), last.s && State.aidOf ? State.aidOf(last.s) : ''); } catch (e) { }
     }
     this.closeAlarm(undefined, { snooze: true });
     U.toast('5분 뒤에 다시 알려 드릴게요');

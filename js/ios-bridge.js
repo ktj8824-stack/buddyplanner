@@ -137,7 +137,8 @@
         });
       }
       const alarms = list.filter(a => a.alarm && !a.repeat);   // 1·2분 뒤 다시 울림은 세지 않음
-      report({ n: alarms.length, first: (alarms[0] || {}).t || null });
+      report({ n: alarms.length, first: (alarms[0] || {}).t || null,
+        next: alarms.slice(0, 3).map(a => ({ t: a.t, title: a.title, body: a.body })) });
       const first = list[0];
       LOG(`예약 ${list.length}개 (알람 ${list.filter(a => a.alarm).length}개)`, first ? `가장 가까운 것: ${new Date(first.t).toLocaleString()}` : '');
     } catch (e) {
@@ -221,6 +222,8 @@
       try { localStorage.setItem(SNOOZE_KEY, JSON.stringify(list.slice(-5))); } catch (e) { }
       ack();
     },
+    // 마이 › 알람 창: 알림이 꺼져 있으면 아이폰 설정의 버디플래너 화면으로
+    openNotifSettings() { try { location.href = 'app-settings:'; } catch (e) { } },
     // 아이폰에는 '다른 앱 위에 표시' 기능이 없음 → 안내 팝업을 띄우지 않게 true
     canDrawOverlays() { return true; },
     openOverlaySettings() { }

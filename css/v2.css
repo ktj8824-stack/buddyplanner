@@ -303,6 +303,7 @@
 .v2-me-box span { display: block; font-size: 0.875rem; }
 .v2-me-box b { display: block; font-size: 1.625rem; font-weight: 800; margin-top: 8px; }
 .v2-me-box small { display: block; font-size: 0.8125rem; font-weight: 800; margin-top: 8px; line-height: 1.4; }
+.v2-me-box small b.v2-me-dday { display: inline; font-size: inherit; margin: 0; color: #6ee7b7; }
 .v2-me-box.pt { background: #fff; border: 1px solid var(--v2-line); }
 .v2-me-box.pt span { color: var(--v2-sub); } .v2-me-box.pt b { color: var(--v2-ink); } .v2-me-box.pt small { color: var(--v2-amber-ink); }
 .v2-me-box.pro { background: var(--v2-navy); }
@@ -588,6 +589,10 @@ html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
 .gnb-ai-btn-bubble{position:relative}
 .gnb-ai-btn-bubble .pro-tag{top:-6px;right:-10px;border:2px solid #fff;height:19px}
 body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
+/* 출시 기념 무료 기간: 'PRO'(잠김처럼 보임) 대신 초록 '무료' 표시 */
+body.is-promo .pro-tag{background:#059669!important;color:#fff;box-shadow:none!important;font-size:0!important;letter-spacing:0}
+body.is-promo .pro-tag::after{content:'무료';font-size:0.6875rem;font-weight:800}
+body.is-promo .pro-note{display:none!important}
 
 /* PRO 웹 결제 (토스) */
 .upg-plan-web{display:flex;justify-content:space-between;align-items:baseline;padding:16px 18px;border:2px solid var(--v2-green);border-radius:16px;background:#f0fbf6;margin-bottom:10px}
@@ -651,3 +656,13 @@ body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
 
 /* 앱 배너 광고(AdMob)가 화면 아래에 떠 있으면 아래 고정 버튼을 광고 위로 올림 */
 body.has-admob .v2-reg-foot { padding-bottom: calc(var(--admob-h, 115px) + var(--safe-bottom) + 6px); }
+
+/* 마이 › 알람 소리: 예약된 알람 창 */
+.al-sheet{padding-top:4px}
+.al-sheet-list{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+.al-sheet-list li{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--v2-line);border-radius:14px;background:#fff}
+.al-sheet-list b{font-size:1rem;font-weight:800;color:var(--v2-navy,#0f1f3d)}
+.al-sheet-list span{font-size:0.9375rem;font-weight:700}
+.al-sheet-list small{font-size:0.8125rem;color:#55607a;line-height:1.4}
+.al-sheet-hint{font-size:0.8125rem;color:#55607a;line-height:1.5;margin:0 2px 12px}
+.al-sheet-warn{font-size:0.9375rem;font-weight:700;color:#b42318;line-height:1.5;margin:0 2px 12px}

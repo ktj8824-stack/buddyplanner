@@ -100,6 +100,27 @@ public class MainActivity extends BridgeActivity {
             }
         }
 
+        /** '5분 뒤 다시': 폰을 잠가도 울리도록 진짜 알람(전체 화면)으로 예약 */
+        @JavascriptInterface
+        public void snoozeAlarm(long timeInMillis, String title, String body, String aid) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject();
+                o.put("snooze", true);
+                o.put("title", title == null ? "" : title);
+                o.put("body", body == null ? "" : body);
+                o.put("aid", aid == null ? "" : aid);
+                scheduleFromJs(timeInMillis, o.toString());
+            } catch (Exception e) {
+                Log.e("NativeApp", "snoozeAlarm failed", e);
+            }
+        }
+
+        /** 앱이 켜져 있어 앱 안에서 이미 다시 울렸으면 폰 알람은 지움 */
+        @JavascriptInterface
+        public void cancelSnooze(long timeInMillis) {
+            AlarmScheduler.cancel(MainActivity.this, AlarmScheduler.requestCodeFor(timeInMillis));
+        }
+
         @JavascriptInterface
         public void cancelAlarm(long timeInMillis) {
             Log.d("NativeApp", "cancelAlarm called from JS: " + timeInMillis);
