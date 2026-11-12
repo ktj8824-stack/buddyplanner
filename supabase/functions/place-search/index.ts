@@ -62,15 +62,28 @@ function typeLabel(categoryName: string, placeName: string) {
 
 // 앱의 기존 검색 결과 모양(place_name, address_name, x, y)에 맞춤
 function toPlace(d: Json) {
+  const road = String(d.road_address_name || '').trim(), jb = String(d.address_name || '').trim();
   return {
     id: String(d.id || ''),
     place_name: String(d.place_name || ''),
-    address_name: d.road_address_name || d.address_name || '',
+    address_name: road || jb,
+    jibun_name: road && jb && road !== jb ? jb : '',   // 지번(구주소)도 같이 보여 주려고
     tel: d.phone || '',
     category: typeLabel(d.category_name, d.place_name),
     x: d.x, y: d.y,
     distance: d.distance ? String(Math.round(Number(d.distance) / 100) / 10) : undefined,
   };
+}
+
+/** 주소처럼 친 검색어인지 (역삼동 824 · 테헤란로 114) */
+export const looksAddr = (q: string) => /\d/.test(q) && /(동|리|가|로|길|읍|면)\s*\d/.test(q);
+
+/** 카카오 주소 검색 결과 → 같은 모양 (도로명·지번 둘 다) */
+function toAddr(d: Json) {
+  const road = String((d.road_address && d.road_address.address_name) || '').trim();
+  const jb = String((d.address && d.address.address_name) || (d.address_type !== 'ROAD_ADDR' ? d.address_name : '') || '').trim();
+  const bld = d.road_address && d.road_address.building_name;
+  return { id: 'addr:' + d.address_name, place_name: String(bld || d.address_name || ''), address_name: road || jb, jibun_name: road && jb && road !== jb ? jb : '', tel: '', category: '주소', x: d.x, y: d.y };
 }
 
 export async function handle(req: Request, env: Env, f: typeof fetch = fetch): Promise<Response> {
@@ -99,8 +112,13 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
       if (!q) return json(200, { places: [] });
       const chosung = /^[ㄱ-ㅎ\s]+$/.test(q);
       if (body.golf && !chosung && !q.includes('골프') && !q.toLowerCase().includes('cc')) q += ' 골프장';
-      const docs = await kakao(env, 'keyword', { query: q, size: '15' }, f);
-      return json(200, { places: docs.map(toPlace) });
+      // 주소처럼 치면(골프장 검색 제외) 그 주소를 맨 위에 — 지번(구주소)으로 쳐도 찾게
+      const addrFirst = !body.golf && looksAddr(q);
+      const [docs, addrs] = await Promise.all([
+        kakao(env, 'keyword', { query: q, size: '15' }, f),
+        addrFirst ? kakao(env, 'address', { query: q, size: '5' }, f).catch(() => []) : Promise.resolve([]),
+      ]);
+      return json(200, { places: [...addrs.slice(0, 2).map(toAddr), ...docs.map(toPlace)] });
     }
     // 골프장 주변 식당
     const lat = Number(body.lat), lng = Number(body.lng);

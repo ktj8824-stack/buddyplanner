@@ -767,7 +767,8 @@ const App = {
       resContainer.innerHTML = places.map((p, i) => `
         <div class="list-item" style="cursor:pointer" onclick="window._selectAddress(${i})">
           <div class="item-title">${U.esc(p.name || p.place_name)}</div>
-          ${(p.address || p.address_name) ? `<div class="item-sub">${U.esc(p.address || p.address_name)}</div>` : ''}
+          ${(p.address || p.address_name) ? `<div class="item-sub">${p.jibun_name ? '<span class="addr-k">도로명</span>' : ''}${U.esc(p.address || p.address_name)}</div>` : ''}
+          ${p.jibun_name ? `<div class="item-sub"><span class="addr-k">지번</span>${U.esc(String(p.jibun_name).replace(/^\S+\s+\S+[시군구]\s+/, ''))}</div>` : ''}
         </div>
       `).join('');
     };

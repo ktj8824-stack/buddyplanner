@@ -349,7 +349,8 @@ const Register = {
         <div class="search-item-icon">⛳</div>
         <div class="search-item-info">
           <div class="search-item-name">${U.hlMatch(c.place_name, q)}</div>
-          <div class="search-item-addr">${U.esc(c.address_name)}</div>
+          <div class="search-item-addr">${c.jibun_name ? '<span class="addr-k">도로명</span>' : ''}${U.esc(c.address_name)}</div>
+          ${c.jibun_name ? `<div class="search-item-addr"><span class="addr-k">지번</span>${U.esc(String(c.jibun_name).replace(/^\S+\s+\S+[시군구]\s+/, ''))}</div>` : ''}
         </div>
       </div>`).join('');
   },
