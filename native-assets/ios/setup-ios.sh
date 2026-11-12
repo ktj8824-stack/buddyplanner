@@ -61,11 +61,13 @@ $PB_ -c "Add :GADApplicationIdentifier string $ADMOB_IOS_APP_ID" "$PL"
 $PB_ -c "Delete :LSApplicationQueriesSchemes" "$PL" 2>/dev/null || true
 $PB_ -c "Add :LSApplicationQueriesSchemes array" "$PL"
 for s in kakaokompassauth kakaolink kakaotalk tmap kakaomap; do $PB_ -c "Add :LSApplicationQueriesSchemes: string $s" "$PL"; done
+$PB_ -c "Delete :CFBundleURLTypes" "$PL" 2>/dev/null || true
+$PB_ -c "Add :CFBundleURLTypes array" "$PL"
+$PB_ -c "Add :CFBundleURLTypes:0 dict" "$PL"
+$PB_ -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PL"
+# 차에 타면 자동 길안내 (단축어 'URL 열기' → buddyplanner://next)
+$PB_ -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes: string buddyplanner" "$PL"
 if [ -n "$KAKAO_KEY" ]; then
-  $PB_ -c "Delete :CFBundleURLTypes" "$PL" 2>/dev/null || true
-  $PB_ -c "Add :CFBundleURLTypes array" "$PL"
-  $PB_ -c "Add :CFBundleURLTypes:0 dict" "$PL"
-  $PB_ -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes array" "$PL"
   $PB_ -c "Add :CFBundleURLTypes:0:CFBundleURLSchemes: string kakao$KAKAO_KEY" "$PL"
 fi
 $PB_ -c "Delete :NSUserTrackingUsageDescription" "$PL" 2>/dev/null || true
