@@ -349,6 +349,18 @@ const AutoNav = {
     } catch (e) { }
   },
 
+  /** '설정 완료' 버튼: 홈의 '1분 설정' 안내를 더 띄우지 않음 (가이드 안·설정 창에서 누름) */
+  markDone() {
+    try { localStorage.setItem('bp_autonav_setup_done', '1'); } catch (e) { }
+    this.hidePromo();
+    if (this.closeGuide) this.closeGuide();
+    try { if (typeof App !== 'undefined' && App.closeModal) App.closeModal(); } catch (e) { }
+    try { if (typeof Sheet !== 'undefined' && Sheet.close) Sheet.close(); } catch (e) { }
+    document.querySelectorAll('.modal-back').forEach(m => m.remove());
+    const msg = '설정 완료! 홈에 설정 안내가 더 뜨지 않아요';
+    if (typeof U !== 'undefined' && U.toast) U.toast(msg); else if (typeof App !== 'undefined' && App.toast) App.toast(msg);
+  },
+
   hidePromo() {
     try { localStorage.setItem('bp_autonav_promo_off', '1'); } catch (e) { }
     document.querySelectorAll('.anp').forEach(el => el.remove());
@@ -387,6 +399,7 @@ const AutoNav = {
       <div style="font-weight:800;font-size:15px;margin:18px 0 0;">3. 휴대폰에 자동 실행 등록</div>
       ${isAndroid ? android + ios : ios + android}
       <a href="autonav-guide.html?os=${isAndroid ? 'android' : 'ios'}" onclick="return AutoNav.guideClick('${isAndroid ? 'android' : 'ios'}')" style="display:flex;align-items:center;justify-content:center;width:100%;height:46px;margin-top:18px;border-radius:12px;background:#059669;color:#fff;font-weight:800;font-size:15px;text-decoration:none;">그림으로 보는 설정 가이드</a>
+      <button type="button" onclick="AutoNav.markDone()" style="width:100%;height:46px;margin-top:8px;border-radius:12px;border:1px solid #059669;background:#fff;color:#047857;font-weight:800;font-size:15px;cursor:pointer;">✓ 설정 완료했어요</button>
       <button type="button" onclick="App.closeModal(); AutoNav.start()" style="width:100%;height:46px;margin-top:8px;border-radius:12px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-weight:800;font-size:15px;cursor:pointer;">지금 시험해 보기</button>
       ${!window.NativeApp && typeof Notification !== 'undefined' && Notification.permission !== 'granted' ? `<button type="button" onclick="AutoNav.askNotice(this)" style="width:100%;height:46px;margin-top:8px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;color:#334155;font-weight:800;font-size:15px;cursor:pointer;">🔔 출발 1시간 전 알림 받기</button>` : ''}`;
     App.showModal('🚗 차에 타면 자동 길안내', html);
