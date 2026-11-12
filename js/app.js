@@ -146,6 +146,7 @@ const App = {
 
   navigate(name) {
     if (!this.screens.includes(name)) return;
+    if (typeof AutoNav !== 'undefined' && AutoNav.closeGuide) AutoNav.closeGuide(true);   // 자동 길안내 가이드가 떠 있으면 닫고 이동
     if (State.screen && State.screen !== name) this.prevScreen = State.screen;
     if (name === 'community' && !this.COMMUNITY_OPEN) { U.toast('커뮤니티는 곧 오픈해요!'); return; }
     // 일정 수정 중 다른 화면으로 나가면 수정 상태를 끝냄 (다음 '일정등록'이 새 일정으로 열리게)

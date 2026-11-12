@@ -20,7 +20,7 @@ a{color:var(--acc)}
 .mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
 :focus-visible{outline:2px solid var(--acc);outline-offset:3px;border-radius:6px}
 
-.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line)}
+.top{position:sticky;top:0;z-index:20;padding-top:env(safe-area-inset-top);background:rgba(255,255,255,.96);border-bottom:1px solid var(--line)}
 .top .in{display:flex;align-items:center;justify-content:space-between;min-height:60px;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
 .brand img{width:30px;height:30px;border-radius:8px}
@@ -138,6 +138,8 @@ footer{padding:22px 0 32px;color:var(--mute);font-size:13px;text-align:center}
   .tabs{display:flex}.tabs button{flex:1;padding:0 10px}
   .lead{font-size:16.5px}
 }
+/* 앱 안에 띄울 때(embed=1): 앱이 위 막대를 그리므로 이 페이지 머리는 숨김 */
+html.embed .top{display:none}
 @media print{
   .top,.tabs,.end .cta,.linkbox button{display:none!important}
   .panel[hidden]{display:block!important}
@@ -311,6 +313,15 @@ footer{padding:22px 0 32px;color:var(--mute);font-size:13px;text-align:center}
 <script>
 (function () {
   var app = 'https://buddyplanner.kr/';
+  // 앱 화면 위에 띄운 경우: '버디플래너 열기'·로고는 가이드를 닫고 앱으로
+  var embed = new URLSearchParams(location.search).get('embed') === '1' && window.parent !== window;
+  if (embed) {
+    document.documentElement.classList.add('embed');
+    document.querySelectorAll('a[href="index.html"]').forEach(function (a) {
+      if (a.id === 'open-app') a.textContent = '버디플래너로 돌아가기';
+      a.addEventListener('click', function (e) { e.preventDefault(); try { window.parent.AutoNav.closeGuide(); } catch (x) { } });
+    });
+  }
   document.getElementById('lk-web').value = app + '?go=next';
   // 앱 안(capacitor://localhost, https://localhost)에서는 앱 첫 화면으로, 웹에서만 사이트 주소로
   var inApp = location.hostname === 'localhost' || !/^https?:$/.test(location.protocol);
