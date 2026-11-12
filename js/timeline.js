@@ -1127,7 +1127,7 @@ const Timeline = {
     const at = Date.now() + 5 * 60000;
     this._snoozeTimer = setTimeout(() => {
       if (this._lastRingAt && Date.now() - this._lastRingAt < 60000) return;   // 아이폰 알림이 먼저 울렸으면 한 번만
-      if (window.NativeApp && Date.now() - at > 2 * 60000) return;   // 잠금 중 폰 알림이 이미 울림 → 앱을 연 뒤 또 울리지 않게
+      if (window.NativeApp && NativeApp.snoozeAlarm && Date.now() - at > 2 * 60000) return;   // 아이폰: 잠금 중 폰 알림이 이미 울림 → 앱을 연 뒤 또 울리지 않게 (안드로이드는 폰 알림이 없어 늦게라도 울림)
       this.playAlarmSound(last.msg, last.title, last.iconHtml, last.s ? { s: last.s, time: last.time, _snoozeLeft: left } : null);
     }, 5 * 60000);
     // 아이폰: 앱을 닫거나 화면을 잠가도 5분 뒤 울리게 폰 알림으로도 예약 (앱이 켜져 있으면 위 타이머가 먼저 울리고 알림은 건너뜀)

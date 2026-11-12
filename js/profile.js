@@ -129,6 +129,7 @@ const Profile = {
     const s = window.__bpAlarmSync;
     if (!s) return '';
     if (s.denied) return '알림이 꺼져 있어 알람이 울리지 않아요';
+    if (s.failed) return '알람 예약에 실패했어요 · 앱을 다시 열어 주세요';
     if (!s.n) return '예약된 알람 없음';
     const d = new Date(s.first), dow = '일월화수목금토'[d.getDay()];
     const h = d.getHours(), ap = h < 12 ? '오전' : '오후', h12 = h % 12 || 12;

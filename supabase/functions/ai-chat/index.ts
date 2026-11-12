@@ -272,17 +272,27 @@ function upcomingByIdx(ctx: Json, idx: Json): Json | null {
   return (ctx.upcoming || []).find((u: Json) => u && Number(u.idx) === Number(idx)) || null;
 }
 
-/** 5~6시처럼 새벽·저녁 둘 다 되는 시각인데 사용자가 어느 쪽인지 말하지 않았으면 되묻게 함 */
-const AMPM_WORD = /새벽|아침|오전|저녁|오후|밤|낮|am|pm/i;
+/** 5~6시처럼 새벽·저녁 둘 다 되는 시각인데 사용자가 어느 쪽인지 말하지 않았으면 되묻게 함
+ *  said = 앞선 사용자 말들과 이번 말을 SAID_SEP로 이은 것 (마지막 조각이 이번 말) */
+export const SAID_SEP = '\u241E';
+const AMPM = '(?:새벽|아침|오전|저녁|오후|밤|am|pm)';
 export function ambiguousHour(t: string, said: string): string | null {
   if (!HM.test(t || '')) return null;
   const h = parseInt(t.slice(0, 2), 10);
   if (!((h >= 5 && h <= 6) || (h >= 17 && h <= 18))) return null;
-  if (AMPM_WORD.test(said || '')) return null;
-  if (/(^|[^\d])(0[56]|1[78]):?\d{2}/.test(said || '') || /(^|[^\d])1[78]시/.test(said || '')) return null;   // '05:30', '17:40'처럼 24시간으로 말한 경우
   const hh = h >= 17 ? h - 12 : h, m = t.slice(3);
+  const all = String(said || '');
+  const now = all.split(SAID_SEP).pop() || '';
+  const num = hh === 5 ? '(?:0?5|다섯)' : '(?:0?6|여섯)';
+  // '새벽 5시', '저녁 6시 반'처럼 그 시각 바로 앞에 붙은 말만 인정 ('오후 2시 말고 6시', '밤나무cc 6시'는 아님)
+  if (new RegExp(`${AMPM}\\s*${num}\\s*(?:시|:)`, 'i').test(all)) return null;
+  // 되물음에 '새벽이요', '저녁이에요' 처럼 숫자 없이 짧게 답한 경우
+  if (now.replace(/\s/g, '').length <= 10 && !/\d/.test(now) && new RegExp(AMPM, 'i').test(now)) return null;
+  // 바로 그 시각을 24시간으로 말한 경우 ('05:30', '0530', '17시 40분')
+  const H = String(h).padStart(2, '0');
+  if (new RegExp(`(^|[^\\d])${H}(?::?${m}|\\s*시)`).test(all)) return null;
   const say = `${hh}시${m !== '00' ? ` ${parseInt(m, 10)}분` : ''}`;
-  return `${say}가 새벽(${String(hh).padStart(2, '0')}:${m})인지 저녁(${hh + 12}:${m})인지 사용자가 말하지 않았습니다. 일정을 만들지 말고 "새벽 ${say}인가요, 저녁 ${say}인가요?"라고 짧게 물어보세요`;
+  return `${say}${m !== '00' ? '이' : '가'} 새벽(${String(hh).padStart(2, '0')}:${m})인지 저녁(${hh + 12}:${m})인지 사용자가 말하지 않았습니다. 일정을 만들지 말고 "새벽 ${say}인가요, 저녁 ${say}인가요?"라고 짧게 물어보세요`;
 }
 
 /** AI가 만든 제안이 앱에서 쓸 수 있는 형태인지 저장 전에 확인 (문제가 있으면 AI에게 돌려보내 다시 묻게 함) */
@@ -526,7 +536,7 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
 
   const ctx = normalizeCtx(body.context);
   // 시각 되묻기용: 이번 말 + 최근 사용자 말 2개 (사진이면 예약 화면의 24시간 표기를 믿고 검사 안 함)
-  const userSaid = image ? null : [...history.filter((m: Json) => m && m.role !== 'assistant').slice(-2).map((m: Json) => String(m.content || '')), text].join(' ');
+  const userSaid = image ? null : [...history.filter((m: Json) => m && m.role !== 'assistant').slice(-2).map((m: Json) => String(m.content || '')), text].join(SAID_SEP);
   const actions: Json[] = [];
   const restaurants: Json[] = [];
   const knownRestaurants: Record<string, Json> = {};

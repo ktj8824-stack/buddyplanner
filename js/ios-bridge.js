@@ -136,12 +136,13 @@
           }))
         });
       }
-      const alarms = list.filter(a => a.alarm);
+      const alarms = list.filter(a => a.alarm && !a.repeat);   // 1·2분 뒤 다시 울림은 세지 않음
       report({ n: alarms.length, first: (alarms[0] || {}).t || null });
       const first = list[0];
       LOG(`예약 ${list.length}개 (알람 ${list.filter(a => a.alarm).length}개)`, first ? `가장 가까운 것: ${new Date(first.t).toLocaleString()}` : '');
     } catch (e) {
       console.warn('[iOS 알람] 예약 실패', e);
+      report({ failed: true });   // 예전 '예약된 알람 N개'가 남지 않게
     } finally {
       running = false;
       if (again) { again = false; schedule(); }

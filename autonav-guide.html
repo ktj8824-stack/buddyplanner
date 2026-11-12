@@ -312,7 +312,9 @@ footer{padding:22px 0 32px;color:var(--mute);font-size:13px;text-align:center}
 (function () {
   var app = 'https://buddyplanner.kr/';
   document.getElementById('lk-web').value = app + '?go=next';
-  document.getElementById('open-app').href = app;
+  // 앱 안(capacitor://localhost, https://localhost)에서는 앱 첫 화면으로, 웹에서만 사이트 주소로
+  var inApp = location.hostname === 'localhost' || !/^https?:$/.test(location.protocol);
+  if (!inApp) document.getElementById('open-app').href = app;
   var isAnd = /Android/i.test(navigator.userAgent);
   var tabs = [['t-ios', 'p-ios'], ['t-and', 'p-and']];
   function pick(i) {

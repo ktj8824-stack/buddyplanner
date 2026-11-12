@@ -32,9 +32,11 @@ const EventPage = {
               <li>해시태그 <strong>#BuddyPlanner가을</strong> 필수 포함</li>
               <li>작성 완료 시 자동 응모!</li>
             </ul>
-            <button onclick="EventPage.participate()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:14px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer;">
+            ${new Date() > new Date(2026, 9, 31, 23, 59)
+              ? '<button disabled style="width:100%; background:#e2e8f0; color:#64748b; border:none; padding:14px; border-radius:12px; font-size:15px; font-weight:700;">종료된 이벤트예요</button>'
+              : `<button onclick="EventPage.participate()" style="width:100%; background:var(--accent); color:#fff; border:none; padding:14px; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer;">
               지금 바로 참여하기
-            </button>
+            </button>`}
           </div>
         </div>
         

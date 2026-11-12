@@ -223,6 +223,7 @@ const Billing = {
   promoUntil() {
     let v = null;
     try { v = localStorage.getItem(this.PROMO_KEY); } catch (e) { /* */ }
+    if (v === 'off') return new Date(0);
     const d = new Date(v || this.PROMO_DEFAULT);
     return isNaN(d) ? new Date(this.PROMO_DEFAULT) : d;
   },
@@ -244,7 +245,8 @@ const Billing = {
       const j = await res.json();
       const v = j && j.pro_free_until;
       const before = this.promoActive();
-      try { if (v) localStorage.setItem(this.PROMO_KEY, v); else localStorage.removeItem(this.PROMO_KEY); } catch (e) { /* */ }
+      // 서버가 값을 비워 두면(행 삭제) 무료 기간 끝 → 기본값으로 돌아가지 않게 '끝남'을 저장
+      try { localStorage.setItem(this.PROMO_KEY, v || 'off'); } catch (e) { /* */ }
       if (before !== this.promoActive() && typeof App !== 'undefined' && App.applyProStatus) App.applyProStatus();
     } catch (e) { /* 네트워크 오류 시 저장된 값 유지 */ }
   },
