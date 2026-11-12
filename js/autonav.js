@@ -35,6 +35,11 @@ const AutoNav = {
   },
 
   init() {
+    if (!this._watching) {
+      this._watching = true;
+      document.addEventListener('visibilitychange', () => { if (document.hidden) this.keepNotice(); });
+      window.addEventListener('pagehide', () => this.keepNotice());
+    }
     if (this._consumeFlag()) { this.start(); return; }
     // 아이폰 앱이 앱 전용 주소로 처음 켜진 경우 (이미 켜져 있을 때는 appUrlOpen에서 처리)
     try {
@@ -189,11 +194,56 @@ const AutoNav = {
     this._overlay(body(), true);
   },
 
+  /* ── 출발 1시간 전부터 '다음 이동' 알림을 알림 목록에 남겨 두기 ──
+     미리 눌러서 사라졌으면 앱을 떠날 때 다시 올려 두고(소리 없이), 길안내를 시작하면 지움 */
+  _noticeInfo(now = new Date()) {
+    const r = this.nextLeg(now);
+    const l = r && r.leg;
+    if (!l || !l.s) return null;
+    const left = l.depMin - (now.getHours() * 60 + now.getMinutes());
+    if (left > 65 || left < -20) return null;
+    const aid = (typeof State !== 'undefined' && State.aidOf) ? State.aidOf(l.s) : String(l.s.date || '');
+    const key = `${aid}|${l.label}`;
+    try { if (localStorage.getItem('bp_autonav_gone') === key) return null; } catch (e) { }
+    return { aid, key, title: `🚗 다음 이동 · ${l.dep} 출발`, body: `${l.label} · ${l.to.name}\n차에 타면 눌러서 바로 길안내` };
+  },
+  async keepNotice() {
+    try {
+      const n = this._noticeInfo();
+      if (window.NativeApp && window.NativeApp.keepNext) { if (n) window.NativeApp.keepNext(n.aid, n.title, n.body); return; }
+      if (typeof Notification === 'undefined' || Notification.permission !== 'granted' || !('serviceWorker' in navigator)) return;
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg || !reg.showNotification) return;
+      const tag = n ? 'next-' + n.aid : '';
+      const all = await reg.getNotifications();
+      all.forEach(x => { if (/^next-/.test(x.tag || '') && x.tag !== tag) x.close(); });
+      if (!n || all.some(x => x.tag === tag)) return;
+      await reg.showNotification(n.title, { body: n.body, tag, silent: true, icon: new URL('icon-192.png', reg.scope).href,
+        data: { url: new URL('./?go=next', reg.scope).href } });
+    } catch (e) { }
+  },
+  async clearNotice(aid) {
+    try {
+      if (window.NativeApp && window.NativeApp.clearNext) { window.NativeApp.clearNext(aid); return; }
+      const reg = 'serviceWorker' in navigator && await navigator.serviceWorker.getRegistration();
+      if (reg && reg.getNotifications) (await reg.getNotifications()).forEach(x => { if (/^next-/.test(x.tag || '')) x.close(); });
+    } catch (e) { }
+  },
+  async askNotice(el) {
+    if (typeof Notification === 'undefined') return;
+    const p = await Notification.requestPermission();
+    if (el) el.textContent = p === 'granted' ? '출발 1시간 전 알림 켜짐 ✓' : '알림이 꺼져 있어요 (설정에서 켜 주세요)';
+  },
+
   go(appArg) {
     clearTimeout(this._timer);
     const l = this._leg;
     this._close();
     if (!l) return;
+    try {   // 길안내 시작 = 출발 → 남겨 둔 '다음 이동' 알림 지움
+      const n = this._noticeInfo();
+      if (n) { localStorage.setItem('bp_autonav_gone', n.key); this.clearNotice(n.aid); }
+    } catch (e) { }
     const app = appArg || this.pref();
     // 출발지는 넘기지 않음 → 내비가 지금 차가 있는 곳(현재 위치)에서 안내 (집에서 늦게 나오거나 다른 곳에서 출발해도 맞게)
     if (typeof Timeline !== 'undefined' && Timeline.openNav) Timeline.openNav(app === 'kakao' ? 'kakao' : 'tmap', l.to.name, l.to.lat, l.to.lng);
@@ -304,7 +354,8 @@ const AutoNav = {
       <div style="font-weight:800;font-size:15px;margin:18px 0 0;">3. 휴대폰에 자동 실행 등록</div>
       ${isAndroid ? android + ios : ios + android}
       <a href="autonav-guide.html?os=${isAndroid ? 'android' : 'ios'}" style="display:flex;align-items:center;justify-content:center;width:100%;height:46px;margin-top:18px;border-radius:12px;background:#059669;color:#fff;font-weight:800;font-size:15px;text-decoration:none;">그림으로 보는 설정 가이드</a>
-      <button type="button" onclick="App.closeModal(); AutoNav.start()" style="width:100%;height:46px;margin-top:8px;border-radius:12px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-weight:800;font-size:15px;cursor:pointer;">지금 시험해 보기</button>`;
+      <button type="button" onclick="App.closeModal(); AutoNav.start()" style="width:100%;height:46px;margin-top:8px;border-radius:12px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-weight:800;font-size:15px;cursor:pointer;">지금 시험해 보기</button>
+      ${!window.NativeApp && typeof Notification !== 'undefined' && Notification.permission !== 'granted' ? `<button type="button" onclick="AutoNav.askNotice(this)" style="width:100%;height:46px;margin-top:8px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;color:#334155;font-weight:800;font-size:15px;cursor:pointer;">🔔 출발 1시간 전 알림 받기</button>` : ''}`;
     App.showModal('🚗 차에 타면 자동 길안내', html);
   },
 };

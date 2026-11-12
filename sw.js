@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buddyplanner-v224-cache';
+const CACHE_NAME = 'buddyplanner-v225-cache';
 const ASSETS = [
   './',
   './index.html',
@@ -114,4 +114,16 @@ self.addEventListener('fetch', e => {
         return caches.match(e.request, { ignoreSearch: true });
       })
   );
+});
+
+// '다음 이동' 알림을 누르면 → 앱을 ?go=next 로 열어 바로 길안내
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || self.registration.scope;
+  e.waitUntil((async () => {
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const w = wins.find(c => c.url.startsWith(self.registration.scope));
+    if (w) { try { await w.focus(); if ('navigate' in w) { await w.navigate(url); return; } } catch (err) { } }
+    await self.clients.openWindow(url);
+  })());
 });

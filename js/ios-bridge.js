@@ -88,6 +88,13 @@
           if (tr > now) out.push({ key: `${aid}:${kind}:r${m}`, t: tr, title, body: `${m}분 지났어요. ${body}`, alarm: true, repeat: true, aid });
         });
       });
+      // 출발 1시간 전 '다음 이동' 안내 (소리 없는 알림): 차에 타서 누르면 바로 길안내. 준비 시작보다 이르면 넣지 않음
+      const dAt = tl.homeDepart && S.tlAt ? S.tlAt(s, tl.homeDepart) : null;
+      const pAt = tl.prepStart && S.tlAt ? S.tlAt(s, tl.prepStart) : null;
+      if (dAt) {
+        const t = dAt.getTime() - 3600e3;
+        if (t > now && (!pAt || pAt.getTime() <= t)) out.push({ key: `${aid}:next`, t, title: `🚗 다음 이동 · ${tl.homeDepart} 출발`, body: `${name} ${tee} 티오프\n차에 타면 눌러서 바로 길안내`, alarm: false, aid });
+      }
     });
     // 전날 밤 안내·스코어 안내: timeline.js의 기존 규칙을 그대로 쓰고 결과만 받아 옴
     capture = [];
@@ -196,6 +203,9 @@
       LN.addListener('localNotificationActionPerformed', (ev) => {
         const ex = (ev && ev.notification && ev.notification.extra) || {};
         if (ex.alarm) { ack(); cancelRepeats(ex.key); }
+        // 출발·식당 출발·다음 이동 알림 → 바로 길안내 (나머지는 그 일정 타임라인)
+        const AN = g('AutoNav');
+        if (AN && /:(depart|rest|next)(:r\d+)?$/.test(String(ex.key || ''))) { setTimeout(() => AN.start(), 600); return; }
         setTimeout(() => openSchedule(ex.aid), 600);
       });
     } catch (e) { console.warn('[iOS 알람] 알림 연결 실패', e); }
@@ -224,6 +234,26 @@
     },
     // 마이 › 알람 창: 알림이 꺼져 있으면 아이폰 설정의 버디플래너 화면으로
     openNotifSettings() { try { location.href = 'app-settings:'; } catch (e) { } },
+    // '다음 이동' 알림을 미리 눌러 지웠으면 앱을 떠날 때 다시 올려 둠 / 길안내를 시작하면 지움
+    async keepNext(aid, title, body) {
+      const LN = plugin();
+      if (!LN || !aid) return;
+      try {
+        const id = idOf(`${aid}:next`);
+        const d = await LN.getDeliveredNotifications();
+        if ((d && d.notifications || []).some(n => Number(n.id) === id)) return;
+        const p = await LN.getPending();
+        if ((p && p.notifications || []).some(n => Number(n.id) === id && new Date(n.schedule && n.schedule.at).getTime() > Date.now())) return;
+        await LN.schedule({ notifications: [{ id, title, body, schedule: { at: new Date(Date.now() + 1500) }, extra: { aid, alarm: false, key: `${aid}:next` } }] });
+      } catch (e) { }
+    },
+    async clearNext(aid) {
+      const LN = plugin();
+      if (!LN || !aid) return;
+      const id = idOf(`${aid}:next`);
+      try { await LN.removeDeliveredNotifications({ notifications: [{ id }] }); } catch (e) { }
+      try { await LN.cancel({ notifications: [{ id }] }); } catch (e) { }
+    },
     // 아이폰에는 '다른 앱 위에 표시' 기능이 없음 → 안내 팝업을 띄우지 않게 true
     canDrawOverlays() { return true; },
     openOverlaySettings() { }
