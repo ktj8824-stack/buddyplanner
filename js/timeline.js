@@ -508,7 +508,7 @@ const Timeline = {
 
   openNav(app, destName, destLat, destLng, startName='', startLat=0, startLng=0) {
     if (app === 'tmap') {
-      U.toast(`🗺️ Tmap으로 길안내를 시작합니다: ${destName}`);
+      U.toast(`🗺️ Tmap으로 길안내를 시작합니다: ${U.esc(destName)}`);
       if (startLat && startLng) {
         window.location.href = `tmap://route?startname=${encodeURIComponent(startName)}&startx=${startLng}&starty=${startLat}&goalname=${encodeURIComponent(destName)}&goalx=${destLng}&goaly=${destLat}`;
       } else {
@@ -524,13 +524,13 @@ const Timeline = {
         if (typeof Kakao !== 'undefined' && destLat && destLng) {
           if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') Kakao.init(Login.KAKAO_JS_KEY);
           if (Kakao.isInitialized() && Kakao.Navi && Kakao.Navi.start) {
-            U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${destName}`);
+            U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${U.esc(destName)}`);
             Kakao.Navi.start({ name: String(destName || '목적지').slice(0, 50), x: Number(destLng), y: Number(destLat), coordType: 'wgs84' });
             return;
           }
         }
       } catch (e) { console.warn('[카카오내비] 실행 실패, 카카오맵으로 엽니다', e); }
-      U.toast(`🚙 카카오맵으로 길안내를 시작합니다: ${destName}`);
+      U.toast(`🚙 카카오맵으로 길안내를 시작합니다: ${U.esc(destName)}`);
       if (startLat && startLng) {
         window.location.href = `kakaomap://route?sp=${startLat},${startLng}&ep=${destLat},${destLng}&by=CAR`;
       } else {
@@ -553,7 +553,7 @@ const Timeline = {
       const url = 'kakaonavi-sdk://navigate?param=' + encodeURIComponent(JSON.stringify(param))
         + '&appkey=' + encodeURIComponent(key) + '&apiver=1.0'
         + '&extras=' + encodeURIComponent(JSON.stringify({ KA: ka, appPkg: bundleId }));
-      U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${destName}`);
+      U.toast(`🚙 카카오내비로 길안내를 시작합니다: ${U.esc(destName)}`);
       window.location.href = url;
       // 카카오내비가 없으면 앱이 그대로 → 카카오맵 길찾기로
       setTimeout(() => {
