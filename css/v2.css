@@ -693,7 +693,7 @@ body.guide-open .bottom-nav{z-index:70}
 .r-shared .sr-opt.on .ck { border-color: #10b981; background: #10b981 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E") center/14px no-repeat; }
 
 /* 앱으로 받기 · 홈 화면 추가 안내 (아래에서 올라오는 창) */
-.ha-bg { position: fixed; inset: 0; z-index: 1000000; background: rgba(0,0,0,0); transition: background .2s; display: flex; align-items: flex-end; }
+.ha-bg { position: fixed; inset: 0; z-index: 2147483647; background: rgba(0,0,0,0); transition: background .2s; display: flex; align-items: flex-end; }
 .ha-bg.open { background: rgba(0,0,0,.55); }
 .ha-sheet { width: 100%; max-width: 520px; margin: 0 auto; background: #fff; border-radius: 26px 26px 0 0; padding: 24px 22px calc(22px + env(safe-area-inset-bottom)); box-sizing: border-box; transform: translateY(100%); transition: transform .25s ease; max-height: 92vh; overflow-y: auto; }
 .ha-bg.open .ha-sheet { transform: none; }
@@ -726,3 +726,19 @@ body.guide-open .bottom-nav{z-index:70}
 .ha-prev img { width: 56px; height: 56px; border-radius: 13px; }
 .ha-prev b { display: block; font-size: 15px; color: #111; }
 .ha-prev small { font-size: 13px; color: #666; }
+.ha-row { display: flex; gap: 8px; }
+.ha-row .ha-btn { flex: 1; }
+.ha-btn.kakao { background: #fee500; color: #191919; }
+.ha-opt.k { border: 2px solid #f7d200; background: #fffbe0; }
+/* 아이폰 사파리: 공유 버튼 화살표 안내 */
+.ha-arrow { position: fixed; inset: 0; z-index: 2147483647; background: rgba(0,0,0,.6); }
+.ha-tip { position: absolute; left: 20px; right: 20px; bottom: calc(76px + env(safe-area-inset-bottom)); background: #fff; border-radius: 18px; padding: 16px 18px 8px; font-size: 16px; line-height: 1.5; color: #111; }
+.ha-tip .st { display: flex; gap: 10px; margin: 6px 0; align-items: flex-start; }
+.ha-tip .n { width: 24px; height: 24px; border-radius: 50%; background: #0b1d4a; color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.ha-tip .n.on { background: #f5a524; }
+.ha-tip .sh { color: #007aff; font-weight: 700; }
+.ha-tip .mini { display: flex; align-items: center; gap: 8px; background: #f4f6f8; border-radius: 10px; padding: 8px 10px; margin-top: 8px; font-size: 14px; }
+.ha-tip .mini img { width: 34px; height: 34px; border-radius: 8px; }
+.ha-down { position: absolute; left: 50%; bottom: calc(2px + env(safe-area-inset-bottom)); transform: translateX(-50%); font-size: 52px; color: #ffd84d; line-height: 1; animation: ha-bob 1s ease-in-out infinite; }
+@keyframes ha-bob { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 10px); } }
+body.ha-guide .bottom-nav { visibility: hidden; }

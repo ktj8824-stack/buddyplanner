@@ -49,6 +49,7 @@ const HomeAdd = {
 
   async goStore() {
     const g = this._getApp; if (!g) return;
+    if (this.isIOS() && !this.IOS_STORE) { U.toast('아이폰 앱은 앱스토어 출시를 준비하고 있어요', 3000); return; }
     // 아이폰: 앱스토어는 정보를 못 실어 보내서 링크를 복사해 둠 → 앱 첫 화면의 '붙여넣기'로 불러옴
     try { await navigator.clipboard.writeText(g.webUrl); } catch (e) { /* 안 되면 카톡 버튼을 다시 누르면 됨 */ }
     if (this.isAndroid()) {
@@ -89,7 +90,29 @@ const HomeAdd = {
         return;
       }
     }
+    if (this.isIOS() && !this.inKakao()) return this.arrowGuide();
     this.showHow();
+  },
+
+  /** 아이폰 사파리: 아래 공유 버튼에 화살표를 띄워 따라 하게 */
+  arrowGuide() {
+    const s = State.schedules[this._idx]; if (!s) return;
+    this.prepare(this._idx);
+    this.closeSheet();
+    const bg = document.createElement('div');
+    bg.className = 'ha-arrow'; bg.id = 'ha-sheet-bg';
+    document.body.classList.add('ha-guide');
+    bg.innerHTML = `
+      <div class="ha-tip">
+        <div class="st"><span class="n on">1</span><div><b>아래 공유 버튼</b>을 누르세요 <span class="sh">□↑</span></div></div>
+        <div class="st"><span class="n">2</span><div>목록을 올려 <b>홈 화면에 추가</b></div></div>
+        <div class="st"><span class="n">3</span><div>오른쪽 위 <b>추가</b> → 끝!</div></div>
+        <div class="mini"><img src="${this.iconURL(s)}" alt="">이 아이콘이 생겨요 · <b>${U.esc(this.label(s))}</b></div>
+        <button class="ha-later" onclick="HomeAdd.closeSheet()">닫기</button>
+      </div>
+      <div class="ha-down">⬇</div>`;
+    bg.addEventListener('click', e => { if (e.target === bg) this.closeSheet(); });
+    document.body.appendChild(bg);
   },
 
   /* ── 2. 웹에서 저장한 뒤 안내 ───────────────────────── */
@@ -105,12 +128,37 @@ const HomeAdd = {
       <div class="ha-ok">✓</div>
       <h3 style="text-align:center">일정을 저장했어요</h3>
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
-      ${iosNoStore ? '' : `<div class="ha-opt on"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 시간에 알람이 울리고, 차에 타면 길안내가 켜져요</small></div></div>`}
-      <div class="ha-opt"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘이 생겨요. 누르면 이 일정이 바로 열려요`}</small></div></div>
+      ${iosNoStore ? '' : `<div class="ha-opt on"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 알람 · 차에 타면 길안내 (가장 추천)</small></div></div>`}
+      <div class="ha-opt k"><span class="i">💬</span><div><b>카톡 나에게 보내기</b><small>'나와의 채팅'에 이 일정을 보내 둬요. 누르면 바로 열려요</small></div></div>
+      <div class="ha-opt"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘 · 화살표 따라 3번 누르기`}</small></div></div>
       ${iosNoStore ? '' : `<button class="ha-btn navy" onclick="HomeAdd.installFromOffer()">앱 설치하기</button>`}
-      <button class="ha-btn ${iosNoStore ? 'navy' : 'soft'}" onclick="HomeAdd.addHome()">${this.isAndroid() ? '홈 화면에 추가' : '홈 화면에 추가하는 방법 보기'}</button>
+      <div class="ha-row"><button class="ha-btn kakao" onclick="HomeAdd.sendToMe()">💬 나에게 보내기</button><button class="ha-btn soft" onclick="HomeAdd.addHome()">🏠 홈 화면에</button></div>
       <button class="ha-later" onclick="HomeAdd.closeSheet()">나중에 할게요</button>
     `);
+  },
+
+  /** 카톡 '나와의 채팅'에 이 일정을 보내 두기 (카톡 공유 창에서 '나와의 채팅'을 고름 · 로그인 없음) */
+  sendToMe() {
+    const s = State.schedules[this._idx]; if (!s) return;
+    const url = 'https://buddyplanner.kr/?r=' + this.pack(s);
+    const c = s.course || {};
+    const d = new Date(s.date);
+    const tl = s.timeline || {};
+    const dep = tl.homeDepart || "";
+    const route = [s.hasMeetingPoint && s.meetingPointObj ? s.meetingPointObj.name : null, s.hasMeal && s.mealRestaurant ? s.mealRestaurant.name : null, '골프장'].filter(Boolean).join(' → ');
+    const title = `⛳ ${d.getMonth() + 1}/${d.getDate()} ${c.name || '라운딩'} · 내 일정`;
+    const desc = `${s.teeOff || ''} 티오프 · ${s.startAddress || s.startPoint || ''}에서 출발${dep ? ' ' + dep : ''}\n${route}`;
+    try {
+      if (U.kakaoSend({
+        objectType: 'feed',
+        content: { title, description: desc, imageUrl: 'https://buddyplanner.kr/img/share.jpg', link: { mobileWebUrl: url, webUrl: url } },
+        buttons: [
+          { title: '내 일정 열기', link: { mobileWebUrl: url, webUrl: url } },
+          { title: '앱 설치하기', link: { mobileWebUrl: url + '&get=app', webUrl: url + '&get=app' } }
+        ]
+      })) { U.toast("카톡에서 '나와의 채팅'을 골라 보내 주세요", 3000); return; }
+    } catch (e) { console.warn('[나에게 보내기]', e); }
+    U.shareOut({ title, text: `${title}\n${desc}\n\n👇 내 일정 열기\n${url}` });
   },
 
   installFromOffer() {
@@ -232,6 +280,8 @@ const HomeAdd = {
     if (idx < 0) { State.addSchedule(s); idx = State.schedules.length - 1; }
     try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { }
     App.viewTimeline(idx);
+    this._idx = idx;
+    if (/[?&]get=app\b/.test(location.search) && !U.isNativeApp()) { setTimeout(() => this.installFromOffer(), 600); return true; }
     if (/[?&]add=1\b/.test(location.search) && !this.isStandalone()) setTimeout(() => this.offer(idx), 900);
     return true;
   },
@@ -268,7 +318,7 @@ const HomeAdd = {
     document.body.appendChild(bg);
     requestAnimationFrame(() => bg.classList.add('open'));
   },
-  closeSheet() { const b = document.getElementById('ha-sheet-bg'); if (b) b.remove(); }
+  closeSheet() { const b = document.getElementById('ha-sheet-bg'); if (b) b.remove(); document.body.classList.remove('ha-guide'); }
 };
 
 try { HomeAdd.initInstall(); } catch (e) { }
