@@ -97,6 +97,19 @@ export const TOOLS = [
     },
   },
   {
+    name: 'show_course_guide',
+    description: '골프장(코스) 공략 카드를 사용자 화면에 띄웁니다. 홀별 파·거리·공략 팁은 카드가 보여 주므로, 골프장 공략·코스 정보·홀 정보를 물으면 이 도구를 씁니다.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        course_name: { type: 'string', description: '골프장 이름 (예: 더헤븐CC)' },
+        sub_course: { type: 'string', description: '코스 이름 (예: 사우스). 말하지 않았으면 빈 문자열' },
+        schedule_index: { type: 'integer', description: '다가오는 일정 목록에 이 골프장 일정이 있으면 그 idx, 없으면 생략' },
+      },
+      required: ['course_name'],
+    },
+  },
+  {
     name: 'propose_meal',
     description: '이미 등록된 일정에 식사 장소를 넣도록 제안합니다. restaurant_id는 search_restaurants 결과의 id여야 합니다.',
     input_schema: {
@@ -215,6 +228,7 @@ export function systemRules(): string {
 - 이미 있는 일정의 시간·날짜 변경("내일 티오프 7시 40분으로 바뀌었어")이나 취소("토요일 라운딩 취소됐어")는 절대 propose_schedule로 새 일정을 만들지 않습니다. 다가오는 일정 목록에서 맞는 일정의 idx로 propose_update를 씁니다(시간이면 new_tee_off, 날짜면 new_date, 취소면 cancel:true). 어느 일정인지 애매하면 물어봅니다.
 - 같은 날짜·같은 골프장 일정이 목록에 이미 있으면 새로 만들지 말고 "이미 ○월 ○일 ○○ 일정이 있어요. 시간을 바꿀까요?"라고 묻습니다. 사용자가 하나 더 만들겠다고 분명히 말하면 allow_duplicate:true로 제안합니다.
 - "○일 라운딩 끝나고 여기 가게 일정에 넣어줘"처럼 식당을 일정에 넣어 달라고 하면, 다가오는 일정 목록에서 날짜·골프장이 맞는 일정의 idx로 propose_meal을 씁니다. 라운딩 전 식사면 timing=before, 끝나고 가면 after입니다. 그 날짜에 일정이 없으면 없다고 말하고 일정 등록(propose_schedule)부터 제안합니다. 식당은 이번 대화에서 search_restaurants로 찾은 곳이어야 하니, 아직 검색하지 않았다면 먼저 검색합니다.
+- 골프장 공략·코스 정보·홀별 정보를 물으면 show_course_guide로 공략 카드를 띄우고, 답은 1~2문장으로 짧게 소개만 합니다. 홀별 거리·해저드·벙커 위치를 직접 지어내지 마세요(카드가 출처와 함께 보여 줍니다). 코스가 여러 개인 골프장인데 코스를 말하지 않았으면 sub_course는 비워 둡니다.
 - 필수 정보(골프장, 날짜, 티오프 시간)가 빠지면 추측하지 말고 짧게 하나만 물어봅니다.
 - 도구 결과가 오류(is_error)로 돌아오면 그 내용을 바탕으로 사용자에게 짧게 다시 묻거나 바르게 고쳐 다시 제안합니다. 오류 내용을 그대로 읽어 주지 않습니다.
 - 스코어는 오늘이나 지난 날짜만 기록합니다. 스코어카드 사진: 골프장 이름, 날짜, 사용자 본인의 홀별 타수와 합계를 읽어 propose_score_record로 제안합니다. 동반자 줄이 여러 개면 사용자 정보의 닉네임과 가장 가까운 줄을 쓰고, 애매하면 어느 줄인지 물어봅니다. 잘 안 보이는 값은 지어내지 말고 확인을 요청합니다.
@@ -588,6 +602,14 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
                 new_date: u.input.new_date || null, new_tee_off: u.input.new_tee_off || null, cancel: !!u.input.cancel,
               });
               result = { shown_to_user: true, note: '확인 카드를 표시했습니다. 사용자가 버튼을 눌러야 바뀝니다.' };
+            } else if (u.name === 'show_course_guide') {
+              const name = String(u.input?.course_name || '').trim();
+              if (!name) { isError = true; result = '골프장 이름이 필요합니다.'; }
+              else {
+                const target = u.input?.schedule_index != null ? (upcomingByIdx(ctx, u.input.schedule_index) || null) : null;
+                actions.push({ type: 'course_guide', course_name: name.slice(0, 40), sub_course: String(u.input?.sub_course || '').slice(0, 20), schedule_index: target ? u.input.schedule_index : null, aid: target ? (target.aid || null) : null });
+                result = { shown_to_user: true, note: '앱이 공략 카드를 표시합니다. 홀별 내용은 카드에 나오니 1~2문장으로 짧게 소개만 하세요.' };
+              }
             } else if (u.name === 'propose_meal') {
               const r = knownRestaurants[String(u.input?.restaurant_id)];
               if (!r) { isError = true; result = 'search_restaurants 결과에 있는 restaurant_id만 사용할 수 있습니다.'; }

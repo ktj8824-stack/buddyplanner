@@ -300,6 +300,7 @@ const AIAgent = {
           ${s ? btn(a.cancel ? '일정 삭제' : '변경하기', 'confirmUpdate') : (done ? btn('', '') : '')}
         </div>`;
     }
+    if (a.type === 'course_guide') return typeof CourseGuide !== 'undefined' ? CourseGuide.chatCardHTML(a, msgId, i) : '';
     if (a.type === 'meal') {
       const s = State.schedules[this._schedIdx(a)];
       const when = a.timing === 'after' ? '라운딩 후 식사' : '라운딩 전 식사';
