@@ -861,6 +861,8 @@ const App = {
           if (arr[22]) {
             schedData.postMealRestaurant = { name: arr[22], lat: parseFloat(arr[23]) || 0, lng: parseFloat(arr[24]) || 0 };
           }
+          if (arr[26] === '9' || arr[26] === '18') schedData.roundLength = arr[26];
+          if ((arr[27] === 'lobby' || arr[27] === 'place') && /^\d{1,2}:\d{2}$/.test(arr[28] || '')) schedData.afterMeet = { mode: arr[27], time: arr[28] };
         } else {
           // Version 1 레거시 형식
           schedData = {
@@ -1015,6 +1017,8 @@ const App = {
         course: schedData.course, date: schedData.date, teeOff: schedData.teeOff,
         meet, meal, post: schedData.hasPostMeal ? ok(schedData.postMealRestaurant) : null,
         mealDuration: schedData.mealDuration || 0,
+        roundLength: schedData.roundLength || null,
+        afterMeet: schedData.afterMeet || null,
         route: meet ? 'meet' : meal ? 'meal' : 'course'
       };
       App.navigate('register');

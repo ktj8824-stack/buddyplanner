@@ -20,6 +20,8 @@ const Register = {
   searchMode: 'start',
   editIdx: null,
   roundLength: '18',
+  showerMin: 30,
+  afterMeet: { mode: 'asap', time: '' },
 
   getStartPointValue() {
     if (!State.userAddresses) State.userAddresses = { home: '', office: '' };
@@ -48,6 +50,8 @@ const Register = {
     this.meetingPointObj = null;
     this.searchMode = 'start';
     this.roundLength = '18';
+    this.showerMin = this._lastShower();
+    this.afterMeet = { mode: 'asap', time: '' };
     this.customStartObj = null;
     // 공유 링크로 들어온 일정 (App.showSharedScheduleModal 에서 넘김)
     this.shared = this._pendingShared || null;
@@ -56,6 +60,8 @@ const Register = {
       const sh = this.shared;
       if (sh.mealDuration) this.mealDuration = sh.mealDuration;
       if (sh.post) { this.hasPostMeal = true; this.postMealRestaurant = sh.post; }
+      if (sh.roundLength && ROUND_LENGTHS[sh.roundLength]) this.roundLength = sh.roundLength;
+      if (sh.afterMeet && sh.afterMeet.mode) this.afterMeet = { mode: sh.afterMeet.mode, time: sh.afterMeet.time || '' };
       this._applySharedRoute(sh.route);
     }
   },
@@ -142,7 +148,9 @@ const Register = {
     }
     this.hasMeetingPoint = s.hasMeetingPoint || false;
     this.meetingPointObj = s.meetingPointObj || null;
-    this.roundLength = s.roundLength || '18';
+    this.roundLength = ROUND_LENGTHS[s.roundLength] ? s.roundLength : '18';
+    this.showerMin = SHOWER_OPTS.includes(Number(s.showerMin)) ? Number(s.showerMin) : SHOWER_DEFAULT;
+    this.afterMeet = s.afterMeet && s.afterMeet.mode ? { mode: s.afterMeet.mode, time: s.afterMeet.time || '' } : { mode: 'asap', time: '' };
     
     if (this.startPoint === '직접 입력' && s.startAddress) {
       setTimeout(() => {
@@ -319,11 +327,8 @@ ${this._sharedCardHTML()}
                   <p class="v2-hint" style="margin-top:8px;">집결지에서 약 10분 대기·탑승 시간이 자동으로 들어가요.</p>
                 </div>
               </div>
-              <div class="v2-opt-row">
-                <div class="r" style="margin-bottom:10px;"><span>라운딩 길이</span><span style="font-size:13px; color:var(--v2-sub);" id="r-round-hint">${(ROUND_LENGTHS[this.roundLength] || ROUND_LENGTHS['18']).desc}</span></div>
-                <div class="v2-opts c3" id="r-round-pills">
-                  ${Object.keys(ROUND_LENGTHS).map(k => `<button type="button" class="pill ${k === this.roundLength ? 'on' : ''}" onclick="Register.setRoundLength('${k}', this)">${ROUND_LENGTHS[k].label}</button>`).join('')}
-                </div>
+              <div class="v2-opt-row" id="r-after">
+${this._afterHTML()}
               </div>
               <button class="v2-invite" id="r-invite" onclick="Register.openCompanionModal()">카카오톡으로 동반자 초대</button>
               <div class="invite-tags" id="r-tags" style="padding:0 18px;"></div>
@@ -355,6 +360,12 @@ ${this._sharedCardHTML()}
 
   /** 필수 정보 진행 막대 + 미리 계산한 일정 */
   updateProgress() {
+    // '라운딩 끝나고' 미리보기: 티오프·뒤풀이가 바뀌면 바로 다시 계산 (뒤풀이를 켜고 끄면 '뒤풀이 장소에서' 선택지도 바뀜)
+    try {
+      const post = !!this.hasPostMeal;
+      if (this._afterPost !== post) { this._afterPost = post; if (!post && this.afterMeet && this.afterMeet.mode === 'place') this.afterMeet = { mode: 'asap', time: '' }; this._refreshAfter(); }
+      else { const pv = U.$('#r-after-pv'); if (pv) pv.innerHTML = this._afterPreview(); }
+    } catch (e) { }
     const okCourse = !!(this.course && this.course.lat);
     const okTime = !!this.date && this.timeH !== null && this.timeH !== undefined;
     const st = this._startObj();
@@ -646,13 +657,98 @@ ${this._sharedCardHTML()}
     this.updateProgress();
   },
 
+  /* ── 라운딩 끝나고: 라운딩 길이 · 샤워·환복 · 모이는 방식 (고르면 아래 미리보기가 바로 바뀜) ── */
+  _lastShower() {
+    try { const v = Number(localStorage.getItem('bp_last_shower')); if (SHOWER_OPTS.includes(v) && localStorage.getItem('bp_last_shower') !== null) return v; } catch (e) { }
+    return SHOWER_DEFAULT;
+  },
+
+  _afterHTML() {
+    const am = this.afterMeet || { mode: 'asap', time: '' };
+    if (am.mode === 'place' && !this.hasPostMeal) am.mode = 'asap';
+    const modes = [['asap', '끝나는 대로'], ['lobby', '로비에서 만나기']];
+    if (this.hasPostMeal) modes.push(['place', '뒤풀이 장소에서']);
+    const def = am.time || this._defaultMeetTime(am.mode);
+    return `
+                <div class="r" style="margin-bottom:10px;"><span>라운딩 끝나고</span></div>
+                <div class="v2-after-l">라운딩</div>
+                <div class="v2-opts c2" id="r-round-pills">
+                  ${Object.keys(ROUND_LENGTHS).map(k => `<button type="button" class="pill v2-pill2 ${k === this.roundLength ? 'on' : ''}" onclick="Register.setRoundLength('${k}', this)"><b>${ROUND_LENGTHS[k].label}</b><small>${ROUND_LENGTHS[k].desc.replace('라운딩 약 ', '')}</small></button>`).join('')}
+                </div>
+                <div class="v2-after-l">샤워·환복</div>
+                <div class="v2-opts" id="r-shower-pills" style="grid-template-columns:repeat(${SHOWER_OPTS.length},1fr);">
+                  ${SHOWER_OPTS.map(t => `<button type="button" class="pill ${t === this.showerMin ? 'on' : ''}" onclick="Register.setShower(${t}, this)">${t ? t + '분' : '안 함'}</button>`).join('')}
+                </div>
+                <div class="v2-after-l">끝나고 어떻게 모여요?</div>
+                <div class="v2-opts" id="r-meet-pills" style="grid-template-columns:repeat(${modes.length},1fr);">
+                  ${modes.map(([k, t]) => `<button type="button" class="pill ${k === am.mode ? 'on' : ''}" onclick="Register.setAfterMode('${k}')">${t}</button>`).join('')}
+                </div>
+                ${am.mode !== 'asap' ? `<label class="v2-after-time"><span>${am.mode === 'lobby' ? '로비에서 만나는 시간' : '뒤풀이 장소 약속 시간'}</span><input type="time" id="r-meet-time" value="${def}" onchange="Register.setMeetTime(this.value)"></label>` : ''}
+                <div class="v2-after-pv" id="r-after-pv">${this._afterPreview()}</div>`;
+  },
+
+  _refreshAfter() {
+    const el = U.$('#r-after'); if (el) el.innerHTML = this._afterHTML();
+  },
+
+  /** 약속 시각 기본값: 라운딩 끝 + 샤워 (뒤풀이 장소면 이동 20분 더) */
+  _defaultMeetTime(mode) {
+    const t = String(this.timeH != null ? `${String(this.timeH).padStart(2, '0')}:${String(this.timeM || 0).padStart(2, '0')}` : '07:00');
+    const [h, m] = t.split(':').map(Number);
+    let v = h * 60 + m + (ROUND_LENGTHS[this.roundLength] || ROUND_LENGTHS['18']).min + this.showerMin + (mode === 'place' ? 20 : 0);
+    v = Math.ceil(v / 10) * 10;
+    return `${String(Math.floor(v / 60) % 24).padStart(2, '0')}:${String(v % 60).padStart(2, '0')}`;
+  },
+
+  /** 고른 대로 바로 계산한 '라운딩 끝나고' 미리보기 */
+  _afterPreview() {
+    if (this.timeH == null) return '티오프 시간을 고르면 끝나는 시간을 계산해 보여 드려요';
+    const fake = {
+      date: this.date || new Date(), teeOff: `${String(this.timeH).padStart(2, '0')}:${String(this.timeM || 0).padStart(2, '0')}`,
+      prepTime: this.prep || 30, travelTime: 60, course: this.course || { name: '' }, startPoint: '집',
+      hasMeal: false, roundLength: this.roundLength, showerMin: this.showerMin,
+      hasPostMeal: !!(this.hasPostMeal && this.postMealRestaurant), postMealRestaurant: this.postMealRestaurant,
+      afterMeet: this.afterMeet
+    };
+    try { State.calculateTimeline(fake); } catch (e) { return ''; }
+    const tl = fake.timeline; if (!tl || !tl.roundEnd) return '';
+    const parts = [`<b>${tl.roundEnd}</b> 라운딩 끝`];
+    const showerDone = tl.showerShort != null ? tl.leaveCourse : tl.showerEnd;
+    const sameLeave = showerDone === tl.leaveCourse && tl.afterMode !== 'lobby';
+    if (tl.showerMin) parts.push(`<b>${showerDone}</b> 샤워·환복 끝${sameLeave ? '·출발' : ''}`);
+    else if (tl.afterMode !== 'lobby') parts.push(`<b>${tl.leaveCourse}</b> 골프장 출발`);
+    if (tl.afterMode === 'lobby') parts.push(`<b>${tl.meetTime}</b> 로비에서 만나기·출발`);
+    else if (tl.showerMin && !sameLeave) parts.push(`<b>${tl.leaveCourse}</b> 골프장 출발`);
+    if (tl.hasPostMeal) parts.push(`<b>${tl.postMealStart}</b> 뒤풀이${tl.afterMode === 'place' ? ' 약속' : ' 도착'}`);
+    const warn = tl.showerShort != null ? `<div class="warn">⚠️ 약속 시간까지 샤워·환복 시간이 ${tl.showerShort}분뿐이에요</div>` : '';
+    return parts.join(' → ') + warn;
+  },
+
   setRoundLength(k, btn) {
     if (!ROUND_LENGTHS[k]) return;
     this.roundLength = k;
-    U.$$('#r-round-pills .pill').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    const h = U.$('#r-round-hint'); if (h) h.textContent = ROUND_LENGTHS[k].desc;
+    this._refreshAfter();
     U.haptic();
+  },
+
+  setShower(t) {
+    if (!SHOWER_OPTS.includes(t)) return;
+    this.showerMin = t;
+    try { localStorage.setItem('bp_last_shower', String(t)); } catch (e) { }
+    this._refreshAfter();
+    U.haptic();
+  },
+
+  setAfterMode(k) {
+    this.afterMeet = { mode: k, time: k === 'asap' ? '' : this._defaultMeetTime(k) };
+    this._refreshAfter();
+    U.haptic();
+  },
+
+  setMeetTime(v) {
+    if (!/^\d{1,2}:\d{2}$/.test(v || '')) return;
+    this.afterMeet = { mode: this.afterMeet.mode, time: v };
+    const pv = U.$('#r-after-pv'); if (pv) pv.innerHTML = this._afterPreview();
   },
 
   setPrepTime(t, btn) { this.prep=t; try { localStorage.setItem('bp_last_prep', String(t)); } catch (e) {} U.$$('#r-pills .pill').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); this.updateProgress(); U.haptic(); },
@@ -722,7 +818,8 @@ ${this._sharedCardHTML()}
     this.hasMeetingPoint = !!l.hasMeetingPoint; this.meetingPointObj = l.meetingPointObj || null;
     this.hasMeal = !!l.hasMeal; this.mealDuration = l.mealDuration || 50; this.mealRestaurant = l.mealRestaurant || null;
     this.hasPostMeal = !!l.hasPostMeal; this.postMealRestaurant = l.postMealRestaurant || null;
-    this.roundLength = l.roundLength || '18';
+    this.roundLength = ROUND_LENGTHS[l.roundLength] ? l.roundLength : '18';
+    this.afterMeet = { mode: 'asap', time: '' };
     this.date = null;
     this.render();
     setTimeout(() => {
@@ -949,6 +1046,7 @@ ${this._sharedCardHTML()}
       U.$('#postmeal-toggle').classList.toggle('on', this.hasPostMeal);
       U.$('#postmeal-body').classList.toggle('show', this.hasPostMeal);
     }
+    this.updateProgress();
     U.haptic();
   },
 
@@ -1091,6 +1189,7 @@ ${this._sharedCardHTML()}
       const display = U.$('#r-post-restaurant');
       display.textContent = restObj.name; 
       display.classList.remove('is-empty', 'empty');
+      setTimeout(() => this.updateProgress(), 0);
     } else {
       this.mealRestaurant = restObj;
       const display = U.$('#r-restaurant');
@@ -1117,6 +1216,7 @@ ${this._sharedCardHTML()}
         const display = U.$('#r-post-restaurant');
         display.textContent = this.postMealRestaurant.name; 
         display.classList.remove('is-empty', 'empty');
+        setTimeout(() => this.updateProgress(), 0);
       } else {
         this.mealRestaurant = restObj;
         const display = U.$('#r-restaurant');
@@ -1148,6 +1248,7 @@ ${this._sharedCardHTML()}
       const display = U.$('#r-post-restaurant');
       display.textContent = this.postMealRestaurant.name; 
       display.classList.remove('is-empty', 'empty');
+      setTimeout(() => this.updateProgress(), 0);
     } else {
       this.mealRestaurant = restObj;
       const display = U.$('#r-restaurant');
@@ -1392,6 +1493,8 @@ ${this._sharedCardHTML()}
       travelToMeeting,
       groupCode: this.groupCode || null,
       roundLength: this.roundLength || '18',
+      showerMin: this.showerMin,
+      afterMeet: this.afterMeet && this.afterMeet.mode !== 'asap' && this.afterMeet.time ? { mode: this.afterMeet.mode, time: this.afterMeet.time } : { mode: 'asap', time: '' },
       routeEstimated: estimated
     };
 

@@ -246,7 +246,7 @@ const HomeAdd = {
       tr: s.travelToRestaurant || 0,
       mp: s.hasMeetingPoint && s.meetingPointObj ? { n: s.meetingPointObj.name, y: s.meetingPointObj.lat, x: s.meetingPointObj.lng } : null, tm: s.travelToMeeting || 0,
       pm: s.hasPostMeal && s.postMealRestaurant ? { n: s.postMealRestaurant.name, y: s.postMealRestaurant.lat, x: s.postMealRestaurant.lng } : null,
-      rl: s.roundLength || '18'
+      rl: s.roundLength || '18', sm: s.showerMin, am: s.afterMeet && s.afterMeet.mode !== 'asap' ? s.afterMeet : null
     };
     const b = btoa(unescape(encodeURIComponent(JSON.stringify(o))));
     return b.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -266,7 +266,7 @@ const HomeAdd = {
         hasPostMeal: !!o.pm, postMealRestaurant: pt(o.pm), travelToRestaurant: +o.tr || 0,
         startPoint: o.sp || '집', startAddress: o.sa || '', startLat: +o.sy || 0, startLng: +o.sx || 0,
         hasMeetingPoint: !!o.mp, meetingPointObj: pt(o.mp), travelToMeeting: +o.tm || 0,
-        groupCode: null, roundLength: o.rl || '18'
+        groupCode: null, roundLength: o.rl || '18', showerMin: o.sm != null ? +o.sm : 30, afterMeet: o.am && o.am.mode ? { mode: String(o.am.mode), time: String(o.am.time || '') } : { mode: 'asap', time: '' }
       };
       return App.sanitizeShared(s);
     } catch (e) { console.warn('[홈 화면 링크] 풀기 실패', e); return null; }

@@ -95,7 +95,7 @@ const AutoNav = {
     legs.push({ dep: tl.homeDepart, from: home, to: first, label: meet ? '모임장소로 출발' : rest ? '식당으로 출발' : '골프장으로 출발' });
     if (meet) legs.push({ dep: tl.meetDepart, from: meet, to: rest || course, label: rest ? '식당으로 출발' : '골프장으로 출발' });
     if (rest) legs.push({ dep: tl.restDepart, from: rest, to: course, label: '골프장으로 출발' });
-    if (post) legs.push({ dep: tl.roundEnd, from: course, to: post, label: '뒷풀이 식당으로' });
+    if (post) legs.push({ dep: tl.leaveCourse || tl.roundEnd, from: course, to: post, label: '뒷풀이 식당으로' });
     legs.push({ dep: tl.returnStart, from: post || course, to: home, label: '집으로 귀가' });
     // 구간마다 '언제까지 이 구간이 맞는지(until)'를 붙임 (라운딩 날 0시 기준 분, 전날 밤 출발은 음수)
     //  - 골프장 쪽으로 가는 구간: 티오프 + 45분까지 (늦게 출발해도 골프장으로 안내)

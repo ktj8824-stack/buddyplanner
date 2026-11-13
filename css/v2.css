@@ -801,3 +801,15 @@ body.ha-guide .bottom-nav { visibility: hidden; }
 .cg-nav button { flex: 1; border: none; border-radius: 12px; padding: 13px; font-weight: 800; font-size: 15px; font-family: inherit; }
 .cg-nav .soft { background: #eef1f5; color: #0b1d4a; }
 .cg-nav .go { background: #0f3d2b; color: #fff; }
+/* 등록 화면: 라운딩 끝나고 */
+.v2-after-l { font-size: 13px; font-weight: 700; color: var(--v2-sub, #667); margin: 12px 0 6px; }
+.v2-opts.c2 { grid-template-columns: 1fr 1fr; }
+#r-after .pill { line-height: 1.3; }
+.v2-after-pv { margin-top: 12px; background: #f2fbf6; border-radius: 12px; padding: 10px 12px; font-size: 13.5px; line-height: 1.7; color: #234; }
+.v2-after-pv b { color: #0f3d2b; }
+.v2-after-pv .warn { color: #b45309; font-weight: 700; margin-top: 4px; }
+.v2-pill2 { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding-top: 8px !important; padding-bottom: 8px !important; }
+.v2-pill2 b { font-size: 16px; }
+.v2-pill2 small { font-size: 11.5px; font-weight: 500; opacity: .75; }
+.v2-after-time { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding: 10px 14px; border: 1.5px solid #e2e6ec; border-radius: 12px; background: #fff; font-size: 14px; color: #333; }
+.v2-after-time input { border: none; background: none; font: inherit; font-weight: 800; font-size: 17px; color: #0b1d4a; text-align: right; }

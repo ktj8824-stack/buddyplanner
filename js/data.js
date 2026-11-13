@@ -139,10 +139,12 @@ const GOLFER_PICKS = {
 
 /* ── 라운딩 길이 (귀가·뒷풀이 시간 계산용) ── */
 const ROUND_LENGTHS = {
-  '18': { label: '18홀', min: 300, desc: '라운딩·샤워 약 5시간' },
-  '9': { label: '9홀', min: 150, desc: '라운딩·샤워 약 2시간 30분' },
-  '18+': { label: '여유 있게', min: 330, desc: '그늘집·대기 포함 약 5시간 30분' },
+  '18': { label: '18홀', min: 330, desc: '라운딩 약 5시간 30분' },
+  '9': { label: '9홀', min: 165, desc: '라운딩 약 2시간 45분' },
 };
+/* ── 라운딩 끝나고: 샤워·환복 시간(분), 기본 30분 ── */
+const SHOWER_OPTS = [0, 20, 30, 40, 50, 60];
+const SHOWER_DEFAULT = 30;
 
 /* ── App State ── */
 const State = {
@@ -219,7 +221,8 @@ const State = {
   },
 
   calculateTimeline(idx) {
-    const s = this.schedules[idx];
+    // 번호 대신 일정 객체를 넘기면 그 객체로 계산 (등록 화면 미리보기용 · 저장하지 않음)
+    const s = idx && typeof idx === 'object' ? idx : this.schedules[idx];
     if (!s) return;
     
     // 치명적 에러 방어: 필수 객체가 없으면 기본 객체 생성
@@ -334,23 +337,57 @@ const State = {
       }
     }
 
-    // 라운딩 길이 (라운딩 + 샤워): 18홀 기본 5시간, 9홀 2시간 30분, 여유 있게 5시간 30분
+    // 라운딩 끝나고: 라운딩(18홀 5시간 30분·9홀 2시간 45분) → 샤워·환복(기본 30분) → 골프장 출발
+    //  afterMeet.mode: 'asap'(끝나는 대로) · 'lobby'(로비에서 ○시) · 'place'(뒤풀이 장소에서 ○시)
     const roundMin = ROUND_LENGTHS[s.roundLength] ? ROUND_LENGTHS[s.roundLength].min : ROUND_LENGTHS['18'].min;
+    const shower = SHOWER_OPTS.includes(Number(s.showerMin)) ? Number(s.showerMin) : SHOWER_DEFAULT;
+    const playEnd = teeTotal + roundMin;
     tl.roundMin = roundMin;
-    tl.roundEnd = this.mToTime(teeTotal + roundMin);
+    tl.roundEnd = this.mToTime(playEnd);
+    tl.showerMin = shower;
+    tl.showerEnd = this.mToTime(playEnd + shower);
 
-    if (s.hasPostMeal && s.postMealRestaurant) {
-      const postMealStart = teeTotal + roundMin;
-      const postMealEnd = postMealStart + 120; // 뒷풀이 2시간
+    const post = s.hasPostMeal && s.postMealRestaurant ? s.postMealRestaurant : null;
+    let postTravel = 0;
+    if (post) {
+      postTravel = 20;
+      if (post.lat && s.course && s.course.lat && typeof Register !== 'undefined' && Register.estimateDriveMin) {
+        postTravel = Register.estimateDriveMin(s.course.lng, s.course.lat, post.lng, post.lat) || 20;
+      }
+    }
+    // 약속 시각(HH:MM) → 티오프 날 0시 기준 분 (티오프보다 이르면 자정 넘긴 것)
+    const atMin = (hm) => {
+      if (!/^\d{1,2}:\d{2}$/.test(String(hm || ''))) return null;
+      const [h, m] = String(hm).split(':').map(Number);
+      let v = h * 60 + m;
+      if (v <= teeTotal) v += 1440;
+      return v;
+    };
+    const am = s.afterMeet || {};
+    let mode = am.mode === 'lobby' || (am.mode === 'place' && post) ? am.mode : 'asap';
+    const meetAt = mode === 'asap' ? null : atMin(am.time);
+    if (meetAt == null) mode = 'asap';
+    let leave = playEnd + shower;
+    let postStart = post ? leave + postTravel : null;
+    if (mode === 'lobby') { leave = meetAt; if (post) postStart = leave + postTravel; }
+    if (mode === 'place') { postStart = meetAt; leave = meetAt - postTravel; }
+    tl.afterMode = mode;
+    tl.meetTime = mode === 'asap' ? null : this.mToTime(meetAt);
+    tl.leaveCourse = this.mToTime(leave);
+    // 약속 때문에 샤워 시간이 모자라면 실제로 쓸 수 있는 분 (화면에 안내)
+    tl.showerShort = leave < playEnd + shower ? Math.max(0, leave - playEnd) : null;
+
+    if (post) {
       tl.hasPostMeal = true;
-      tl.postMealRestaurant = s.postMealRestaurant;
-      tl.postMealStart = this.mToTime(postMealStart);
-      tl.postMealEnd = this.mToTime(postMealEnd);
+      tl.postMealRestaurant = post;
+      tl.postTravelDur = postTravel;
+      tl.postMealStart = this.mToTime(postStart);
+      tl.postMealEnd = this.mToTime(postStart + 120); // 뒷풀이 2시간
     } else {
       tl.hasPostMeal = false;
     }
 
-    const returnStart = tl.hasPostMeal ? (teeTotal + roundMin + 120) : (teeTotal + roundMin);
+    const returnStart = post ? postStart + 120 : leave;
     // 귀가: 갈 때 집결지·식당을 들렀다면 그 시간을 빼고, 골프장(뒷풀이 식당)→출발지로 따로 어림
     let returnTravel = s.travelTime || 60;
     const backFrom = tl.hasPostMeal && s.postMealRestaurant && s.postMealRestaurant.lat ? s.postMealRestaurant : s.course;

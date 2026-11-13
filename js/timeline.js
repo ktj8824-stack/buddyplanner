@@ -102,11 +102,26 @@ const Timeline = {
     }
     steps.push({ key: 'arrival', time: tl.arrival, ico: I.pin, title: '클럽하우스 도착', inlineSub: `${tl.hasMeal ? '환복' : '조식·환복'} · 여유 ${tl.mannerTime}분` });
     steps.push({ key: 'tee', time: tl.teeOff, tee: true, title: `티오프 · ${(ROUND_LENGTHS[s.roundLength] || ROUND_LENGTHS['18']).label}` });
+    // 라운딩 끝나고: 종료 → 샤워·환복 → (로비 약속) → 뒤풀이 출발·도착
+    if (tl.roundEnd) {
+      const sh = tl.showerMin != null ? tl.showerMin : 30;
+      steps.push({ key: 'roundEnd', time: tl.roundEnd, ico: I.pin, title: '라운딩 종료',
+        inlineSub: sh ? `샤워·환복 ${sh}분${tl.afterMode === 'asap' ? ` · ${tl.showerEnd} 준비 끝` : ''}` : '샤워 없이 바로 출발' });
+    }
+    if (tl.afterMode === 'lobby' && tl.meetTime) {
+      steps.push({ key: 'lobby', time: tl.meetTime, ico: I.pin, title: '로비에서 만나기',
+        inlineSub: tl.showerShort != null ? `⚠️ 샤워·환복 시간이 ${tl.showerShort}분뿐이에요` : '약속 시간' });
+    }
     if (post) {
       const rv = ReviewStore.getReviews(post.name);
       const cat = tl.postMealRestaurant.category || (s.postMealRestaurant && s.postMealRestaurant.category) || '';
-      steps.push({ key: 'post', time: tl.postMealStart, ico: I.meal, meal: true, title: `뒤풀이 · ${post.name}`, depart: true,
-        sub: `${cat ? String(cat).split('>').pop().trim() + ' · ' : ''}약 2시간`, nav: { to: post, from: course },
+      if (tl.afterMode !== 'lobby') {
+        steps.push({ key: 'postDepart', time: tl.leaveCourse, ico: I.car, title: '뒤풀이 식당으로 출발', depart: true,
+          sub: `${post.name}까지 약 ${tl.postTravelDur || 20}분${tl.afterMode === 'place' && tl.showerShort != null ? ` · ⚠️ 샤워·환복 시간이 ${tl.showerShort}분뿐이에요` : ''}`,
+          nav: { to: post, from: course } });
+      }
+      steps.push({ key: 'post', time: tl.postMealStart, ico: I.meal, meal: true, title: `뒤풀이 · ${post.name}`, depart: tl.afterMode === 'lobby',
+        sub: `${tl.afterMode === 'place' ? '약속 시간 · ' : ''}${cat ? String(cat).split('>').pop().trim() + ' · ' : ''}약 2시간`, nav: { to: post, from: course },
         extra: (rv.count > 0 ? ReviewStore.renderStars(rv.avgRating, rv.count) : '') + (roundOver ? `<button class="v2-step-act" style="padding-left:0" onclick="ReviewStore.openRatingModal(${U.jsq(post.name)}, ${U.jsq(s.course.name)})">식당 평가하기</button>` : '') });
     }
     steps.push({ key: 'return', time: tl.returnStart, ico: startIco, title: `${U.josa(startPt, '으로/로')} 귀가`, depart: true,
@@ -389,7 +404,10 @@ const Timeline = {
       pm.name || '',
       pm.lat || '',
       pm.lng || '',
-      c.region || ''  // arr[25]: 골프장 지역 (시/도 구)
+      c.region || '',  // arr[25]: 골프장 지역 (시/도 구)
+      s.roundLength || '18',                                   // arr[26]: 18홀 / 9홀
+      (s.afterMeet && s.afterMeet.mode) || 'asap',            // arr[27]: 끝나고 모이는 방식
+      (s.afterMeet && s.afterMeet.mode !== 'asap' && s.afterMeet.time) || ''  // arr[28]: 약속 시각
     ];
     const kakaoPayload = encodeURIComponent(arr.join('|'));
     Timeline._pendingShareUrl = baseDomain + '/?s=' + kakaoPayload;
