@@ -959,7 +959,7 @@ const Group = {
             description: this._hasTeamTimes()
               ? `${e.course.name} · ${[...new Set(e.members.map(m => m.team_no).filter(Boolean))].length}개 조\n${this.lineupText().split('\n').slice(0, 3).join('\n')}\n내 이름을 누르면 내 조·일어날 시간이 나와요`.slice(0, 200)
               : `${e.course.name}\n${meet} 클럽하우스 집결${e.meal_before ? ` · 아침 ${e.meal_before.name}` : ''}\n내 이름을 골라 참석을 눌러 주세요`,
-            imageUrl: 'https://files.catbox.moe/672ojg.png',
+            imageUrl: 'https://buddyplanner.kr/img/share.jpg',
             link
           },
           buttons: [{ title: '참석 확인하기', link }]
@@ -987,7 +987,7 @@ const Group = {
           content: {
             title: `🙋 참석 확인 부탁드려요 · ${e.title}`,
             description: `${this._date(e.round_date)} ${e.tee_off} ${e.course.name}\n아직 답하지 않으신 분: ${who}`,
-            imageUrl: 'https://files.catbox.moe/672ojg.png',
+            imageUrl: 'https://buddyplanner.kr/img/share.jpg',
             link
           },
           buttons: [{ title: '참석 확인하기', link }]

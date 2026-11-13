@@ -420,7 +420,7 @@ const Timeline = {
           content: {
             title: `⛳ [BuddyPlanner] ${courseName} 라운딩 일정`,
             description: `📅 일시: ${dateStr} ${teeOff}\n📍 장소: ${courseName}\n\n아래 버튼을 눌러 일정을 추가하고 맞춤 편집해 보세요!`,
-            imageUrl: 'https://files.catbox.moe/672ojg.png',
+            imageUrl: 'https://buddyplanner.kr/img/share.jpg',
             link: shareLinkObj,
           },
           buttons: [
