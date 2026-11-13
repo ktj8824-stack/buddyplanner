@@ -128,11 +128,9 @@ const HomeAdd = {
       <div class="ha-ok">✓</div>
       <h3 style="text-align:center">일정을 저장했어요</h3>
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
-      ${iosNoStore ? '' : `<div class="ha-opt on"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 알람 · 차에 타면 길안내 (가장 추천)</small></div></div>`}
-      <div class="ha-opt k"><span class="i">💬</span><div><b>카톡 나에게 보내기</b><small>'나와의 채팅'에 이 일정을 보내 둬요. 누르면 바로 열려요</small></div></div>
-      <div class="ha-opt"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘 · 화살표 따라 3번 누르기`}</small></div></div>
-      ${iosNoStore ? '' : `<button class="ha-btn navy" onclick="HomeAdd.installFromOffer()">앱 설치하기</button>`}
-      <div class="ha-row"><button class="ha-btn kakao" onclick="HomeAdd.sendToMe()">💬 나에게 보내기</button><button class="ha-btn soft" onclick="HomeAdd.addHome()">🏠 홈 화면에</button></div>
+      ${iosNoStore ? '' : `<button class="ha-opt on" onclick="HomeAdd.installFromOffer()"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 알람 · 차에 타면 길안내 (가장 추천)</small></div><span class="go">›</span></button>`}
+      <button class="ha-opt k" onclick="HomeAdd.sendToMe()"><span class="i">💬</span><div><b>카톡 나에게 보내기</b><small>'나와의 채팅'에 이 일정을 보내 둬요. 누르면 바로 열려요</small></div><span class="go">›</span></button>
+      <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘 · 화살표 따라 3번 누르기`}</small></div><span class="go">›</span></button>
       <button class="ha-later" onclick="HomeAdd.closeSheet()">나중에 할게요</button>
     `);
   },
