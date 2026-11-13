@@ -319,6 +319,15 @@ const U = {
   haptic() { if(navigator.vibrate) navigator.vibrate(10); },
 
   /** 아이폰·안드로이드 앱 안인지 (카카오 '웹용' 공유는 앱 주소(capacitor://localhost)에서 막혀 무반응) */
+  /** 카카오톡 공유 (SDK v1 은 Kakao.Link, v2 는 Kakao.Share) — 보냈으면 true */
+  kakaoSend(opts) {
+    if (typeof Kakao === 'undefined') return false;
+    if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY) Kakao.init(Login.KAKAO_JS_KEY);
+    const api = Kakao.Share || Kakao.Link;
+    if (!api || !api.sendDefault) return false;
+    api.sendDefault(opts);
+    return true;
+  },
   isNativeApp() { try { return !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()); } catch (e) { return false; } },
   /** 앱에서 카톡으로 보내기: 휴대폰 공유 창(카카오톡 고르기) → 안 되면 내용 복사 후 카카오톡 열기 */
   async shareOut({ title = '', text = '', url = '' } = {}) {

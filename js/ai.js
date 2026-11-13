@@ -916,12 +916,12 @@ const AI = {
 
     if (!U.isNativeApp() && typeof Kakao !== 'undefined' && Kakao.isInitialized && Kakao.isInitialized()) {
       try {
-        Kakao.Share.sendDefault({
+        if (!U.kakaoSend({
           objectType: 'feed',
           content: {
             title: shareTitle,
             description: shareDesc,
-            imageUrl: 'https://images.unsplash.com/photo-1587329310686-91414b8e3cb7?w=600&q=80',
+            imageUrl: 'https://buddyplanner.kr/img/share.jpg',
             link: {
               mobileWebUrl: window.location.href,
               webUrl: window.location.href
@@ -936,7 +936,7 @@ const AI = {
               }
             }
           ]
-        });
+        })) throw new Error('no kakao share');
         return;
       } catch (e) {
         console.warn('Kakao share fallback:', e);

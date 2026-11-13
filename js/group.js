@@ -952,7 +952,7 @@ const Group = {
       if (!U.isNativeApp() && typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
         if (!Kakao.isInitialized()) Kakao.init(Login.KAKAO_JS_KEY);
         const link = { mobileWebUrl: url, webUrl: url };
-        Kakao.Share.sendDefault({
+        if (!U.kakaoSend({
           objectType: 'feed',
           content: {
             title: `⛳ ${e.title} · ${this._date(e.round_date)} ${e.tee_off}`,
@@ -963,7 +963,7 @@ const Group = {
             link
           },
           buttons: [{ title: '참석 확인하기', link }]
-        });
+        })) throw new Error('no kakao share');
         return;
       }
     } catch (err) { console.warn('kakao share', err); }
@@ -982,7 +982,7 @@ const Group = {
       if (!U.isNativeApp() && typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
         if (!Kakao.isInitialized()) Kakao.init(Login.KAKAO_JS_KEY);
         const link = { mobileWebUrl: url, webUrl: url };
-        Kakao.Share.sendDefault({
+        if (!U.kakaoSend({
           objectType: 'feed',
           content: {
             title: `🙋 참석 확인 부탁드려요 · ${e.title}`,
@@ -991,7 +991,7 @@ const Group = {
             link
           },
           buttons: [{ title: '참석 확인하기', link }]
-        });
+        })) throw new Error('no kakao share');
         return;
       }
     } catch (err) { console.warn('kakao share', err); }

@@ -415,7 +415,7 @@ const Timeline = {
           webUrl: Timeline._pendingShareUrl
         };
 
-        Kakao.Share.sendDefault({
+        if (!U.kakaoSend({
           objectType: 'feed',
           content: {
             title: `⛳ [BuddyPlanner] ${courseName} 라운딩 일정`,
@@ -429,7 +429,7 @@ const Timeline = {
               link: shareLinkObj
             }
           ]
-        });
+        })) throw new Error('no kakao share');
       } catch (e) {
         console.error('Kakao share error:', e);
         Timeline.shareFallback();
