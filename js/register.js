@@ -170,6 +170,7 @@ const Register = {
     const st = U.$('#rs-step-start'); if (st) st.classList.toggle('tapped', !!this.sg.startTapped);
     const sub = U.$('#r-submit');
     if (sub) sub.classList.toggle('rs-ready', now === 'done');
+    const go = U.$('#rs-go'); if (go) go.classList.toggle('show', now === 'done');
     if (!scroll) return;
     setTimeout(() => {
       const target = now === 'done' ? sub : U.$('#rs-step-' + now);
@@ -391,6 +392,7 @@ ${this._afterHTML()}
         </div>
       </div>
       <div class="v2-reg-foot">
+        ${this.shared ? '<div class="rs-go" id="rs-go"><em>4</em>다 됐어요! 아래 버튼을 눌러 일정을 만드세요 👇</div>' : ''}
         <div class="pre" id="r-preview">골프장·티오프·출발지를 넣으면 출발 시간을 미리 계산해요</div>
         <button class="v2-btn-navy" id="r-submit" onclick="Register.createPlan()">${isEdit ? '라운딩 일정 수정 완료' : '스마트 플랜 만들기'}</button>
       </div>
