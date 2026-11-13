@@ -674,3 +674,20 @@ body.has-admob .v2-reg-foot { padding-bottom: calc(var(--admob-h, 115px) + var(-
 #an-guide .ang-back{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:0;background:none;color:#0f172a;cursor:pointer}
 #an-guide iframe{flex:1;width:100%;border:0;display:block}
 body.guide-open .bottom-nav{z-index:70}
+
+/* 공유받은 일정: 내 출발지 + 어디로 먼저 갈지 */
+.r-shared { border: 2px solid #10b981; }
+.r-shared .rs-tag { font-size: 13px; font-weight: 800; color: #10b981; margin-bottom: 4px; }
+.r-shared .rs-name { font-size: 18px; font-weight: 800; color: #111; }
+.r-shared .rs-when { font-size: 14px; color: #555; margin: 2px 0 16px; }
+.r-shared .rs-q { display: flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 800; color: #111; margin-bottom: 10px; }
+.r-shared .rs-q em { font-style: normal; width: 24px; height: 24px; border-radius: 50%; background: #cbd5e1; color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+.r-shared .rs-q em.ok { background: #10b981; }
+.r-shared .sr-opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 13px 14px; margin-bottom: 8px; border-radius: 14px; border: 1.5px solid #e2e6ec; background: #fff; font: inherit; cursor: pointer; }
+.r-shared .sr-opt.on { border: 2px solid #10b981; background: #ecfdf5; }
+.r-shared .sr-opt .ic { font-size: 22px; }
+.r-shared .sr-opt .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.r-shared .sr-opt .tx b { font-size: 15px; color: #111; }
+.r-shared .sr-opt .tx small { font-size: 13px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.r-shared .sr-opt .ck { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; border: 2px solid #cbd2db; }
+.r-shared .sr-opt.on .ck { border-color: #10b981; background: #10b981 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E") center/14px no-repeat; }

@@ -49,6 +49,65 @@ const Register = {
     this.searchMode = 'start';
     this.roundLength = '18';
     this.customStartObj = null;
+    // 공유 링크로 들어온 일정 (App.showSharedScheduleModal 에서 넘김)
+    this.shared = this._pendingShared || null;
+    this._pendingShared = null;
+    if (this.shared) {
+      const sh = this.shared;
+      if (sh.mealDuration) this.mealDuration = sh.mealDuration;
+      if (sh.post) { this.hasPostMeal = true; this.postMealRestaurant = sh.post; }
+      this._applySharedRoute(sh.route);
+    }
+  },
+
+  /** 공유받은 일정: 어디로 먼저 갈지 (meet: 집결지 → 식당 → 골프장 / meal: 식당 → 골프장 / course: 골프장 바로) */
+  _applySharedRoute(k) {
+    const sh = this.shared; if (!sh) return;
+    sh.route = k;
+    this.hasMeetingPoint = k === 'meet' && !!sh.meet;
+    this.meetingPointObj = this.hasMeetingPoint ? sh.meet : null;
+    this.hasMeal = (k === 'meet' || k === 'meal') && !!sh.meal;
+    this.mealRestaurant = this.hasMeal ? sh.meal : null;
+  },
+
+  setSharedRoute(k) {
+    this._applySharedRoute(k);
+    U.$$('#r-shared-routes .sr-opt').forEach(b => b.classList.toggle('on', b.dataset.k === k));
+    const set = (tg, body, on) => { const t = U.$(tg), b = U.$(body); if (t) t.classList.toggle('on', on); if (b) b.classList.toggle('show', on); };
+    set('#meal-toggle', '#meal-body', this.hasMeal);
+    set('#meeting-toggle', '#meeting-body', this.hasMeetingPoint);
+    const r = U.$('#r-restaurant');
+    if (r) { r.textContent = this.mealRestaurant ? this.mealRestaurant.name : '골프장 주변 맛집 고르기'; r.classList.toggle('is-empty', !this.mealRestaurant); }
+    const m = U.$('#r-meetingpoint-text');
+    if (m) { m.textContent = this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명) 검색'; m.classList.toggle('is-empty', !this.meetingPointObj); }
+    this.updateProgress();
+    U.haptic();
+  },
+
+  _sharedCardHTML() {
+    const sh = this.shared; if (!sh) return '';
+    const c = sh.course || {};
+    const dt = sh.date && !isNaN(new Date(sh.date)) ? U.fmtDateShort(new Date(sh.date)) : '';
+    const opts = [];
+    if (sh.meet) opts.push(['meet', '🤝', '집결지', [sh.meet.name, sh.meal ? '식당' : null, '골프장'].filter(Boolean).join(' → ')]);
+    if (sh.meal) opts.push(['meal', '🍽️', '식당으로 바로', `${sh.meal.name} → 골프장`]);
+    if (opts.length) opts.push(['course', '⛳', '골프장으로 바로', c.name || '골프장']);
+    return `
+          <div class="v2-card r-shared">
+            <div class="rs-tag">⛳ 공유받은 일정</div>
+            <div class="rs-name">${U.esc(c.name || '골프장')}</div>
+            <div class="rs-when">${dt}${sh.teeOff ? ' ' + U.esc(sh.teeOff) + ' 티오프' : ''}</div>
+            <div class="rs-q"><em id="r-q3">1</em>어디서 출발하세요?</div>
+            <div class="v2-opts c3" id="r-startpoint-pills">
+              ${['집', '회사', '직접 입력'].map(t => `<button type="button" class="pill ${this.startPoint === t ? 'on' : ''}" onclick="Register.setStartPoint('${t}',this)">${t}</button>`).join('')}
+            </div>
+            <div class="v2-hint" id="r-startpoint-custom" style="cursor:pointer;" onclick="Register.searchMode='start';Register.searchCustomAddress()"><span id="r-startpoint-text">출발지 주소를 검색하세요</span></div>
+            ${opts.length ? `<div class="rs-q" style="margin-top:18px;"><em class="ok">2</em>어디로 먼저 가세요?</div>
+            <div id="r-shared-routes">
+              ${opts.map(([k, ic, t, sub]) => `<button type="button" class="sr-opt ${sh.route === k ? 'on' : ''}" data-k="${k}" onclick="Register.setSharedRoute('${k}')">
+                <span class="ic">${ic}</span><span class="tx"><b>${t}</b><small>${U.esc(sub)}</small></span><span class="ck"></span></button>`).join('')}
+            </div>` : ''}
+          </div>`;
   },
 
   edit(idx) {
@@ -182,7 +241,7 @@ const Register = {
       </div>
       <div class="v2-scroll" style="padding-bottom:16px;">
         <div class="v2-body">
-
+${this._sharedCardHTML()}
           <div class="v2-card">
             <div class="v2-q"><em id="r-q1">1</em>어느 골프장인가요?</div>
             <div class="search-wrap" style="position:relative;">
@@ -208,16 +267,16 @@ const Register = {
             </div>
           </div>
 
-          <div class="v2-card">
+          ${this.shared ? '' : `<div class="v2-card">
             <div class="v2-q"><em id="r-q3">3</em>어디서 출발하나요?</div>
             <div class="v2-opts c3" id="r-startpoint-pills">
               ${['집', '회사', '직접 입력'].map(t => `<button type="button" class="pill ${this.startPoint === t ? 'on' : ''}" onclick="Register.setStartPoint('${t}',this)">${t}</button>`).join('')}
             </div>
             <div class="v2-hint" id="r-startpoint-custom" style="cursor:pointer;" onclick="Register.searchMode='start';Register.searchCustomAddress()"><span id="r-startpoint-text">출발지 주소를 검색하세요</span></div>
-          </div>
+          </div>`}
 
           <div class="v2-card">
-            <div class="v2-q"><em class="ok" id="r-q4">4</em>나가기 전 준비 시간</div>
+            <div class="v2-q"><em class="ok" id="r-q4">${this.shared ? 3 : 4}</em>나가기 전 준비 시간</div>
             <div class="v2-opts c4" id="r-pills" style="${prepOpts.length > 4 ? 'grid-template-columns:repeat(5,1fr);' : ''}">
               ${prepOpts.map(t => `<button class="pill ${t === this.prep ? 'on' : ''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
             </div>

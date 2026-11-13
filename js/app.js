@@ -996,10 +996,20 @@ const App = {
       if (!Billing.guardScheduleLimit()) return;
       // 보낸 사람의 출발지·이동 시간을 그대로 쓰지 않도록, 등록 화면을 채워서 열고 내 출발지로 계산해 저장
       const [h, m] = String(schedData.teeOff || '07:00').split(':').map(Number);
+      // 등록 화면 맨 위에 '공유받은 일정' 칸: 내 출발지 + 어디로 먼저 갈지(집결지/식당/골프장)
+      const ok = (o) => o && o.name && o.lat ? o : null;
+      const meet = schedData.hasMeetingPoint ? ok(schedData.meetingPointObj) : null;
+      const meal = schedData.hasMeal ? ok(schedData.mealRestaurant) : null;
+      Register._pendingShared = {
+        course: schedData.course, date: schedData.date, teeOff: schedData.teeOff,
+        meet, meal, post: schedData.hasPostMeal ? ok(schedData.postMealRestaurant) : null,
+        mealDuration: schedData.mealDuration || 0,
+        route: meet ? 'meet' : meal ? 'meal' : 'course'
+      };
       App.navigate('register');
       setTimeout(() => {
         Register.prefill({ course: schedData.course && schedData.course.lat ? schedData.course : null, date: schedData.date, h, m });
-        U.toast('공유받은 일정을 채웠어요. 출발지를 확인하고 저장해 주세요.', 3500);
+        U.toast('출발지와 먼저 갈 곳을 골라 주세요', 2600);
       }, 250);
     };
   }
