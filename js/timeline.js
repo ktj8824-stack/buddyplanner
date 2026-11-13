@@ -405,7 +405,8 @@ const Timeline = {
       c.region || '',  // arr[25]: 골프장 지역 (시/도 구)
       s.roundLength || '18',                                   // arr[26]: 18홀 / 9홀
       (s.afterMeet && s.afterMeet.mode) || 'asap',            // arr[27]: 끝나고 모이는 방식
-      (s.afterMeet && s.afterMeet.mode !== 'asap' && s.afterMeet.time) || ''  // arr[28]: 약속 시각
+      (s.afterMeet && s.afterMeet.mode !== 'asap' && s.afterMeet.time) || '', // arr[28]: 약속 시각
+      String(s.sharedFrom || State.aidOf(s) || '').replace(/[^0-9a-z]/gi, '').slice(0, 20)  // arr[29]: 원본 일정 번호 (고쳐서 다시 보내면 받은 쪽 일정을 바꿔 끼움)
     ];
     // 한글을 %EC%98%A4… 로 풀지 않고 짧은 코드(?b=)로 묶음 — 링크 길이 약 1/3
     const packed = btoa(unescape(encodeURIComponent(arr.join('|')))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

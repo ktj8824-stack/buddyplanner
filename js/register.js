@@ -96,6 +96,18 @@ const Register = {
     U.haptic();
   },
 
+  /** 다시 받은 공유 일정의 예전 것 찾기: ① 원본 일정 번호가 같은 것 ② (예전 링크엔 번호가 없어서) 같은 골프장·같은 날 */
+  _findPrevShared(sh, nd) {
+    const list = State.schedules || [];
+    if (sh.srcId) {
+      const i = list.findIndex(x => x && x.sharedFrom === sh.srcId);
+      if (i >= 0) return i;
+    }
+    const day = (d) => { const t = new Date(d); return isNaN(t) ? '' : `${t.getFullYear()}-${t.getMonth()}-${t.getDate()}`; };
+    const name = (x) => String((x && x.course && x.course.name) || '').replace(/\s+/g, '');
+    return list.findIndex(x => x && (!sh.srcId || !x.sharedFrom) && name(x) && name(x) === name(nd) && day(x.date) === day(nd.date));
+  },
+
   /** 공유받은 일정: 지금 해야 할 단계 (start → prep → route → done) */
   _sharedStep() {
     const g = this.sg; if (!g) return 'done';
@@ -1589,11 +1601,27 @@ ${this._afterHTML()}
       Timeline.alarmOn();
       App.showInterstitialAd();
     } else {
+      const fromShare = !!this.shared;
+      // 같은 일정을 고쳐서 다시 보낸 링크면 예전에 받은 일정을 새 내용으로 바꿔 끼움 (두 개가 되거나 예전 것이 보이지 않게)
+      const prevIdx = fromShare ? this._findPrevShared(this.shared, schedData) : -1;
+      if (fromShare && this.shared.srcId) schedData.sharedFrom = this.shared.srcId;
+      if (prevIdx >= 0) {
+        const prev = State.schedules[prevIdx];
+        if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(prev, true);
+        State.updateSchedule(prevIdx, schedData);
+        if (State.saveFailed) { State.schedules[prevIdx] = prev; btn.innerHTML = originalText; btn.disabled = false; return; }
+        U.toast('✅ 예전에 받은 일정을 바뀐 내용으로 고쳤어요');
+        btn.innerHTML = originalText; btn.disabled = false;
+        this.shared = null;
+        App.viewTimeline(prevIdx);
+        Timeline.alarmOn();
+        if (!U.isNativeApp() && typeof HomeAdd !== 'undefined') setTimeout(() => HomeAdd.offer(prevIdx), 700);
+        return;
+      }
       State.addSchedule(schedData);
       if (State.saveFailed) { State.schedules.pop(); btn.innerHTML = originalText; btn.disabled = false; return; }
       U.toast('✅ 스마트 플랜이 생성되었습니다!');
       btn.innerHTML = originalText; btn.disabled = false;
-      const fromShare = !!this.shared;
       this.shared = null;
       App.viewTimeline(State.schedules.length - 1);
       Timeline.alarmOn();
