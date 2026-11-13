@@ -822,6 +822,15 @@ const App = {
       }
       
       let sharedPayload = searchParams ? searchParams.get('s') : null;
+      // 짧은 링크(?b=): 같은 내용을 base64url 로 묶은 것 (?g= 는 단체 일정 코드)
+      const packed = searchParams ? searchParams.get('b') : null;
+      if (!sharedPayload && packed) {
+        try {
+          let b = packed.replace(/-/g, '+').replace(/_/g, '/');
+          while (b.length % 4) b += '=';
+          sharedPayload = decodeURIComponent(escape(atob(b)));
+        } catch (e) { sharedPayload = null; }
+      }
       
       if (sharedPayload) {
         while (sharedPayload.includes('%')) {
@@ -942,8 +951,10 @@ const App = {
     console.log('🔗 DeepLink URL received:', urlStr);
     const schedData = this.sanitizeShared(this.parseSharedPayload(urlStr));
     // 카톡 '앱 설치하고 받기' 버튼 (웹에서 열렸을 때만. 앱에서 열리면 아래 평소 흐름)
-    if (schedData && /[?&]get=app\b/.test(urlStr) && !U.isNativeApp() && typeof HomeAdd !== 'undefined') {
-      setTimeout(() => { try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { } HomeAdd.openGetApp(urlStr, schedData); }, 300);
+    // 문자로 받은 링크(&pick=1): 웹이면 '앱으로 받기 / 로그인 없이 받기'를 고르는 창 (바로 스토어로 가지 않음)
+    const pick = /[?&]pick=1\b/.test(urlStr);
+    if (schedData && (pick || /[?&]get=app\b/.test(urlStr)) && !U.isNativeApp() && typeof HomeAdd !== 'undefined') {
+      setTimeout(() => { try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { } HomeAdd.openGetApp(urlStr, schedData, pick); }, 300);
       return 'getapp';
     }
     if (schedData) {

@@ -371,12 +371,10 @@ const Timeline = {
     const mp = s.meetingPointObj || {};
     const pm = s.postMealRestaurant || {};
     
-    let dateVal = s.date || '';
-    if (dateVal instanceof Date) {
-      dateVal = dateVal.toISOString();
-    } else if (typeof dateVal === 'string' && !dateVal.includes('T')) {
-      try { dateVal = new Date(dateVal).toISOString(); } catch(e) {}
-    }
+    // 날짜는 그 지역 날짜 그대로(YYYY-MM-DDT00:00:00), 좌표는 소수 5자리(약 1m) — 링크를 짧게
+    let dateVal = '';
+    try { const d = new Date(s.date); if (!isNaN(d)) dateVal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T00:00:00`; } catch (e) { }
+    const g5 = (v) => (v === '' || v == null || isNaN(Number(v))) ? '' : String(Math.round(Number(v) * 1e5) / 1e5);
 
     const arr = [
       'v2',
@@ -384,12 +382,12 @@ const Timeline = {
       s.teeOff || '',
       s.startPoint || '집',
       c.name || '',
-      c.addr || '',
-      c.lat || '',
-      c.lng || '',
+      '',
+      g5(c.lat),
+      g5(c.lng),
       r.name || '',
-      r.lat || '',
-      r.lng || '',
+      g5(r.lat),
+      g5(r.lng),
       s.prepTime || 30,
       s.travelTime || 60,
       s.hasMeal ? 1 : 0,
@@ -397,20 +395,21 @@ const Timeline = {
       s.travelToRestaurant || 0,
       s.hasMeetingPoint ? 1 : 0,
       mp.name || '',
-      mp.lat || '',
-      mp.lng || '',
+      g5(mp.lat),
+      g5(mp.lng),
       s.travelToMeeting || 0,
       s.hasPostMeal ? 1 : 0,
       pm.name || '',
-      pm.lat || '',
-      pm.lng || '',
+      g5(pm.lat),
+      g5(pm.lng),
       c.region || '',  // arr[25]: 골프장 지역 (시/도 구)
       s.roundLength || '18',                                   // arr[26]: 18홀 / 9홀
       (s.afterMeet && s.afterMeet.mode) || 'asap',            // arr[27]: 끝나고 모이는 방식
       (s.afterMeet && s.afterMeet.mode !== 'asap' && s.afterMeet.time) || ''  // arr[28]: 약속 시각
     ];
-    const kakaoPayload = encodeURIComponent(arr.join('|'));
-    Timeline._pendingShareUrl = baseDomain + '/?s=' + kakaoPayload;
+    // 한글을 %EC%98%A4… 로 풀지 않고 짧은 코드(?b=)로 묶음 — 링크 길이 약 1/3
+    const packed = btoa(unescape(encodeURIComponent(arr.join('|')))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    Timeline._pendingShareUrl = baseDomain + '/?b=' + packed;
 
     // 즉시 카카오톡 공유 실행!
     this.executeKakaoShare();
@@ -463,8 +462,8 @@ const Timeline = {
     const course = s.course ? s.course.name : '골프장';
     const title = `⛳ ${course} 라운딩 일정`;
     const when = `${s.date ? U.fmtDateShort(s.date) : ''} ${s.teeOff || ''}`.trim();
-    // 문자·카톡 붙여넣기용: 링크 두 개 (미리보기 카드는 첫 링크 기준)
-    const text = `${title}${when ? `\n📅 ${when}` : ''}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요\n\n📲 앱 설치하고 받기\n${url}&get=app\n\n🌐 로그인 없이 받기\n${url}`;
+    // 문자·카톡 붙여넣기용: 링크는 하나만 — 누르면 '앱으로 받기 / 로그인 없이 받기'를 고르는 화면이 떠요
+    const text = `${title}${when ? `\n📅 ${when}` : ''}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요\n\n👇 눌러서 받기 (앱 · 로그인 없이)\n${url}&pick=1`;
     await U.shareOut({ title, text, url: '' });
   },
 

@@ -18,9 +18,9 @@ const HomeAdd = {
 
   /* ── 1. 카톡 '앱 설치하고 받기' ─────────────────────── */
   /** ?get=app 으로 들어왔을 때 (웹) */
-  openGetApp(rawUrl, sched) {
+  openGetApp(rawUrl, sched, pick) {
     const q = rawUrl.indexOf('?') >= 0 ? rawUrl.slice(rawUrl.indexOf('?') + 1) : '';
-    const keep = q.split('&').filter(p => p && !/^get=/.test(p)).join('&');
+    const keep = q.split('&').filter(p => p && !/^(get|pick)=/.test(p)).join('&');
     const webUrl = 'https://buddyplanner.kr/?' + keep;
     this._getApp = { keep, webUrl, sched };
     const c = (sched && sched.course) || {};
@@ -29,7 +29,7 @@ const HomeAdd = {
     const iosReady = !!this.IOS_STORE;
     this._sheet('ha-getapp', `
       <div class="ha-top"><img src="icon-192.png" alt=""><div><b>${U.esc(c.name || '라운딩 일정')}</b><small>${U.esc(when)}</small></div></div>
-      <h3>앱으로 받기</h3>
+      <h3>${pick ? '일정 받기' : '앱으로 받기'}</h3>
       <p class="ha-sub">앱으로 받으면 출발 시간에 알람이 울리고, 차에 타면 길안내가 켜져요.</p>
       ${ios && !iosReady ? `<p class="ha-note">아이폰 앱은 앱스토어 출시를 준비하고 있어요. 지금은 아래 '로그인 없이 받기'로 받아 주세요.</p>` : `
       <button class="ha-btn navy" onclick="HomeAdd.goStore()">📲 앱 설치하고 받기</button>
@@ -38,7 +38,7 @@ const HomeAdd = {
       <button class="ha-btn soft" onclick="HomeAdd.closeSheet(); App.handleIncomingUrl(HomeAdd._getApp.webUrl)">🌐 로그인 없이 받기</button>
     `);
     // 카톡 버튼을 누른 그대로 스토어로 바로 (안드로이드: 앱 있으면 앱, 없으면 플레이스토어 / 아이폰: 앱스토어 주소가 생기면)
-    if (this.isAndroid() || (ios && iosReady)) setTimeout(() => this.goStore(), 250);
+    if (!pick && (this.isAndroid() || (ios && iosReady))) setTimeout(() => this.goStore(), 250);
   },
 
   _storeUrl() {
