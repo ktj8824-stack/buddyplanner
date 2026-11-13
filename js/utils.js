@@ -320,6 +320,30 @@ const U = {
 
   /** 아이폰·안드로이드 앱 안인지 (카카오 '웹용' 공유는 앱 주소(capacitor://localhost)에서 막혀 무반응) */
   /** 카카오톡 공유 (SDK v1 은 Kakao.Link, v2 는 Kakao.Share) — 보냈으면 true */
+  /** 앱(안드로이드·아이폰)에서 카카오톡 공유 카드 보내기. 카카오 JS 형식(objectType: feed)을 받아 SDK 형식으로 바꿔 넘김.
+   *  성공하면 true, 플러그인이 없는 옛 앱·카톡 미설치·오류면 false (→ 휴대폰 공유 창으로 대신) */
+  async kakaoNativeShare(feed) {
+    const C = window.Capacitor;
+    if (!C || typeof C.isNativePlatform !== 'function' || !C.isNativePlatform()) return false;
+    C.Plugins = C.Plugins || {};
+    const P = C.Plugins.KakaoShare || (typeof C.registerPlugin === 'function' ? (C.Plugins.KakaoShare = C.registerPlugin('KakaoShare')) : null);
+    if (!P || !feed || !feed.content) return false;
+    const lk = (l) => { l = l || {}; const o = {}; if (l.webUrl) o.web_url = l.webUrl; if (l.mobileWebUrl) o.mobile_web_url = l.mobileWebUrl; return o; };
+    const c = feed.content;
+    const t = {
+      object_type: 'feed',
+      content: { title: c.title || '', description: c.description || '', image_url: c.imageUrl || '', image_width: 1200, image_height: 630, link: lk(c.link) },
+      buttons: (feed.buttons || []).slice(0, 2).map(b => ({ title: b.title, link: lk(b.link) }))
+    };
+    try {
+      await P.shareFeed({ template: JSON.stringify(t) });
+      return true;
+    } catch (e) {
+      console.warn('[KakaoShare] 앱 공유 실패 → 휴대폰 공유 창', e);
+      return false;
+    }
+  },
+
   kakaoSend(opts) {
     if (typeof Kakao === 'undefined') return false;
     if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY) Kakao.init(Login.KAKAO_JS_KEY);

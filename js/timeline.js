@@ -415,41 +415,40 @@ const Timeline = {
     this.executeKakaoShare();
   },
 
+  /** 카카오톡 공유 카드 (일정 + 버튼 2개). 웹은 카카오 JS, 앱은 카카오 SDK(KakaoShare 플러그인) */
+  _kakaoFeed() {
+    const s = Timeline._pendingShareS || {};
+    const url = Timeline._pendingShareUrl;
+    const courseName = s.course ? s.course.name : '골프장';
+    const dateStr = s.date ? U.fmtDateShort(s.date) : '';
+    const teeOff = s.teeOff || '';
+    const shareLinkObj = { mobileWebUrl: url, webUrl: url };
+    return {
+      objectType: 'feed',
+      content: {
+        title: `⛳ [BuddyPlanner] ${courseName} 라운딩 일정`,
+        description: `📅 ${dateStr} ${teeOff}\n📍 ${courseName}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요`,
+        imageUrl: 'https://buddyplanner.kr/img/share.jpg',
+        link: shareLinkObj,
+      },
+      buttons: [
+        { title: '앱 설치하고 받기', link: { mobileWebUrl: url + '&get=app', webUrl: url + '&get=app' } },
+        { title: '로그인 없이 받기', link: shareLinkObj }
+      ]
+    };
+  },
+
   executeKakaoShare() {
-    if (U.isNativeApp()) return Timeline.shareFallback();   // 앱: 카카오 웹 공유가 막혀 무반응 → 휴대폰 공유 창
-    if (typeof Kakao !== 'undefined') {
-      try {
-        if (!Kakao.isInitialized()) {
-          Kakao.init(Login.KAKAO_JS_KEY);
-        }
-        const s = Timeline._pendingShareS || {};
-        const courseName = s.course ? s.course.name : '골프장';
-        const dateStr = s.date ? U.fmtDateShort(s.date) : '';
-        const teeOff = s.teeOff || '';
-
-        const shareLinkObj = {
-          mobileWebUrl: Timeline._pendingShareUrl,
-          webUrl: Timeline._pendingShareUrl
-        };
-
-        if (!U.kakaoSend({
-          objectType: 'feed',
-          content: {
-            title: `⛳ [BuddyPlanner] ${courseName} 라운딩 일정`,
-            description: `📅 ${dateStr} ${teeOff}\n📍 ${courseName}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요`,
-            imageUrl: 'https://buddyplanner.kr/img/share.jpg',
-            link: shareLinkObj,
-          },
-          buttons: [
-            { title: '앱 설치하고 받기', link: { mobileWebUrl: Timeline._pendingShareUrl + '&get=app', webUrl: Timeline._pendingShareUrl + '&get=app' } },
-            { title: '로그인 없이 받기', link: shareLinkObj }
-          ]
-        })) throw new Error('no kakao share');
-      } catch (e) {
-        console.error('Kakao share error:', e);
-        Timeline.shareFallback();
-      }
-    } else {
+    if (!Timeline._pendingShareUrl) { U.toast('공유할 링크를 만들지 못했어요.'); return; }
+    // 앱: 카카오 SDK로 카드 공유 → 안 되면(카톡 없음·옛 앱) 휴대폰 공유 창
+    if (U.isNativeApp()) {
+      U.kakaoNativeShare(Timeline._kakaoFeed()).then(ok => { if (!ok) Timeline.shareFallback(); });
+      return;
+    }
+    try {
+      if (!U.kakaoSend(Timeline._kakaoFeed())) throw new Error('no kakao share');
+    } catch (e) {
+      console.error('Kakao share error:', e);
       Timeline.shareFallback();
     }
   },

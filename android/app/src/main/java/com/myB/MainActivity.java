@@ -20,6 +20,7 @@ import com.getcapacitor.BridgeWebViewClient;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(KakaoSharePlugin.class);   // 앱에서 카카오톡 공유 (일정 카드 + 버튼)
         super.onCreate(savedInstanceState);
         
         // Custom WebViewClient for handling Kakao / external intent schemes
