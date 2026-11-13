@@ -818,3 +818,22 @@ button.ha-opt { width: 100%; text-align: left; font-family: inherit; cursor: poi
 button.ha-opt:active { transform: scale(.98); }
 .ha-opt > div { flex: 1; min-width: 0; }
 .ha-opt .go { font-size: 24px; color: #9aa3b2; font-weight: 300; }
+
+/* 공유받은 일정: 단계 안내 (① 출발지 → ② 준비 시간 → ③ 먼저 갈 곳) */
+.r-shared .rs-step { margin: 0 -8px 10px; padding: 12px 8px 4px; border-radius: 14px; border: 2px solid transparent; scroll-margin-top: 72px; transition: background .25s, border-color .25s, opacity .25s; }
+.r-shared .rs-step .rs-now { display: none; font-size: 14px; font-weight: 800; color: #059669; margin: -4px 0 10px 32px; }
+.r-shared .rs-step.now { background: #ecfdf5; border-color: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,.15); }
+.r-shared .rs-step.now .rs-now { display: block; animation: rsBob 1.2s ease-in-out infinite; }
+.r-shared .rs-step.now .rs-q em { background: #10b981; animation: rsPulse 1.4s ease-out infinite; }
+.r-shared .rs-step.done .rs-q em { background: #10b981; }
+.r-shared .rs-step.wait { opacity: .4; }
+.r-shared .rs-step.wait .rs-q em { background: #cbd5e1; }
+.r-shared .rs-step#rs-step-start:not(.tapped) #r-startpoint-custom { display: none; }
+.r-shared .rs-step.now .pill:not(.on), .r-shared .rs-step.now .sr-opt:not(.on) { border-color: #a7f3d0; }
+#r-submit.rs-ready { animation: rsPulse 1.4s ease-out infinite; }
+@keyframes rsPulse { 0% { box-shadow: 0 0 0 0 rgba(16,185,129,.55); } 100% { box-shadow: 0 0 0 10px rgba(16,185,129,0); } }
+@keyframes rsBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+.rs-go { display: none; align-items: center; justify-content: center; gap: 8px; font-size: 15px; font-weight: 800; color: #059669; margin-bottom: 8px; animation: rsBob 1.2s ease-in-out infinite; }
+.rs-go.show { display: flex; }
+.rs-go em { font-style: normal; width: 24px; height: 24px; border-radius: 50%; background: #10b981; color: #fff; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+#r-submit.rs-ready { background: #10b981; }

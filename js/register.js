@@ -56,8 +56,11 @@ const Register = {
     // 공유 링크로 들어온 일정 (App.showSharedScheduleModal 에서 넘김)
     this.shared = this._pendingShared || null;
     this._pendingShared = null;
+    this.sg = null;
     if (this.shared) {
       const sh = this.shared;
+      // 공유받은 사람 안내 단계: ① 출발지 → ② 준비 시간 → ③ 먼저 갈 곳 (직접 눌러야 완료)
+      this.sg = { startTapped: false, start: false, prep: false, route: false };
       if (sh.mealDuration) this.mealDuration = sh.mealDuration;
       if (sh.post) { this.hasPostMeal = true; this.postMealRestaurant = sh.post; }
       if (sh.roundLength && ROUND_LENGTHS[sh.roundLength]) this.roundLength = sh.roundLength;
@@ -78,6 +81,8 @@ const Register = {
 
   setSharedRoute(k) {
     this._applySharedRoute(k);
+    const first = this.sg && !this.sg.route;
+    if (this.sg) this.sg.route = true;
     U.$$('#r-shared-routes .sr-opt').forEach(b => b.classList.toggle('on', b.dataset.k === k));
     const set = (tg, body, on) => { const t = U.$(tg), b = U.$(body); if (t) t.classList.toggle('on', on); if (b) b.classList.toggle('show', on); };
     set('#meal-toggle', '#meal-body', this.hasMeal);
@@ -87,17 +92,34 @@ const Register = {
     const m = U.$('#r-meetingpoint-text');
     if (m) { m.textContent = this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명) 검색'; m.classList.toggle('is-empty', !this.meetingPointObj); }
     this.updateProgress();
+    this._refreshSharedSteps(first);
     U.haptic();
+  },
+
+  /** 공유받은 일정: 지금 해야 할 단계 (start → prep → route → done) */
+  _sharedStep() {
+    const g = this.sg; if (!g) return 'done';
+    if (!g.start) return 'start';
+    if (!g.prep) return 'prep';
+    if (this._sharedRouteOpts().length && !g.route) return 'route';
+    return 'done';
+  },
+
+  _sharedRouteOpts() {
+    const sh = this.shared || {}; const c = sh.course || {};
+    const opts = [];
+    if (sh.meet) opts.push(['meet', '🤝', '집결지', [sh.meet.name, sh.meal ? '식당' : null, '골프장'].filter(Boolean).join(' → ')]);
+    if (sh.meal) opts.push(['meal', '🍽️', '식당으로 바로', `${sh.meal.name} → 골프장`]);
+    if (opts.length) opts.push(['course', '⛳', '골프장으로 바로', c.name || '골프장']);
+    return opts;
   },
 
   _sharedCardHTML() {
     const sh = this.shared; if (!sh) return '';
     const c = sh.course || {};
+    const g = this.sg || {};
     const dt = sh.date && !isNaN(new Date(sh.date)) ? U.fmtDateShort(new Date(sh.date)) : '';
-    const opts = [];
-    if (sh.meet) opts.push(['meet', '🤝', '집결지', [sh.meet.name, sh.meal ? '식당' : null, '골프장'].filter(Boolean).join(' → ')]);
-    if (sh.meal) opts.push(['meal', '🍽️', '식당으로 바로', `${sh.meal.name} → 골프장`]);
-    if (opts.length) opts.push(['course', '⛳', '골프장으로 바로', c.name || '골프장']);
+    const opts = this._sharedRouteOpts();
     const P = [20, 30, 40, 50, 60, 70, 80, 90];
     const prep = P.concat(P.includes(this.prep) ? [] : [this.prep]).sort((a, b) => a - b);
     return `
@@ -105,22 +127,55 @@ const Register = {
             <div class="rs-tag">⛳ 공유받은 일정</div>
             <div class="rs-name">${U.esc(c.name || '골프장')}</div>
             <div class="rs-when">${dt}${sh.teeOff ? ' ' + U.esc(sh.teeOff) + ' 티오프' : ''}</div>
-            <div class="rs-q"><em id="r-q3">1</em>어디서 출발하세요?</div>
-            <div class="v2-opts c3" id="r-startpoint-pills">
-              ${['집', '회사', '직접 입력'].map(t => `<button type="button" class="pill ${this.startPoint === t ? 'on' : ''}" onclick="Register.setStartPoint('${t}',this)">${t}</button>`).join('')}
+            <div class="rs-step" id="rs-step-start" data-step="start">
+              <div class="rs-q"><em>1</em>어디서 출발하세요?</div>
+              <div class="rs-now">👇 출발지를 골라 주세요</div>
+              <div class="v2-opts c3" id="r-startpoint-pills">
+                ${['집', '회사', '직접 입력'].map(t => `<button type="button" class="pill ${g.startTapped && this.startPoint === t ? 'on' : ''}" onclick="Register.setStartPoint('${t}',this)">${t}</button>`).join('')}
+              </div>
+              <div class="v2-hint" id="r-startpoint-custom" style="cursor:pointer;" onclick="Register.searchMode='start';Register.searchCustomAddress()"><span id="r-startpoint-text">출발지 주소를 검색하세요</span></div>
             </div>
-            <div class="v2-hint" id="r-startpoint-custom" style="cursor:pointer;" onclick="Register.searchMode='start';Register.searchCustomAddress()"><span id="r-startpoint-text">출발지 주소를 검색하세요</span></div>
-            <div class="rs-q" style="margin-top:18px;"><em class="ok" id="r-q4">2</em>나가기 전 준비 시간</div>
-            <div class="v2-opts c4" id="r-pills" style="grid-template-columns:repeat(${prep.length > 8 ? 5 : 4},1fr);">
-              ${prep.map(t => `<button type="button" class="pill ${t === this.prep ? 'on' : ''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
+            <div class="rs-step" id="rs-step-prep" data-step="prep">
+              <div class="rs-q"><em>2</em>나가기 전 준비 시간</div>
+              <div class="rs-now">👇 준비 시간을 골라 주세요</div>
+              <div class="v2-opts c4" id="r-pills" style="grid-template-columns:repeat(${prep.length > 8 ? 5 : 4},1fr);">
+                ${prep.map(t => `<button type="button" class="pill ${g.prep && t === this.prep ? 'on' : ''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
+              </div>
+              <p class="v2-hint">샤워·화장·골프백 챙기기까지. 사람마다 달라서 직접 골라요</p>
             </div>
-            <p class="v2-hint">샤워·화장·골프백 챙기기까지. 사람마다 달라서 직접 골라요</p>
-            ${opts.length ? `<div class="rs-q" style="margin-top:18px;"><em class="ok">3</em>어디로 먼저 가세요?</div>
-            <div id="r-shared-routes">
-              ${opts.map(([k, ic, t, sub]) => `<button type="button" class="sr-opt ${sh.route === k ? 'on' : ''}" data-k="${k}" onclick="Register.setSharedRoute('${k}')">
-                <span class="ic">${ic}</span><span class="tx"><b>${t}</b><small>${U.esc(sub)}</small></span><span class="ck"></span></button>`).join('')}
+            ${opts.length ? `<div class="rs-step" id="rs-step-route" data-step="route">
+              <div class="rs-q"><em>3</em>어디로 먼저 가세요?</div>
+              <div class="rs-now">👇 먼저 갈 곳을 골라 주세요</div>
+              <div id="r-shared-routes">
+                ${opts.map(([k, ic, t, sub]) => `<button type="button" class="sr-opt ${g.route && sh.route === k ? 'on' : ''}" data-k="${k}" onclick="Register.setSharedRoute('${k}')">
+                  <span class="ic">${ic}</span><span class="tx"><b>${t}</b><small>${U.esc(sub)}</small></span><span class="ck"></span></button>`).join('')}
+              </div>
             </div>` : ''}
           </div>`;
+  },
+
+  /** 단계 표시 갱신. scroll=true면 다음 단계를 화면 맨 위로 올림 */
+  _refreshSharedSteps(scroll) {
+    if (!this.sg) return;
+    const now = this._sharedStep();
+    const order = ['start', 'prep', 'route'];
+    const ni = now === 'done' ? 99 : order.indexOf(now);
+    order.forEach((k, i) => {
+      const el = U.$('#rs-step-' + k); if (!el) return;
+      el.classList.toggle('now', i === ni);
+      el.classList.toggle('done', i < ni);
+      el.classList.toggle('wait', i > ni);
+      const em = el.querySelector('.rs-q em'); if (em) em.textContent = i < ni ? '✓' : String(i + 1);
+    });
+    const st = U.$('#rs-step-start'); if (st) st.classList.toggle('tapped', !!this.sg.startTapped);
+    const sub = U.$('#r-submit');
+    if (sub) sub.classList.toggle('rs-ready', now === 'done');
+    const go = U.$('#rs-go'); if (go) go.classList.toggle('show', now === 'done');
+    if (!scroll) return;
+    setTimeout(() => {
+      const target = now === 'done' ? sub : U.$('#rs-step-' + now);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: now === 'done' ? 'center' : 'start' });
+    }, 250);
   },
 
   edit(idx) {
@@ -337,6 +392,7 @@ ${this._afterHTML()}
         </div>
       </div>
       <div class="v2-reg-foot">
+        ${this.shared ? '<div class="rs-go" id="rs-go"><em>4</em>다 됐어요! 아래 버튼을 눌러 일정을 만드세요 👇</div>' : ''}
         <div class="pre" id="r-preview">골프장·티오프·출발지를 넣으면 출발 시간을 미리 계산해요</div>
         <button class="v2-btn-navy" id="r-submit" onclick="Register.createPlan()">${isEdit ? '라운딩 일정 수정 완료' : '스마트 플랜 만들기'}</button>
       </div>
@@ -751,14 +807,24 @@ ${this._afterHTML()}
     const pv = U.$('#r-after-pv'); if (pv) pv.innerHTML = this._afterPreview();
   },
 
-  setPrepTime(t, btn) { this.prep=t; try { localStorage.setItem('bp_last_prep', String(t)); } catch (e) {} U.$$('#r-pills .pill').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); this.updateProgress(); U.haptic(); },
+  setPrepTime(t, btn) {
+    this.prep=t; try { localStorage.setItem('bp_last_prep', String(t)); } catch (e) {}
+    U.$$('#r-pills .pill').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+    const first = this.sg && !this.sg.prep;
+    if (this.sg) this.sg.prep = true;
+    this.updateProgress(); this._refreshSharedSteps(first); U.haptic();
+  },
 
   setStartPoint(type, btn) {
     this.startPoint = type;
+    const autoSearch = !!this.sg;
+    if (this.sg) this.sg.startTapped = true;
     U.$$('#r-startpoint-pills .pill').forEach(b=>b.classList.remove('on'));
     btn.classList.add('on');
     this.updateStartPointUI();
     U.haptic();
+    // 공유받은 사람: 주소가 아직 없으면 바로 주소 검색 열기 (다음에 뭘 할지 헤매지 않게)
+    if (autoSearch && this.sg && !this.sg.start) { this.searchMode = 'start'; this.searchCustomAddress(); }
   },
 
   updateStartPointUI() {
@@ -777,6 +843,11 @@ ${this._afterHTML()}
     }
     if (box) box.classList.toggle('warn', !ok);
     this.updateProgress();
+    if (this.sg) {
+      const was = this.sg.start;
+      this.sg.start = this.sg.startTapped && ok;
+      this._refreshSharedSteps(!was && this.sg.start);
+    }
   },
 
   /* ── 빠르게 채우기: 지난번처럼 · 예약 문자 ── */
@@ -996,6 +1067,7 @@ ${this._afterHTML()}
   },
 
   searchCustomAddress() {
+    if (this.sg && this.searchMode === 'start') this.sg.startTapped = true;
     let title = '📍 출발지 주소 검색';
     if (this.searchMode === 'meeting') {
       title = '🤝 집결지 주소 검색';
@@ -1356,6 +1428,11 @@ ${this._afterHTML()}
     if (!this.course) { U.toast('⚠️ 골프장을 선택해주세요'); return; }
     if (!this.date) { U.toast('⚠️ 날짜를 선택해주세요'); return; }
     if (this.timeH === null || this.timeM === null) { U.toast('⚠️ 시간을 선택해주세요'); return; }
+    if (this.sg) {
+      const st = this._sharedStep();
+      const msg = { start: '① 출발지를 골라 주세요', prep: '② 준비 시간을 골라 주세요', route: '③ 먼저 갈 곳을 골라 주세요' }[st];
+      if (msg) { U.toast(msg); this._refreshSharedSteps(true); return; }
+    }
     if (this.hasMeal && !this.mealRestaurant) { U.toast('⚠️ 식당을 선택하거나 식사를 끄세요'); return; }
     if (this.hasPostMeal && !this.postMealRestaurant) { U.toast('⚠️ 뒷풀이 식당을 선택하거나 기능을 끄세요'); return; }
     // 무료 회원 일정 개수 제한 (수정은 제외)
