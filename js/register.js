@@ -478,7 +478,7 @@ const Register = {
   selectDate(iso) {
     this.date = new Date(iso);
     const display = U.$('#r-date');
-    display.textContent = U.fmtDateShort(this.date); display.classList.remove('is-empty');
+    display.textContent = U.fmtDateShort(this.date); display.classList.remove('is-empty', 'empty');
     App.closeModal(); U.haptic();
     this.updateProgress();
   },
@@ -573,7 +573,7 @@ const Register = {
     const hh = String(h).padStart(2, '0');
     const mm = String(m).padStart(2, '0');
     display.textContent = `${hh}:${mm}`;
-    display.classList.remove('is-empty');
+    display.classList.remove('is-empty', 'empty');
     App.closeModal();
     U.haptic();
     this.updateProgress();
@@ -828,7 +828,7 @@ const Register = {
   resetMealDisplay() {
     this.mealRestaurant = null;
     const d = U.$('#r-restaurant');
-    if (d) { d.textContent = '식당을 선택하세요'; d.classList.add('is-empty', 'empty'); }
+    if (d) { d.textContent = '식당을 선택하세요'; d.classList.add('is-empty'); }
   },
 
   searchCustomAddress() {
@@ -1023,12 +1023,12 @@ const Register = {
       this.postMealRestaurant = restObj;
       const display = U.$('#r-post-restaurant');
       display.textContent = restObj.name; 
-      display.classList.remove('is-empty');
+      display.classList.remove('is-empty', 'empty');
     } else {
       this.mealRestaurant = restObj;
       const display = U.$('#r-restaurant');
       display.textContent = restObj.name; 
-      display.classList.remove('is-empty');
+      display.classList.remove('is-empty', 'empty');
     }
     
     App.closeModal(); 
@@ -1049,12 +1049,12 @@ const Register = {
         this.postMealRestaurant = restObj;
         const display = U.$('#r-post-restaurant');
         display.textContent = this.postMealRestaurant.name; 
-        display.classList.remove('is-empty');
+        display.classList.remove('is-empty', 'empty');
       } else {
         this.mealRestaurant = restObj;
         const display = U.$('#r-restaurant');
         display.textContent = this.mealRestaurant.name; 
-        display.classList.remove('is-empty');
+        display.classList.remove('is-empty', 'empty');
       }
       
       App.closeModal(); 
@@ -1080,12 +1080,12 @@ const Register = {
       this.postMealRestaurant = restObj;
       const display = U.$('#r-post-restaurant');
       display.textContent = this.postMealRestaurant.name; 
-      display.classList.remove('is-empty');
+      display.classList.remove('is-empty', 'empty');
     } else {
       this.mealRestaurant = restObj;
       const display = U.$('#r-restaurant');
       display.textContent = this.mealRestaurant.name; 
-      display.classList.remove('is-empty');
+      display.classList.remove('is-empty', 'empty');
     }
     
     App.closeModal(); 
