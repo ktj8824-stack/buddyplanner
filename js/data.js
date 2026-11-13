@@ -207,6 +207,17 @@ const State = {
           }
           return s;
         }).filter(s => s.date && !isNaN(s.date.getTime()));
+        // 같은 골프장·같은 날·같은 티오프로 겹친 일정(공유 링크를 여러 번 받아 쌓인 것)은 가장 나중 것 하나만 남김
+        {
+          const key = (x) => `${String((x.course && x.course.name) || '').replace(/\s+/g, '')}|${x.date.getFullYear()}-${x.date.getMonth()}-${x.date.getDate()}|${x.teeOff || ''}`;
+          const last = {};
+          this.schedules.forEach((x, i) => { last[key(x)] = i; });
+          const kept = this.schedules.filter((x, i) => last[key(x)] === i);
+          if (kept.length !== this.schedules.length) {
+            this.schedules = kept;
+            try { localStorage.setItem('bp_schedules_v2', JSON.stringify(this.schedules)); } catch (e) {}
+          }
+        }
         // 예전 계산 방식으로 저장된 타임라인(라운딩 뒤 샤워·환복이 없던 때 등)은 지금 방식으로 다시 계산
         //  (예: 뒤풀이 도착이 라운딩 종료 시각과 똑같이 나오던 문제). 저장은 하지 않고 화면용으로만.
         this.schedules.forEach((s, i) => {
