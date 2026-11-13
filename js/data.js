@@ -207,6 +207,11 @@ const State = {
           }
           return s;
         }).filter(s => s.date && !isNaN(s.date.getTime()));
+        // 예전 계산 방식으로 저장된 타임라인(라운딩 뒤 샤워·환복이 없던 때 등)은 지금 방식으로 다시 계산
+        //  (예: 뒤풀이 도착이 라운딩 종료 시각과 똑같이 나오던 문제). 저장은 하지 않고 화면용으로만.
+        this.schedules.forEach((s, i) => {
+          if (!s.timeline || s.timeline.ver !== this.TL_VER) { try { this.calculateTimeline(i); } catch (e) { console.warn('timeline recalc', e); } }
+        });
         // 알람 키(aid)가 없는 예전 일정은 키를 붙여 저장 (알림을 눌렀을 때 그 일정을 찾을 수 있게)
         if (this.schedules.some(s => !s.aid)) {
           this.schedules.forEach(s => this.aidOf(s));
@@ -399,8 +404,12 @@ const State = {
     tl.returnEnd = this.mToTime(returnStart + returnTravel);
     tl.returnTravelDur = returnTravel;
 
+    tl.ver = this.TL_VER;
     s.timeline = tl;
   },
+
+  /** 타임라인 계산 방식 번호. 계산 방식이 바뀌면 올림 → 예전 방식으로 저장된 타임라인은 불러올 때 다시 계산 */
+  TL_VER: 2,
 
   /** 타임라인 시각(HH:MM)을 실제 날짜·시각으로. 티오프 전 단계가 티오프보다 늦은 시각이면 자정을 넘긴 것 → 전날 */
   tlAt(s, timeStr) {
