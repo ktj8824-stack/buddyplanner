@@ -949,7 +949,7 @@ const Group = {
     const meet = e.meet_time || this._minus(e.tee_off, 30);
     if (kind === 'remind') return this.shareRemind();
     try {
-      if (typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
+      if (!U.isNativeApp() && typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
         if (!Kakao.isInitialized()) Kakao.init(Login.KAKAO_JS_KEY);
         const link = { mobileWebUrl: url, webUrl: url };
         Kakao.Share.sendDefault({
@@ -967,11 +967,7 @@ const Group = {
         return;
       }
     } catch (err) { console.warn('kakao share', err); }
-    try {
-      if (navigator.share) { await navigator.share({ title: e.title, text: this.shareText() }); return; }
-    } catch (err) { if (err && err.name === 'AbortError') return; }
-    try { await navigator.clipboard.writeText(this.shareText()); U.toast('공지 내용과 링크를 복사했어요. 단톡방에 붙여 넣어 주세요.'); }
-    catch (err) { prompt('아래 링크를 복사해 단톡방에 보내 주세요', url); }
+    await U.shareOut({ title: e.title, text: this.shareText(), url });
   },
 
   /** 아직 답하지 않은 사람에게 다시 알리기 (카톡 공유 · 안 되면 복사) */
@@ -983,7 +979,7 @@ const Group = {
     const who = names.length > 6 ? `${names.slice(0, 6).join(', ')} 외 ${names.length - 6}명` : names.join(', ');
     const text = `🙋 ${e.title} 참석 확인 부탁드려요\n${this._date(e.round_date)} ${e.course.name} · 티오프 ${e.tee_off}\n\n아직 답하지 않으신 분: ${who}\n아래 링크에서 내 이름을 골라 참석/불참을 눌러 주세요 👇\n${url}`;
     try {
-      if (typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
+      if (!U.isNativeApp() && typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
         if (!Kakao.isInitialized()) Kakao.init(Login.KAKAO_JS_KEY);
         const link = { mobileWebUrl: url, webUrl: url };
         Kakao.Share.sendDefault({
@@ -999,10 +995,7 @@ const Group = {
         return;
       }
     } catch (err) { console.warn('kakao share', err); }
-    try { if (navigator.share) { await navigator.share({ title: e.title, text }); return; } }
-    catch (err) { if (err && err.name === 'AbortError') return; }
-    try { await navigator.clipboard.writeText(text); U.toast('알림 문구를 복사했어요. 단톡방에 붙여 넣어 주세요.'); }
-    catch (err) { prompt('아래 내용을 복사해 단톡방에 보내 주세요', text); }
+    await U.shareOut({ title: e.title, text, url });
   },
 
   /* ── 단체 톡방 ── */

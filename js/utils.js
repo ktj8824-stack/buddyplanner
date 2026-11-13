@@ -316,5 +316,22 @@ const U = {
     }
   },
 
-  haptic() { if(navigator.vibrate) navigator.vibrate(10); }
+  haptic() { if(navigator.vibrate) navigator.vibrate(10); },
+
+  /** 아이폰·안드로이드 앱 안인지 (카카오 '웹용' 공유는 앱 주소(capacitor://localhost)에서 막혀 무반응) */
+  isNativeApp() { try { return !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()); } catch (e) { return false; } },
+  /** 앱에서 카톡으로 보내기: 휴대폰 공유 창(카카오톡 고르기) → 안 되면 내용 복사 후 카카오톡 열기 */
+  async shareOut({ title = '', text = '', url = '' } = {}) {
+    const full = url && text.indexOf(url) < 0 ? `${text}\n${url}` : text;
+    try {
+      const Share = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Share;
+      if (Share) { await Share.share({ title, text: full }); return true; }
+      if (navigator.share) { await navigator.share({ title, text: full }); return true; }
+    } catch (e) { if (e && (e.name === 'AbortError' || /cancel/i.test(e.message || ''))) return true; }
+    try { await navigator.clipboard.writeText(full); }
+    catch (e) { prompt('아래 내용을 복사해 카톡방에 붙여 넣어 주세요', full); return false; }
+    U.toast('내용을 복사했어요. 카카오톡 단톡방에 붙여 넣어 주세요', 3200);
+    if (this.isNativeApp()) setTimeout(() => { location.href = 'kakaotalk://'; }, 900);
+    return true;
+  },
 };

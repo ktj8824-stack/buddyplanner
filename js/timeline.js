@@ -399,6 +399,7 @@ const Timeline = {
   },
 
   executeKakaoShare() {
+    if (U.isNativeApp()) return Timeline.shareFallback();   // 앱: 카카오 웹 공유가 막혀 무반응 → 휴대폰 공유 창
     if (typeof Kakao !== 'undefined') {
       try {
         if (!Kakao.isInitialized()) {
@@ -442,19 +443,11 @@ const Timeline = {
   async shareFallback() {
     const url = Timeline._pendingShareUrl || '';
     const s = Timeline._pendingShareS || {};
-    const title = `⛳ ${s.course ? s.course.name : '골프장'} 라운딩 일정`;
     if (!url) { U.toast('공유할 링크를 만들지 못했어요.'); return; }
-    try {
-      if (navigator.share) { await navigator.share({ title, text: title, url }); return; }
-    } catch (e) {
-      if (e && e.name === 'AbortError') return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      U.toast('링크를 복사했어요. 카톡방에 붙여 넣어 주세요.');
-    } catch (e) {
-      U.toast('공유하지 못했어요. 잠시 후 다시 시도해 주세요.');
-    }
+    const course = s.course ? s.course.name : '골프장';
+    const title = `⛳ ${course} 라운딩 일정`;
+    const when = `${s.date ? U.fmtDateShort(s.date) : ''} ${s.teeOff || ''}`.trim();
+    await U.shareOut({ title, text: `${title}${when ? `\n📅 ${when}` : ''}\n아래 링크에서 일정을 확인하고 내 일정에 추가해 보세요 👇`, url });
   },
 
   renderRouteSummary(s, tl) {

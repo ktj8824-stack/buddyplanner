@@ -914,7 +914,7 @@ const AI = {
     const shareTitle = `[BuddyPlanner] ${s.course.name} 라운딩 일정 안내`;
     const shareDesc = `📅 일시: ${dateStr} ${s.teeOff} 티오프\n📍 장소: ${s.course.name} (${s.course.addr})\n🚗 준비시간 역산 타임라인을 확인해보세요!`;
 
-    if (typeof Kakao !== 'undefined' && Kakao.isInitialized && Kakao.isInitialized()) {
+    if (!U.isNativeApp() && typeof Kakao !== 'undefined' && Kakao.isInitialized && Kakao.isInitialized()) {
       try {
         Kakao.Share.sendDefault({
           objectType: 'feed',
