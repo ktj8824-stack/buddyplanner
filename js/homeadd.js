@@ -237,7 +237,7 @@ const HomeAdd = {
   /** 일정을 주소에 담기 (서버 저장 없음) */
   pack(s) {
     const o = {
-      v: 1, c: s.course && { n: s.course.name, a: s.course.addr || '', y: s.course.lat, x: s.course.lng, g: s.course.region || '' },
+      v: 1, id: s.aid || '', c: s.course && { n: s.course.name, a: s.course.addr || '', y: s.course.lat, x: s.course.lng, g: s.course.region || '' },
       d: new Date(s.date).toISOString(), t: s.teeOff, p: s.prepTime, tt: s.travelTime,
       sp: s.startPoint, sa: s.startAddress, sy: s.startLat, sx: s.startLng,
       m: s.hasMeal ? 1 : 0, md: s.mealDuration, mr: s.mealRestaurant && { n: s.mealRestaurant.name, y: s.mealRestaurant.lat, x: s.mealRestaurant.lng, dm: s.mealRestaurant.distMin || 0 },
@@ -266,15 +266,23 @@ const HomeAdd = {
         hasMeetingPoint: !!o.mp, meetingPointObj: pt(o.mp), travelToMeeting: +o.tm || 0,
         groupCode: null, roundLength: o.rl || '18', showerMin: o.sm != null ? +o.sm : 30, afterMeet: o.am && o.am.mode ? { mode: String(o.am.mode), time: String(o.am.time || '') } : { mode: 'asap', time: '' }
       };
-      return App.sanitizeShared(s);
+      const out = App.sanitizeShared(s);
+      // 일정 번호(aid): 티오프를 고친 뒤에도 같은 일정을 찾도록
+      if (out && o.id) out._packId = String(o.id).replace(/[^0-9a-z]/gi, '').slice(0, 20);
+      return out;
     } catch (e) { console.warn('[홈 화면 링크] 풀기 실패', e); return null; }
   },
 
   /** 홈 화면 아이콘으로 열었을 때: 저장된 같은 일정이 있으면 그걸, 없으면 다시 만들어서 타임라인 열기 */
   restore(str) {
     const s = this.unpack(str); if (!s) return false;
-    const key = (x) => `${(x.course && x.course.name) || ''}|${new Date(x.date).toDateString()}|${x.teeOff}`;
-    let idx = State.schedules.findIndex(x => key(x) === key(s));
+    // ① 같은 일정 번호 ② (번호 없는 예전 아이콘) 같은 골프장·같은 날 — 티오프는 비교하지 않음
+    //   (아이콘을 만든 뒤 티오프를 고쳤으면 예전 시각의 일정이 하나 더 생기던 문제)
+    const nm = (x) => String((x && x.course && x.course.name) || '').replace(/\s+/g, '');
+    const day = (x) => new Date(x.date).toDateString();
+    let idx = s._packId ? State.schedules.findIndex(x => x && x.aid === s._packId) : -1;
+    if (idx < 0) idx = State.schedules.findIndex(x => x && nm(x) && nm(x) === nm(s) && day(x) === day(s));
+    delete s._packId;
     if (idx < 0) { State.addSchedule(s); idx = State.schedules.length - 1; }
     try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { }
     App.viewTimeline(idx);
