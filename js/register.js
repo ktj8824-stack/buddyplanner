@@ -1413,9 +1413,13 @@ ${this._sharedCardHTML()}
       if (State.saveFailed) { State.schedules.pop(); btn.innerHTML = originalText; btn.disabled = false; return; }
       U.toast('✅ 스마트 플랜이 생성되었습니다!');
       btn.innerHTML = originalText; btn.disabled = false;
+      const fromShare = !!this.shared;
+      this.shared = null;
       App.viewTimeline(State.schedules.length - 1);
       Timeline.alarmOn();
-      App.showInterstitialAd();
+      // 공유받은 일정을 웹에서 저장 → 앱 설치 / 홈 화면 추가 안내 (광고 대신)
+      if (fromShare && !U.isNativeApp() && typeof HomeAdd !== 'undefined') setTimeout(() => HomeAdd.offer(State.schedules.length - 1), 700);
+      else App.showInterstitialAd();
     }
   }
 };

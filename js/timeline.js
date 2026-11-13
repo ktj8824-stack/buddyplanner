@@ -419,15 +419,13 @@ const Timeline = {
           objectType: 'feed',
           content: {
             title: `⛳ [BuddyPlanner] ${courseName} 라운딩 일정`,
-            description: `📅 일시: ${dateStr} ${teeOff}\n📍 장소: ${courseName}\n\n아래 버튼을 눌러 일정을 추가하고 맞춤 편집해 보세요!`,
+            description: `📅 ${dateStr} ${teeOff}\n📍 ${courseName}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요`,
             imageUrl: 'https://buddyplanner.kr/img/share.jpg',
             link: shareLinkObj,
           },
           buttons: [
-            {
-              title: '일정 확인 및 내 스케줄에 추가 ⛳',
-              link: shareLinkObj
-            }
+            { title: '앱 설치하고 받기', link: { mobileWebUrl: Timeline._pendingShareUrl + '&get=app', webUrl: Timeline._pendingShareUrl + '&get=app' } },
+            { title: '로그인 없이 받기', link: shareLinkObj }
           ]
         })) throw new Error('no kakao share');
       } catch (e) {
@@ -447,7 +445,9 @@ const Timeline = {
     const course = s.course ? s.course.name : '골프장';
     const title = `⛳ ${course} 라운딩 일정`;
     const when = `${s.date ? U.fmtDateShort(s.date) : ''} ${s.teeOff || ''}`.trim();
-    await U.shareOut({ title, text: `${title}${when ? `\n📅 ${when}` : ''}\n아래 링크에서 일정을 확인하고 내 일정에 추가해 보세요 👇`, url });
+    // 문자·카톡 붙여넣기용: 링크 두 개 (미리보기 카드는 첫 링크 기준)
+    const text = `${title}${when ? `\n📅 ${when}` : ''}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요\n\n📲 앱 설치하고 받기\n${url}&get=app\n\n🌐 로그인 없이 받기\n${url}`;
+    await U.shareOut({ title, text, url: '' });
   },
 
   renderRouteSummary(s, tl) {

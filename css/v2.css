@@ -691,3 +691,38 @@ body.guide-open .bottom-nav{z-index:70}
 .r-shared .sr-opt .tx small { font-size: 13px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .r-shared .sr-opt .ck { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; border: 2px solid #cbd2db; }
 .r-shared .sr-opt.on .ck { border-color: #10b981; background: #10b981 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E") center/14px no-repeat; }
+
+/* 앱으로 받기 · 홈 화면 추가 안내 (아래에서 올라오는 창) */
+.ha-bg { position: fixed; inset: 0; z-index: 1000000; background: rgba(0,0,0,0); transition: background .2s; display: flex; align-items: flex-end; }
+.ha-bg.open { background: rgba(0,0,0,.55); }
+.ha-sheet { width: 100%; max-width: 520px; margin: 0 auto; background: #fff; border-radius: 26px 26px 0 0; padding: 24px 22px calc(22px + env(safe-area-inset-bottom)); box-sizing: border-box; transform: translateY(100%); transition: transform .25s ease; max-height: 92vh; overflow-y: auto; }
+.ha-bg.open .ha-sheet { transform: none; }
+.ha-sheet h3 { font-size: 20px; font-weight: 800; color: #111; margin: 0 0 4px; }
+.ha-sub { font-size: 14px; color: #666; margin: 0 0 16px; line-height: 1.5; }
+.ha-note, .ha-hint { font-size: 13px; color: #666; background: #f4f6f8; border-radius: 12px; padding: 10px 12px; margin: 0 0 10px; line-height: 1.5; }
+.ha-hint { background: none; padding: 0 4px; text-align: center; }
+.ha-top { display: flex; gap: 12px; align-items: center; background: #f4f6f8; border-radius: 14px; padding: 10px 12px; margin-bottom: 16px; }
+.ha-top img { width: 44px; height: 44px; border-radius: 11px; }
+.ha-top b { display: block; font-size: 15px; color: #111; }
+.ha-top small { font-size: 13px; color: #666; }
+.ha-ok { width: 56px; height: 56px; border-radius: 50%; background: #10b981; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+.ha-opt { display: flex; gap: 14px; align-items: center; border: 1.5px solid #e2e6ec; border-radius: 16px; padding: 14px; margin-bottom: 10px; }
+.ha-opt.on { border: 2px solid #0b1d4a; background: #f3f6fc; }
+.ha-opt .i { font-size: 28px; }
+.ha-opt b { display: block; font-size: 16px; color: #111; }
+.ha-opt small { font-size: 13px; color: #666; line-height: 1.45; }
+.ha-btn { display: block; width: 100%; padding: 15px; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; margin-top: 8px; cursor: pointer; font-family: inherit; }
+.ha-btn.navy { background: #0b1d4a; color: #fff; }
+.ha-btn.soft { background: #eef1f5; color: #0b1d4a; }
+.ha-btn.ghost { background: #fff; color: #0b1d4a; border: 1.5px solid #d6dbe3; }
+.ha-later { display: block; width: 100%; background: none; border: none; color: #888; font-size: 14px; margin-top: 12px; padding: 6px; font-family: inherit; }
+.ha-tab { display: flex; gap: 8px; margin: 12px 0 4px; }
+.ha-tab button { flex: 1; padding: 10px; border-radius: 10px; border: none; background: #eef1f5; font-weight: 700; font-size: 14px; color: #333; font-family: inherit; }
+.ha-tab button.on { background: #0b1d4a; color: #fff; }
+.ha-step { display: flex; gap: 12px; margin: 14px 0; align-items: flex-start; }
+.ha-step .n { width: 26px; height: 26px; border-radius: 50%; background: #0b1d4a; color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ha-step p { margin: 2px 0 0; font-size: 15px; line-height: 1.5; color: #222; }
+.ha-prev { display: flex; gap: 12px; align-items: center; background: #f4f6f8; border-radius: 14px; padding: 12px; margin: 16px 0 6px; }
+.ha-prev img { width: 56px; height: 56px; border-radius: 13px; }
+.ha-prev b { display: block; font-size: 15px; color: #111; }
+.ha-prev small { font-size: 13px; color: #666; }

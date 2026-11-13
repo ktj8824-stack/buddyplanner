@@ -931,8 +931,19 @@ const App = {
       setTimeout(() => { try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { } Group.openCode(gm[1], mm ? mm[1] : null); }, 0);
       return 'group';
     }
+    // 홈 화면 아이콘으로 연 일정 (?r=) → 바로 그 일정 타임라인
+    const rm = /[?&]r=([A-Za-z0-9_-]{20,})/.exec(urlStr);
+    if (rm && typeof HomeAdd !== 'undefined') {
+      setTimeout(() => { if (!HomeAdd.restore(rm[1])) U.toast('일정을 불러오지 못했어요'); }, 0);
+      return 'restore';
+    }
     console.log('🔗 DeepLink URL received:', urlStr);
     const schedData = this.sanitizeShared(this.parseSharedPayload(urlStr));
+    // 카톡 '앱 설치하고 받기' 버튼 (웹에서 열렸을 때만. 앱에서 열리면 아래 평소 흐름)
+    if (schedData && /[?&]get=app\b/.test(urlStr) && !U.isNativeApp() && typeof HomeAdd !== 'undefined') {
+      setTimeout(() => { try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { } HomeAdd.openGetApp(urlStr, schedData); }, 300);
+      return 'getapp';
+    }
     if (schedData) {
       State.incomingSchedule = schedData;
       console.log('✅ Shared schedule parsed successfully:', schedData);
