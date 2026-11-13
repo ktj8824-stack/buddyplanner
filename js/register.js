@@ -92,7 +92,8 @@ const Register = {
     if (sh.meet) opts.push(['meet', '🤝', '집결지', [sh.meet.name, sh.meal ? '식당' : null, '골프장'].filter(Boolean).join(' → ')]);
     if (sh.meal) opts.push(['meal', '🍽️', '식당으로 바로', `${sh.meal.name} → 골프장`]);
     if (opts.length) opts.push(['course', '⛳', '골프장으로 바로', c.name || '골프장']);
-    const prep = [20, 30, 40, 60, 90].concat([20, 30, 40, 60, 90].includes(this.prep) ? [] : [this.prep]).sort((a, b) => a - b);
+    const P = [20, 30, 40, 50, 60, 70, 80, 90];
+    const prep = P.concat(P.includes(this.prep) ? [] : [this.prep]).sort((a, b) => a - b);
     return `
           <div class="v2-card r-shared">
             <div class="rs-tag">⛳ 공유받은 일정</div>
@@ -104,7 +105,7 @@ const Register = {
             </div>
             <div class="v2-hint" id="r-startpoint-custom" style="cursor:pointer;" onclick="Register.searchMode='start';Register.searchCustomAddress()"><span id="r-startpoint-text">출발지 주소를 검색하세요</span></div>
             <div class="rs-q" style="margin-top:18px;"><em class="ok" id="r-q4">2</em>나가기 전 준비 시간</div>
-            <div class="v2-opts" id="r-pills" style="grid-template-columns:repeat(${prep.length},1fr);">
+            <div class="v2-opts c4" id="r-pills" style="grid-template-columns:repeat(${prep.length > 8 ? 5 : 4},1fr);">
               ${prep.map(t => `<button type="button" class="pill ${t === this.prep ? 'on' : ''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
             </div>
             <p class="v2-hint">샤워·화장·골프백 챙기기까지. 사람마다 달라서 직접 골라요</p>
@@ -230,7 +231,8 @@ const Register = {
   render() {
     const el = U.$('#screen-register');
     const isEdit = this.editIdx !== null;
-    const prepOpts = [20, 30, 40, 60].concat([20, 30, 40, 60].includes(this.prep) ? [] : [this.prep]).sort((a, b) => a - b);
+    const PREP = [20, 30, 40, 50, 60, 70, 80, 90];
+    const prepOpts = PREP.concat(PREP.includes(this.prep) ? [] : [this.prep]).sort((a, b) => a - b);
     const sw = (id, on, fn, label) => `<button class="v2-switch ${on ? 'on' : ''}" id="${id}" role="switch" aria-label="${label}" onclick="${fn}"></button>`;
     const last = isEdit ? null : this.lastSchedule();
     const back = '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
@@ -283,7 +285,7 @@ ${this._sharedCardHTML()}
 
           ${this.shared ? '' : `<div class="v2-card">
             <div class="v2-q"><em class="ok" id="r-q4">4</em>나가기 전 준비 시간</div>
-            <div class="v2-opts c4" id="r-pills" style="${prepOpts.length > 4 ? 'grid-template-columns:repeat(5,1fr);' : ''}">
+            <div class="v2-opts c4" id="r-pills" style="${prepOpts.length > 8 ? 'grid-template-columns:repeat(5,1fr);' : ''}">
               ${prepOpts.map(t => `<button class="pill ${t === this.prep ? 'on' : ''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
             </div>
             <p class="v2-hint">샤워, 골프백 챙기기 등. 다음부터는 마지막 값을 기억해요</p>
