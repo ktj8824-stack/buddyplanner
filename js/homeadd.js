@@ -37,6 +37,8 @@ const HomeAdd = {
       <button class="ha-btn ghost" onclick="HomeAdd.openInApp()">이미 앱이 있어요 · 앱에서 열기</button>`}
       <button class="ha-btn soft" onclick="HomeAdd.closeSheet(); App.handleIncomingUrl(HomeAdd._getApp.webUrl)">🌐 로그인 없이 받기</button>
     `);
+    // 카톡 버튼을 누른 그대로 스토어로 바로 (안드로이드: 앱 있으면 앱, 없으면 플레이스토어 / 아이폰: 앱스토어 주소가 생기면)
+    if (this.isAndroid() || (ios && iosReady)) setTimeout(() => this.goStore(), 250);
   },
 
   _storeUrl() {
@@ -64,6 +66,32 @@ const HomeAdd = {
     location.href = `${this.IOS_SCHEME}://share?${g.keep}`;
   },
 
+  /* ── 안드로이드 크롬: '홈 화면에 추가' 시스템 창 (한 번 누르면 아이콘이 생김) ── */
+  _bip: null,
+  initInstall() {
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this._bip = e; });
+    window.addEventListener('appinstalled', () => { this._bip = null; U.toast('홈 화면에 아이콘이 생겼어요'); this.closeSheet(); });
+  },
+  isStandalone() { try { return matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch (e) { return false; } },
+
+  /** '홈 화면에 추가' 버튼 */
+  async addHome() {
+    if (this.isAndroid()) {
+      // 카톡 안 브라우저에서는 설치 창이 안 뜸 → 크롬으로 열고, 거기서 한 번 더 누르게
+      if (this.inKakao()) {
+        const u = location.href.replace(/^https?:\/\//, '').replace(/([?&])add=1&?/, '$1');
+        location.href = `intent://${u}${u.indexOf('?') >= 0 ? '&' : '?'}add=1#Intent;scheme=https;package=com.android.chrome;end`;
+        return;
+      }
+      if (this._bip) {
+        const e = this._bip; this._bip = null;
+        try { e.prompt(); const r = await e.userChoice; if (r && r.outcome === 'accepted') { this.closeSheet(); return; } } catch (err) { }
+        return;
+      }
+    }
+    this.showHow();
+  },
+
   /* ── 2. 웹에서 저장한 뒤 안내 ───────────────────────── */
   /** 공유받은 일정을 웹에서 저장한 직후 */
   offer(idx) {
@@ -78,9 +106,9 @@ const HomeAdd = {
       <h3 style="text-align:center">일정을 저장했어요</h3>
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
       ${iosNoStore ? '' : `<div class="ha-opt on"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 시간에 알람이 울리고, 차에 타면 길안내가 켜져요</small></div></div>`}
-      <div class="ha-opt"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>「${U.esc(this.label(s))}」 아이콘이 생겨요. 누르면 이 일정이 바로 열려요</small></div></div>
+      <div class="ha-opt"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘이 생겨요. 누르면 이 일정이 바로 열려요`}</small></div></div>
       ${iosNoStore ? '' : `<button class="ha-btn navy" onclick="HomeAdd.installFromOffer()">앱 설치하기</button>`}
-      <button class="ha-btn ${iosNoStore ? 'navy' : 'soft'}" onclick="HomeAdd.showHow()">홈 화면에 추가하는 방법 보기</button>
+      <button class="ha-btn ${iosNoStore ? 'navy' : 'soft'}" onclick="HomeAdd.addHome()">${this.isAndroid() ? '홈 화면에 추가' : '홈 화면에 추가하는 방법 보기'}</button>
       <button class="ha-later" onclick="HomeAdd.closeSheet()">나중에 할게요</button>
     `);
   },
@@ -204,6 +232,7 @@ const HomeAdd = {
     if (idx < 0) { State.addSchedule(s); idx = State.schedules.length - 1; }
     try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { }
     App.viewTimeline(idx);
+    if (/[?&]add=1\b/.test(location.search) && !this.isStandalone()) setTimeout(() => this.offer(idx), 900);
     return true;
   },
 
@@ -224,7 +253,7 @@ const HomeAdd = {
     try {
       const man = { name: label, short_name: label, start_url: url, scope: 'https://buddyplanner.kr/', display: 'standalone', background_color: '#ffffff', theme_color: '#ffffff',
         icons: [{ src: icon, sizes: '512x512', type: 'image/png' }] };
-      const ml = document.querySelector('link[rel="manifest"]');
+      const ml = this.isAndroid() ? null : document.querySelector('link[rel="manifest"]');
       if (ml) ml.href = 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(man));
     } catch (e) { }
   },
@@ -241,3 +270,5 @@ const HomeAdd = {
   },
   closeSheet() { const b = document.getElementById('ha-sheet-bg'); if (b) b.remove(); }
 };
+
+try { HomeAdd.initInstall(); } catch (e) { }
