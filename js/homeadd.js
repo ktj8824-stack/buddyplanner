@@ -8,7 +8,14 @@
 
 const HomeAdd = {
   PLAY_ID: 'com.myB',
-  IOS_STORE: '',                       // 앱스토어 출시 후 주소를 넣으면 아이폰도 스토어로 바로 연결
+  IOS_STORE: '',
+  // 앱 화면과 같은 선 아이콘 (이모지 대신)
+  _svg: {
+    phone: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3"/><path d="M10.5 18.5h3"/></svg>',
+    home: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg>',
+    globe: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/></svg>',
+    down: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 20h14"/></svg>',
+  },                       // 앱스토어 출시 후 주소를 넣으면 아이폰도 스토어로 바로 연결
   ANDROID_SCHEME: 'com.myB',
   IOS_SCHEME: 'buddyplanner',
 
@@ -34,10 +41,10 @@ const HomeAdd = {
       <h3>${pick ? '일정 받기' : '앱으로 받기'}</h3>
       <p class="ha-sub">앱으로 받으면 출발 시간에 알람이 울리고, 차에 타면 길안내가 켜져요.</p>
       ${ios && !iosReady ? `<p class="ha-note">아이폰 앱은 앱스토어 출시를 준비하고 있어요. 지금은 아래 '로그인 없이 받기'로 받아 주세요.</p>` : `
-      <button class="ha-btn navy" onclick="HomeAdd.goStore()">📲 앱 설치하고 받기</button>
+      <button class="ha-btn navy" onclick="HomeAdd.goStore()">${this._svg.down} 앱 설치하고 받기</button>
       ${ios ? `<p class="ha-hint">설치하고 앱을 처음 열면 <b>붙여넣기</b> 버튼 한 번으로 이 일정을 불러와요.</p>` : ''}
       <button class="ha-btn ghost" onclick="HomeAdd.openInApp()">이미 앱이 있어요 · 앱에서 열기</button>`}
-      <button class="ha-btn soft" onclick="HomeAdd.closeSheet(); App.handleIncomingUrl(HomeAdd._getApp.webUrl)">🌐 로그인 없이 받기</button>
+      <button class="ha-btn soft" onclick="HomeAdd.closeSheet(); App.handleIncomingUrl(HomeAdd._getApp.webUrl)">${this._svg.globe} 로그인 없이 받기</button>
     `);
     // 카톡 버튼을 누른 그대로 스토어로 바로 (안드로이드: 앱 있으면 앱, 없으면 플레이스토어 / 아이폰: 앱스토어 주소가 생기면)
     if (!pick && (this.isAndroid() || (ios && iosReady))) setTimeout(() => this.goStore(), 250);
@@ -133,9 +140,9 @@ const HomeAdd = {
       <div class="ha-ok">✓</div>
       <h3 style="text-align:center">${updated ? '바뀐 내용으로 고쳤어요' : '일정을 저장했어요'}</h3>
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
-      ${updated ? `<div class="ha-warn"><b>📌 홈 화면 아이콘이 있다면</b><span>예전 아이콘 지우기 → 아래 「홈 화면에 추가」</span></div>` : ''}
-      <button class="ha-opt on ha-app" onclick="HomeAdd.installFromOffer()"><span class="i">📲</span><div><b>앱 설치하고 받기 <em>추천</em></b><small>⏰ 출발 시간 알람<br>🚗 차에 타면 길안내 자동 시작<br>🔄 다시 받아도 아이콘 지울 필요 없어요</small></div><span class="go">›</span></button>
-      <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? '그림 따라 5번 누르기 · 누르면 이 일정이 바로 열려요' : `「${U.esc(this.label(s))}」 아이콘 · 그림 따라 5번 누르기`}</small></div><span class="go">›</span></button>
+      ${updated ? `<div class="ha-warn"><b>홈 화면 아이콘이 있다면</b><span>예전 아이콘 지우기 → 아래 「홈 화면에 추가」</span></div>` : ''}
+      <button class="ha-opt on ha-app" onclick="HomeAdd.installFromOffer()"><span class="i">${this._svg.phone}</span><div><b>앱 설치하고 받기 <em>추천</em></b><small>출발 알람 · 자동 길안내</small></div><span class="go">›</span></button>
+      <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">${this._svg.home}</span><div><b>홈 화면에 추가</b><small>아이콘 누르면 바로 열려요</small></div><span class="go">›</span></button>
       <button class="ha-later" onclick="HomeAdd.closeSheet()">나중에 할게요</button>
     `);
   },
