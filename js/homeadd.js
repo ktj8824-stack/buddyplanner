@@ -324,9 +324,11 @@ const HomeAdd = {
     meta('apple-mobile-web-app-title', label);
     meta('application-name', label);
     document.querySelectorAll('link[rel="apple-touch-icon"]').forEach(l => l.remove());
-    const l = document.createElement('link'); l.rel = 'apple-touch-icon'; l.href = this.isIOS() ? this.iconFile(s) : icon; document.head.appendChild(l);
-    // 아이폰: 매니페스트가 있으면 그 이름(BuddyPlanner)·시작 주소(로그인 화면)를 써 버림 → 떼어 냄
-    if (this.isIOS()) { document.querySelectorAll('link[rel="manifest"]').forEach(m => m.remove()); return; }
+    const file = this.iconFile(s);
+    const l = document.createElement('link'); l.rel = 'apple-touch-icon'; l.href = file; document.head.appendChild(l);
+    const li = document.createElement('link'); li.rel = 'icon'; li.sizes = '180x180'; li.type = 'image/png'; li.href = file; document.head.appendChild(li);
+    // 아이폰·안드로이드 모두: 매니페스트가 있으면 그 이름(BuddyPlanner)·시작 주소(첫 화면=로그인)를 써 버림 → 떼어 냄
+    if (this.isIOS() || this.isAndroid()) { document.querySelectorAll('link[rel="manifest"]').forEach(m => m.remove()); return; }
     try {
       const man = { name: label, short_name: label, start_url: url, scope: 'https://buddyplanner.kr/', display: 'standalone', background_color: '#ffffff', theme_color: '#ffffff',
         icons: [{ src: icon, sizes: '512x512', type: 'image/png' }] };

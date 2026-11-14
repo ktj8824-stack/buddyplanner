@@ -40,7 +40,10 @@
   <script>
     (function () {
       var ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      if (!ios) { var l = document.createElement('link'); l.rel = 'manifest'; l.href = 'manifest.json'; document.head.appendChild(l); }
+      // 일정 주소(?r=)로 열린 화면도 매니페스트를 안 붙임: 안드로이드 크롬도 매니페스트가 있으면
+      // 바로가기를 첫 화면(로그인)으로 만들어 버려서, 홈 화면 아이콘을 눌러도 일정이 안 열림
+      var sched = /[?&]r=/.test(location.search);
+      if (!ios && !sched) { var l = document.createElement('link'); l.rel = 'manifest'; l.href = 'manifest.json'; document.head.appendChild(l); }
     })();
   </script>
 
@@ -68,7 +71,7 @@
   <link rel="stylesheet" href="css/admin.css?v=143" />
   <link rel="stylesheet" href="css/ai.css?v=144" />
   <link rel="stylesheet" href="css/group.css?v=3" />
-  <link rel="stylesheet" href="css/v2.css?v=39" />
+  <link rel="stylesheet" href="css/v2.css?v=40" />
 </head>
 
 <body>
@@ -108,8 +111,8 @@
   <script src="./js/calendar.js?v=137"></script>
   <script src="./js/timeline.js?v=168"></script>
   <script src="./js/register.js?v=153"></script>
-  <script src="./js/homeadd-guide.js?v=3"></script>
-  <script src="./js/homeadd.js?v=11"></script>
+  <script src="./js/homeadd-guide.js?v=4"></script>
+  <script src="./js/homeadd.js?v=12"></script>
   <script src="./js/restaurant.js?v=141"></script>
   <script src="./js/login.js?v=144"></script>
   <script src="./js/onboarding.js?v=137"></script>
