@@ -28,7 +28,7 @@ const Upgrade = {
             <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M2 19h20v2H2v-2zm19-11c-.55 0-1 .45-1 1v4l-3-2-2 3-3-4-3 4-2-3-3 2v-4c0-.55-.45-1-1-1s-1 .45-1 1v7h20V9c0-.55-.45-1-1-1zM7 6c.83 0 1.5-.67 1.5-1.5S7.83 3 7 3s-1.5.67-1.5 1.5S6.17 6 7 6zm10 0c.83 0 1.5-.67 1.5-1.5S17.83 3 17 3s-1.5.67-1.5 1.5S16.17 6 17 6zm-5-2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
           </div>
           <h2 class="upg-title">BuddyPlanner PRO</h2>
-          <p class="upg-subtitle">${promo ? `출시 기념! ${Billing.promoLabel()}까지 PRO 기능 무료` : '프리미엄 혜택으로 골프 라이프를 완벽하게'}</p>
+          <p class="upg-subtitle">${promo ? (Billing.promoDated() ? `출시 기념! ${Billing.promoLabel()}까지 PRO 기능 무료` : '출시 기념! 지금은 PRO 기능이 모두 무료') : '프리미엄 혜택으로 골프 라이프를 완벽하게'}</p>
         </div>
 
         <div class="upg-content">
@@ -38,7 +38,7 @@ const Upgrade = {
               <div class="feat-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></div>
               <div class="feat-text">
                 <h4>무제한 라운딩 등록</h4>
-                <p>무료 회원은 예정된 라운딩을 ${Billing.FREE_SCHEDULE_LIMIT}개까지 등록할 수 있어요. PRO는 제한 없이 계획하세요.</p>
+                <p>${promo ? '예정된 라운딩을 개수 제한 없이 등록할 수 있어요.' : `무료 회원은 예정된 라운딩을 ${Billing.FREE_SCHEDULE_LIMIT}개까지 등록할 수 있어요. PRO는 제한 없이 계획하세요.`}</p>
               </div>
             </div>
             <div class="feat-item stag">
@@ -97,7 +97,7 @@ const Upgrade = {
       box.innerHTML = `
         <div class="upg-promo">
           <b>${U.ico('spark', 18)} 출시 기념 PRO 무료</b>
-          <p>${Billing.promoLabel()}까지 위 기능을 모두 무료로 쓸 수 있어요.<br>따로 신청하거나 결제할 필요 없어요.</p>
+          <p>${Billing.promoDated() ? `${Billing.promoLabel()}까지` : '지금은'} 위 기능을 모두 무료로 쓸 수 있어요.<br>따로 신청하거나 결제할 필요 없어요. 자동으로 결제되는 일도 없어요.</p>
           <button class="btn-primary" style="width:100%;" onclick="App.navigate('home')">바로 써보기</button>
         </div>`;
       return;

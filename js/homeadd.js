@@ -8,7 +8,7 @@
 
 const HomeAdd = {
   PLAY_ID: 'com.myB',
-  IOS_STORE: '',
+  IOS_STORE: 'https://apps.apple.com/kr/app/id6802747027',
   // 앱 화면과 같은 선 아이콘 (이모지 대신)
   _svg: {
     phone: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7v7M9 11l3 3 3-3"/><path d="M10.5 18.5h3"/></svg>',

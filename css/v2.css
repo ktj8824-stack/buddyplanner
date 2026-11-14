@@ -593,6 +593,8 @@ body.is-pro .pro-tag,body.is-pro .pro-note{display:none!important}
 body.is-promo .pro-tag{background:#059669!important;color:#fff;box-shadow:none!important;font-size:0!important;letter-spacing:0}
 body.is-promo .pro-tag::after{content:'무료';font-size:0.6875rem;font-weight:800}
 body.is-promo .pro-note{display:none!important}
+body.is-promo .ai-pro-badge{background:#059669!important;color:#fff!important;font-size:0!important;letter-spacing:0}
+body.is-promo .ai-pro-badge::after{content:'무료';font-size:0.6875rem;font-weight:800}
 
 /* PRO 웹 결제 (토스) */
 .upg-plan-web{display:flex;justify-content:space-between;align-items:baseline;padding:16px 18px;border:2px solid var(--v2-green);border-radius:16px;background:#f0fbf6;margin-bottom:10px}

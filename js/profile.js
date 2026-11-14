@@ -68,7 +68,7 @@ const Profile = {
             </div>
             <div class="v2-me-box pro" onclick="App.navigate('upgrade')">
               <span>현재 이용권</span><b>${State.isPro || Billing.promoActive() ? 'PRO' : '무료'}</b>
-              <small>${State.isPro ? 'PRO 이용 중 · 관리' : (Billing.promoActive() ? `출시 기념 무료 <b class="v2-me-dday">${Billing.promoDaysLeft()}일</b> 남음<br>${Billing.promoLabel()}까지` : 'PRO 혜택 보기')}</small>
+              <small>${State.isPro ? 'PRO 이용 중 · 관리' : (Billing.promoActive() ? (Billing.promoDated() ? `출시 기념 무료 <b class="v2-me-dday">${Billing.promoDaysLeft()}일</b> 남음<br>${Billing.promoLabel()}까지` : '출시 기념 무료<br>지금은 모두 무료') : 'PRO 혜택 보기')}</small>
             </div>
           </div>
 

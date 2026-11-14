@@ -216,10 +216,17 @@ const Billing = {
 
   /* ── 출시 기념 PRO 무료 기간 ──
      기간 동안 PRO 기능(AI 비서·단체 등록·무제한 일정·당일 예보)을 모두에게 열어 줌.
+     결제 스위치(payments_open)가 닫혀 있으면 마감일이 지나도 계속 무료이고 결제 화면이 나오지 않음.
      광고 제거는 포함하지 않음 (State.isPro = 실제 유료 PRO만).
      마감일은 서버 app_settings.pro_free_until 로 바꿀 수 있고, 못 받아오면 아래 기본값 사용. */
   PROMO_DEFAULT: '2027-03-31T23:59:59+09:00',
   PROMO_KEY: 'bp_promo_until',
+  PAY_KEY: 'bp_pay_open',
+  /** 결제 스위치 (서버 app_settings.payments_open). 서버가 '열림'이라고 알려 준 적이 있을 때만 true.
+      닫혀 있으면 날짜와 상관없이 결제 화면이 나오지 않고, 모든 기능이 계속 무료 */
+  payOpen() {
+    try { return localStorage.getItem(this.PAY_KEY) === 'on'; } catch (e) { return false; }
+  },
   promoUntil() {
     let v = null;
     try { v = localStorage.getItem(this.PROMO_KEY); } catch (e) { /* */ }
@@ -227,11 +234,16 @@ const Billing = {
     const d = new Date(v || this.PROMO_DEFAULT);
     return isNaN(d) ? new Date(this.PROMO_DEFAULT) : d;
   },
-  promoActive() { return Date.now() < this.promoUntil().getTime(); },
+  /** 안내에 적는 무료 마감일이 아직 안 지났는지 */
+  promoDated() { return Date.now() < this.promoUntil().getTime(); },
+  /** 무료로 쓰는 중인지: 결제가 닫혀 있거나, 무료 마감일 전 */
+  promoActive() { return !this.payOpen() || this.promoDated(); },
   promoLabel() {
     const d = new Date(this.promoUntil().getTime() + 9 * 3600 * 1000);
     return `${d.getUTCFullYear()}년 ${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일`;
   },
+  /** 화면에 적는 말: '2027년 3월 31일까지 무료' (마감일이 지났는데 결제가 닫혀 있으면 '지금은 모두 무료') */
+  promoText() { return this.promoDated() ? `${this.promoLabel()}까지 무료` : '지금은 모두 무료'; },
   /** 무료 기간 남은 날 (한국 날짜 기준, 마지막 날 = 1일) */
   promoDaysLeft() {
     const kst = t => Math.floor((t + 9 * 3600 * 1000) / 86400000);
@@ -248,11 +260,15 @@ const Billing = {
       });
       if (!res.ok) return;
       const j = await res.json();
-      const v = j && j.pro_free_until;
-      const before = this.promoActive();
+      // 안내에 적을 날짜는 pro_free_label (없으면 예전처럼 pro_free_until)
+      const v = j && (j.pro_free_label || j.pro_free_until);
+      const before = this.promoActive() + '|' + this.promoText();
       // 서버가 값을 비워 두면(행 삭제) 무료 기간 끝 → 기본값으로 돌아가지 않게 '끝남'을 저장
-      try { localStorage.setItem(this.PROMO_KEY, v || 'off'); } catch (e) { /* */ }
-      if (before !== this.promoActive() && typeof App !== 'undefined' && App.applyProStatus) App.applyProStatus();
+      try {
+        localStorage.setItem(this.PROMO_KEY, v || 'off');
+        localStorage.setItem(this.PAY_KEY, j && j.payments_open === true ? 'on' : 'off');
+      } catch (e) { /* */ }
+      if (before !== this.promoActive() + '|' + this.promoText() && typeof App !== 'undefined' && App.applyProStatus) App.applyProStatus();
     } catch (e) { /* 네트워크 오류 시 저장된 값 유지 */ }
   },
 
@@ -301,7 +317,7 @@ const Billing = {
   },
 
   openStoreListing() {
-    if (this._isIOSApp()) { window.location.href = 'itms-apps://apps.apple.com/search?term=' + encodeURIComponent('버디플래너'); return; }
+    if (this._isIOSApp()) { window.location.href = 'itms-apps://apps.apple.com/app/id6802747027'; return; }
     window.location.href = `https://play.google.com/store/apps/details?id=${this.PLAY_PACKAGE}`;
   }
 };
