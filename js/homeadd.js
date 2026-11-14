@@ -192,7 +192,7 @@ const HomeAdd = {
     const list = (isIOS) => {
       // 아이폰: 글 대신 화면 그림 + 빨간 표시 (카톡 안이면 먼저 사파리로 옮기는 단계만 글로)
       if (isIOS && typeof HomeAddGuide !== 'undefined') {
-        return (kakao ? `<div class="ha-step"><span class="n">0</span><p>카톡 안에서는 안 돼요. 맨 아래 <b>사파리로 열기</b>를 먼저 눌러 주세요</p></div>` : '')
+        return (kakao ? `<p class="hg-kakao">먼저 맨 아래 <b>사파리로 열기</b></p>` : '')
           + HomeAddGuide.html(s, label, this.iconURL(s));
       }
       return steps(isIOS).filter(Boolean).map((t, i) => `<div class="ha-step"><span class="n">${i + 1}</span><p>${t}</p></div>`).join('');
@@ -202,14 +202,14 @@ const HomeAdd = {
       <div class="ha-tab"><button class="${ios ? 'on' : ''}" onclick="HomeAdd._tab(this,'i')">아이폰 (사파리)</button><button class="${ios ? '' : 'on'}" onclick="HomeAdd._tab(this,'a')">안드로이드 (크롬)</button></div>
       <div class="ha-steps" data-k="i" style="${ios ? '' : 'display:none'}">${list(true)}</div>
       <div class="ha-steps" data-k="a" style="${ios ? 'display:none' : ''}">${list(false)}</div>
-      <div class="ha-prev"><img src="${this.iconURL(s)}" alt=""><div><b>${U.esc(label)}</b><small>이렇게 생긴 아이콘이 생겨요</small></div></div>
+      <div class="ha-prev" data-k="a" style="${ios ? 'display:none' : ''}"><img src="${this.iconURL(s)}" alt=""><div><b>${U.esc(label)}</b><small>이렇게 생긴 아이콘이 생겨요</small></div></div>
       ${kakao ? `<button class="ha-btn navy" onclick="HomeAdd.openExternal()">${ios ? '사파리로 열기' : '크롬으로 열기'}</button>` : ''}
       <button class="ha-later" onclick="HomeAdd.closeSheet()">닫기</button>
     `);
   },
   _tab(btn, k) {
     btn.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
-    document.querySelectorAll('#ha-how .ha-steps').forEach(d => { d.style.display = d.dataset.k === k ? '' : 'none'; });
+    document.querySelectorAll('#ha-how .ha-steps, #ha-how .ha-prev').forEach(d => { d.style.display = d.dataset.k === k ? '' : 'none'; });
   },
   /** 카톡 안 브라우저 → 기본 브라우저로 (홈 화면 추가는 사파리·크롬에서만 됨) */
   openExternal() {
