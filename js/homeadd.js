@@ -92,7 +92,7 @@ const HomeAdd = {
         return;
       }
     }
-    if (this.isIOS() && !this.inKakao()) return this.arrowGuide();
+    // 아이폰: 그림 안내 창 (안내 창을 띄운 채로 사파리 아래 버튼을 누를 수 있음)
     this.showHow();
   },
 
@@ -136,7 +136,7 @@ const HomeAdd = {
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
       ${iosNoStore ? '' : `<button class="ha-opt on" onclick="HomeAdd.installFromOffer()"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 알람 · 차에 타면 길안내 (가장 추천)</small></div><span class="go">›</span></button>`}
       <button class="ha-opt k" onclick="HomeAdd.sendToMe()"><span class="i">💬</span><div><b>카톡 나에게 보내기</b><small>'나와의 채팅'에 이 일정을 보내 둬요. 누르면 바로 열려요</small></div><span class="go">›</span></button>
-      <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘 · 화살표 따라 3번 누르기`}</small></div><span class="go">›</span></button>
+      <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘 · 그림 따라 5번 누르기`}</small></div><span class="go">›</span></button>
       <button class="ha-later" onclick="HomeAdd.closeSheet()">나중에 할게요</button>
     `);
   },
@@ -189,7 +189,14 @@ const HomeAdd = {
       '<b>홈 화면에 추가</b> 누르기',
       `이름이 <b>${U.esc(label)}</b>로 들어가 있어요. <b>추가</b>를 누르면 끝!`
     ];
-    const list = (isIOS) => steps(isIOS).filter(Boolean).map((t, i) => `<div class="ha-step"><span class="n">${i + 1}</span><p>${t}</p></div>`).join('');
+    const list = (isIOS) => {
+      // 아이폰: 글 대신 화면 그림 + 빨간 표시 (카톡 안이면 먼저 사파리로 옮기는 단계만 글로)
+      if (isIOS && typeof HomeAddGuide !== 'undefined') {
+        return (kakao ? `<div class="ha-step"><span class="n">0</span><p>카톡 안에서는 안 돼요. 맨 아래 <b>사파리로 열기</b>를 먼저 눌러 주세요</p></div>` : '')
+          + HomeAddGuide.html(s, label, this.iconURL(s));
+      }
+      return steps(isIOS).filter(Boolean).map((t, i) => `<div class="ha-step"><span class="n">${i + 1}</span><p>${t}</p></div>`).join('');
+    };
     this._sheet('ha-how', `
       <h3>홈 화면에 추가하기</h3>
       <div class="ha-tab"><button class="${ios ? 'on' : ''}" onclick="HomeAdd._tab(this,'i')">아이폰 (사파리)</button><button class="${ios ? '' : 'on'}" onclick="HomeAdd._tab(this,'a')">안드로이드 (크롬)</button></div>
