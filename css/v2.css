@@ -857,4 +857,5 @@ button.ha-opt:active { transform: scale(.98); }
 .v2-editbtn { height: 36px; padding: 0 12px 0 10px; border: 1.5px solid #cbd5e1; background: #fff; color: var(--v2-ink); border-radius: 18px; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; cursor: pointer; }
 .v2-editbtn svg { width: 16px; height: 16px; }
 .v2-editbtn:active { background: #f1f5f9; }
-.ha-warn { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.5; margin: 0 0 12px; }
+.ha-warn { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.5; margin: 0 0 12px; text-align: center; }
+.ha-warn b { display: block; }
