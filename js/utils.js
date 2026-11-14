@@ -349,6 +349,9 @@ const U = {
     if (!Kakao.isInitialized() && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY) Kakao.init(Login.KAKAO_JS_KEY);
     const api = Kakao.Share || Kakao.Link;
     if (!api || !api.sendDefault) return false;
+    // 그림 크기를 안 알려 주면 카톡이 정사각형으로 잘라서 보여 줌 (캐릭터·글자가 잘림) → 공유 그림 크기(1200×630)를 같이 보냄
+    const c = opts && opts.content;
+    if (c && c.imageUrl && !c.imageWidth) { c.imageWidth = 1200; c.imageHeight = 630; }
     api.sendDefault(opts);
     return true;
   },
