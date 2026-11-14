@@ -3,7 +3,7 @@
    ========================================= */
 
 const App = {
-  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','insurance','event','raffle','ai','group'],
+  screens: ['home','calendar','register','timeline','restaurant','splash','onboarding','profile','upgrade','record','community','login','market','admin','raffle','ai','group'],
 
   /**
    * 아이폰 키보드: 키보드가 올라오면 보이는 영역이 줄어드는데, 가운데 뜨는 창은 그대로라
@@ -112,17 +112,22 @@ const App = {
     }
   },
 
+  /** 명조·둥근고딕 글꼴 파일 받아오기 (한 번만) */
+  loadExtraFonts() {
+    if (document.getElementById('bp-extra-fonts')) return;
+    const link = document.createElement('link');
+    link.id = 'bp-extra-fonts';
+    link.href = 'https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  },
+
   loadPreferences() {
     const font = localStorage.getItem('bp_font');
     if (font) {
       const fontStr = font === 'Pretendard' ? "'Pretendard Variable', 'Pretendard', sans-serif" : `'${font}', sans-serif`;
       document.documentElement.style.setProperty('--font-sans', fontStr);
-      if (font !== 'Pretendard') {
-        const link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700&display=swap';
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-      }
+      if (font !== 'Pretendard') this.loadExtraFonts();
     }
     const size = localStorage.getItem('bp_size');
     if (size) {
@@ -130,6 +135,7 @@ const App = {
       if (size === 'small') basePx = 14;
       if (size === 'large') basePx = 18;
       document.documentElement.style.fontSize = basePx + 'px';
+      document.documentElement.dataset.size = basePx >= 18 ? 'large' : basePx <= 14 ? 'small' : 'medium';   // 큰 글씨일 때 홈 카드 잘림 방지용
     }
     const home = localStorage.getItem('bp_home');
     const office = localStorage.getItem('bp_office');
@@ -176,8 +182,6 @@ const App = {
         case 'login': Login.init(); break;
         case 'market': Market.init(); break;
         case 'admin': Admin.init(); break;
-        case 'insurance': Insurance.init(); break;
-        case 'event': EventPage.init(); break;
         case 'raffle': Raffle.init(); break;
         case 'ai': AI.init(); break;
         case 'group': Group.init(); break;
@@ -185,7 +189,7 @@ const App = {
     }
     this.updateNav(['timeline', 'register'].includes(name) ? 'calendar' : name);
     
-    const hideHeaderScreens = ['calendar', 'market', 'community', 'record', 'profile', 'splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'insurance', 'event', 'raffle', 'upgrade', 'admin', 'group'];
+    const hideHeaderScreens = ['calendar', 'market', 'community', 'record', 'profile', 'splash', 'onboarding', 'login', 'timeline', 'register', 'restaurant', 'raffle', 'upgrade', 'admin', 'group'];
     const nav = U.$('#top-header');
     if (nav) {
       if (hideHeaderScreens.includes(name)) {
@@ -340,7 +344,7 @@ const App = {
     if (localStorage.getItem('bp_cloud_offer_day') === today) return;
     if (['splash', 'login', 'onboarding'].indexOf(State.screen) >= 0) return;
     localStorage.setItem('bp_cloud_offer_day', today);
-    this.showModal('클라우드 백업을 켜세요', `
+    this.showModal('다시 로그인해 주세요', `
       <div class="pay-success" style="padding-top:var(--sp-2);">
         <p>이제 일정과 라운딩 기록을 클라우드에 안전하게 보관할 수 있어요.<br>
         폰을 바꿔도 같은 계정으로 로그인하면 그대로 불러와요.<br><br>
@@ -581,7 +585,7 @@ const App = {
 
     this.showModal('골프장 날씨', `
       <div style="padding: 32px 16px; text-align: center; color: var(--text-300); font-weight:600;">
-        <div style="font-size:28px; margin-bottom:12px; animation:spin 1s infinite linear;">📡</div>
+        <div class="u-ico-big" style="background:none;">${U.ico('signal', 30)}</div>
         <div style="font-size:15px; color:var(--text-100); margin-bottom:4px;">${safeName}</div>
         <div style="font-size:13px; color:var(--text-400);">기상 데이터를 불러오는 중입니다...</div>
       </div>
@@ -634,7 +638,7 @@ const App = {
     list.innerHTML = `
         <div style="padding: 16px; display:flex; flex-direction:column; align-items:center; gap:16px;">
           <div style="font-size:13px; font-weight:700; color:var(--text-400); background:rgba(0,0,0,0.04); padding:6px 14px; border-radius:12px; display:flex; align-items:center; gap:6px;">
-            <span>📍</span> <span>${safeName}</span>
+            <span style="display:flex;">${U.ico('pin', 14)}</span> <span>${safeName}</span>
           </div>
           ${currentHTML}
           ${roundSched ? this.roundForecastHTML(roundSched, forecast) : ''}
@@ -646,14 +650,14 @@ const App = {
   /** 라운딩 당일 예보 영역 (PRO 전용) */
   roundForecastHTML(sched, forecast) {
     const d = new Date(sched.date);
-    const title = `⛳ 라운딩 당일 예보 · ${d.getMonth() + 1}/${d.getDate()} ${U.esc(sched.teeOff || '')} 티오프`;
+    const title = `${U.ico('flag', 14)} 라운딩 당일 예보 · ${d.getMonth() + 1}/${d.getDate()} ${U.esc(sched.teeOff || '')} 티오프`;
 
     if (!Billing.hasPro()) {
       return `
           <div class="wx-round is-locked">
             <div class="wx-round-title">${title}</div>
             <p>PRO 회원은 라운딩 당일 티오프 시간대의 기온·강수 확률·바람을<br>최대 ${WeatherAPI.FORECAST_DAYS}일 전부터 미리 볼 수 있어요.</p>
-            <button class="btn-primary" style="width:100%;" onclick="App.closeModal(); App.navigate('upgrade');">👑 PRO로 당일 예보 보기</button>
+            <button class="btn-primary" style="width:100%;" onclick="App.closeModal(); App.navigate('upgrade');">PRO로 당일 예보 보기</button>
           </div>`;
     }
     if (forecast && forecast.tooFar) {
@@ -712,7 +716,7 @@ const App = {
       const bg = this.showModal(U.esc(title), `
         <div class="pay-success" style="padding-top:var(--sp-2);">
           ${message ? `<p>${message}</p>` : ''}
-          <button class="btn-primary" id="app-ask-ok" style="width:100%; margin-bottom:var(--sp-2);">${U.esc(opts.ok || '확인')}</button>
+          <button class="btn-primary${(opts.danger || /삭제|탈퇴|지우/.test(opts.ok || '')) ? ' btn-danger' : ''}" id="app-ask-ok" style="width:100%; margin-bottom:var(--sp-2);">${U.esc(opts.ok || '확인')}</button>
           <button class="btn-ghost" id="app-ask-cancel" style="width:100%;">${U.esc(opts.cancel || '취소')}</button>
         </div>`);
       // 방금 띄운 창 안에서 찾음 (닫히는 중인 이전 창과 헷갈리지 않게)

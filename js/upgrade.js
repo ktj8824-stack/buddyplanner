@@ -96,7 +96,7 @@ const Upgrade = {
     if (Billing.promoActive()) {
       box.innerHTML = `
         <div class="upg-promo">
-          <b>🎉 출시 기념 PRO 무료</b>
+          <b>${U.ico('spark', 18)} 출시 기념 PRO 무료</b>
           <p>${Billing.promoLabel()}까지 위 기능을 모두 무료로 쓸 수 있어요.<br>따로 신청하거나 결제할 필요 없어요.</p>
           <button class="btn-primary" style="width:100%;" onclick="App.navigate('home')">바로 써보기</button>
         </div>`;

@@ -67,11 +67,11 @@ const Raffle = {
     if (this.loading && !this.list.length) {
       body = `<div class="rf-empty"><div class="spinner" style="margin:0 auto 12px;"></div>불러오는 중...</div>`;
     } else if (this.error === 'off') {
-      body = `<div class="rf-empty"><div style="font-size:40px;">🎁</div><b>럭키드로우를 준비하고 있어요</b><span>곧 무료 포인트로 골프 용품에 응모할 수 있어요.</span></div>`;
+      body = `<div class="rf-empty"><div class="u-ico-big">${U.ico('gift', 30)}</div><b>럭키드로우를 준비하고 있어요</b><span>곧 무료 포인트로 골프 용품에 응모할 수 있어요.</span></div>`;
     } else if (this.error) {
-      body = `<div class="rf-empty"><div style="font-size:36px;">📡</div><b>목록을 불러오지 못했어요</b><span>${this.error === 'offline' ? '인터넷 연결을 확인해 주세요.' : '잠시 후 다시 시도해 주세요.'}</span><button class="btn-ghost" style="margin-top:12px;" onclick="Raffle.load()">다시 시도</button></div>`;
+      body = `<div class="rf-empty"><div class="u-ico-big">${U.ico('signal', 30)}</div><b>목록을 불러오지 못했어요</b><span>${this.error === 'offline' ? '인터넷 연결을 확인해 주세요.' : '잠시 후 다시 시도해 주세요.'}</span><button class="btn-ghost" style="margin-top:12px;" onclick="Raffle.load()">다시 시도</button></div>`;
     } else if (!this.list.length) {
-      body = `<div class="rf-empty"><div style="font-size:40px;">🎁</div><b>진행 중인 럭키드로우가 없어요</b><span>새 럭키드로우가 열리면 여기에 보여 드릴게요.<br>그동안 포인트를 모아 두세요!</span></div>`;
+      body = `<div class="rf-empty"><div class="u-ico-big">${U.ico('gift', 30)}</div><b>진행 중인 럭키드로우가 없어요</b><span>새 럭키드로우가 열리면 여기에 보여 드릴게요.<br>그동안 포인트를 모아 두세요!</span></div>`;
     } else {
       body = (open.length ? open.map(r => this.cardOpen(r)).join('') : `<div class="rf-empty small">지금 진행 중인 럭키드로우가 없어요.</div>`)
         + (past.length ? `<div class="rf-section">지난 추첨 결과</div>` + past.map(r => this.cardPast(r)).join('') : '');
@@ -117,7 +117,7 @@ const Raffle = {
     const left = r.per_user_limit - r.my_entries;
     return `
       <div class="rf-card">
-        <div class="rf-img">${img ? `<img src="${U.esc(img)}" alt="" onerror="this.remove()">` : ''}<span class="rf-img-ico">🎁</span>
+        <div class="rf-img">${img ? `<img src="${U.esc(img)}" alt="" onerror="this.remove()">` : ''}<span class="rf-img-ico">${U.ico('gift', 40)}</span>
           <span class="rf-dday">${this.dday(r.ends_at)}</span></div>
         <div class="rf-body">
           <div class="rf-title">${U.esc(r.title)}</div>
@@ -143,10 +143,10 @@ const Raffle = {
     let mine = '';
     if (me) {
       const expired = !me.claimed && new Date(me.claim_until) < new Date();
-      mine = me.shipped ? `<div class="rf-win">🎉 당첨! 경품을 보내 드렸어요.</div>`
-        : me.claimed ? `<div class="rf-win">🎉 당첨! 배송지를 받았어요. 곧 보내 드릴게요.</div>`
+      mine = me.shipped ? `<div class="rf-win">${U.ico('spark', 16)} 당첨! 경품을 보내 드렸어요.</div>`
+        : me.claimed ? `<div class="rf-win">${U.ico('spark', 16)} 당첨! 배송지를 받았어요. 곧 보내 드릴게요.</div>`
         : expired ? `<div class="rf-win muted">당첨됐지만 배송지 입력 기한이 지났어요.</div>`
-        : `<div class="rf-win">🎉 축하해요, 당첨됐어요!<button class="btn-primary" onclick="Raffle.showClaim(${r.id})">배송지 입력</button><small>${this.fmtDate(me.claim_until)}까지</small></div>`;
+        : `<div class="rf-win">${U.ico('spark', 16)} 축하해요, 당첨됐어요!<button class="btn-primary" onclick="Raffle.showClaim(${r.id})">배송지 입력</button><small>${this.fmtDate(me.claim_until)}까지</small></div>`;
     } else if (r.my_entries && r.status === 'drawn') {
       mine = `<div class="rf-mine">아쉽게도 당첨되지 않았어요. 다음 기회에 도전해 주세요!</div>`;
     }
@@ -219,7 +219,7 @@ const Raffle = {
       else {
         Points._apply({ balance: r.balance });
         if (r.drawn) {
-          App.showModal(r.won ? '🎉 당첨됐어요!' : '추첨이 끝났어요', `<div class="pay-success" style="padding-top:var(--sp-2);"><p>${r.won
+          App.showModal(r.won ? '당첨됐어요!' : '추첨이 끝났어요', `<div class="pay-success" style="padding-top:var(--sp-2);"><p>${r.won
             ? '마지막 응모로 정원이 차서 바로 추첨했어요.<br>축하해요! 배송지를 입력해 주세요.'
             : '마지막 응모로 정원이 차서 바로 추첨했어요.<br>아쉽게도 이번에는 당첨되지 않았어요.'}</p>
             <button class="btn-primary" style="width:100%;" onclick="App.closeModal(); ${r.won ? `Raffle.showClaim(${id});` : ''}">${r.won ? '배송지 입력' : '확인'}</button></div>`);

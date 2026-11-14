@@ -86,13 +86,13 @@ const Community = {
     if (typeof Cloud === 'undefined' || !Cloud.isConfigured()) {
       body = this.empty('💬', '커뮤니티를 준비하고 있어요', '곧 조인 모집과 라운딩 후기를 나눌 수 있어요.');
     } else if (!Cloud.isSignedIn()) {
-      body = this.empty('🔒', '로그인하고 함께해요', '커뮤니티는 로그인한 회원만 이용할 수 있어요.', `<button class="v2-btn-navy" style="margin-top:12px;" onclick="App.navigate('login')">로그인하기</button>`);
+      body = this.empty(U.ico('lock', 30), '로그인하고 함께해요', '커뮤니티는 로그인한 회원만 이용할 수 있어요.', `<button class="v2-btn-navy" style="margin-top:12px;" onclick="App.navigate('login')">로그인하기</button>`);
     } else if (this.loading && !this.posts.length) {
       body = `<div class="v2-empty" style="border-style:solid;">불러오는 중...</div>`;
     } else if (this.error && !this.posts.length) {
-      body = this.empty('📡', '글을 불러오지 못했어요', this.error === 'offline' ? '인터넷 연결을 확인해 주세요.' : '잠시 후 다시 시도해 주세요.', `<button class="v2-btn-line" style="margin-top:12px;" onclick="Community.load(true)">다시 시도</button>`);
+      body = this.empty(U.ico('signal', 30), '글을 불러오지 못했어요', this.error === 'offline' ? '인터넷 연결을 확인해 주세요.' : '잠시 후 다시 시도해 주세요.', `<button class="v2-btn-line" style="margin-top:12px;" onclick="Community.load(true)">다시 시도</button>`);
     } else if (!posts.length) {
-      body = this.empty('🏌️', '아직 글이 없어요', this.cat === 'join' ? '첫 조인 모집 글을 올려 보세요.' : '첫 글을 남겨 보세요.');
+      body = this.empty(U.ico('golfer', 30), '아직 글이 없어요', this.cat === 'join' ? '첫 조인 모집 글을 올려 보세요.' : '첫 글을 남겨 보세요.');
     } else {
       body = posts.map(p => this.card(p)).join('')
         + (this.hasMore ? `<button class="v2-btn-line" onclick="Community.load(false)">${this.loading ? '불러오는 중...' : '더 보기'}</button>` : '');
@@ -121,7 +121,7 @@ const Community = {
   },
 
   empty(icon, title, desc, action = '') {
-    return `<div class="v2-empty"><div style="font-size:2rem;">${icon}</div><b style="display:block; color:var(--v2-ink); font-size:1rem; margin:6px 0 4px;">${title}</b>${desc}${action}</div>`;
+    return `<div class="v2-empty"><div class="u-ico-big">${icon}</div><b style="display:block; color:var(--v2-ink); font-size:1rem; margin:6px 0 4px;">${title}</b>${desc}${action}</div>`;
   },
 
   _date(iso) {

@@ -34,6 +34,11 @@ const Profile = {
 
     const chev = '<svg class="v2-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
     const provName = { kakao: '카카오', google: '구글', apple: 'Apple' }[provider];
+    // 로그인이 풀린 상태(서버 세션 없음)인데 예전 로그인 표시가 남아 있으면 → '풀렸어요'로 알리고 다시 로그인 버튼
+    const everLogged = localStorage.getItem('bp_logged_in') === 'true';
+    const lostLogin = typeof Cloud !== 'undefined' && Cloud.isConfigured() && !Cloud.isSignedIn() && everLogged;
+    const dirtyN = (() => { try { return (JSON.parse(localStorage.getItem('bp_sync_dirty') || '[]') || []).length; } catch (e) { return 0; } })();
+    const showLogout = everLogged || (typeof Cloud !== 'undefined' && Cloud.isSignedIn());
     const prep = (() => { const v = parseInt(localStorage.getItem('bp_last_prep'), 10); return v > 0 ? v : 30; })();
     const navPref = (typeof AutoNav !== 'undefined' ? AutoNav.pref() : 'choice');
     const navName = { tmap: 'TMAP', kakao: '카카오내비', choice: '매번 선택' }[navPref] || '매번 선택';
@@ -50,10 +55,11 @@ const Profile = {
       <div class="v2-pagehead"><h1>마이</h1></div>
       <div class="v2-scroll">
         <div class="v2-body">
+          ${lostLogin ? `<div class="v2-lost">지금은 이 기기에만 저장돼요.${dirtyN ? ' 서버에 올리지 못한 변경이 있어요.' : ''} 다시 로그인하면 일정과 기록이 서버에 저장돼요.</div>` : ''}
           <div class="v2-card v2-me">
             <div class="v2-avatar profile-avatar">${avatarLetter}</div>
-            <div class="t"><b class="profile-name">${U.esc(userName)}</b><small>${provName ? provName + ' 계정으로 로그인' : (userEmail ? U.esc(userEmail) : '로그인하지 않음')}</small></div>
-            <button class="v2-me-edit" onclick="Profile.editProfile()">프로필 편집</button>
+            <div class="t"><b class="profile-name">${U.esc(userName)}</b><small>${lostLogin ? '로그인이 풀렸어요' : (provName ? provName + ' 계정으로 로그인' : (userEmail ? U.esc(userEmail) : '로그인하지 않음'))}</small></div>
+            ${lostLogin ? `<button class="v2-me-edit v2-me-relogin" onclick="App.navigate('login')">다시 로그인</button>` : `<button class="v2-me-edit" onclick="Profile.editProfile()">프로필 편집</button>`}
           </div>
           <div class="v2-me-grid">
             <div class="v2-me-box pt" onclick="Profile.watchAd()">
@@ -96,7 +102,7 @@ const Profile = {
           <div class="v2-list">
             ${this.canAdmin() ? `<button class="v2-li" onclick="Profile.openAdmin()"><span class="k" style="font-weight:700;">[대표님 전용] 버디마켓 관리자 모드</span>${chev}</button>` : ''}
             <a class="v2-li" href="./privacy.html" style="text-decoration:none;"><span class="k">개인정보처리방침</span>${chev}</a>
-            <button class="v2-li" id="v2-logout" onclick="Profile.logout()"><span class="k">로그아웃</span></button>
+            ${showLogout ? `<button class="v2-li" id="v2-logout" onclick="Profile.logout()"><span class="k">로그아웃</span></button>` : `<button class="v2-li" onclick="App.navigate('login')"><span class="k">로그인</span>${chev}</button>`}
           </div>
           <button class="v2-quit" onclick="Profile.deleteAllData()">회원 탈퇴 및 데이터 삭제</button>
         </div>
@@ -230,6 +236,8 @@ const Profile = {
     localStorage.setItem('bp_font', font);
     const fontStr = font === 'Pretendard' ? "'Pretendard Variable', 'Pretendard', sans-serif" : `'${font}', sans-serif`;
     document.documentElement.style.setProperty('--font-sans', fontStr);
+    // 명조·둥근고딕은 글꼴 파일을 지금 받아와야 바로 바뀜 (예전엔 앱을 다시 켜야 적용됐음)
+    if (font !== 'Pretendard') App.loadExtraFonts();
     
     // Update UI active state
     const siblings = el.parentElement.querySelectorAll('.setting-opt-btn');
@@ -263,6 +271,7 @@ const Profile = {
     if (size === 'small') basePx = 14;
     if (size === 'large') basePx = 18;
     document.documentElement.style.fontSize = basePx + 'px';
+      document.documentElement.dataset.size = basePx >= 18 ? 'large' : basePx <= 14 ? 'small' : 'medium';   // 큰 글씨일 때 홈 카드 잘림 방지용
     
     // Update UI active state
     const siblings = el.parentElement.querySelectorAll('.setting-opt-btn');
@@ -274,7 +283,7 @@ const Profile = {
   },
 
   searchAndSaveAddress(type) {
-    const title = type === 'home' ? '🏠 집 주소 검색' : '🏢 회사 주소 검색';
+    const title = type === 'home' ? '집 주소 검색' : '회사 주소 검색';
     App.openAddressSearch(title, (selectedPlace) => {
       if (type === 'home') {
         State.userAddresses.home = selectedPlace;

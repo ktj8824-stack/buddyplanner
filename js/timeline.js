@@ -153,7 +153,7 @@ const Timeline = {
         <div class="v2-step-row">
           <span class="v2-step-ico${st.meal ? ' meal' : ''}">${st.ico}</span>
           <span class="v2-step-time">${st.time}${prevDay(st.time, i)}</span>
-          <span class="v2-step-title">${U.esc(st.title)}${st.place ? `<small class="v2-step-place">📍 ${U.esc(st.place)}</small>` : ''}${st.inlineSub ? `<small style="display:block; font-size:14px; color:var(--v2-sub); font-weight:500; margin-top:2px;">${U.esc(st.inlineSub)}</small>` : ''}</span>
+          <span class="v2-step-title">${U.esc(st.title)}${st.place ? `<small class="v2-step-place">${U.ico('pin', 13)} ${U.esc(st.place)}</small>` : ''}${st.inlineSub ? `<small style="display:block; font-size:14px; color:var(--v2-sub); font-weight:500; margin-top:2px;">${U.esc(st.inlineSub)}</small>` : ''}</span>
           ${st.nav ? `<button class="v2-step-act" onclick="Timeline.navStep(${i})">길찾기</button>` : ''}
           <span class="v2-step-now" style="display:none">지금</span>
         </div>
@@ -266,7 +266,7 @@ const Timeline = {
       <div class="v2-now">
         <div class="v2-now-top"><span>${isToday ? '지금 할 일' : '첫 출발'}</span><span class="v2-pill yellow">${pill}</span></div>
         <div class="v2-now-main"><b>${st.time}</b><span>${U.esc(st.title)}</span></div>
-        ${st.place ? `<div class="v2-now-place">📍 ${U.esc(st.place)}</div>` : ''}
+        ${st.place ? `<div class="v2-now-place">${U.ico('pin', 15)} ${U.esc(st.place)}</div>` : ''}
         <div class="v2-now-desc">${U.esc(st.sub || '')}${st.tip ? ' · ' + U.esc(st.tip) : ''}</div>
         <div class="v2-now-btns">
           <button class="tmap" onclick="Timeline.navStep(${target}, 'tmap')">TMAP</button>
@@ -1089,7 +1089,7 @@ const Timeline = {
           ${ki[2] ? `<div class="v2-alarm-c3">${U.esc(ki[2])}</div>` : ''}
           <div class="v2-alarm-c3" id="v2-alarm-wx" hidden></div>
           ${c && ['prep', 'depart', 'meal', 'restDepart'].includes(c.kind) ? `<div class="v2-alarm-c5" id="v2-alarm-tr">🚗 내 위치에서 실시간 길 확인 중…</div>` : ''}
-          ${tl.hasMeetingPoint && c && ['prep', 'depart'].includes(c.kind) ? `<div class="v2-alarm-c4">📍 집결지 · ${U.esc(tl.meetingPointName || (s.meetingPointObj || {}).name || '집결지')}${tl.meetArrival ? ' ' + U.esc(tl.meetArrival) + ' 도착' : ''}</div>` : ''}
+          ${tl.hasMeetingPoint && c && ['prep', 'depart'].includes(c.kind) ? `<div class="v2-alarm-c4">${U.ico('pin', 14)} 집결지 · ${U.esc(tl.meetingPointName || (s.meetingPointObj || {}).name || '집결지')}${tl.meetArrival ? ' ' + U.esc(tl.meetArrival) + ' 도착' : ''}</div>` : ''}
         </div>` : (msg ? `<div class="v2-alarm-card"><div class="v2-alarm-c2">${U.esc(msg)}</div></div>` : '')}
         <div class="v2-alarm-btns">
           <button class="v2-alarm-ok" onclick="Timeline.closeAlarm()">확인했어요</button>

@@ -338,7 +338,7 @@ ${this._sharedCardHTML()}
             ${this.quickCoursesHTML()}
             ${isEdit ? '' : `<div style="display:flex; gap:14px; margin-top:12px; flex-wrap:wrap;">
               ${last ? `<button class="v2-link" style="font-size:14px;" onclick="Register.fillFromLast()">↺ 지난번처럼 채우기</button>` : ''}
-              <button class="v2-link" style="font-size:14px;" onclick="Register.openPasteBooking()">📋 예약 문자로 채우기</button>
+              <button class="v2-link" style="font-size:14px;" onclick="Register.openPasteBooking()">${U.ico('clip', 14)} 예약 문자로 채우기</button>
             </div>`}
           </div>
 
@@ -373,7 +373,7 @@ ${this._sharedCardHTML()}
             </div>
             <div id="r-opt-body">
               <div class="v2-opt-row">
-                <div class="r"><span>라운딩 전 아침 식사</span>${sw('meal-toggle', this.hasMeal, "Register.toggleMeal('pre')", '라운딩 전 식사')}</div>
+                <div class="r"><span id="r-meal-label">${this._mealLabel()}</span>${sw('meal-toggle', this.hasMeal, "Register.toggleMeal('pre')", '라운딩 전 식사')}</div>
                 <div class="v2-opt-sub meal-body ${this.hasMeal ? 'show' : ''}" id="meal-body">
                   <div class="v2-opts c4" id="meal-pills" style="grid-template-columns:repeat(4,1fr); margin-bottom:8px;">
                     ${[30, 40, 50, 60, 70, 80, 90].map(t => `<button class="pill ${t === this.mealDuration ? 'on' : ''}" data-t="${t}" onclick="Register.setMealTime(${t},this)">${t}분</button>`).join('')}
@@ -427,7 +427,15 @@ ${this._afterHTML()}
   },
 
   /** 필수 정보 진행 막대 + 미리 계산한 일정 */
+  /** 식사 스위치 이름: 티오프 시각에 맞춰 아침/점심 (타임라인의 '점심'과 같게) */
+  _mealLabel() {
+    const h = this.timeH;
+    const w = (h === null || h === undefined) ? '아침 ' : h < 11 ? '아침 ' : h < 16 ? '점심 ' : '';
+    return `라운딩 전 ${w}식사`;
+  },
+
   updateProgress() {
+    { const ml = U.$('#r-meal-label'); if (ml) ml.textContent = this._mealLabel(); }
     // '라운딩 끝나고' 미리보기: 티오프·뒤풀이가 바뀌면 바로 다시 계산 (뒤풀이를 켜고 끄면 '뒤풀이 장소에서' 선택지도 바뀜)
     try {
       const post = !!this.hasPostMeal;
@@ -880,7 +888,7 @@ ${this._afterHTML()}
           <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
         </button>` : ''}
         <button type="button" style="${btn}" onclick="Register.openPasteBooking()">
-          <span style="font-size:18px;">📋</span>
+          <span style="display:flex; color:#0b1d4a;">${U.ico('clip', 20)}</span>
           <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">예약 문자로 채우기</b>
           <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
         </button>
@@ -918,7 +926,7 @@ ${this._afterHTML()}
   },
 
   openPasteBooking() {
-    App.showModal('📋 예약 문자로 채우기', `
+    App.showModal('예약 문자로 채우기', `
       <p style="font-size:13px; color:#64748b; margin:0 0 8px;">골프장 예약 확정 문자나 카톡을 그대로 붙여넣으세요.</p>
       <textarea id="r-paste" rows="6" style="width:100%; box-sizing:border-box; border:1px solid #e2e8f0; border-radius:10px; padding:10px; font-size:16px; line-height:1.5; resize:none;" placeholder="[레이크사이드CC] 예약 확정&#10;11/15(토) 07:12 남코스 4인"></textarea>
       <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="Register.applyPastedBooking()">채우기</button>`);

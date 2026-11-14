@@ -146,7 +146,7 @@ const AI = {
           id: 'welcome',
           sender: 'bot',
           time: this.formatCurrentTime(),
-          text: `안녕하세요, ${this.userName()}님! 🏌️‍♂️<br>골프 전문 <strong>버디 AI 비서</strong>입니다.<br><br>편하게 말씀해 주세요. <strong>라운딩 일정 등록</strong>, <strong>스코어카드 사진으로 기록</strong>(📷 버튼), <strong>골프장 주변 맛집 추천</strong>, 골프 룰과 스윙 고민까지 도와드릴게요.`,
+          text: `안녕하세요, ${this.userName()}님!<br>골프 전문 <strong>버디 AI 비서</strong>입니다.<br><br>편하게 말씀해 주세요. <strong>라운딩 일정 등록</strong>, <strong>스코어카드 사진으로 기록</strong>(카메라 버튼), <strong>골프장 주변 맛집 추천</strong>, 골프 룰과 스윙 고민까지 도와드릴게요.`,
           showChips: true
         }
       ];
@@ -196,7 +196,7 @@ const AI = {
 
     if (msg.sender === 'bot') {
       row.innerHTML = `
-        <div class="ai-msg-avatar">⛳</div>
+        <div class="ai-msg-avatar">${U.ico('flag', 18)}</div>
         <div style="display:flex;flex-direction:column;max-width:calc(100% - 44px);width:100%;">
           <div class="ai-msg-bubble">
             ${msg.text}
@@ -213,7 +213,7 @@ const AI = {
       row.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:flex-end;">
           ${msg.image ? `<img class="ai-msg-photo" src="${msg.image}" alt="첨부한 사진" />` : ''}
-          ${msg.hadImage && !msg.image ? '<div class="ai-msg-photo-note">📷 사진</div>' : ''}
+          ${msg.hadImage && !msg.image ? `<div class="ai-msg-photo-note">${U.ico('camera', 14)} 사진</div>` : ''}
           ${msg.text ? `<div class="ai-msg-bubble">${this.escapeHTML(msg.text)}</div>` : ''}
           <span class="ai-msg-time">${msg.time}</span>
         </div>
@@ -228,33 +228,33 @@ const AI = {
     return `
       <div class="ai-quick-chips-wrap">
         <div class="ai-chips-label">
-          <span>💡</span>
+          <span style="display:flex;">${U.ico('bulb', 15)}</span>
           <span>추천 빠른 실행 (탭해서 바로 요청)</span>
         </div>
         <div class="ai-quick-chips">
           <button class="ai-chip-btn" onclick="AI.handleChipClick('이번 주 토요일 7시 남서울CC 4명 일정 잡아줘')">
-            ⛳ 이번 주 토요일 7시 남서울CC 일정 등록
+            ${U.ico('cal', 15)} 이번 주 토요일 7시 남서울CC 일정 등록
           </button>
           <button class="ai-chip-btn" onclick="AI.handleChipClick('다음 라운딩 끝나고 동반자들이랑 고기 먹을 맛집 추천해줘')">
-            🍽️ 라운딩 후 맛집 추천
+            ${U.ico('meal', 15)} 라운딩 후 맛집 추천
           </button>
           <button class="ai-chip-btn" onclick="AI.pickPhoto()">
-            📷 스코어카드 사진으로 기록
+            ${U.ico('camera', 15)} 스코어카드 사진으로 기록
           </button>
           <button class="ai-chip-btn" onclick="AI.handleChipClick('내 라운딩 일정 확인하고 날씨 알려줘')">
-            🌤️ 다가오는 라운딩 날씨 확인
+            ${U.ico('cloud', 15)} 다가오는 라운딩 날씨 확인
           </button>
           <button class="ai-chip-btn" onclick="AI.handleChipClick('빨간 말뚝(페널티 구역) 드롭 방법과 벌타 알려줘')">
-            🚩 빨간 말뚝 페널티 룰
+            ${U.ico('flag', 15)} 빨간 말뚝 페널티 룰
           </button>
           <button class="ai-chip-btn" onclick="AI.handleChipClick('OB(오비) 났을 때 처리 방법과 벌타')">
-            ⚪ OB 벌타 및 특설티 규정
+            ${U.ico('ball', 15)} OB 벌타 및 특설티 규정
           </button>
           <button class="ai-chip-btn" onclick="AI.handleChipClick('골프 라운딩 필수 에티켓 3가지 알려줘')">
-            🏌️ 벙커/디봇 골프 매너
+            ${U.ico('golfer', 15)} 벙커/디봇 골프 매너
           </button>
           <button class="ai-chip-btn" onclick="AI.handleChipClick('BuddyPlanner는 어떤 기능이 있어?')">
-            ❓ BuddyPlanner 스마트 기능
+            ${U.ico('bulb', 15)} BuddyPlanner 스마트 기능
           </button>
         </div>
       </div>
@@ -305,7 +305,7 @@ const AI = {
       <div class="ai-sched-card" id="sched-card-${msgId}">
         <div class="ai-sched-header">
           <div class="ai-sched-title-wrap">
-            <div class="ai-sched-title">⛳ ${sched.course.name}</div>
+            <div class="ai-sched-title">${U.ico('flag', 16)} ${sched.course.name}</div>
             <div class="ai-sched-subtitle">BURDY PLANNER ROUNDING PASS</div>
           </div>
           <div class="ai-sched-dday-badge">${dday}</div>
@@ -341,11 +341,11 @@ const AI = {
 
           <div class="ai-sched-subbar">
             <div class="ai-subbar-item">
-              <span>🚗</span>
+              <span style="display:flex;">${U.ico('car', 15)}</span>
               <span>${depText}</span>
             </div>
             <div class="ai-subbar-item" style="color:#059669;">
-              <span>🌤️</span>
+              <span style="display:flex;">${U.ico('cloud', 15)}</span>
               <span>22°C 쾌적</span>
             </div>
           </div>
@@ -371,7 +371,7 @@ const AI = {
       <div class="ai-weather-card">
         <div class="ai-weather-top">
           <div>
-            <div class="ai-weather-course">⛳ ${w.courseName}</div>
+            <div class="ai-weather-course">${U.ico('flag', 15)} ${w.courseName}</div>
             <div style="font-size:11.5px;color:#64748b;margin-top:2px;">${w.dateStr} 예보</div>
           </div>
           <div class="ai-weather-temp">${w.icon || '🌤️'} ${w.temp || '21°C'}</div>
@@ -387,7 +387,7 @@ const AI = {
           </div>
           <div>
             <div class="ai-weather-stat-label">라운딩 적합도</div>
-            <div class="ai-weather-stat-val" style="color:#059669;">최상 ⛳</div>
+            <div class="ai-weather-stat-val" style="color:#059669;">최상</div>
           </div>
         </div>
       </div>
@@ -476,7 +476,7 @@ const AI = {
     row.className = 'ai-msg-row bot';
     row.id = 'ai-typing-row';
     row.innerHTML = `
-      <div class="ai-msg-avatar">⛳</div>
+      <div class="ai-msg-avatar">${U.ico('flag', 18)}</div>
       <div class="ai-msg-bubble ai-typing-indicator">
         <span class="ai-typing-dot"></span>
         <span class="ai-typing-dot"></span>

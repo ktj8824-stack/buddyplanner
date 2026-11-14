@@ -194,32 +194,32 @@ const U = {
     
     const appleBtn = showApple ? `
         <button class="btn" style="margin-bottom:var(--sp-3);width:100%;background:var(--bg-input);border:1px solid var(--border-default);color:var(--text-100);" onclick="U.downloadICSFile(${idx})">
-          🍏 아이폰 캘린더 연동
+          ${U.ico('cal', 18)} 아이폰 캘린더 연동
         </button>
     ` : '';
     
     const googleBtn = showGoogle ? `
         <a href="${googleUrl}" target="_blank" class="btn" style="margin-bottom:var(--sp-3);display:flex;align-items:center;justify-content:center;width:100%;background:var(--bg-input);border:1px solid var(--border-default);color:var(--text-100);text-decoration:none;font-weight:var(--fw-bold);height:48px;border-radius:var(--r-md);" onclick="App.closeModal()">
-          🤖 안드로이드 캘린더 연동
+          ${U.ico('cal', 18)} 안드로이드 캘린더 연동
         </a>
     ` : '';
 
     const modalContent = `
       <div class="cal-sync-modal-content" style="padding:var(--sp-2) 0;">
-        <div style="font-size:48px; text-align:center; margin-bottom:var(--sp-2);">🗓️</div>
+        <div class="u-ico-big">${U.ico('cal', 34)}</div>
         <h3 style="text-align:center; margin-bottom:var(--sp-2);">일정 및 알람 연동</h3>
         <p style="margin-bottom:var(--sp-5);text-align:center;font-size:var(--fs-sm);color:var(--text-400);line-height:var(--lh-relaxed);">
           스마트 플랜을 캘린더와 알람에 연동하여 일정을 놓치지 마세요!
         </p>
         <button class="btn btn-primary" style="margin-bottom:var(--sp-3);width:100%;background:var(--accent);color:#fff;border:none;" onclick="App.closeModal(); setTimeout(()=>U.openNativeAlarm(${idx}), 100)">
-          ⏰ 기상 알람 자동 설정
+          ${U.ico('clock', 18)} 기상 알람 자동 설정
         </button>
         ${appleBtn}
         ${googleBtn}
         <button class="btn" style="margin-top:var(--sp-2); width:100%; background:transparent; border:none; color:var(--text-400);" onclick="App.closeModal()">다음에 할게요</button>
       </div>
     `;
-    App.showModal('📅 알람 및 캘린더 연동', modalContent);
+    App.showModal('알람 및 캘린더 연동', modalContent);
   },
 
   downloadICS(schedule) {
@@ -320,6 +320,35 @@ const U = {
 
   /** 아이폰·안드로이드 앱 안인지 (카카오 '웹용' 공유는 앱 주소(capacitor://localhost)에서 막혀 무반응) */
   /** 카카오톡 공유 (SDK v1 은 Kakao.Link, v2 는 Kakao.Share) — 보냈으면 true */
+  /** 화면용 선 아이콘 (이모지 대신 — 앱 전체가 같은 모양으로 보이게). U.ico('pin') / U.ico('gift', 36) */
+  _ICO: {
+    pin: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.3"/>',
+    flag: '<path d="M5.5 21V4M5.5 4.5h12l-2.2 4 2.2 4h-12"/>',
+    cal: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    clock: '<circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M5 4.5 2.8 6.6M19 4.5l2.2 2.1"/>',
+    clip: '<rect x="5" y="4.5" width="14" height="16.5" rx="2.5"/><path d="M9 4.5V3.6A1.1 1.1 0 0 1 10.1 2.5h3.8A1.1 1.1 0 0 1 15 3.6v.9M8.5 10.5h7M8.5 14.5h7"/>',
+    lock: '<rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>',
+    signal: '<path d="M2.5 9.5a14 14 0 0 1 19 0M5.8 13a9.2 9.2 0 0 1 12.4 0M9 16.4a4.5 4.5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1"/>',
+    gift: '<rect x="3.5" y="9" width="17" height="4" rx="1"/><path d="M5 13v7.5h14V13M12 9v11.5M12 9S9 3.5 7 5.3 9 9 12 9Zm0 0s3-5.5 5-3.7S15 9 12 9Z"/>',
+    spark: '<path d="M12 3l1.9 5.3L19 10l-5.1 1.7L12 17l-1.9-5.3L5 10l5.1-1.7ZM19 16.5l.8 2 2 .7-2 .7-.8 2-.8-2-2-.7 2-.7Z"/>',
+    home: '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/>',
+    office: '<rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 8h1.5M13.5 8H15M9 12h1.5M13.5 12H15M10.5 20.5V17h3v3.5"/>',
+    bulb: '<path d="M9 18h6M10 21h4M8.2 14.5A6 6 0 1 1 15.8 14.5c-.8.7-1.3 1.5-1.3 2.5h-5c0-1-.5-1.8-1.3-2.5Z"/>',
+    camera: '<path d="M4 8.5h3l1.5-2.5h7L17 8.5h3a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1Z"/><circle cx="12" cy="14" r="3.5"/>',
+    cloud: '<path d="M7 18.5a4 4 0 0 1-.6-7.95A5.5 5.5 0 0 1 17 9.6a4.5 4.5 0 0 1 0 8.9Z"/>',
+    meal: '<path d="M7 3v8M4.5 3v4.5a2.5 2.5 0 0 0 5 0V3M7 11v10M17 3c-2 1.5-3 4-3 7h3v11"/>',
+    car: '<path d="M5 12 6.9 7.3A2 2 0 0 1 8.8 6h6.4a2 2 0 0 1 1.9 1.3L19 12"/><rect x="3.5" y="12" width="17" height="5" rx="1.5"/><path d="M6.5 17v2M17.5 17v2"/>',
+    ball: '<circle cx="12" cy="12" r="8.5"/><path d="M9.5 9.5h.01M13 8h.01M14.5 11.5h.01M11 12.5h.01"/>',
+    golfer: '<circle cx="14" cy="5" r="2"/><path d="M14 8.5 10.5 12l2.5 3v5.5M10.5 12 7 20.5M14 8.5l3.5 3M6 4l4.5 8"/>',
+    phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>',
+    target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/>',
+  },
+  ico(name, size) {
+    const d = this._ICO[name]; if (!d) return '';
+    const z = size || 16;
+    return `<svg class="u-ico" viewBox="0 0 24 24" width="${z}" height="${z}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  },
+
   /** 앱(안드로이드·아이폰)에서 카카오톡 공유 카드 보내기. 카카오 JS 형식(objectType: feed)을 받아 SDK 형식으로 바꿔 넘김.
    *  성공하면 true, 플러그인이 없는 옛 앱·카톡 미설치·오류면 false (→ 휴대폰 공유 창으로 대신) */
   async kakaoNativeShare(feed) {

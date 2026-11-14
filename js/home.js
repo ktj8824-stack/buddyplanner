@@ -185,9 +185,10 @@ const Home = {
       </div>`;
 
     // 3. 이번 주
-    const start = new Date(today); start.setDate(today.getDate() - today.getDay());
+    // 오늘부터 7일 (예전엔 일~토 고정이라 토요일엔 지난 날만 보이고 내일 라운딩이 안 보였음)
+    const start = new Date(today);
     let weekHtml = '';
-    for (let i = 0; i < 7; i++) weekHtml += `<span class="dn ${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${DAYS[i]}</span>`;
+    for (let i = 0; i < 7; i++) { const w = (today.getDay() + i) % 7; weekHtml += `<span class="dn ${w === 0 ? 'sun' : w === 6 ? 'sat' : ''}">${DAYS[w]}</span>`; }
     for (let i = 0; i < 7; i++) {
       const d = new Date(start); d.setDate(start.getDate() + i);
       weekHtml += `<span class="dd ${d.getTime() === today.getTime() ? 'today' : ''}" onclick="Home.openDay(${d.getFullYear()},${d.getMonth()},${d.getDate()})">${d.getDate()}</span>`;

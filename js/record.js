@@ -458,7 +458,7 @@ const Record = {
               </div>
               <div id="sc-info-edit" style="display:${defaultCourse ? 'none' : 'block'}; margin-top:14px;">
                 <div class="v2-field2">
-                  <button class="v2-field" onclick="Record.openDatePicker()"><span>날짜</span><b id="record-date-display">${todayStr}</b></button>
+                  <button class="v2-field" onclick="Record.openDatePicker()"><span>날짜</span><b id="record-date-display">${dlabel}</b></button>
                   <button class="v2-field" onclick="Record.openTimePicker()"><span>티업 시간</span><b id="record-time-display">${defaultTime}</b></button>
                 </div>
                 <input type="hidden" id="record-date" value="${todayStr}">
@@ -753,7 +753,7 @@ const Record = {
     
     const display = U.$('#record-date-display');
     const input = U.$('#record-date');
-    if (display) display.innerText = dateStr;
+    if (display) display.innerText = `${m}월 ${d}일 (${['일', '월', '화', '수', '목', '금', '토'][new Date(y, m - 1, d).getDay()]})`;
     if (input) input.value = dateStr;
     
     App.closeModal(); U.haptic();
@@ -1079,7 +1079,7 @@ const Record = {
                   <div style="width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, #fbbf24, #f59e0b); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:18px;">${userName.charAt(0)}</div>
                   <div style="display:flex; flex-direction:column; gap:4px;">
                     <span style="font-size:16px; font-weight:800; color:var(--text-100);">${userName}</span>
-                    <span style="font-size:14px; font-weight:700; color:var(--text-300);">📍 ${U.esc(rec.course || '')} · ${dateStr} ${teeTime ? `· ⏰ ${U.esc(teeTime)}` : ''}</span>
+                    <span style="font-size:14px; font-weight:700; color:var(--text-300);">${U.ico('pin', 14)} ${U.esc(rec.course || '')} · ${dateStr} ${teeTime ? `· ${U.esc(teeTime)}` : ''}</span>
                   </div>
                 </div>
               </div>

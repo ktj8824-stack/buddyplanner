@@ -49,13 +49,13 @@ const Onboarding = {
           <div class="ob-hint">집 주소를 넣으면 골프장까지 출발 시간을 자동으로 계산해요.</div>
           <div class="ob-input-group" style="display:flex; flex-direction:row; gap:8px;">
             <div class="setting-item" style="flex:1; min-width:0; cursor:pointer; background:var(--bg-input); padding:16px 8px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Onboarding.searchAddress('home')">
-              <span class="address-icon ob-addr-ic home">🏠</span>
+              <span class="address-icon ob-addr-ic home">${U.ico('home', 22)}</span>
               <div id="ob-home-container" style="width:100%; overflow:hidden;">
                 <div style="font-size:14px; color:var(--text-400); font-weight:600;">집 주소 검색</div>
               </div>
             </div>
             <div class="setting-item" style="flex:1; min-width:0; cursor:pointer; background:var(--bg-input); padding:16px 8px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;" onclick="Onboarding.searchAddress('work')">
-              <span class="address-icon ob-addr-ic work">🏢</span>
+              <span class="address-icon ob-addr-ic work">${U.ico('office', 22)}</span>
               <div id="ob-office-container" style="width:100%; overflow:hidden;">
                 <div style="font-size:14px; color:var(--text-400); font-weight:600;">회사 주소 검색</div>
               </div>
@@ -98,6 +98,7 @@ const Onboarding = {
     // Live preview
     const fontStr = font === 'Pretendard' ? "'Pretendard Variable', 'Pretendard', sans-serif" : `'${font}', sans-serif`;
     document.documentElement.style.setProperty('--font-sans', fontStr);
+    if (font !== 'Pretendard' && typeof App !== 'undefined') App.loadExtraFonts();
     U.haptic();
   },
 
@@ -111,11 +112,12 @@ const Onboarding = {
     if (size === 'small') basePx = 14;
     if (size === 'large') basePx = 18;
     document.documentElement.style.fontSize = basePx + 'px';
+      document.documentElement.dataset.size = basePx >= 18 ? 'large' : basePx <= 14 ? 'small' : 'medium';   // 큰 글씨일 때 홈 카드 잘림 방지용
     U.haptic();
   },
 
   searchAddress(type) {
-    const title = type === 'home' ? '🏠 집 주소 검색' : '🏢 회사 주소 검색';
+    const title = type === 'home' ? '집 주소 검색' : '회사 주소 검색';
     App.openAddressSearch(title, (selectedPlace) => {
       if (type === 'home') {
         this.homeObj = selectedPlace;

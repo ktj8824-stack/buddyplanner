@@ -883,3 +883,18 @@ button.ha-opt:active { transform: scale(.98); }
 /* 단계 안내 화살표 (이모지 대신) */
 .r-shared .rs-step .rs-now::before, .rs-go::after { content: ''; display: inline-block; width: 7px; height: 7px; border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: rotate(45deg); margin: 0 8px 3px 2px; vertical-align: middle; }
 .rs-go::after { margin: 0 0 3px 6px; }
+
+/* 지우는 동작의 확인 버튼은 빨간색 (실수로 누르지 않게) */
+.btn-primary.btn-danger { background: #dc2626 !important; box-shadow: none !important; }
+/* 마이: 로그인이 풀렸을 때 */
+.v2-lost { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; border-radius: 14px; padding: 12px 14px; font-size: 0.875rem; line-height: 1.5; margin-bottom: 12px; }
+.v2-me-edit.v2-me-relogin { background: var(--v2-navy, #0b1d4a); color: #fff; border-color: transparent; }
+/* 홈 바로가기 카드: 칸 밖으로 넘치지 않게, 큰 글씨에선 위아래로 */
+html[data-size="large"] .v2-new-pair { grid-template-columns: minmax(0, 1fr); }
+/* 선 아이콘 (이모지 대신) */
+.u-ico { vertical-align: -0.16em; flex: none; }
+.u-ico-big { width: 64px; height: 64px; border-radius: 50%; background: #eef2f8; color: #0b1d4a; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; }
+.ai-chip-btn .u-ico, .v2-link .u-ico { margin-right: 3px; }
+.ai-msg-avatar .u-ico { vertical-align: middle; }
+.rf-img-ico { color: #94a3b8; }
+.ob-addr-ic { color: #0b1d4a; }
