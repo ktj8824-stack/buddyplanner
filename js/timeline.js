@@ -193,10 +193,6 @@ const Timeline = {
           </div>
           ${this.renderCompanions(s.companions)}
           <button class="v2-tl-del" onclick="Timeline.deleteSchedule()">이 일정 삭제하기</button>
-          <div class="v2-brand">
-            <img src="icon-192.png" alt="">
-            <div><b>BuddyPlanner</b><span>골프 라운딩 일정 비서</span><small>티오프에 맞춘 출발 알람·길안내 · 동반자 공유·맛집·스코어 기록</small></div>
-          </div>
         </div>
       </div>`;
   },
