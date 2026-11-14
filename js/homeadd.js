@@ -15,6 +15,8 @@ const HomeAdd = {
   isIOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); },
   isAndroid() { return /android/i.test(navigator.userAgent); },
   inKakao() { return /kakaotalk/i.test(navigator.userAgent); },
+  /** iOS 26 이후 사파리: 아래 □↑ 공유 버튼이 없어지고 주소창 옆 ≡(···) 메뉴 안으로 들어감 */
+  isNewSafari() { const m = /Version\/(\d+)/.exec(navigator.userAgent); return !!m && +m[1] >= 26; },
 
   /* ── 1. 카톡 '앱 설치하고 받기' ─────────────────────── */
   /** ?get=app 으로 들어왔을 때 (웹) */
@@ -104,13 +106,17 @@ const HomeAdd = {
     document.body.classList.add('ha-guide');
     bg.innerHTML = `
       <div class="ha-tip">
+        ${this.isNewSafari() ? `
+        <div class="st"><span class="n on">1</span><div>주소창 옆 <b>≡ (또는 ···) 버튼</b>을 누르세요</div></div>
+        <div class="st"><span class="n">2</span><div><b>공유</b> 누르기</div></div>
+        <div class="st"><span class="n">3</span><div>목록을 올려 <b>홈 화면에 추가</b> → <b>추가</b> → 끝!</div></div>` : `
         <div class="st"><span class="n on">1</span><div><b>아래 공유 버튼</b>을 누르세요 <span class="sh">□↑</span></div></div>
         <div class="st"><span class="n">2</span><div>목록을 올려 <b>홈 화면에 추가</b></div></div>
-        <div class="st"><span class="n">3</span><div>오른쪽 위 <b>추가</b> → 끝!</div></div>
+        <div class="st"><span class="n">3</span><div>오른쪽 위 <b>추가</b> → 끝!</div></div>`}
         <div class="mini"><img src="${this.iconURL(s)}" alt="">이 아이콘이 생겨요 · <b>${U.esc(this.label(s))}</b></div>
         <button class="ha-later" onclick="HomeAdd.closeSheet()">닫기</button>
       </div>
-      <div class="ha-down">⬇</div>`;
+      <div class="ha-down${this.isNewSafari() ? ' left' : ''}">⬇</div>`;
     bg.addEventListener('click', e => { if (e.target === bg) this.closeSheet(); });
     document.body.appendChild(bg);
   },
@@ -173,9 +179,9 @@ const HomeAdd = {
     const kakao = this.inKakao();
     const label = this.label(s);
     const steps = (isIOS) => isIOS ? [
-      kakao ? '카톡 안에서 열렸다면 오른쪽 아래 <b>⋯ → 다른 브라우저로 열기</b> (사파리)' : null,
-      '아래쪽 <b>공유 버튼 (□↑)</b> 누르기',
-      '<b>홈 화면에 추가</b> 누르기',
+      kakao ? '아래 <b>사파리로 열기</b> 버튼 누르기 (카톡 안에서는 홈 화면 추가가 안 돼요)' : null,
+      '주소창 옆 <b>≡ (또는 ···) 버튼</b> 누르기 · 아래에 <b>□↑</b> 버튼이 보이면 그걸 눌러도 돼요',
+      '<b>공유</b> → 목록을 올려 <b>홈 화면에 추가</b> 누르기 (안 보이면 <b>더 보기</b> 안에 있어요)',
       `이름이 <b>${U.esc(label)}</b>로 들어가 있어요. <b>추가</b>를 누르면 끝!`
     ] : [
       kakao ? '카톡 안에서 열렸다면 오른쪽 위 <b>⋮ → 다른 브라우저로 열기</b> (크롬)' : null,
@@ -190,7 +196,7 @@ const HomeAdd = {
       <div class="ha-steps" data-k="i" style="${ios ? '' : 'display:none'}">${list(true)}</div>
       <div class="ha-steps" data-k="a" style="${ios ? 'display:none' : ''}">${list(false)}</div>
       <div class="ha-prev"><img src="${this.iconURL(s)}" alt=""><div><b>${U.esc(label)}</b><small>이렇게 생긴 아이콘이 생겨요</small></div></div>
-      ${kakao ? `<button class="ha-btn navy" onclick="HomeAdd.openExternal()">다른 브라우저로 열기</button>` : ''}
+      ${kakao ? `<button class="ha-btn navy" onclick="HomeAdd.openExternal()">${ios ? '사파리로 열기' : '크롬으로 열기'}</button>` : ''}
       <button class="ha-later" onclick="HomeAdd.closeSheet()">닫기</button>
     `);
   },
@@ -200,7 +206,9 @@ const HomeAdd = {
   },
   /** 카톡 안 브라우저 → 기본 브라우저로 (홈 화면 추가는 사파리·크롬에서만 됨) */
   openExternal() {
-    location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+    let u = location.href;
+    if (!/[?&]add=1\b/.test(u)) u += (u.indexOf('?') >= 0 ? '&' : '?') + 'add=1';
+    location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(u);
   },
 
   /* ── 3. 홈 화면 아이콘 준비: 이름 · 날짜 아이콘 · 열면 이 일정 ─────────── */
@@ -232,6 +240,12 @@ const HomeAdd = {
     try { url = cv.toDataURL('image/png'); } catch (e) { url = 'icon-512.png'; }
     this._icon = { k: s.date + s.teeOff, url };
     return url;
+  },
+
+  /** 아이폰 홈 화면용: 날짜별로 미리 만들어 둔 진짜 PNG 파일 (tools/make-home-icons.py) */
+  iconFile(s) {
+    const d = new Date(s.date);
+    return `https://buddyplanner.kr/img/homeicons/${d.getMonth() + 1}-${d.getDate()}.png`;
   },
 
   /** 일정을 주소에 담기 (서버 저장 없음) */
@@ -279,6 +293,8 @@ const HomeAdd = {
     try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { }
     App.viewTimeline(idx);
     this._idx = idx;
+    // 사파리·크롬에서 연 경우: 사용자가 안내 없이 바로 '홈 화면에 추가'해도 이 일정 이름·아이콘으로 들어가게
+    if (!U.isNativeApp() && !this.isStandalone()) { try { this.prepare(idx); } catch (e) { } }
     if (/[?&]get=app\b/.test(location.search) && !U.isNativeApp()) { setTimeout(() => this.installFromOffer(), 600); return true; }
     if (/[?&]add=1\b/.test(location.search) && !this.isStandalone()) setTimeout(() => this.offer(idx), 900);
     return true;
@@ -296,8 +312,9 @@ const HomeAdd = {
     meta('apple-mobile-web-app-title', label);
     meta('application-name', label);
     document.querySelectorAll('link[rel="apple-touch-icon"]').forEach(l => l.remove());
-    const l = document.createElement('link'); l.rel = 'apple-touch-icon'; l.href = icon; document.head.appendChild(l);
-    // 안드로이드 크롬: 매니페스트도 이 일정 것으로
+    const l = document.createElement('link'); l.rel = 'apple-touch-icon'; l.href = this.isIOS() ? this.iconFile(s) : icon; document.head.appendChild(l);
+    // 아이폰: 매니페스트가 있으면 그 이름(BuddyPlanner)·시작 주소(로그인 화면)를 써 버림 → 떼어 냄
+    if (this.isIOS()) { document.querySelectorAll('link[rel="manifest"]').forEach(m => m.remove()); return; }
     try {
       const man = { name: label, short_name: label, start_url: url, scope: 'https://buddyplanner.kr/', display: 'standalone', background_color: '#ffffff', theme_color: '#ffffff',
         icons: [{ src: icon, sizes: '512x512', type: 'image/png' }] };

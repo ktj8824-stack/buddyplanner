@@ -740,6 +740,7 @@ body.guide-open .bottom-nav{z-index:70}
 .ha-tip .mini { display: flex; align-items: center; gap: 8px; background: #f4f6f8; border-radius: 10px; padding: 8px 10px; margin-top: 8px; font-size: 14px; }
 .ha-tip .mini img { width: 34px; height: 34px; border-radius: 8px; }
 .ha-down { position: absolute; left: 50%; bottom: calc(2px + env(safe-area-inset-bottom)); transform: translateX(-50%); font-size: 52px; color: #ffd84d; line-height: 1; animation: ha-bob 1s ease-in-out infinite; }
+.ha-down.left { left: 27%; }
 @keyframes ha-bob { 0%,100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 10px); } }
 body.ha-guide .bottom-nav { visibility: hidden; }
 
