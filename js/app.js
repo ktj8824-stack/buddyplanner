@@ -983,16 +983,15 @@ const App = {
     const html = `
       <div id="${modalId}" class="modal-bg open" style="z-index:999999; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); position:fixed; top:0; left:0; right:0; bottom:0;">
         <div class="modal-card" style="background:#ffffff; border-radius:24px; padding:24px; width:90%; max-width:380px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); transform:scale(1); transition:transform 0.2s ease;">
-          <div style="font-size:42px; margin-bottom:6px;">⛳</div>
+          <div class="ss-top"><img src="icon-192.png" alt=""></div>
           <h3 style="font-size:20px; font-weight:800; color:#111111; margin-bottom:6px;">공유받은 라운딩 일정</h3>
           <p style="font-size:13px; color:#666666; margin-bottom:18px;">카카오톡으로 공유된 일정을 내 스케줄에 등록할까요?</p>
-          
-          <div style="background:#f4f6f8; border-radius:16px; padding:16px; text-align:left; font-size:14px; margin-bottom:22px; line-height:1.7; color:#222;">
-            <div><strong>📍 골프장:</strong> ${U.esc(courseName)}${U.esc(courseAddr)}</div>
-            <div><strong>📅 라운딩 일시:</strong> ${dateStr} ${teeOff}</div>
-            ${meetingName ? `<div style="color:#007aff;"><strong>🤝 중간 집결지:</strong> ${U.esc(meetingName)}</div>` : ''}
-            ${mealName ? `<div style="color:#28a745;"><strong>🍽️ 식당:</strong> ${U.esc(mealName)}</div>` : ''}
-            <div><strong>🚗 출발지:</strong> 내 출발지로 다시 계산해요</div>
+          <div class="ss-rows">
+            <div class="ss-row"><span class="ss-i">${Timeline._ico.flag}</span><div><small>골프장</small><b>${U.esc(courseName)}${U.esc(courseAddr)}</b></div></div>
+            <div class="ss-row"><span class="ss-i">${Timeline._ico.cal}</span><div><small>라운딩 일시</small><b>${dateStr} ${teeOff}</b></div></div>
+            ${meetingName ? `<div class="ss-row"><span class="ss-i">${Timeline._ico.people}</span><div><small>중간 집결지</small><b>${U.esc(meetingName)}</b></div></div>` : ''}
+            ${mealName ? `<div class="ss-row"><span class="ss-i">${Timeline._ico.meal}</span><div><small>식당</small><b>${U.esc(mealName)}</b></div></div>` : ''}
+            <div class="ss-row"><span class="ss-i">${Timeline._ico.car}</span><div><small>출발지</small><b>내 출발지로 다시 계산해요</b></div></div>
           </div>
           ${typeof AutoNav !== 'undefined' ? AutoNav.quickHTML([
             schedData.hasMeetingPoint && schedData.meetingPointObj ? { label: '모임장소', ...schedData.meetingPointObj } : null,
@@ -1002,7 +1001,7 @@ const App = {
 
           <div style="display:flex; gap:10px;">
             <button id="btn-cancel-shared-sched" style="flex:1; padding:14px; border:none; background:#e9ecef; color:#495057; border-radius:12px; font-size:15px; font-weight:600; cursor:pointer;">취소</button>
-            <button id="btn-accept-shared-sched" style="flex:2; padding:14px; border:none; background:#007aff; color:#ffffff; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(0,122,255,0.3);">내 일정에 등록 ⛳</button>
+            <button id="btn-accept-shared-sched" style="flex:2; padding:14px; border:none; background:#0b1d4a; color:#ffffff; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer;">내 일정에 등록</button>
           </div>
         </div>
       </div>

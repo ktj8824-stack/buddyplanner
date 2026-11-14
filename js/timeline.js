@@ -65,6 +65,7 @@ const Timeline = {
     car: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M5 16V11l2-5h10l2 5v5z"/><path d="M5 16v2M19 16v2"/><circle cx="8.5" cy="13" r=".6" fill="currentColor"/><circle cx="15.5" cy="13" r=".6" fill="currentColor"/></svg>',
     meal: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v7a2 2 0 0 0 4 0V3M8 12v9M17 21V3c-2 1.5-3 4-3 7 0 1.7 1 2.7 3 3"/></svg>',
     people: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="9" cy="8" r="3"/><path d="M3.5 19c.6-3 2.8-4.5 5.5-4.5s4.9 1.5 5.5 4.5"/><circle cx="17" cy="9" r="2.4"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
     flag: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h10l-2.5 4L16 12H6"/></svg>'
   },
 
@@ -165,7 +166,7 @@ const Timeline = {
       <div class="v2-pagehead center">
         <button class="v2-iconbtn" onclick="App.navigate('calendar')" aria-label="뒤로가기">${I.back}</button>
         <h1>스마트 타임라인</h1>
-        <button class="v2-iconbtn" onclick="Register.edit(${idx})" aria-label="일정 수정">${I.pen}</button>
+        <button class="v2-editbtn" onclick="Register.edit(${idx})" aria-label="일정 수정">${I.pen}<span>수정</span></button>
       </div>
       <div class="v2-scroll">
         <div class="v2-body">
@@ -431,8 +432,8 @@ const Timeline = {
     return {
       objectType: 'feed',
       content: {
-        title: `⛳ [BuddyPlanner] ${courseName} 라운딩 일정`,
-        description: `📅 ${dateStr} ${teeOff}\n📍 ${courseName}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요`,
+        title: `⛳ ${courseName} 라운딩`,
+        description: `▪ ${dateStr} ${teeOff} 티오프\n출발지만 고르면 출발 시간·길안내가 맞춰져요`,
         imageUrl: 'https://buddyplanner.kr/img/share.jpg',
         link: shareLinkObj,
       },
@@ -464,10 +465,10 @@ const Timeline = {
     const s = Timeline._pendingShareS || {};
     if (!url) { U.toast('공유할 링크를 만들지 못했어요.'); return; }
     const course = s.course ? s.course.name : '골프장';
-    const title = `⛳ ${course} 라운딩 일정`;
+    const title = `⛳ [버디플래너] 라운딩 일정`;
     const when = `${s.date ? U.fmtDateShort(s.date) : ''} ${s.teeOff || ''}`.trim();
     // 문자·카톡 붙여넣기용: 링크는 하나만 — 누르면 '앱으로 받기 / 로그인 없이 받기'를 고르는 화면이 떠요
-    const text = `${title}${when ? `\n📅 ${when}` : ''}\n내 출발지만 고르면 출발 시간과 길안내가 바로 맞춰져요\n\n👇 눌러서 받기 (앱 · 로그인 없이)\n${url}&pick=1`;
+    const text = `${title}\n▪ 골프장  ${course}${when ? `\n▪ 일시  ${when}` : ''}\n출발지만 고르면 출발 시간·길안내가 맞춰져요\n\n▶ 눌러서 받기\n${url}&pick=1`;
     await U.shareOut({ title, text, url: '' });
   },
 
