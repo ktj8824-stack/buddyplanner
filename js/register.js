@@ -1615,7 +1615,7 @@ ${this._afterHTML()}
         this.shared = null;
         App.viewTimeline(prevIdx);
         Timeline.alarmOn();
-        if (!U.isNativeApp() && typeof HomeAdd !== 'undefined') setTimeout(() => HomeAdd.offer(prevIdx), 700);
+        if (!U.isNativeApp() && typeof HomeAdd !== 'undefined') setTimeout(() => HomeAdd.offer(prevIdx, true), 700);
         return;
       }
       State.addSchedule(schedData);

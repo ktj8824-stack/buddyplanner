@@ -165,7 +165,7 @@ const Timeline = {
       <div class="v2-pagehead center">
         <button class="v2-iconbtn" onclick="App.navigate('calendar')" aria-label="뒤로가기">${I.back}</button>
         <h1>스마트 타임라인</h1>
-        <button class="v2-iconbtn" onclick="Register.edit(${idx})" aria-label="일정 수정">${I.pen}</button>
+        <button class="v2-editbtn" onclick="Register.edit(${idx})" aria-label="일정 수정">${I.pen}<span>수정</span></button>
       </div>
       <div class="v2-scroll">
         <div class="v2-body">

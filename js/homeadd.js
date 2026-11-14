@@ -123,7 +123,7 @@ const HomeAdd = {
 
   /* ── 2. 웹에서 저장한 뒤 안내 ───────────────────────── */
   /** 공유받은 일정을 웹에서 저장한 직후 */
-  offer(idx) {
+  offer(idx, updated) {
     if (U.isNativeApp()) return;
     const s = State.schedules[idx]; if (!s) return;
     this._idx = idx;
@@ -132,8 +132,9 @@ const HomeAdd = {
     const iosNoStore = this.isIOS() && !this.IOS_STORE;
     this._sheet('ha-offer', `
       <div class="ha-ok">✓</div>
-      <h3 style="text-align:center">일정을 저장했어요</h3>
+      <h3 style="text-align:center">${updated ? '바뀐 내용으로 고쳤어요' : '일정을 저장했어요'}</h3>
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
+      ${updated && this.isIOS() ? `<div class="ha-warn">📌 예전에 홈 화면에 추가한 아이콘은 <b>예전 내용 그대로</b>예요. 아이콘을 길게 눌러 지우고, 아래 <b>홈 화면에 추가</b>로 다시 만들어 주세요.</div>` : ''}
       ${iosNoStore ? '' : `<button class="ha-opt on" onclick="HomeAdd.installFromOffer()"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 알람 · 차에 타면 길안내 (가장 추천)</small></div><span class="go">›</span></button>`}
       <button class="ha-opt k" onclick="HomeAdd.sendToMe()"><span class="i">💬</span><div><b>카톡 나에게 보내기</b><small>'나와의 채팅'에 이 일정을 보내 둬요. 누르면 바로 열려요</small></div><span class="go">›</span></button>
       <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? '그림 따라 5번 누르기 · 누르면 이 일정이 바로 열려요' : `「${U.esc(this.label(s))}」 아이콘 · 그림 따라 5번 누르기`}</small></div><span class="go">›</span></button>
