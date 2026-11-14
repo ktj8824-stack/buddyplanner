@@ -132,13 +132,43 @@ const Home = {
       btnAction = msg.btnAction || `App.viewTimeline(${idx})`;
       dep = tl.homeDepart || '--:--'; arr = tl.arrival || '--:--'; tee = tl.teeOff || s.teeOff || '--:--';
     }
+    // 내 일정으로 등록하지 않은 단체 라운딩이 다음 일정이면: 등록하라고 안내 (출발·골프장·티오프는 등록해야 계산됨)
+    let grp = null;
+    try {
+      const p2 = n => String(n).padStart(2, '0');
+      const ymdOf = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+      const mine = new Set((State.schedules || []).map(x => x && x.groupCode).filter(Boolean));
+      const list = (typeof Group !== 'undefined' && Group.cachedList) ? Group.cachedList() : [];
+      grp = list.filter(x => x && x.code && x.round_date && x.round_date >= ymdOf(today) && !mine.has(x.code))
+        .sort((x, y) => String(x.round_date).localeCompare(String(y.round_date)) || String(x.tee_off || '').localeCompare(String(y.tee_off || '')))[0] || null;
+      // 같은 날이거나 더 이른 내 일정이 있으면 내 일정이 먼저
+      if (grp && upcoming.length && ymdOf(new Date(upcoming[0].date)) <= grp.round_date) grp = null;
+    } catch (e) { grp = null; }
+    if (grp) {
+      const gd = new Date(grp.round_date + 'T00:00:00');
+      const gDiff = Math.round((gd - today) / 864e5);
+      subTag = `${U.esc(grp.course_name || grp.title || '단체 라운딩')} · ${gDiff <= 0 ? 'D-Day' : 'D-' + gDiff} · 단체`;
+      mainHeading = `${gd.getDate()}일 단체 라운딩<br>일정 등록하세요`;
+      btnText = '단체 라운딩 등록';
+      btnAction = `Group.openCode(${U.jsq(grp.code)})`;
+      dep = '--:--'; arr = '--:--'; tee = '--:--';
+    }
+    // 단체 목록은 가끔 서버에서 새로 받아 둠 (바뀌었으면 홈을 다시 그림)
+    try {
+      if (typeof Group !== 'undefined' && Group.refreshListQuiet && Group.signedIn && Group.signedIn() && Date.now() - (this._grpAt || 0) > 5 * 60 * 1000) {
+        this._grpAt = Date.now();
+        const before = localStorage.getItem('bp_ge_list') || '';
+        Group.refreshListQuiet().then(() => { if ((localStorage.getItem('bp_ge_list') || '') !== before && State.screen === 'home') this.render(); }).catch(() => {});
+      }
+    } catch (e) { /* */ }
+    const showTl = upcoming.length || grp;
     const heroHtml = `
       <div class="home-glounge-wrapper">
         <div class="home-glounge-hero">
           <div class="glounge-hero-text">
             <div class="hero-sub-tag">${subTag}</div>
             <div class="hero-main-title">${mainHeading}</div>
-            ${upcoming.length ? `
+            ${showTl ? `
             <div class="hero-inline-timeline" onclick="${btnAction}">
               <div class="mini-tl-node"><span class="mini-tl-tag tag-depart">출발</span><span class="mini-tl-val">${dep}</span></div>
               ${arrow}
