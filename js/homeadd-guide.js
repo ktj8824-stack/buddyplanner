@@ -66,13 +66,14 @@ const HomeAddGuide = {
       <text x="80" y="80" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">${U.esc(label)}</text>`);
   },
 
-  /* ── 안드로이드 크롬: 일정 화면은 '설치' 없이 '홈 화면에 추가'만 나옴 ──
-     1 ⋮  →  2 홈 화면에 추가  →  3 추가  →  4 추가 */
+  /* ── 안드로이드 크롬 (삼성 휴대폰에서 확인한 순서) ──
+     1 ⋮  →  2 설치 및 바로가기 만들기  →  3 바로가기 만들기  →  4 추가  →  5 추가
+     '바로가기 만들기'를 골라야 아이콘을 눌렀을 때 이 일정이 바로 열림 */
   a1() {
     return this._svg(`
       <rect x="-10" y="26" width="70" height="44" rx="22" fill="#e8eaef"/><text x="6" y="54" font-size="13" fill="#999">r/?r=…</text>
       <path d="M78 48h18M87 39v18" stroke="#222" stroke-width="2.6" stroke-linecap="round"/>
-      <rect x="106" y="36" width="22" height="22" rx="5" fill="none" stroke="#222" stroke-width="2.4"/><text x="117" y="52" text-anchor="middle" font-size="12" font-weight="800" fill="#222">3</text>
+      <rect x="106" y="36" width="22" height="22" rx="5" fill="none" stroke="#222" stroke-width="2.4"/><text x="117" y="52" text-anchor="middle" font-size="12" font-weight="800" fill="#222">4</text>
       <g fill="#222"><circle cx="144" cy="38" r="2.8"/><circle cx="144" cy="48" r="2.8"/><circle cx="144" cy="58" r="2.8"/></g>
       <circle cx="144" cy="48" r="15" fill="none" stroke="${this.RED}" stroke-width="3.5"/>`);
   },
@@ -80,12 +81,22 @@ const HomeAddGuide = {
     return this._svg(`
       <rect x="4" y="6" width="152" height="86" rx="14" fill="#fff" stroke="#e1e3e8"/>
       <text x="14" y="26" font-size="11" fill="#bbb">읽기 모드 표시</text><path d="M10 34h140" stroke="#eee"/>
-      <rect x="14" y="41" width="14" height="14" rx="3" fill="none" stroke="#222" stroke-width="1.8"/><path d="M21 44v8M17 48h8" stroke="#222" stroke-width="1.8" stroke-linecap="round"/>
-      <text x="34" y="53" font-size="13" font-weight="700" fill="#222">홈 화면에 추가</text>
+      <rect x="14" y="42" width="14" height="11" rx="2" fill="none" stroke="#222" stroke-width="1.8"/><path d="M21 44v7M18 48l3 3 3-3" fill="none" stroke="#222" stroke-width="1.6" stroke-linecap="round"/>
+      <text x="32" y="53" font-size="10.5" font-weight="700" fill="#222">설치 및 바로가기 만들기</text>
       <path d="M10 66h140" stroke="#eee"/><text x="14" y="84" font-size="11" fill="#bbb">데스크톱 사이트</text>
       ${this._ring(8, 36, 144, 28, 9)}`);
   },
-  a3(label, icon) {
+  a3(icon) {
+    return this._svg(`
+      <rect x="4" y="8" width="152" height="84" rx="14" fill="#eef1f6"/>
+      <text x="16" y="34" font-size="11" fill="#bbb">페이지를 앱으로 설치</text><text x="144" y="34" text-anchor="end" font-size="13" fill="#ccc">›</text>
+      <path d="M10 46h140" stroke="#fff" stroke-width="2"/>
+      <image href="${icon}" x="14" y="54" width="22" height="22"/>
+      <text x="42" y="66" font-size="12" font-weight="800" fill="#222">바로가기 만들기</text><text x="42" y="80" font-size="8.5" fill="#666">Chrome에서 바로가기 열기</text>
+      <text x="144" y="72" text-anchor="end" font-size="14" fill="#222">›</text>
+      ${this._ring(8, 50, 144, 38, 10)}`);
+  },
+  a4(label, icon) {
     return this._svg(`
       <rect x="4" y="10" width="152" height="80" rx="14" fill="#fff" stroke="#e1e3e8"/>
       <image href="${icon}" x="12" y="20" width="26" height="26"/>
@@ -94,7 +105,7 @@ const HomeAddGuide = {
       <text x="138" y="78" text-anchor="end" font-size="14" font-weight="800" fill="#1a73e8">추가</text>
       ${this._ring(110, 62, 42, 24, 8)}`);
   },
-  a4() {
+  a5() {
     return this._svg(`
       <rect x="4" y="18" width="152" height="62" rx="14" fill="#fff" stroke="#e1e3e8"/>
       <text x="14" y="38" font-size="11" fill="#bbb">홈 화면에 추가</text>
@@ -107,18 +118,20 @@ const HomeAddGuide = {
     return this._svg(`
       <rect width="160" height="96" rx="12" fill="#5b3fa0"/>
       <image href="${icon}" x="54" y="8" width="52" height="52"/>
+      <circle cx="102" cy="56" r="9" fill="#fff"/><circle cx="102" cy="56" r="6" fill="#4285f4"/><circle cx="102" cy="56" r="2.6" fill="#fff"/>
       <text x="80" y="82" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">${U.esc(label)}</text>`);
   },
   htmlAndroid(s, label, icon) {
     const tile = (n, txt, svg) => `<div class="hg-tile"><span class="hg-n${n === '✓' ? ' ok' : ''}">${n}</span>${svg}<b>${txt}</b></div>`;
     return `<div class="hg">
       ${tile(1, '⋮ 누르기', this.a1())}
-      ${tile(2, '홈 화면에 추가', this.a2())}
-      ${tile(3, '추가', this.a3(label, icon))}
-      ${tile(4, '추가', this.a4())}
+      ${tile(2, '설치 및 바로가기 만들기', this.a2())}
+      ${tile(3, '바로가기 만들기', this.a3(icon))}
+      ${tile(4, '추가', this.a4(label, icon))}
+      ${tile(5, '추가', this.a5())}
       ${tile('✓', '완성!', this.aDone(label, icon))}
     </div>
-    <p class="hg-old">메뉴에 <b>설치 및 바로가기 만들기</b>가 보이면 그걸 누르고 <b>바로가기 만들기</b>를 골라 주세요 (설치 말고)</p>`;
+    <p class="hg-warn">3번에서 <b>바로가기 만들기</b>를 눌러야 아이콘을 눌렀을 때 일정이 바로 열려요</p>`;
   },
 
   /** 안내 창 아이폰 탭: 2칸 × 3줄, 한 화면에 */
