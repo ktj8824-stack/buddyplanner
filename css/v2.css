@@ -865,3 +865,21 @@ button.ha-opt:active { transform: scale(.98); }
 .ha-opt .i { width: 46px; height: 46px; border-radius: 14px; background: #eef2f8; color: #0b1d4a; display: flex; align-items: center; justify-content: center; flex: none; font-size: 0; }
 .ha-opt.on .i { background: #0b1d4a; color: #fff; }
 .ha-btn svg { vertical-align: -4px; margin-right: 4px; }
+/* 공유받은 일정 확인 창: 앱 선 아이콘 */
+.ss-top img { width: 56px; height: 56px; border-radius: 14px; margin-bottom: 8px; }
+.ss-rows { background: #f4f6f8; border-radius: 16px; padding: 6px 14px; text-align: left; margin-bottom: 18px; }
+.ss-row { display: flex; gap: 12px; align-items: center; padding: 9px 0; }
+.ss-row + .ss-row { border-top: 1px solid #e6e9ee; }
+.ss-i { width: 34px; height: 34px; border-radius: 50%; background: #fff; color: #0b1d4a; display: flex; align-items: center; justify-content: center; flex: none; }
+.ss-i svg { width: 17px; height: 17px; }
+.ss-row small { display: block; font-size: 12px; color: #8a94a6; }
+.ss-row b { font-size: 15px; color: #111; font-weight: 700; }
+.r-shared .rs-tag svg { width: 14px; height: 14px; vertical-align: -2px; }
+.sr-opt .ic svg { width: 20px; height: 20px; }
+.qnav-h svg, .qnav-to svg { width: 16px; height: 16px; vertical-align: -3px; }
+.r-shared .sr-opt .ic { width: 38px; height: 38px; border-radius: 50%; background: #eef2f8; color: #0b1d4a; display: flex; align-items: center; justify-content: center; font-size: 0; flex: none; }
+.r-shared .sr-opt.on .ic { background: #0b1d4a; color: #fff; }
+.ss-top { display: flex; justify-content: center; }
+/* 단계 안내 화살표 (이모지 대신) */
+.r-shared .rs-step .rs-now::before, .rs-go::after { content: ''; display: inline-block; width: 7px; height: 7px; border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: rotate(45deg); margin: 0 8px 3px 2px; vertical-align: middle; }
+.rs-go::after { margin: 0 0 3px 6px; }

@@ -58,9 +58,9 @@ const AutoNav = {
     this._quick = list; this._quickSel = 0;
     return `
       <div class="qnav" id="qnav">
-        <div class="qnav-h">🚗 바로 길안내 <small>지금 있는 곳에서 출발해요</small></div>
+        <div class="qnav-h">${typeof Timeline !== 'undefined' ? Timeline._ico.car : ''} 바로 길안내 <small>지금 있는 곳에서 출발해요</small></div>
         ${list.length > 1 ? `<div class="qnav-dest">${list.map((d, i) => `<button type="button" class="qnav-chip${i === 0 ? ' on' : ''}" onclick="AutoNav.quickPick(${i})">${esc(d.label)}</button>`).join('')}</div>` : ''}
-        <div class="qnav-to">📍 <b id="qnav-name">${esc(list[0].name)}</b></div>
+        <div class="qnav-to">${typeof Timeline !== 'undefined' ? Timeline._ico.pin : ''} <b id="qnav-name">${esc(list[0].name)}</b></div>
         <div class="qnav-b">
           <button type="button" class="qnav-btn tmap" onclick="AutoNav.quickGo('tmap')">티맵</button>
           <button type="button" class="qnav-btn kakao" onclick="AutoNav.quickGo('kakao')">카카오내비</button>

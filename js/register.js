@@ -120,9 +120,9 @@ const Register = {
   _sharedRouteOpts() {
     const sh = this.shared || {}; const c = sh.course || {};
     const opts = [];
-    if (sh.meet) opts.push(['meet', '🤝', '집결지', [sh.meet.name, sh.meal ? '식당' : null, '골프장'].filter(Boolean).join(' → ')]);
-    if (sh.meal) opts.push(['meal', '🍽️', '식당으로 바로', `${sh.meal.name} → 골프장`]);
-    if (opts.length) opts.push(['course', '⛳', '골프장으로 바로', c.name || '골프장']);
+    if (sh.meet) opts.push(['meet', Timeline._ico.people, '집결지', [sh.meet.name, sh.meal ? '식당' : null, '골프장'].filter(Boolean).join(' → ')]);
+    if (sh.meal) opts.push(['meal', Timeline._ico.meal, '식당으로 바로', `${sh.meal.name} → 골프장`]);
+    if (opts.length) opts.push(['course', Timeline._ico.flag, '골프장으로 바로', c.name || '골프장']);
     return opts;
   },
 
@@ -136,12 +136,12 @@ const Register = {
     const prep = P.concat(P.includes(this.prep) ? [] : [this.prep]).sort((a, b) => a - b);
     return `
           <div class="v2-card r-shared">
-            <div class="rs-tag">⛳ 공유받은 일정</div>
+            <div class="rs-tag">${Timeline._ico.flag} 공유받은 일정</div>
             <div class="rs-name">${U.esc(c.name || '골프장')}</div>
             <div class="rs-when">${dt}${sh.teeOff ? ' ' + U.esc(sh.teeOff) + ' 티오프' : ''}</div>
             <div class="rs-step" id="rs-step-start" data-step="start">
               <div class="rs-q"><em>1</em>어디서 출발하세요?</div>
-              <div class="rs-now">👇 출발지를 골라 주세요</div>
+              <div class="rs-now">출발지를 골라 주세요</div>
               <div class="v2-opts c3" id="r-startpoint-pills">
                 ${['집', '회사', '직접 입력'].map(t => `<button type="button" class="pill ${g.startTapped && this.startPoint === t ? 'on' : ''}" onclick="Register.setStartPoint('${t}',this)">${t}</button>`).join('')}
               </div>
@@ -149,7 +149,7 @@ const Register = {
             </div>
             <div class="rs-step" id="rs-step-prep" data-step="prep">
               <div class="rs-q"><em>2</em>나가기 전 준비 시간</div>
-              <div class="rs-now">👇 준비 시간을 골라 주세요</div>
+              <div class="rs-now">준비 시간을 골라 주세요</div>
               <div class="v2-opts c4" id="r-pills" style="grid-template-columns:repeat(${prep.length > 8 ? 5 : 4},1fr);">
                 ${prep.map(t => `<button type="button" class="pill ${g.prep && t === this.prep ? 'on' : ''}" data-t="${t}" onclick="Register.setPrepTime(${t},this)">${t}분</button>`).join('')}
               </div>
@@ -157,7 +157,7 @@ const Register = {
             </div>
             ${opts.length ? `<div class="rs-step" id="rs-step-route" data-step="route">
               <div class="rs-q"><em>3</em>어디로 먼저 가세요?</div>
-              <div class="rs-now">👇 먼저 갈 곳을 골라 주세요</div>
+              <div class="rs-now">먼저 갈 곳을 골라 주세요</div>
               <div id="r-shared-routes">
                 ${opts.map(([k, ic, t, sub]) => `<button type="button" class="sr-opt ${g.route && sh.route === k ? 'on' : ''}" data-k="${k}" onclick="Register.setSharedRoute('${k}')">
                   <span class="ic">${ic}</span><span class="tx"><b>${t}</b><small>${U.esc(sub)}</small></span><span class="ck"></span></button>`).join('')}
@@ -404,7 +404,7 @@ ${this._afterHTML()}
         </div>
       </div>
       <div class="v2-reg-foot">
-        ${this.shared ? '<div class="rs-go" id="rs-go"><em>4</em>다 됐어요! 아래 버튼을 눌러 일정을 만드세요 👇</div>' : ''}
+        ${this.shared ? '<div class="rs-go" id="rs-go"><em>4</em>다 됐어요! 아래 버튼을 눌러 일정을 만드세요</div>' : ''}
         <div class="pre" id="r-preview">골프장·티오프·출발지를 넣으면 출발 시간을 미리 계산해요</div>
         <button class="v2-btn-navy" id="r-submit" onclick="Register.createPlan()">${isEdit ? '라운딩 일정 수정 완료' : '스마트 플랜 만들기'}</button>
       </div>
