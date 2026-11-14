@@ -86,7 +86,7 @@ const HomeAdd = {
         location.href = `intent://${u}${u.indexOf('?') >= 0 ? '&' : '?'}add=1#Intent;scheme=https;package=com.android.chrome;end`;
         return;
       }
-      if (this._bip) {
+      if (false && this._bip) {   // '설치'는 일정 대신 첫 화면(로그인)으로 열려서 쓰지 않음 → 바로가기 그림 안내
         const e = this._bip; this._bip = null;
         try { e.prompt(); const r = await e.userChoice; if (r && r.outcome === 'accepted') { this.closeSheet(); return; } } catch (err) { }
         return;
@@ -136,7 +136,7 @@ const HomeAdd = {
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
       ${iosNoStore ? '' : `<button class="ha-opt on" onclick="HomeAdd.installFromOffer()"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 알람 · 차에 타면 길안내 (가장 추천)</small></div><span class="go">›</span></button>`}
       <button class="ha-opt k" onclick="HomeAdd.sendToMe()"><span class="i">💬</span><div><b>카톡 나에게 보내기</b><small>'나와의 채팅'에 이 일정을 보내 둬요. 누르면 바로 열려요</small></div><span class="go">›</span></button>
-      <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? 'BuddyPlanner 아이콘이 생겨요. 누르면 다가오는 일정이 바로 보여요' : `「${U.esc(this.label(s))}」 아이콘 · 그림 따라 5번 누르기`}</small></div><span class="go">›</span></button>
+      <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? '그림 따라 5번 누르기 · 누르면 이 일정이 바로 열려요' : `「${U.esc(this.label(s))}」 아이콘 · 그림 따라 5번 누르기`}</small></div><span class="go">›</span></button>
       <button class="ha-later" onclick="HomeAdd.closeSheet()">나중에 할게요</button>
     `);
   },
@@ -191,6 +191,9 @@ const HomeAdd = {
     ];
     const list = (isIOS) => {
       // 아이폰: 글 대신 화면 그림 + 빨간 표시 (카톡 안이면 먼저 사파리로 옮기는 단계만 글로)
+      if (!isIOS && typeof HomeAddGuide !== 'undefined') {
+        return (kakao ? `<p class="hg-kakao">먼저 맨 아래 <b>크롬으로 열기</b></p>` : '') + HomeAddGuide.htmlAndroid(s, label, this.iconURL(s));
+      }
       if (isIOS && typeof HomeAddGuide !== 'undefined') {
         return (kakao ? `<p class="hg-kakao">먼저 맨 아래 <b>사파리로 열기</b></p>` : '')
           + HomeAddGuide.html(s, label, this.iconURL(s));
@@ -202,7 +205,7 @@ const HomeAdd = {
       <div class="ha-tab"><button class="${ios ? 'on' : ''}" onclick="HomeAdd._tab(this,'i')">아이폰 (사파리)</button><button class="${ios ? '' : 'on'}" onclick="HomeAdd._tab(this,'a')">안드로이드 (크롬)</button></div>
       <div class="ha-steps" data-k="i" style="${ios ? '' : 'display:none'}">${list(true)}</div>
       <div class="ha-steps" data-k="a" style="${ios ? 'display:none' : ''}">${list(false)}</div>
-      <div class="ha-prev" data-k="a" style="${ios ? 'display:none' : ''}"><img src="${this.iconURL(s)}" alt=""><div><b>${U.esc(label)}</b><small>이렇게 생긴 아이콘이 생겨요</small></div></div>
+      <div class="ha-prev" data-k="x" style="display:none"><img src="${this.iconURL(s)}" alt=""><div><b>${U.esc(label)}</b><small>이렇게 생긴 아이콘이 생겨요</small></div></div>
       ${kakao ? `<button class="ha-btn navy" onclick="HomeAdd.openExternal()">${ios ? '사파리로 열기' : '크롬으로 열기'}</button>` : ''}
       <button class="ha-later" onclick="HomeAdd.closeSheet()">닫기</button>
     `);
@@ -215,6 +218,8 @@ const HomeAdd = {
   openExternal() {
     let u = location.href;
     if (!/[?&]add=1\b/.test(u)) u += (u.indexOf('?') >= 0 ? '&' : '?') + 'add=1';
+    // 안드로이드: 기본 브라우저(삼성 인터넷 등)가 아니라 크롬으로 (안내 그림이 크롬 기준)
+    if (this.isAndroid()) { location.href = `intent://${u.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`; return; }
     location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(u);
   },
 

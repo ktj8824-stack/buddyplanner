@@ -851,3 +851,4 @@ button.ha-opt:active { transform: scale(.98); }
 .hg-n { position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%; background: #ff3b30; color: #fff; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; z-index: 1; }
 .hg-n.ok { background: #10b981; }
 .hg-kakao { margin: 10px 0 0; padding: 10px 12px; background: #fff7d6; border-radius: 12px; font-size: 14px; color: #5a4500; }
+.hg-warn { margin: 10px 0 0; padding: 10px 12px; background: #fdecea; border-radius: 12px; font-size: 13px; color: #9b1c1c; line-height: 1.45; }

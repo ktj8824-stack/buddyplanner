@@ -1,4 +1,4 @@
-const CACHE_NAME = 'buddyplanner-v254-cache';
+const CACHE_NAME = 'buddyplanner-v255-cache';
 const ASSETS = [
   './',
   './index.html',
