@@ -299,8 +299,11 @@ const HomeAdd = {
   /** 홈 화면 아이콘으로 열었을 때: 저장된 같은 일정이 있으면 그걸, 없으면 다시 만들어서 타임라인 열기 */
   restore(str) {
     const s = this.unpack(str); if (!s) return false;
-    const key = (x) => `${(x.course && x.course.name) || ''}|${new Date(x.date).toDateString()}|${x.teeOff}`;
-    let idx = State.schedules.findIndex(x => key(x) === key(s));
+    // 이 기기에 같은 라운딩(같은 골프장·같은 날)이 이미 있으면 그걸 엶 — 아이콘 주소엔 '처음 저장할 때' 내용이 들어 있어서,
+    // 그 뒤에 출발지·티오프를 바꾼 일정을 예전 내용으로 되돌리거나 하나 더 만들면 안 됨
+    const key = (x) => `${String((x.course && x.course.name) || '').replace(/\s+/g, '')}|${new Date(x.date).toDateString()}`;
+    let idx = -1;
+    State.schedules.forEach((x, i) => { if (x && key(x) === key(s)) idx = i; });   // 여러 개면 가장 나중 것
     if (idx < 0) { State.addSchedule(s); idx = State.schedules.length - 1; }
     try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { }
     App.viewTimeline(idx);
