@@ -161,7 +161,7 @@ const Home = {
         Group.refreshListQuiet().then(() => { if ((localStorage.getItem('bp_ge_list') || '') !== before && State.screen === 'home') this.render(); }).catch(() => {});
       }
     } catch (e) { /* */ }
-    const showTl = upcoming.length || grp;
+    const showTl = true;   // 일정이 없을 때도 출발·골프장·티오프 칸을 --:-- 로 보여 줌
     const heroHtml = `
       <div class="home-glounge-wrapper">
         <div class="home-glounge-hero">
@@ -175,7 +175,7 @@ const Home = {
               <div class="mini-tl-node"><span class="mini-tl-tag tag-arrival">골프장</span><span class="mini-tl-val">${arr}</span></div>
               ${arrow}
               <div class="mini-tl-node highlight"><span class="mini-tl-tag tag-teeoff">티오프</span><span class="mini-tl-val">${tee}</span></div>
-            </div>` : `<div class="hero-empty-hint">골프장·티오프만 넣으면<br>출발 시간이 자동 계산돼요</div>`}
+            </div>` : ''}
             <button class="glounge-pill-btn" onclick="${btnAction}">${btnText}
               <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
