@@ -129,13 +129,12 @@ const HomeAdd = {
     this._idx = idx;
     this.prepare(idx);
     const c = s.course || {};
-    const iosNoStore = this.isIOS() && !this.IOS_STORE;
     this._sheet('ha-offer', `
       <div class="ha-ok">✓</div>
       <h3 style="text-align:center">${updated ? '바뀐 내용으로 고쳤어요' : '일정을 저장했어요'}</h3>
       <p class="ha-sub" style="text-align:center">${U.esc(U.fmtDateShort(new Date(s.date)))} ${U.esc(s.teeOff || '')} · ${U.esc(c.name || '')}</p>
       ${updated ? `<div class="ha-warn"><b>📌 홈 화면 아이콘이 있다면</b><span>예전 아이콘 지우기 → 아래 「홈 화면에 추가」</span></div>` : ''}
-      ${iosNoStore ? '' : `<button class="ha-opt on" onclick="HomeAdd.installFromOffer()"><span class="i">📲</span><div><b>앱 설치하기</b><small>출발 알람 · 차에 타면 길안내 (가장 추천)</small></div><span class="go">›</span></button>`}
+      <button class="ha-opt on ha-app" onclick="HomeAdd.installFromOffer()"><span class="i">📲</span><div><b>앱 설치하고 받기 <em>추천</em></b><small>⏰ 출발 시간 알람<br>🚗 차에 타면 길안내 자동 시작<br>🔄 다시 받아도 아이콘 지울 필요 없어요</small></div><span class="go">›</span></button>
       <button class="ha-opt" onclick="HomeAdd.addHome()"><span class="i">🏠</span><div><b>홈 화면에 추가</b><small>${this.isAndroid() ? '그림 따라 5번 누르기 · 누르면 이 일정이 바로 열려요' : `「${U.esc(this.label(s))}」 아이콘 · 그림 따라 5번 누르기`}</small></div><span class="go">›</span></button>
       <button class="ha-later" onclick="HomeAdd.closeSheet()">나중에 할게요</button>
     `);
