@@ -75,6 +75,9 @@ const Timeline = {
     const startIco = /회사|사무실/.test(startPt) ? I.office : /집|자택/.test(startPt) ? I.home : I.pin;
     const home = { name: s.startAddress || startPt, lat: s.startLat || 0, lng: s.startLng || 0 };
     const startFrom = { name: startPt, lat: s.startLat || 0, lng: s.startLng || 0 };
+    // 출발지 이름·주소 (집·회사로만 쓰면 어디서 나가는지 몰라서 같이 보여 줌)
+    const startAddr = String(s.startAddress || '').trim();
+    const place = startAddr && startAddr !== startPt ? startAddr : '';
     const course = { name: s.course.name, lat: s.course.lat, lng: s.course.lng };
     const mp = s.meetingPointObj || {};
     const meet = tl.hasMeetingPoint ? { name: tl.meetingPointName || mp.name || '집결지', lat: mp.lat || 0, lng: mp.lng || 0 } : null;
@@ -85,7 +88,7 @@ const Timeline = {
     const roundOver = this.isRoundOver(s);
     const steps = [];
     steps.push({ key: 'prep', time: tl.prepStart, ico: I.home, title: '준비 시작', sub: '보스턴백, 거리측정기, 골프공을 챙기세요' });
-    steps.push({ key: 'depart', time: tl.homeDepart, ico: startIco, title: `${startPt}에서 출발`, depart: true,
+    steps.push({ key: 'depart', time: tl.homeDepart, ico: startIco, title: `${startPt}에서 출발`, depart: true, place,
       sub: s.routeEstimated ? `${next1.name}까지 약 ${tl.homeTravelDur}분 (거리로 어림잡음)` : `${next1.name}까지 약 ${tl.homeTravelDur}분`,
       nav: { to: next1, from: startFrom }, tip: '보스턴백, 거리측정기, 골프공 챙기셨나요?' });
     if (meet) {
@@ -124,7 +127,7 @@ const Timeline = {
         sub: `${tl.afterMode === 'place' ? '약속 시간 · ' : ''}${cat ? String(cat).split('>').pop().trim() + ' · ' : ''}약 2시간`, nav: { to: post, from: course },
         extra: (rv.count > 0 ? ReviewStore.renderStars(rv.avgRating, rv.count) : '') + (roundOver ? `<button class="v2-step-act" style="padding-left:0" onclick="ReviewStore.openRatingModal(${U.jsq(post.name)}, ${U.jsq(s.course.name)})">식당 평가하기</button>` : '') });
     }
-    steps.push({ key: 'return', time: tl.returnStart, ico: startIco, title: `${U.josa(startPt, '으로/로')} 귀가`, depart: true,
+    steps.push({ key: 'return', time: tl.returnStart, ico: startIco, title: `${U.josa(startPt, '으로/로')} 귀가`, depart: true, place,
       sub: `약 ${tl.returnTravelDur}분 · ${tl.returnEnd} 도착 예상`, nav: { to: home, from: post || course } });
     return steps.filter(x => x.time);
   },
@@ -149,7 +152,7 @@ const Timeline = {
         <div class="v2-step-row">
           <span class="v2-step-ico${st.meal ? ' meal' : ''}">${st.ico}</span>
           <span class="v2-step-time">${st.time}${prevDay(st.time, i)}</span>
-          <span class="v2-step-title">${U.esc(st.title)}${st.inlineSub ? `<small style="display:block; font-size:14px; color:var(--v2-sub); font-weight:500; margin-top:2px;">${U.esc(st.inlineSub)}</small>` : ''}</span>
+          <span class="v2-step-title">${U.esc(st.title)}${st.place ? `<small class="v2-step-place">📍 ${U.esc(st.place)}</small>` : ''}${st.inlineSub ? `<small style="display:block; font-size:14px; color:var(--v2-sub); font-weight:500; margin-top:2px;">${U.esc(st.inlineSub)}</small>` : ''}</span>
           ${st.nav ? `<button class="v2-step-act" onclick="Timeline.navStep(${i})">길찾기</button>` : ''}
           <span class="v2-step-now" style="display:none">지금</span>
         </div>
@@ -190,6 +193,10 @@ const Timeline = {
           </div>
           ${this.renderCompanions(s.companions)}
           <button class="v2-tl-del" onclick="Timeline.deleteSchedule()">이 일정 삭제하기</button>
+          <div class="v2-brand">
+            <img src="icon-192.png" alt="">
+            <div><b>BuddyPlanner</b><span>골프 라운딩 일정 비서</span><small>티오프에 맞춘 출발 알람·길안내 · 동반자 공유·맛집·스코어 기록</small></div>
+          </div>
         </div>
       </div>`;
   },
@@ -262,6 +269,7 @@ const Timeline = {
       <div class="v2-now">
         <div class="v2-now-top"><span>${isToday ? '지금 할 일' : '첫 출발'}</span><span class="v2-pill yellow">${pill}</span></div>
         <div class="v2-now-main"><b>${st.time}</b><span>${U.esc(st.title)}</span></div>
+        ${st.place ? `<div class="v2-now-place">📍 ${U.esc(st.place)}</div>` : ''}
         <div class="v2-now-desc">${U.esc(st.sub || '')}${st.tip ? ' · ' + U.esc(st.tip) : ''}</div>
         <div class="v2-now-btns">
           <button class="tmap" onclick="Timeline.navStep(${target}, 'tmap')">TMAP</button>
