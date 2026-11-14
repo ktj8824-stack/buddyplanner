@@ -325,6 +325,15 @@ const U = {
   async kakaoNativeShare(feed) {
     const C = window.Capacitor;
     if (!C || typeof C.isNativePlatform !== 'function' || !C.isNativePlatform()) return false;
+    // 아이폰 앱: 카카오 공유 기능이 앱 안에 없음 → buddyplanner.kr 중계 페이지를 사파리로 열어 카드로 보냄
+    //   (그냥 두면 긴 링크 주소가 그대로 찍힌 글로 가 버림)
+    if (C.getPlatform && C.getPlatform() === 'ios' && feed && feed.content) {
+      try {
+        const b = btoa(unescape(encodeURIComponent(JSON.stringify(feed)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        window.location.href = 'https://buddyplanner.kr/kshare.html#' + b;
+        return true;
+      } catch (e) { console.warn('[KakaoShare] 아이폰 중계 실패', e); return false; }
+    }
     C.Plugins = C.Plugins || {};
     const P = C.Plugins.KakaoShare || (typeof C.registerPlugin === 'function' ? (C.Plugins.KakaoShare = C.registerPlugin('KakaoShare')) : null);
     if (!P || !feed || !feed.content) return false;
