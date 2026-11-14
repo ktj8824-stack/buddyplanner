@@ -44,8 +44,22 @@ const AutoNav = {
     // 아이폰 앱이 앱 전용 주소로 처음 켜진 경우 (이미 켜져 있을 때는 appUrlOpen에서 처리)
     try {
       const A = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
-      if (A && A.getLaunchUrl) A.getLaunchUrl().then(r => { if (r && this.isAppLink(r.url) && !this._launched) { this._launched = true; this.start(); } }).catch(() => {});
+      if (A && A.getLaunchUrl) A.getLaunchUrl().then(r => {
+        if (!r || !this.isAppLink(r.url)) return;
+        // 화면이 새로고침돼도 같은 실행에서 두 번 열지 않게 (앱을 새로 켜면 다시 됨)
+        try { if (sessionStorage.getItem('bp_an_launch') === '1') return; sessionStorage.setItem('bp_an_launch', '1'); } catch (e) { }
+        this.trigger();
+      }).catch(() => {});
     } catch (e) { /* */ }
+  },
+
+  /** 앱 전용 주소(buddyplanner://next)로 열릴 때마다 부름. 같은 신호가 겹쳐 와도 4초 안에는 한 번만.
+      (예전에는 한 번 켜지면 앱을 끌 때까지 다시 안 열리는 문제가 있었음) */
+  trigger() {
+    const now = Date.now();
+    if (now - (this._lastTrig || 0) < 4000) return;
+    this._lastTrig = now;
+    this.start();
   },
 
   /* ── 공유 화면용 '바로 길안내' (로그인 없이, 지금 있는 곳에서 출발) ── */
@@ -187,6 +201,14 @@ const AutoNav = {
         <button type="button" class="an-go an-kakao" onclick="AutoNav.go('kakao')">카카오내비</button>`}
       </div>
       ${app ? '' : '<button type="button" class="an-link" onclick="AutoNav.cancel()">닫기</button>'}`;
+    // 뒤에는 그 일정의 타임라인을 띄워 둠 (내비에서 돌아왔을 때 홈이 아니라 오늘 일정이 보이게)
+    try {
+      const idx = State.schedules.indexOf(leg.s);
+      if (idx >= 0 && typeof App !== 'undefined' && App.viewTimeline) {
+        try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { }
+        App.viewTimeline(idx);
+      }
+    } catch (e) { /* */ }
     // 기본 내비를 정해 두었으면 기다리지 않고 바로 내비를 엶 (운전 중 화면을 누를 일이 없게)
     if (app) {
       return this.go();

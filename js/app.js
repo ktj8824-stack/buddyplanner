@@ -937,7 +937,7 @@ const App = {
     if (!urlStr) return null;
     // 차에 타면 자동 길안내 (아이폰 앱 전용 주소)
     if (typeof AutoNav !== 'undefined' && AutoNav.isAppLink && AutoNav.isAppLink(urlStr)) {
-      if (!AutoNav._launched) { AutoNav._launched = true; setTimeout(() => { AutoNav._launched = false; }, 4000); setTimeout(() => AutoNav.start(), 300); }
+      setTimeout(() => AutoNav.trigger(), 300);
       return 'autonav';
     }
     // 단체 일정 링크 (?g=코드) → 로그인 없이 바로 단체 일정 화면
