@@ -87,16 +87,18 @@ const Profile = {
             <div class="v2-li-block"><span>글꼴</span><div class="v2-seg setting-options">${seg(currentFont, [['Pretendard', '고딕'], ['Nanum Myeongjo', '명조'], ['Gowun Dodum', '둥근고딕']], 'Profile.setFont')}</div></div>
           </div>
 
-          <div class="v2-sec-title">데이터</div>
+          ${(() => {
+            // 로그인한 사람은 자동 보관이 항상 되므로 따로 보여 주지 않음. 로그인 안 한 사람에게만 안내.
+            // 파일 백업·불러오기는 관리자에게만.
+            const needLogin = typeof Cloud !== 'undefined' && Cloud.isConfigured() && !cloudOn;
+            const rows = (needLogin ? `<button class="v2-li" onclick="App.navigate('login')"><span class="k">로그인하고 자동 보관 켜기<small>로그인하면 일정과 기록이 자동으로 보관돼요</small></span>${chev}</button>` : '')
+              + (this.canAdmin() ? `<button class="v2-li" onclick="Profile.exportData()"><span class="k">기기에 파일로 백업</span>${chev}</button>
+            <button class="v2-li" onclick="Profile.importData()"><span class="k">파일에서 불러오기</span>${chev}</button>` : '');
+            return rows ? `<div class="v2-sec-title">데이터</div>
           <div class="v2-list">
-            ${(typeof Cloud !== 'undefined' && Cloud.isConfigured()) ? `
-            <div class="v2-li" style="cursor:default;">
-              <span class="k">클라우드 자동 백업<small id="cloud-status-text">${cloudOn ? '라운드 기록과 일정을 자동으로 보관해요' : U.esc(Cloud.statusText())}</small></span>
-              <button class="v2-switch ${cloudOn ? 'on' : ''}" role="switch" aria-checked="${cloudOn}" aria-label="클라우드 자동 백업" onclick="Profile.cloudSwitch()"></button>
-            </div>` : ''}
-            <button class="v2-li" onclick="Profile.exportData()"><span class="k">기기에 파일로 백업</span>${chev}</button>
-            <button class="v2-li" onclick="Profile.importData()"><span class="k">파일에서 불러오기</span>${chev}</button>
-          </div>
+            ${rows}
+          </div>` : '';
+          })()}
 
           <div class="v2-sec-title">계정</div>
           <div class="v2-list">
