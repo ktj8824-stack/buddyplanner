@@ -308,12 +308,31 @@ const App = {
   // 카카오 AdFit 광고 단위 ID (발급 후 교체)
   ADFIT_UNIT_ID: 'DAN-XXXXXXXXXXXXXXXX',
 
-  // 구글 애드몹 배너 ID (실제 광고 단위)
-  ADMOB_BANNER_ID: 'ca-app-pub-6195996093323539/4522782054',
-  // 구글 애드몹 전면(전환) 광고 ID (실제 광고 단위)
-  ADMOB_INTERSTITIAL_ID: 'ca-app-pub-6195996093323539/7047651850',
-  // 구글 애드몹 보상형 동영상 광고 ID (실제 광고 단위)
-  ADMOB_REWARD_ID: 'ca-app-pub-6195996093323539/4620360062',
+  // 구글 애드몹 광고 단위 (실제). 애드몹 번호는 앱마다 따로라 안드로이드·아이폰을 나눔
+  //  안드로이드 앱 ~8134724002 / 아이폰 앱 ~9216384071 (2026-11-15 추가)
+  ADMOB_IDS: {
+    android: { banner: 'ca-app-pub-6195996093323539/4522782054', interstitial: 'ca-app-pub-6195996093323539/7047651850', reward: 'ca-app-pub-6195996093323539/4620360062' },
+    ios:     { banner: 'ca-app-pub-6195996093323539/3385472892', interstitial: 'ca-app-pub-6195996093323539/6231303094', reward: 'ca-app-pub-6195996093323539/2072391229' },
+  },
+  _admobIds() {
+    let p = 'android';
+    try { p = window.Capacitor && window.Capacitor.getPlatform ? window.Capacitor.getPlatform() : 'android'; } catch (e) { }
+    return this.ADMOB_IDS[p === 'ios' ? 'ios' : 'android'];
+  },
+  get ADMOB_BANNER_ID() { return this._admobIds().banner; },
+  get ADMOB_INTERSTITIAL_ID() { return this._admobIds().interstitial; },
+  get ADMOB_REWARD_ID() { return this._admobIds().reward; },
+
+  /** 아이폰: 광고를 처음 띄우기 전에 '추적 허용'을 한 번 물음 (허용 안 해도 광고는 나옴, 맞춤 광고만 꺼짐) */
+  async _askTrackingOnce(AdMob) {
+    try {
+      if (this._attAsked) return; this._attAsked = true;
+      if (!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios')) return;
+      if (!AdMob.trackingAuthorizationStatus || !AdMob.requestTrackingAuthorization) return;
+      const st = await AdMob.trackingAuthorizationStatus();
+      if (st && st.status === 'notDetermined') await AdMob.requestTrackingAuthorization();
+    } catch (e) { /* 물어보지 못해도 광고는 그대로 */ }
+  },
 
   // 커뮤니티 공개 여부 (false면 메뉴·홈 바로가기에서 숨기고 이동도 막음)
   COMMUNITY_OPEN: true,
@@ -392,6 +411,7 @@ const App = {
       const AdMob = window.Capacitor.Plugins.AdMob;
       if (AdMob) {
         try {
+          await this._askTrackingOnce(AdMob);
           await AdMob.prepareInterstitial({
             adId: this.ADMOB_INTERSTITIAL_ID,
             isTesting: App.adsTestMode()
@@ -471,7 +491,7 @@ const App = {
       const AdMob = window.Capacitor.Plugins.AdMob;
       if (AdMob) {
         try {
-          if (!this._admobInit) { await AdMob.initialize({}); this._admobInit = true; }
+          if (!this._admobInit) { await this._askTrackingOnce(AdMob); await AdMob.initialize({}); this._admobInit = true; }
           // 시작 화면·로그인 등 광고를 숨기는 화면에서는 띄우지 않고, 광고 보이는 화면으로 처음 갈 때 띄움
           if (this.bannerHiddenOn(State.screen)) { this._bannerPending = true; return; }
           this._bannerPending = false;

@@ -198,6 +198,7 @@ const Profile = {
     if (window.Capacitor && window.Capacitor.isNativePlatform() && window.Capacitor.Plugins.AdMob) {
       const AdMob = window.Capacitor.Plugins.AdMob;
       try {
+        try { await App._askTrackingOnce(AdMob); } catch (e) { }
         await AdMob.prepareRewardVideoAd({
           adId: App.ADMOB_REWARD_ID,
           isTesting: App.adsTestMode(),
