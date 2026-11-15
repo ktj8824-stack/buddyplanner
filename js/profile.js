@@ -324,6 +324,14 @@ const Profile = {
 
     const provider = localStorage.getItem('bp_provider');
 
+    // 0-1) Apple 로 가입한 사람: Apple 확인을 한 번 더 받아 Apple 쪽 연결도 끊음 (서버 계정을 지우기 전에)
+    if (provider === 'apple' && typeof Login !== 'undefined' && Login.revokeApple && typeof Cloud !== 'undefined' && Cloud.isSignedIn()) {
+      U.toast('Apple 계정 연결을 끊으려면 확인해 주세요');
+      const r = await Login.revokeApple();
+      if (r === 'cancel') { U.toast('Apple 확인을 취소해서 탈퇴를 멈췄어요'); return; }
+      if (r === 'fail') console.warn('[Profile] Apple 연결 끊기 실패 — 탈퇴는 계속');
+    }
+
     // 0) 클라우드에 저장된 사진·데이터·계정 삭제 (실패하면 중단: 서버에 데이터가 남지 않게)
     if (typeof Cloud !== 'undefined' && Cloud.isSignedIn()) {
       try {

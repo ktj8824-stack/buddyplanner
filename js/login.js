@@ -156,6 +156,34 @@ const Login = {
     }
   },
 
+  /**
+   * 회원 탈퇴 때: Apple 확인을 한 번 더 받아 Apple 쪽 연결을 끊음 (애플 심사 지침 5.1.1(v))
+   * 반환: 'ok' 끊음 / 'cancel' 사용자가 취소 / 'fail' 끊지 못함(서버 미설정·오류 — 탈퇴는 계속)
+   */
+  async revokeApple() {
+    const plugin = this.socialLoginPlugin();
+    if (!plugin || typeof Cloud === 'undefined') return 'fail';
+    let code = '';
+    try {
+      if (!this._appleReady) this._appleReady = plugin.initialize({ apple: {} }).catch(e => { this._appleReady = null; throw e; });
+      await this._appleReady;
+      const res = await plugin.login({ provider: 'apple', options: { scopes: [] } });
+      const r = (res && res.result) || {};
+      // 기본(예전) 방식에서는 accessToken 자리에 authorization code 가 들어옴
+      code = r.authorizationCode || (r.accessToken && r.accessToken.token) || '';
+    } catch (e) {
+      const msg = String((e && (e.message || e.code)) || e || '');
+      if (/cancel|1001/i.test(msg)) return 'cancel';
+      console.warn('Apple revoke login', e);
+      return 'fail';
+    }
+    if (!code) return 'fail';
+    try {
+      await Cloud._api('functions/v1/apple-revoke', { method: 'POST', body: { code } });
+      return 'ok';
+    } catch (e) { console.warn('apple-revoke', e); return 'fail'; }
+  },
+
   async doGoogleLoginNative() {
     const plugin = this.socialLoginPlugin();
     if (!plugin) { U.toast('구글 로그인을 사용할 수 없습니다.'); return; }
