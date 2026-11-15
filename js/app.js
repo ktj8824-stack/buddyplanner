@@ -403,6 +403,17 @@ const App = {
     }
   },
 
+  /** 새 일정을 만든 뒤 전면 광고: 첫 일정은 빼고, 하루 한 번까지만 (일정을 고칠 때는 부르지 않음) */
+  maybeInterstitialAfterCreate() {
+    try {
+      if ((State.schedules || []).length <= 1) return;          // 첫 일정
+      const today = new Date().toDateString();
+      if (localStorage.getItem('bp_ad_inter_day') === today) return;  // 오늘 이미 봄
+      localStorage.setItem('bp_ad_inter_day', today);
+    } catch (e) { return; }
+    this.showInterstitialAd();
+  },
+
   async showInterstitialAd() {
     if (State.isPro) return; // PRO 회원은 전면 광고 없음
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
@@ -444,7 +455,8 @@ const App = {
   },
 
   /** 배너 광고를 숨기는 화면 (시작·로그인·설정 화면 등) 또는 PRO */
-  BANNER_HIDDEN_SCREENS: ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai', 'upgrade'],
+  // 일정 등록 화면: 입력칸·'스마트 플랜 만들기' 버튼 바로 아래라 잘못 누르기 쉬움 → 숨김
+  BANNER_HIDDEN_SCREENS: ['splash', 'onboarding', 'profile', 'record', 'community', 'login', 'admin', 'ai', 'upgrade', 'register'],
   bannerHiddenOn(name) {
     return State.isPro || !name || this.BANNER_HIDDEN_SCREENS.includes(name);
   },

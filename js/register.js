@@ -1607,7 +1607,7 @@ ${this._afterHTML()}
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(idx);
       Timeline.alarmOn();
-      App.showInterstitialAd();
+      // 일정을 고칠 때는 전면 광고를 띄우지 않음
     } else {
       const fromShare = !!this.shared;
       // 같은 일정을 고쳐서 다시 보낸 링크면 예전에 받은 일정을 새 내용으로 바꿔 끼움 (두 개가 되거나 예전 것이 보이지 않게)
@@ -1635,7 +1635,7 @@ ${this._afterHTML()}
       Timeline.alarmOn();
       // 공유받은 일정을 웹에서 저장 → 앱 설치 / 홈 화면 추가 안내 (광고 대신)
       if (fromShare && !U.isNativeApp() && typeof HomeAdd !== 'undefined') setTimeout(() => HomeAdd.offer(State.schedules.length - 1), 700);
-      else App.showInterstitialAd();
+      else App.maybeInterstitialAfterCreate();
     }
   }
 };
