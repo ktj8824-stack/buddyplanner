@@ -76,6 +76,9 @@ $PB_ -c "Delete :NSPhotoLibraryUsageDescription" "$PL" 2>/dev/null || true
 $PB_ -c "Add :NSPhotoLibraryUsageDescription string 스코어카드 사진을 기록에 붙이거나 AI 비서에게 보내려면 사진 접근이 필요해요." "$PL"
 $PB_ -c "Delete :NSCameraUsageDescription" "$PL" 2>/dev/null || true
 $PB_ -c "Add :NSCameraUsageDescription string 스코어카드를 바로 찍어 기록하려면 카메라가 필요해요." "$PL"
+# 표준 암호화(HTTPS)만 사용 → 앱 올릴 때 수출 규정 질문 생략
+$PB_ -c "Delete :ITSAppUsesNonExemptEncryption" "$PL" 2>/dev/null || true
+$PB_ -c "Add :ITSAppUsesNonExemptEncryption bool false" "$PL"
 
 step "7/7 엑스코드 열기"
 open ios/App/App.xcodeproj
