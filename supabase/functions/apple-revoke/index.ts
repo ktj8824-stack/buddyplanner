@@ -5,7 +5,7 @@
 //
 // 비밀값 (Supabase → Edge Functions → Secrets):
 //   APPLE_PRIVATE_KEY  애플 개발자 사이트에서 받은 .p8 파일 내용 전체 (BEGIN/END 줄 포함)
-//   APPLE_KEY_ID       그 키의 Key ID (10자리)
+//   APPLE_KEY_ID       그 키의 Key ID (없으면 아래 기본값)
 //   APPLE_TEAM_ID      팀 ID (없으면 아래 기본값)
 //   APPLE_CLIENT_ID    앱 번들 ID (없으면 com.myB11)
 // 자동: SUPABASE_URL, SUPABASE_ANON_KEY
@@ -20,6 +20,7 @@ const json = (status: number, body: unknown) =>
 
 const DEFAULT_TEAM_ID = "WKR837G6CH";
 const DEFAULT_CLIENT_ID = "com.myB11";
+const DEFAULT_KEY_ID = "XRSDV9QSRH";   // 애플 개발자 사이트의 Sign in with Apple 키 ID (비밀 아님)
 
 const b64url = (buf: ArrayBuffer | Uint8Array | string) => {
   const bytes = typeof buf === "string" ? new TextEncoder().encode(buf) : new Uint8Array(buf as ArrayBuffer);
@@ -54,7 +55,7 @@ if (D && D.serve) D.serve(async (req: Request) => {
   try { code = String((await req.json()).code || "").slice(0, 2000); } catch { /* */ }
   if (!code) return json(400, { error: "code_required" });
 
-  const pem = env.APPLE_PRIVATE_KEY, keyId = env.APPLE_KEY_ID;
+  const pem = env.APPLE_PRIVATE_KEY, keyId = env.APPLE_KEY_ID || DEFAULT_KEY_ID;
   if (!pem || !keyId) return json(503, { error: "not_configured" });
   const clientId = env.APPLE_CLIENT_ID || DEFAULT_CLIENT_ID;
 
