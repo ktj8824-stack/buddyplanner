@@ -64,7 +64,7 @@ const Group = {
     if (this.list && this.list.length) return this.list;
     try { return JSON.parse(localStorage.getItem('bp_ge_list') || '[]') || []; } catch (e) { return []; }
   },
-  _cacheList() { try { localStorage.setItem('bp_ge_list', JSON.stringify((this.list || []).map(x => ({ code: x.code, title: x.title, course_name: x.course_name, round_date: x.round_date, tee_off: x.tee_off, i_am_owner: x.i_am_owner, yes_count: x.yes_count, total: x.total })))); } catch (e) { } },
+  _cacheList() { try { localStorage.setItem('bp_ge_list', JSON.stringify((this.list || []).map(x => ({ code: x.code, title: x.title, course_name: x.course_name, round_date: x.round_date, tee_off: x.tee_off, i_am_owner: x.i_am_owner, my_status: x.my_status, yes_count: x.yes_count, total: x.total })))); } catch (e) { } },
   /** 캘린더에서 부름: 서버에서 목록만 새로 받아 저장 (단체 화면은 다시 그리지 않음) */
   async refreshListQuiet() {
     if (!this.signedIn()) return this.cachedList();

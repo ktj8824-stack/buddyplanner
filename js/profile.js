@@ -412,6 +412,9 @@ const Profile = {
       localStorage.removeItem('bp_provider');
       localStorage.removeItem('bp_user_name');
       localStorage.removeItem('bp_user_email');
+      // 단체 라운딩 목록(홈 '등록 안내' 카드용)도 지워서 다음 계정 홈에 앞 사람 단체 라운딩이 뜨지 않게
+      localStorage.removeItem('bp_ge_list');
+      if (typeof Group !== 'undefined') Group.list = [];
 
       U.toast('로그아웃 되었습니다.');
       App.navigate('login');

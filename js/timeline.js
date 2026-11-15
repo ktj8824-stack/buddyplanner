@@ -295,6 +295,20 @@ const Timeline = {
   },
 
   /** '출발했어요': 그 단계까지 지난 것으로 표시 (그날만) */
+  /** 자동 길안내가 그 구간 안내를 시작했을 때: 그 출발 단계를 지난 것으로 표시 (알림·다시 그리기 없이) */
+  markDepartedKey(s, key) {
+    if (!s || !key) return;
+    try {
+      const d = new Date(s.date); d.setHours(0, 0, 0, 0);
+      if (!s.tlDone || s.tlDone.day !== d.getTime()) s.tlDone = { day: d.getTime(), keys: [] };
+      if (s.tlDone.keys.indexOf(key) < 0) s.tlDone.keys.push(key);
+      const left = this._tripOf(s).left;
+      if (!left[key]) left[key] = Date.now();
+      State.saveSchedules();
+      if (State.screen === 'timeline' && State.schedules[this.schedIdx] === s) this.render();
+    } catch (e) { /* */ }
+  },
+
   markDeparted(i) {
     const s = State.schedules[this.schedIdx];
     const st = (this._steps || [])[i];

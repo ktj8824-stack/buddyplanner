@@ -139,7 +139,7 @@ const Home = {
       const ymdOf = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
       const mine = new Set((State.schedules || []).map(x => x && x.groupCode).filter(Boolean));
       const list = (typeof Group !== 'undefined' && Group.cachedList) ? Group.cachedList() : [];
-      grp = list.filter(x => x && x.code && x.round_date && x.round_date >= ymdOf(today) && !mine.has(x.code))
+      grp = list.filter(x => x && x.code && x.round_date && x.round_date >= ymdOf(today) && !mine.has(x.code) && x.my_status !== 'no')   // 불참으로 답한 단체 라운딩은 안내하지 않음
         .sort((x, y) => String(x.round_date).localeCompare(String(y.round_date)) || String(x.tee_off || '').localeCompare(String(y.tee_off || '')))[0] || null;
       // 같은 날이거나 더 이른 내 일정이 있으면 내 일정이 먼저
       if (grp && upcoming.length && ymdOf(new Date(upcoming[0].date)) <= grp.round_date) grp = null;

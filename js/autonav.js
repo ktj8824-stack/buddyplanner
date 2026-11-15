@@ -106,11 +106,11 @@ const AutoNav = {
     const post = s.hasPostMeal && s.postMealRestaurant ? { name: s.postMealRestaurant.name || '뒷풀이 식당', lat: s.postMealRestaurant.lat, lng: s.postMealRestaurant.lng } : null;
     const legs = [];
     const first = meet || rest || course;
-    legs.push({ dep: tl.homeDepart, from: home, to: first, label: meet ? '모임장소로 출발' : rest ? '식당으로 출발' : '골프장으로 출발' });
-    if (meet) legs.push({ dep: tl.meetDepart, from: meet, to: rest || course, label: rest ? '식당으로 출발' : '골프장으로 출발' });
-    if (rest) legs.push({ dep: tl.restDepart, from: rest, to: course, label: '골프장으로 출발' });
-    if (post) legs.push({ dep: tl.leaveCourse || tl.roundEnd, from: course, to: post, label: '뒷풀이 식당으로' });
-    legs.push({ dep: tl.returnStart, from: post || course, to: home, label: '집으로 귀가' });
+    legs.push({ key: 'depart', dep: tl.homeDepart, from: home, to: first, label: meet ? '모임장소로 출발' : rest ? '식당으로 출발' : '골프장으로 출발' });
+    if (meet) legs.push({ key: 'meetDepart', dep: tl.meetDepart, from: meet, to: rest || course, label: rest ? '식당으로 출발' : '골프장으로 출발' });
+    if (rest) legs.push({ key: 'restDepart', dep: tl.restDepart, from: rest, to: course, label: '골프장으로 출발' });
+    if (post) legs.push({ key: 'postDepart', dep: tl.leaveCourse || tl.roundEnd, from: course, to: post, label: '뒷풀이 식당으로' });
+    legs.push({ key: 'return', dep: tl.returnStart, from: post || course, to: home, label: '집으로 귀가' });
     // 구간마다 '언제까지 이 구간이 맞는지(until)'를 붙임 (라운딩 날 0시 기준 분, 전날 밤 출발은 음수)
     //  - 골프장 쪽으로 가는 구간: 티오프 + 45분까지 (늦게 출발해도 골프장으로 안내)
     //  - 뒷풀이 식당: 귀가 출발 시각까지 / 집으로 귀가: 귀가 출발 + 3시간까지
@@ -204,7 +204,9 @@ const AutoNav = {
     // 뒤에는 그 일정의 타임라인을 띄워 둠 (내비에서 돌아왔을 때 홈이 아니라 오늘 일정이 보이게)
     try {
       const idx = State.schedules.indexOf(leg.s);
-      if (idx >= 0 && typeof App !== 'undefined' && App.viewTimeline) {
+      // 일정을 고치는 중(저장 전)이면 화면을 바꾸지 않음 → 바꾼 값이 사라지지 않게, 내비만 엶
+      const editing = State.screen === 'register' && typeof Register !== 'undefined' && Register.editIdx != null;
+      if (idx >= 0 && !editing && typeof App !== 'undefined' && App.viewTimeline) {
         try { if (typeof Splash !== 'undefined') { clearTimeout(Splash.timeoutId); Splash.done = true; } } catch (e) { }
         App.viewTimeline(idx);
       }
@@ -266,6 +268,8 @@ const AutoNav = {
       const n = this._noticeInfo();
       if (n) { localStorage.setItem('bp_autonav_gone', n.key); this.clearNotice(n.aid); }
     } catch (e) { }
+    // 안내를 시작한 구간은 '출발함'으로 표시 → 타임라인 '지금 할 일'이 다음 단계로 넘어감 (휴게소에서 다시 타도 '집에서 출발'이 남지 않게)
+    try { if (l.key && typeof Timeline !== 'undefined' && Timeline.markDepartedKey) Timeline.markDepartedKey(l.s, l.key); } catch (e) { }
     const app = appArg || this.pref();
     // 출발지는 넘기지 않음 → 내비가 지금 차가 있는 곳(현재 위치)에서 안내 (집에서 늦게 나오거나 다른 곳에서 출발해도 맞게)
     if (typeof Timeline !== 'undefined' && Timeline.openNav) Timeline.openNav(app === 'kakao' ? 'kakao' : 'tmap', l.to.name, l.to.lat, l.to.lng);
