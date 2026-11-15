@@ -171,7 +171,7 @@
 .v2-tl-foot { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .v2-tl-mini { display: flex; gap: 8px; }
 .v2-tl-mini button { flex: 1; height: 46px; border: 1px solid var(--v2-line); background: #fff; border-radius: 14px; font-size: 0.875rem; font-weight: 700; color: #334155; cursor: pointer; }
-.v2-tl-del { background: none; border: none; color: #94a3b8; font-size: 0.875rem; text-decoration: underline; padding: 10px; cursor: pointer; }
+.v2-tl-del { background: none; border: none; color: #dc2626; font-size: 1rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; padding: 10px 16px; cursor: pointer; }
 
 /* ========== 일정(달력) ========== */
 .v2-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
