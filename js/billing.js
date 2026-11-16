@@ -219,7 +219,7 @@ const Billing = {
      결제 스위치(payments_open)가 닫혀 있으면 마감일이 지나도 계속 무료이고 결제 화면이 나오지 않음.
      광고 제거는 포함하지 않음 (State.isPro = 실제 유료 PRO만).
      마감일은 서버 app_settings.pro_free_until 로 바꿀 수 있고, 못 받아오면 아래 기본값 사용. */
-  PROMO_DEFAULT: '2027-03-31T23:59:59+09:00',
+  PROMO_DEFAULT: '2027-02-28T23:59:59+09:00',
   PROMO_KEY: 'bp_promo_until',
   PAY_KEY: 'bp_pay_open',
   /** 결제 스위치 (서버 app_settings.payments_open). 서버가 '열림'이라고 알려 준 적이 있을 때만 true.
@@ -242,7 +242,7 @@ const Billing = {
     const d = new Date(this.promoUntil().getTime() + 9 * 3600 * 1000);
     return `${d.getUTCFullYear()}년 ${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일`;
   },
-  /** 화면에 적는 말: '2027년 3월 31일까지 무료' (마감일이 지났는데 결제가 닫혀 있으면 '지금은 모두 무료') */
+  /** 화면에 적는 말: '2027년 2월 28일까지 무료' (마감일이 지났는데 결제가 닫혀 있으면 '지금은 모두 무료') */
   promoText() { return this.promoDated() ? `${this.promoLabel()}까지 무료` : '지금은 모두 무료'; },
   /** 무료 기간 남은 날 (한국 날짜 기준, 마지막 날 = 1일) */
   promoDaysLeft() {
