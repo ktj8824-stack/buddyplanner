@@ -250,6 +250,7 @@ const Group = {
 
   render() {
     const el = this._el(); if (!el) return;
+    if (this.view === 'import') return this.renderImport(el);
     if (this.view === 'create' || this.view === 'edit') return this.renderForm(el);
     if (this.view === 'chat') return this.renderChat(el);
     if (this.view === 'detail') return this.renderDetail(el);
@@ -401,6 +402,9 @@ const Group = {
           <input id="gp-me" maxlength="20" placeholder="참석자들이 알아볼 이름" value="${U.esc(f.me)}">
 
           <label>조편성 <span class="gp-hint">비운 티업은 앞 조 +${this.TEAM_GAP}분 · 전화번호를 넣으면 개인 문자로도 보낼 수 있어요</span></label>
+          <div class="gi-imp"><button type="button" class="hl" onclick="Group.importPhoto()">📷 사진으로 넣기</button><button type="button" onclick="Group.importPaste()">📋 붙여넣기</button></div>
+          <div class="gi-hint">종이 조편성표·카톡 공지를 찍거나 붙이면 <b>이름·조·전화번호</b>를 알아서 채워요. 넣기 전에 확인 화면이 나와요.</div>
+          <input type="file" id="gi-file" accept="image/*" hidden onchange="Group.onImportFile(this)">
           ${teamHtml}
           ${f.teams.length < this.MAX_TEAMS ? `<button class="gt-add" onclick="Group.addTeam()">＋ ${f.teams.length + 1}조 추가</button>` : ''}
 
@@ -415,6 +419,167 @@ const Group = {
         </div>
       </div>`;
   },
+  /* ── 명단·조편성 가져오기: 📋 붙여넣기 · 📷 사진 → 확인 화면 → 조편성표에 넣기 ── */
+  imp: null,
+  importPaste() {
+    this._readTeamForm();
+    const old = U.$('#gi-sheet'); if (old) old.remove();
+    document.body.insertAdjacentHTML('beforeend', `
+      <div class="gi-sheet-dim" id="gi-sheet" onclick="if(event.target===this)this.remove()">
+        <div class="gi-sheet">
+          <h3>명단·조편성 붙여넣기</h3>
+          <p>카톡 공지·메모·엑셀 칸을 그대로 붙여 주세요. 조와 사람을 나눠서 보여 드려요.</p>
+          <textarea id="gi-text" placeholder="예)\n1조 07:00 김프로 010-1234-5678, 이버디, 박이글, 최파\n2조 07:07 정보기 / 강홀인원 / 조캐디 / 윤그린"></textarea>
+          <div class="gi-chips"><span>1. 홍길동</span><span>홍길동 010-…</span><span>1조: 김·이·박·최</span><span>엑셀 복사</span></div>
+          <div class="gp-two"><button class="gp-btn line" onclick="U.$('#gi-sheet').remove()">취소</button><button class="gp-btn navy" onclick="Group.applyPaste()">읽어서 확인하기</button></div>
+        </div>
+      </div>`);
+    setTimeout(() => { const x = U.$('#gi-text'); if (x) x.focus(); }, 80);
+  },
+  applyPaste() {
+    const x = U.$('#gi-text'); const text = x ? x.value : '';
+    const teams = this.parseLineup(text);
+    if (!teams.length) { U.toast('이름을 찾지 못했어요. 이름을 줄바꿈이나 쉼표로 나눠 붙여 주세요.'); return; }
+    const s = U.$('#gi-sheet'); if (s) s.remove();
+    this.imp = { source: 'paste', teams, photo: null, loading: false };
+    this.view = 'import'; this.render();
+  },
+
+  /** 붙여넣은 글 → [{tee, course, members:[{name, phone, unsure}]}] (조 표시가 없으면 4명씩 나눔) */
+  parseLineup(text) {
+    const PHONE = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g;
+    const STOP = /^(티업|티오프|티타임|집결|집합|시간|명단|참석|참석자|조편성|조|팀|코스|번|님들|회비|공지|원|만원|일시|장소|오전|오후|AM|PM)$/i;
+    const teams = []; let cur = null; let loose = [];
+    const newTeam = () => { cur = { tee: '', course: '', members: [] }; teams.push(cur); return cur; };
+    const lines = String(text || '').replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
+    lines.forEach(raw => {
+      let line = raw.replace(/^[\s\-•·*▶▷►◆◇■□●○✔✓]+/, '');
+      if (/^\[.*\]$/.test(line) || /^[<(（【].*[>)）】]$/.test(line)) return;          // [11/28 정기 라운딩] 같은 제목 줄
+      const head = /^(?:\[)?\s*(\d{1,2}|[A-Za-z])\s*(조|팀)\s*(?:\])?\s*[:：.)\-]?\s*/.exec(line);
+      if (head) { newTeam(); line = line.slice(head[0].length); }
+      const tm = /(?:^|\s|\()([01]?\d|2[0-3])\s*[:시]\s*([0-5]\d)\s*(?:분)?/.exec(line);
+      if (tm) { if (!cur) newTeam(); if (!cur.tee) cur.tee = `${String(tm[1]).padStart(2, '0')}:${tm[2]}`; line = line.replace(tm[0], ' '); }
+      const target = () => cur || { members: loose, course: '' };
+      // 전화번호는 바로 앞 이름에 붙임
+      const parts = line.split(PHONE); const phones = line.match(PHONE) || [];
+      parts.forEach((seg, i) => {
+        const toks = seg.split(/[,，、/|·\t;]+|\s+/).map(s => s.replace(/^\(?\d{1,2}[.)]\s*/, '').replace(/^[(（\[]+|[)）\]:：.]+$/g, '').trim()).filter(Boolean);
+        toks.forEach(tok => {
+          if (/^(OUT|IN|out|in)$/.test(tok) || /(코스|OUT|IN)$/.test(tok) && tok.length <= 8 && !/[0-9]/.test(tok)) { const T = target(); if (!T.course) T.course = tok; return; }
+          if (STOP.test(tok) || /^\d+$/.test(tok) || (tok.length < 2 && !/^[가-힣]$/.test(tok)) || tok.length > 12) return;   // '김·이·박' 처럼 성만 적어도 받음
+          if (!/^[가-힣A-Za-z][가-힣A-Za-z0-9.]*$/.test(tok)) return;
+          target().members.push({ name: tok, phone: '', unsure: tok.length === 1 });
+        });
+        if (phones[i]) { const T = target(); const last = T.members[T.members.length - 1]; if (last && !last.phone) last.phone = phones[i].replace(/[^0-9]/g, ''); }
+      });
+    });
+    // 조 표시 없이 이름만 → 4명씩 나눔
+    if (loose.length) { for (let i = 0; i < loose.length; i += 4) teams.push({ tee: '', course: '', members: loose.slice(i, i + 4) }); }
+    // 같은 이름 두 번은 한 번만
+    const seen = new Set();
+    teams.forEach(tm => { tm.members = tm.members.filter(m => { if (seen.has(m.name)) return false; seen.add(m.name); return true; }); });
+    return teams.filter(tm => tm.members.length).slice(0, this.MAX_TEAMS);
+  },
+
+  importPhoto() {
+    if (!this.signedIn()) { U.toast('사진으로 넣기는 로그인한 총무만 쓸 수 있어요.'); return; }
+    this._readTeamForm();
+    const f = U.$('#gi-file'); if (f) { f.value = ''; f.click(); }
+  },
+  async onImportFile(input) {
+    const file = input && input.files && input.files[0]; if (!file) return;
+    let dataUrl;
+    try { dataUrl = await this._shrinkImage(file, 1600); } catch (e) { U.toast('사진을 열지 못했어요. 다른 사진으로 해 주세요.'); return; }
+    this.imp = { source: 'photo', teams: [], photo: dataUrl, loading: true };
+    this.view = 'import'; this.render();
+    try {
+      const { url, key } = Cloud.cfg();
+      const token = await Cloud._freshToken();
+      const r = await fetch(`${url}/functions/v1/group-import`, {
+        method: 'POST', headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: dataUrl.split(',')[1], mime: 'image/jpeg' })
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.message || (d.error === 'login_required' ? '로그인이 풀렸어요. 다시 로그인해 주세요.' : '사진을 읽지 못했어요. 잠시 후 다시 해 주세요.'));
+      if (!this.imp || this.view !== 'import') return;
+      this.imp.teams = Array.isArray(d.teams) ? d.teams : [];
+      this.imp.loading = false;
+      if (!this.imp.teams.length) this.imp.err = '사진에서 이름을 찾지 못했어요. 글씨가 잘 보이게 다시 찍거나 붙여넣기를 써 주세요.';
+    } catch (e) {
+      if (!this.imp) return;
+      this.imp.loading = false; this.imp.err = String(e.message || '사진을 읽지 못했어요.');
+    }
+    if (this.view === 'import') this.render();
+  },
+  /** 큰 사진을 긴 변 max px JPEG 로 줄임 (전송 빠르게) */
+  _shrinkImage(file, max) {
+    return new Promise((res, rej) => {
+      const img = new Image(); const u = URL.createObjectURL(file);
+      img.onload = () => {
+        try {
+          const k = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(u); res(c.toDataURL('image/jpeg', 0.85));
+        } catch (e) { rej(e); }
+      };
+      img.onerror = (e) => { URL.revokeObjectURL(u); rej(e); };
+      img.src = u;
+    });
+  },
+
+  renderImport(el) {
+    const im = this.imp || { teams: [] };
+    const n = im.teams.reduce((a, t) => a + t.members.length, 0);
+    const ph = im.teams.reduce((a, t) => a + t.members.filter(m => m.phone).length, 0);
+    const unsure = im.teams.flatMap(t => t.members.filter(m => m.unsure).map(m => m.name));
+    const again = im.source === 'photo' ? `<button class="gp-btn line" onclick="Group.importPhoto()">📷 다시 찍기</button>` : `<button class="gp-btn line" onclick="Group.view='create';Group.render();Group.importPaste()">📋 다시 붙여넣기</button>`;
+    el.innerHTML = `
+      <div class="gp-wrap">
+        <div class="gp-top"><button class="gp-back" onclick="Group.cancelImport()">‹ 조편성으로</button>
+          <div class="gp-top-t">읽은 결과 확인</div>
+          <div class="gp-top-m">${im.loading ? 'AI가 사진을 읽고 있어요… (10초쯤)' : im.err ? '다시 해 볼까요?' : `${im.teams.length}개 조 · ${n}명${ph ? ` · 전화번호 ${ph}개` : ''}를 찾았어요`}</div></div>
+        <div class="gp-sec">
+          ${im.photo ? `<img class="gi-photo" src="${im.photo}" alt="찍은 사진">` : ''}
+          ${im.loading ? `<div class="gp-empty"><span class="dots"><span></span><span></span><span></span></span><br>이름·조·전화번호를 찾는 중이에요</div>` : im.err ? `<div class="gi-warn">${U.esc(im.err)}</div>${again}` : `
+          ${unsure.length ? `<div class="gi-warn">⚠️ ${im.source === 'photo' ? '손글씨라 ' : ''}<b>${unsure.map(U.esc).join(', ')}</b>${unsure.length > 1 ? '은(는)' : '은(는)'} 확실하지 않아요. 맞는지 확인해 주세요.</div>` : ''}
+          <div class="gi-note">이름을 눌러 고칠 수 있어요. 지우면 빠져요. 한 조는 4명까지예요.</div>
+          ${im.teams.map((tm, i) => `
+            <div class="gi-team">
+              <div class="gi-h"><b>${i + 1}조</b><span><input id="gi-${i}-tee" type="time" value="${U.esc(tm.tee || '')}" aria-label="${i + 1}조 티업">${tm.course ? ` · ${U.esc(tm.course)}` : ''}</span></div>
+              ${tm.members.map((m, j) => `<div class="gi-r ${m.unsure ? 'warn' : ''}"><input id="gi-${i}-n${j}" maxlength="20" value="${U.esc(m.name)}" aria-label="${i + 1}조 ${j + 1}번 이름"><input id="gi-${i}-p${j}" type="tel" inputmode="tel" maxlength="13" placeholder="전화 (선택)" value="${U.esc(m.phone || '')}" aria-label="${i + 1}조 ${j + 1}번 전화"></div>`).join('')}
+            </div>`).join('')}
+          <button class="gp-btn navy" onclick="Group.applyImport()">조편성표에 넣기</button>
+          ${again}`}
+        </div>
+      </div>`;
+  },
+  cancelImport() { this.imp = null; this.view = 'create'; this.render(); },
+  applyImport() {
+    const im = this.imp; const f = this.form; if (!im || !f) return;
+    const v = id => { const x = U.$('#' + id); return x ? x.value.trim() : ''; };
+    // 확인 화면에서 고친 값 읽기 · 한 조 4명이 넘으면 다음 조로 넘김
+    const out = [];
+    im.teams.forEach((tm, i) => {
+      const ms = tm.members.map((m, j) => ({ name: v(`gi-${i}-n${j}`), phone: v(`gi-${i}-p${j}`).replace(/[^0-9]/g, '') })).filter(m => m.name);
+      const tee = v(`gi-${i}-tee`);
+      for (let k = 0; k < ms.length; k += 4) out.push({ tee: k === 0 && /^\d{2}:\d{2}$/.test(tee) ? tee : '', course: tm.course || '', members: ms.slice(k, k + 4) });
+    });
+    if (!out.length) { U.toast('넣을 이름이 없어요.'); return; }
+    const filled = f.teams.some((t, i) => t.members.some((m, j) => m.name && !(i === 0 && j === 0 && m.name === f.me)));
+    if (filled && !confirm('지금 적어 둔 조편성을 읽은 결과로 바꿀까요?')) return;
+    const teams = out.slice(0, this.MAX_TEAMS).map(o => {
+      const t = this._emptyTeam(); t.tee = o.tee; t.course = o.course;
+      o.members.forEach((m, j) => { t.members[j] = { name: m.name, phone: m.phone }; });
+      return t;
+    });
+    if (!teams[0].tee) teams[0].tee = (f.teams[0] && f.teams[0].tee) || '07:00';
+    f.teams = teams;
+    const lost = out.length > this.MAX_TEAMS;
+    this.imp = null; this.view = 'create'; this.render();
+    U.toast(lost ? `조가 ${this.MAX_TEAMS}개를 넘어서 앞의 ${this.MAX_TEAMS}개 조만 넣었어요.` : '조편성표에 넣었어요. 티업 시간과 이름을 한 번 더 확인해 주세요.', 3200);
+  },
+
   _readTeamForm() {
     const v = id => { const x = U.$('#' + id); return x ? x.value : null; };
     const f = this.form; if (!f) return;
@@ -596,6 +761,8 @@ const Group = {
       return;
     }
     const owner = e.i_am_owner;
+    // 웹(카톡 브라우저)으로 연 참석자: 앱 설치가 기본 → 안내 화면 먼저 ('설치 없이 보기'를 누르면 아래 화면)
+    if (!owner && !U.isNativeApp() && !this._isLite()) return this._renderWebLanding(el, e);
     const me = this.pickId ? this._member(this.pickId) : null;
     const yes = e.members.filter(m => m.status === 'yes').length;
     const meet = e.meet_time || this._minus(e.tee_off, 30);
@@ -648,6 +815,7 @@ const Group = {
         const t = me.transport;
         myPanel = `
           ${teamMode ? this._myCardHTML(me) : ''}
+          ${this._quickAddHTML(me)}
           <div class="gp-ask">
             <div class="gp-lab">${U.esc(me.name)}님, 어떻게 가세요? <button class="gp-link" onclick="Group.unpick()">내가 아니에요</button></div>
             <div class="gp-opt ${t === 'self' ? 'on' : ''}" onclick="Group.setMove('self')"><div class="gp-rd"></div><div>내 차로 직접 가요<small>같이 탈 사람은 단체 톡방에서 얘기해요</small></div></div>
@@ -839,6 +1007,94 @@ const Group = {
       U.toast(status === 'yes' ? '참석으로 알렸어요! 총무 화면에 바로 보여요.' : '불참으로 알렸어요.');
       await this.load();
     } catch (e) { U.toast('보내지 못했어요. 잠시 후 다시 시도해 주세요.'); }
+  },
+
+  /* ── 참석자: 웹으로 열었을 때 앱 설치 안내 (기본) ── */
+  _isLite() { try { return sessionStorage.getItem('gp_lite_' + this.code) === '1'; } catch (e) { return !!this._lite; } },
+  gwLite() { try { sessionStorage.setItem('gp_lite_' + this.code, '1'); } catch (e) { this._lite = true; } this.render(); },
+  _gwPrep() {
+    if (typeof HomeAdd === 'undefined') return false;
+    const keep = `g=${this.code}${this.pickId ? `&m=${this.pickId}` : ''}`;
+    HomeAdd._getApp = { keep, webUrl: `${this.BASE_URL}/?${keep}`, sched: null };
+    return true;
+  },
+  gwStore() { if (this._gwPrep()) HomeAdd.goStore(); },
+  gwOpen() { if (this._gwPrep()) HomeAdd.openInApp(); },
+  _renderWebLanding(el, e) {
+    el.innerHTML = `
+      <div class="gw-land">
+        <div class="k">⛳ BuddyPlanner 단체 일정</div>
+        <div class="t">${this._date(e.round_date)} ${U.esc(e.course.name)}<br>${U.esc(e.title)}에 초대됐어요</div>
+        <div class="m">앱에서 열면 <b>내 조·티오프·출발 시간</b>이 내 일정에 자동으로 들어가요.</div>
+        <div class="card">✔ 로그인 없이 바로<br>✔ 집·회사에서 몇 시에 나가야 하는지 계산<br>✔ 조편성·카풀 확인</div>
+        <button class="store" onclick="Group.gwStore()">앱 설치하고 열기</button>
+        <button class="open" onclick="Group.gwOpen()">이미 앱이 있어요 · 앱에서 열기</button>
+        <div class="m" style="font-size:12.5px;color:#94a3b8;margin-top:12px;">설치한 뒤 단톡방의 링크를 한 번 더 누르면 앱에서 열려요.</div>
+        <button class="lite" onclick="Group.gwLite()">설치 없이 조편성만 보기</button>
+      </div>`;
+  },
+
+  /* ── 참석자(앱): 출발지·준비 시간·어디로 → 내 일정에 바로 넣기 ── */
+  qa: null,
+  _qa() {
+    if (!this.qa || this.qa.code !== this.code) {
+      let prep = 45; try { const v = parseInt(localStorage.getItem('bp_last_prep'), 10); if (v > 0 && v <= 180) prep = v; } catch (e) { }
+      const e = this.ev || {};
+      this.qa = { code: this.code, start: '집', prep, route: e.meal_before && e.meal_before.lat ? 'meal' : 'course' };
+    }
+    return this.qa;
+  },
+  setQa(k, v) { this._qa()[k] = v; this.render(); },
+  _quickAddHTML(me) {
+    if (!U.isNativeApp() || !me || me.status === 'no' || this._linkedSchedule()) return '';
+    const q = this._qa(); const e = this.ev;
+    const P = [30, 45, 60, 90]; if (!P.includes(q.prep)) { P.push(q.prep); P.sort((a, b) => a - b); }
+    const meal = e.meal_before && e.meal_before.lat;
+    const seg = (k, list) => `<div class="gq-seg">${list.map(([v, label]) => `<button type="button" class="${String(q[k]) === String(v) ? 'on' : ''}" onclick="Group.setQa('${k}', ${typeof v === 'number' ? v : `'${v}'`})">${label}</button>`).join('')}</div>`;
+    return `
+      <div class="gq-card">
+        <div class="lab">어디서 출발해요?</div>
+        ${seg('start', [['집', '🏠 집'], ['회사', '🏢 회사'], ['직접 입력', '✏️ 직접 입력']])}
+        <div class="lab">준비 시간</div>
+        ${seg('prep', P.map(v => [v, v + '분']))}
+        ${meal ? `<div class="lab">어디로 먼저 가요?</div>
+        ${seg('route', [['course', '⛳ 골프장'], ['meal', '🍲 아침 식당']])}` : ''}
+        <button class="gp-btn navy" onclick="Group.quickAdd()">내 일정에 넣고 타임라인 보기</button>
+        ${this.signedIn() ? '' : `<div class="gq-login">🔔 <b>카카오로 로그인하면 알람까지</b> 받아요. 기상·출발 알람이 울리고, 총무가 시간을 바꾸면 알려 드려요.<button onclick="App.navigate('login')">카카오로 로그인</button></div>`}
+      </div>`;
+  },
+  async quickAdd() {
+    const e = this.ev; const me = this._member(this.pickId); if (!e || !me) return;
+    if (typeof Billing !== 'undefined' && !Billing.guardScheduleLimit()) return;
+    const q = this._qa();
+    // 일정에 넣으면 참석으로 알림 (이미 참석이면 그대로)
+    if (me.status !== 'yes') {
+      try { await this.rpc('ge_respond', { p_code: this.code, p_member: me.id, p_token: this.token(this.code), p_status: 'yes', p_transport: me.transport || null, p_ride_note: me.transport === 'ride' ? (me.ride_note || null) : null }, true); } catch (err) { /* 일정 넣기는 계속 */ }
+    }
+    try { localStorage.setItem('bp_last_prep', String(q.prep)); } catch (err) { }
+    const c = e.course || {};
+    const course = { id: c.id || '', name: c.name, addr: c.addr || '', region: (c.addr || '').split(' ').slice(0, 2).join(' '), lat: c.lat, lng: c.lng };
+    const mb = e.meal_before && e.meal_before.lat ? { name: e.meal_before.name, lat: e.meal_before.lat, lng: e.meal_before.lng, addr: e.meal_before.addr || '' } : null;
+    const route = q.route === 'meal' && mb ? 'meal' : 'course';
+    const tee = this._teeFor(me);
+    const [h, m] = String(tee).split(':').map(Number);
+    const date = new Date(e.round_date + 'T00:00:00');
+    Register.editIdx = null;
+    Register._pendingShared = { course, date, teeOff: tee, meet: null, meal: mb, post: null, mealDuration: mb ? 50 : 0, route };
+    App.navigate('register');
+    setTimeout(() => {
+      Register.prefill({ course: course.lat ? course : null, date, h, m });
+      Register.groupCode = this.code;
+      const pill = (sel, txt) => [...document.querySelectorAll(sel)].find(b => b.textContent.trim() === txt || b.dataset.t === txt);
+      const pp = pill('#r-pills .pill', String(q.prep));
+      if (pp) Register.setPrepTime(q.prep, pp); else { Register.prep = q.prep; if (Register.sg) Register.sg.prep = true; }
+      if (document.querySelector('#r-shared-routes')) Register.setSharedRoute(route); else if (Register.sg) Register.sg.route = true;
+      const sp = pill('#r-startpoint-pills .pill', q.start);
+      if (sp) Register.setStartPoint(q.start, sp);
+      // 출발지 주소가 이미 있으면 바로 계산해서 저장 → 타임라인 / 없으면 주소 검색이 열림 (고르면 '스마트 플랜 만들기')
+      if (Register.sg && Register.sg.start) setTimeout(() => Register.createPlan(), 150);
+      else U.toast(`${q.start === '직접 입력' ? '출발지' : q.start} 주소를 한 번만 넣어 주세요. 그다음 아래 버튼을 누르면 끝나요.`, 3500);
+    }, 320);
   },
 
   /** 참석자: 내 일정에 등록 → 등록 화면에 골프장·날짜·티오프·아침 식당을 채워서 엶 (출발 시간·알람은 기존 계산 그대로) */

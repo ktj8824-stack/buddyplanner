@@ -143,7 +143,8 @@ const Timeline = {
     const dd = new Date(d); dd.setHours(0, 0, 0, 0);
     const diff = Math.round((dd - today) / 864e5);
     const region = s.course.region || (s.course.addr ? Register.regionOf(s.course.addr) : '');
-    const on = !s.alarmOff;
+    const locked = this.groupAlarmLocked(s);   // 단체 일정 + 로그인 안 함 → 알람 대신 로그인 안내
+    const on = !s.alarmOff && !locked;
     const teeI = steps.findIndex(x => x.tee);
     const prevDay = (t, i) => (i < teeI && State.tlPrevDay(s, t)) ? '<small>전날</small>' : '';
 
@@ -177,8 +178,8 @@ const Timeline = {
               <span class="v2-pill ${diff < 0 ? 'blue' : 'green'}">${diff === 0 ? '오늘' : diff > 0 ? 'D-' + diff : '지난 라운딩'}</span>
             </div>
             <div class="v2-alarm-box${on ? '' : ' off'}" id="tl-alarm-box">
-              <div><b>${on ? '알람 켜짐' : '알람 꺼짐'}</b><small>${on ? '단계마다 미리 알려 드려요' : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
-              <button id="tl-alarm-btn" class="v2-switch${on ? ' on alarm-on' : ''}" role="switch" aria-checked="${on}" aria-label="알람" onclick="Timeline.toggleAlarm()"></button>
+              <div><b>${on ? '알람 켜짐' : locked ? '로그인하면 알람이 울려요' : '알람 꺼짐'}</b><small>${on ? '단계마다 미리 알려 드려요' : locked ? '단체 일정은 카카오 로그인 후 기상·출발 알람을 받아요' : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
+              ${locked ? `<button class="v2-btn-line" style="width:auto;margin:0;padding:8px 12px;font-size:.8125rem;" onclick="App.navigate('login')">로그인</button>` : `<button id="tl-alarm-btn" class="v2-switch${on ? ' on alarm-on' : ''}" role="switch" aria-checked="${on}" aria-label="알람" onclick="Timeline.toggleAlarm()"></button>`}
             </div>
           </div>
           ${s.groupCode ? `<div class="tl-group-link" onclick="Group.openCode(${U.jsq(s.groupCode)})">👥 단체 일정 · 우리 조 보기 <span>›</span></div>` : ''}
@@ -676,13 +677,25 @@ const Timeline = {
     if (box) {
       box.classList.toggle('off', !on);
       const b = box.querySelector('b'), sm = box.querySelector('small');
-      if (b) b.textContent = on ? '알람 켜짐' : '알람 꺼짐';
-      if (sm) sm.textContent = on ? '단계마다 미리 알려 드려요' : '켜면 준비·출발 시간에 알려 드려요';
+      const locked = !on && this.groupAlarmLocked(State.schedules[this.schedIdx]);
+      if (b) b.textContent = on ? '알람 켜짐' : locked ? '로그인하면 알람이 울려요' : '알람 꺼짐';
+      if (sm) sm.textContent = on ? '단계마다 미리 알려 드려요' : locked ? '단체 일정은 카카오 로그인 후 기상·출발 알람을 받아요' : '켜면 준비·출발 시간에 알려 드려요';
     }
   },
 
   /** 알람 켜기 (일정 생성·수정 직후에도 호출). 이미 켜져 있어도 기존 예약을 지우고 다시 예약하므로 중복되지 않음 */
+  /** 단체 일정에서 받은 일정은 로그인해야 알람이 울림 (로그인 없이도 타임라인은 그대로) */
+  groupAlarmLocked(s) {
+    if (!s || !s.groupCode) return false;
+    try { return !(typeof Cloud !== 'undefined' && Cloud.isConfigured() && Cloud.isSignedIn()); } catch (e) { return false; }
+  },
+
   alarmOn() {
+    if (this.groupAlarmLocked(State.schedules[this.schedIdx])) {
+      this.syncAlarmUI(false);
+      U.toast('단체 일정 알람은 카카오로 로그인하면 울려요. 마이 탭에서 로그인해 주세요.', 3500);
+      return;
+    }
     this.syncAlarmUI(true);
     {
       this.initAudioContext();
@@ -810,6 +823,7 @@ const Timeline = {
     const now = new Date();
     State.schedules.forEach((s) => {
       if (!s.timeline || !s.date || s.alarmOff) return;
+      if (this.groupAlarmLocked(s)) return;   // 단체 일정: 로그인해야 알람
       // 오늘·내일 라운딩만 (새벽 티오프는 준비 시작이 전날 밤일 수 있음)
       const sDate = new Date(s.date); sDate.setHours(0, 0, 0, 0);
       const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
@@ -891,6 +905,7 @@ const Timeline = {
     this.alarmTimeouts = this.alarmTimeouts || [];
     const s = State.schedules[this.schedIdx];
     if (!s || !s.timeline) return;
+    if (this.groupAlarmLocked(s)) return;   // 단체 일정: 로그인해야 알람
     // 같은 일정에 앞서 걸어 둔 앱 안 타이머는 지우고 다시 검 (중복 알람 방지)
     this.clearSchedAlarms(s, false);
     
