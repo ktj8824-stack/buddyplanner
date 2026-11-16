@@ -99,7 +99,7 @@ const AI = {
               <div class="ai-wave-bar"></div>
               <div class="ai-wave-bar"></div>
             </div>
-            <span style="font-size:12.5px;letter-spacing:-0.2px;">음성을 듣고 있습니다... 말씀해 주세요</span>
+            <span id="ai-listening-text" style="font-size:12.5px;letter-spacing:-0.2px;">듣고 있어요 · 말을 마치면 자동으로 멈춰요</span>
           </div>
           <button onclick="AI.stopListening()" style="background:none;border:none;color:#94a3b8;font-size:11.5px;cursor:pointer;text-decoration:underline;">취소</button>
         </div>
@@ -957,103 +957,189 @@ const AI = {
     }
   },
 
-  // Voice Speech Recognition (STT)
+  /* ── 음성 입력 ──
+     1순위: 고음질 서버 받아쓰기 (voice-stt: 녹음 → OpenAI 음성 인식, 골프장 이름 힌트)
+     2순위: 기기 받아쓰기 (웹 음성 인식) — 서버가 꺼졌거나 한도를 넘었을 때
+     두 방법 모두 받아쓴 글은 입력창에 먼저 넣고, 확인한 뒤 전송 */
+  VOICE_MAX_SEC: 30,
+  VOICE_SILENCE_MS: 1800,
+
+  /** 기기 받아쓰기 (웹 음성 인식) 준비 */
   initSpeechRecognition() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) {
-      console.warn('SpeechRecognition API is not supported on this browser.');
-      return;
-    }
-
+    if (!SpeechRec) return;
     try {
       this.recognition = new SpeechRec();
-      this.recognition.continuous = false;
+      this.recognition.continuous = true;      // 잠깐 쉬어도 끊지 않음 (다시 누르면 끝)
       this.recognition.lang = 'ko-KR';
       this.recognition.interimResults = true;
-
-      this.recognition.onstart = () => {
-        this.isListening = true;
-        this.updateMicUI(true);
-      };
-
+      this.recognition.maxAlternatives = 1;
+      this.recognition.onstart = () => { this.isListening = true; this.updateMicUI(true); };
       this.recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
+        let text = '';
+        for (let i = 0; i < event.results.length; i++) text += event.results[i][0].transcript;   // 처음부터 전부 이어 붙임
         const input = U.$('#ai-input');
-        if (input) input.value = transcript;
-
-        if (event.results[0].isFinal) {
-          this.stopListening();
-          if (transcript.trim()) {
-            this.sendFromInput();
-          }
-        }
+        if (input) input.value = text.replace(/\s+/g, ' ').trim();
+        clearTimeout(this._devSilence);
+        this._devSilence = setTimeout(() => this.stopListening(), 2500);   // 2.5초 조용하면 끝
       };
-
       this.recognition.onerror = (e) => {
-        console.warn('Speech recognition error:', e);
         this.stopListening();
-        if (e.error === 'not-allowed') {
-          if (typeof U !== 'undefined' && U.toast) {
-            U.toast('마이크 권한 허용이 필요합니다.');
-          }
-        }
+        if (e && e.error === 'not-allowed') U.toast('마이크 권한을 허용해 주세요. (설정 > 버디플래너 > 마이크)');
       };
-
-      this.recognition.onend = () => {
-        this.isListening = false;
-        this.updateMicUI(false);
-      };
-    } catch (e) {
-      console.error('Failed to init speech recognition:', e);
-    }
+      this.recognition.onend = () => { clearTimeout(this._devSilence); this.isListening = false; this.updateMicUI(false); this._focusInput(); };
+    } catch (e) { console.warn('speech init', e); }
   },
 
   toggleListening() {
-    if (this.isListening) {
-      this.stopListening();
-    } else {
-      this.startListening();
-    }
+    if (this._voice) { this._voice.stop('tap'); return; }
+    if (this.isListening) { this.stopListening(); return; }
+    this.startListening();
   },
 
-  startListening() {
-    if (!this.recognition) {
-      this.initSpeechRecognition();
-    }
-    if (!this.recognition) {
-      if (typeof U !== 'undefined' && U.toast) {
-        U.toast('현재 브라우저에서는 음성 인식을 지원하지 않습니다. 텍스트로 입력해 주세요!');
-      } else {
-        alert('음성 인식을 지원하지 않는 환경입니다.');
-      }
-      return;
-    }
+  async startListening() {
+    if (this._voiceBusy) return;
+    if (await this._serverVoiceOk()) { this._startRecord(); return; }
+    this._startDevice();
+  },
 
-    try {
-      this.recognition.start();
-    } catch (e) {
-      console.warn('Recognition start error:', e);
-    }
+  _startDevice() {
+    if (!this.recognition) this.initSpeechRecognition();
+    if (!this.recognition) { U.toast('이 기기에서는 음성 입력을 쓸 수 없어요. 글자로 입력해 주세요.'); return; }
+    try { this.recognition.start(); } catch (e) { console.warn('recognition start', e); }
   },
 
   stopListening() {
-    if (this.recognition && this.isListening) {
-      try {
-        this.recognition.stop();
-      } catch (e) {}
-    }
+    if (this._voice) { this._voice.stop('cancel'); return; }
+    clearTimeout(this._devSilence);
+    if (this.recognition && this.isListening) { try { this.recognition.stop(); } catch (e) { } }
     this.isListening = false;
     this.updateMicUI(false);
   },
 
-  updateMicUI(listening) {
+  _focusInput() { const i = U.$('#ai-input'); if (i && i.value.trim()) { try { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } catch (e) { } } },
+
+  /** 서버 받아쓰기를 쓸 수 있나 (로그인 + 녹음 지원 + 서버 켜짐 + 오늘 한도 안 넘음) */
+  async _serverVoiceOk() {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)) return false;
+    if (typeof Cloud === 'undefined' || !Cloud.session || !Cloud.session()) return false;
+    try { if (localStorage.getItem('bp_voice_off') === new Date().toDateString()) return false; } catch (e) { }
+    if (this._voiceProbe === undefined) {
+      // 서버 켜짐 확인 (키가 없으면 바로 503) — 앱 실행마다 한 번
+      this._voiceProbe = (async () => {
+        try {
+          const { url, key } = Cloud.cfg();
+          const token = await Cloud._freshToken();
+          const r = await fetch(`${url}/functions/v1/voice-stt`, { method: 'POST', headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: '{}' });
+          return r.status !== 503 && r.status !== 404;
+        } catch (e) { return false; }
+      })();
+    }
+    return await this._voiceProbe;
+  },
+
+  _hints() {
+    const names = [];
+    try { (State.schedules || []).slice(-30).forEach(s => { const n = s && s.course && s.course.name; if (n) names.push(n); }); } catch (e) { }
+    try { (typeof Group !== 'undefined' && Group.cachedList ? Group.cachedList() : []).forEach(g => { if (g && g.course) names.push(g.course); }); } catch (e) { }
+    return [...new Set(names)].slice(-25);
+  },
+
+  async _startRecord() {
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    } catch (e) {
+      U.toast('마이크 권한을 허용해 주세요. (설정 > 버디플래너 > 마이크)');
+      return;
+    }
+    const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (e) { return false; } }) || '';
+    let rec;
+    try { rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); } catch (e) { stream.getTracks().forEach(t => t.stop()); this._startDevice(); return; }
+    const chunks = [];
+    const t0 = Date.now();
+    let heard = false, lastLoud = Date.now(), ctx = null, timer = null, why = '';
+    rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+
+    // 말 끝 감지: 소리가 났다가 1.8초 조용하면 자동 종료 · 8초 동안 아무 말 없으면 취소 · 최대 30초
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      ctx = new AC();
+      const an = ctx.createAnalyser(); an.fftSize = 1024;
+      ctx.createMediaStreamSource(stream).connect(an);
+      const buf = new Uint8Array(an.fftSize);
+      timer = setInterval(() => {
+        an.getByteTimeDomainData(buf);
+        let sum = 0; for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+        const rms = Math.sqrt(sum / buf.length);
+        if (rms > 0.035) { heard = true; lastLoud = Date.now(); }
+        const el = Date.now() - t0;
+        if (heard && Date.now() - lastLoud > this.VOICE_SILENCE_MS) stop('silence');
+        else if (!heard && el > 8000) stop('nothing');
+        else if (el > this.VOICE_MAX_SEC * 1000) stop('max');
+      }, 120);
+    } catch (e) { heard = true; timer = setTimeout(() => stop('max'), this.VOICE_MAX_SEC * 1000); }
+
+    const cleanup = () => { clearInterval(timer); clearTimeout(timer); try { ctx && ctx.close(); } catch (e) { } stream.getTracks().forEach(t => t.stop()); };
+    const stop = (reason) => {
+      if (why) return; why = reason;
+      try { rec.state !== 'inactive' && rec.stop(); } catch (e) { cleanup(); this._voice = null; this.updateMicUI(false); }
+    };
+    rec.onstop = async () => {
+      cleanup();
+      this._voice = null;
+      const sec = (Date.now() - t0) / 1000;
+      if (why === 'cancel' || why === 'nothing' || !heard || sec < 0.6) { this.updateMicUI(false); if (why === 'nothing') U.toast('말소리가 들리지 않았어요.'); return; }
+      await this._sendVoice(new Blob(chunks, { type: (rec.mimeType || mime || 'audio/mp4') }), sec);
+    };
+    this._voice = { stop };
+    this.isListening = true;
+    this.updateMicUI(true);
+    try { rec.start(250); } catch (e) { cleanup(); this._voice = null; this.updateMicUI(false); this._startDevice(); }
+  },
+
+  async _sendVoice(blob, sec) {
+    this._voiceBusy = true;
+    this.updateMicUI(false, true);
+    try {
+      const b64 = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = rej; fr.readAsDataURL(blob); });
+      const { url, key } = Cloud.cfg();
+      const token = await Cloud._freshToken();
+      const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const to = ctl ? setTimeout(() => ctl.abort(), 25000) : null;
+      const r = await fetch(`${url}/functions/v1/voice-stt`, {
+        method: 'POST', signal: ctl ? ctl.signal : undefined,
+        headers: { apikey: key, Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ audio: b64, mime: blob.type, seconds: Math.ceil(sec), hints: this._hints() })
+      });
+      if (to) clearTimeout(to);
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && typeof d.text === 'string') {
+        const input = U.$('#ai-input');
+        if (input && d.text) { input.value = (input.value.trim() ? input.value.trim() + ' ' : '') + d.text; this._focusInput(); }
+        else if (!d.text) U.toast('잘 듣지 못했어요. 다시 말씀해 주세요.');
+        return;
+      }
+      if (d.error === 'daily_limit' || d.error === 'monthly_cap') { try { localStorage.setItem('bp_voice_off', new Date().toDateString()); } catch (e) { } }
+      if (d.error === 'not_configured') this._voiceProbe = Promise.resolve(false);
+      U.toast(d.message || '고음질 받아쓰기를 지금 쓸 수 없어요. 마이크를 다시 누르면 기본 받아쓰기로 들어요.');
+      if (d.error !== 'daily_limit' && d.error !== 'monthly_cap') this._voiceProbe = Promise.resolve(false);
+    } catch (e) {
+      U.toast(navigator.onLine === false ? '인터넷 연결을 확인해 주세요.' : '받아쓰기가 늦어지고 있어요. 다시 말씀해 주세요.');
+    } finally {
+      this._voiceBusy = false;
+      this.isListening = false;
+      this.updateMicUI(false);
+    }
+  },
+
+  updateMicUI(listening, busy) {
     const btn = U.$('#ai-mic-btn');
     const overlay = U.$('#ai-listening-banner');
-    if (btn) btn.classList.toggle('listening', listening);
-    if (overlay) overlay.classList.toggle('active', listening);
+    const label = U.$('#ai-listening-text');
+    if (btn) { btn.classList.toggle('listening', !!listening); btn.classList.toggle('busy', !!busy); }
+    if (overlay) { overlay.classList.toggle('active', !!(listening || busy)); overlay.classList.toggle('busy', !!busy); }
+    if (label) label.textContent = busy ? '받아쓰는 중이에요…' : '듣고 있어요 · 말을 마치면 자동으로 멈춰요';
   },
 
   scrollToBottom() {
