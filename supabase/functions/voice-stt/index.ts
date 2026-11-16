@@ -1,5 +1,5 @@
 // =====================================================================
-// BuddyPlanner 음성 받아쓰기 — Supabase Edge Function (voice-stt)
+// 플래너 4종 공용 음성 받아쓰기 — Supabase Edge Function (voice-stt) · app: buddy | my | road | ceo
 //
 // 앱이 녹음한 짧은 음성(최대 30초)을 받아 OpenAI 음성 인식으로 글자로 바꿔 돌려줌.
 //  - 음성 파일은 저장하지 않음 (받아쓰기 후 바로 버림)
@@ -17,7 +17,12 @@ type Json = any;
 
 const MAX_SEC = 30;
 const MAX_BYTES = 1_500_000;   // 30초 압축 음성은 보통 0.5MB 안팎
-const GOLF_WORDS = '골프장, 티오프, 티업, 하늘코스, 동코스, 서코스, 남코스, 북코스, 레이크코스, 밸리코스, 힐코스, 오션코스, CC, GC, 컨트리클럽, 라운딩, 단체 라운딩, 스크린, 버디, 파, 보기, 더블보기, 이글, 홀인원, 그린, 페어웨이, 벙커, 해저드, 캐디, 카트, 클럽하우스, 해장국, 출발, 도착, 집결지';
+const WORDS: Record<string, string> = {
+  buddy: '골프장, 티오프, 티업, 하늘코스, 동코스, 서코스, 남코스, 북코스, 레이크코스, 밸리코스, 힐코스, 오션코스, CC, GC, 컨트리클럽, 라운딩, 단체 라운딩, 스크린, 버디, 파, 보기, 더블보기, 이글, 홀인원, 그린, 페어웨이, 벙커, 해저드, 캐디, 카트, 클럽하우스, 해장국, 출발, 도착, 집결지',
+  my: '일정, 알람, 기상, 출근, 퇴근, 출발, 도착, 약속, 병원, 학원, 학교, 회사, 지하철, 버스, 택시, KTX, SRT, 공항, 역, 터미널, 준비 시간, 매일, 평일, 주말, 반복',
+  road: '스케줄, 촬영, 녹화, 리허설, 생방송, 행사, 팬미팅, 콘서트, 대기, 픽업, 드롭, 숍, 헤어, 메이크업, 방송국, 스튜디오, 현장, 아티스트, 매니저, 차량, 주유, 세차, 정비, 콜타임, 출발, 도착',
+  ceo: '대표님, 회의, 미팅, 결재, 보고, 출장, 임원, 비서, 거래처, 오찬, 만찬, 골프, 공항, 기사님, 차량, 일정, 미뤄, 당겨, 취소, 출발, 도착',
+};
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -45,10 +50,12 @@ async function rpc(env: Env, fn: string, body: Json, f: typeof fetch) {
 }
 
 /** 힌트 문장: 골프 용어 + 사용자 골프장 이름 (짧게, 이상한 글자 제거) */
-export function buildPrompt(hints: unknown): string {
+export function buildPrompt(hints: unknown, app?: unknown): string {
   const list = Array.isArray(hints) ? hints : [];
   const names = [...new Set(list.map((h) => String(h || '').replace(/[^\p{L}\p{N}\s·&()-]/gu, '').trim().slice(0, 30)).filter(Boolean))].slice(0, 25);
-  return `골프 일정 앱에 하는 한국어 말입니다. 자주 나오는 말: ${GOLF_WORDS}${names.length ? '. 골프장: ' + names.join(', ') : ''}.`;
+  const a = WORDS[String(app || '')] ? String(app) : 'buddy';
+  const what: Record<string, string> = { buddy: '골프 일정 앱', my: '일정·알람 앱', road: '연예인 매니저 일정 앱', ceo: '대표 일정 앱' };
+  return `${what[a]}에 하는 한국어 말입니다. 자주 나오는 말: ${WORDS[a]}${names.length ? '. 자주 가는 곳: ' + names.join(', ') : ''}.`;
 }
 
 function b64ToBytes(b64: string): Uint8Array {
@@ -106,7 +113,7 @@ export async function handle(req: Request, env: Env, f: typeof fetch = fetch): P
     form.append('model', env.VOICE_MODEL || 'gpt-4o-transcribe');
     form.append('language', 'ko');
     form.append('response_format', 'json');
-    form.append('prompt', buildPrompt(body.hints));
+    form.append('prompt', buildPrompt(body.hints, body.app));
     const res = await f('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST', headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}` }, body: form,
     });
