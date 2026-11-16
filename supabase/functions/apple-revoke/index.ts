@@ -8,6 +8,7 @@
 //   APPLE_KEY_ID       그 키의 Key ID (없으면 아래 기본값)
 //   APPLE_TEAM_ID      팀 ID (없으면 아래 기본값)
 //   APPLE_CLIENT_ID    앱 번들 ID (없으면 com.myB11)
+// 요청 본문 client_id: 마이플래너(kr.myplanner.app)처럼 같은 팀의 다른 앱이면 그 번들 ID (아래 목록만 허용)
 // 자동: SUPABASE_URL, SUPABASE_ANON_KEY
 
 const CORS = {
@@ -20,6 +21,7 @@ const json = (status: number, body: unknown) =>
 
 const DEFAULT_TEAM_ID = "WKR837G6CH";
 const DEFAULT_CLIENT_ID = "com.myB11";
+const OTHER_CLIENT_IDS = ["kr.myplanner.app"];   // 같은 팀·같은 Apple 로그인 키를 쓰는 다른 앱
 const DEFAULT_KEY_ID = "XRSDV9QSRH";   // 애플 개발자 사이트의 Sign in with Apple 키 ID (비밀 아님)
 
 const b64url = (buf: ArrayBuffer | Uint8Array | string) => {
@@ -51,13 +53,13 @@ if (D && D.serve) D.serve(async (req: Request) => {
   const user = ur.ok ? await ur.json() : null;
   if (!user || !user.id) return json(401, { error: "login_required" });
 
-  let code = "";
-  try { code = String((await req.json()).code || "").slice(0, 2000); } catch { /* */ }
+  let code = "", askId = "";
+  try { const b = await req.json(); code = String(b.code || "").slice(0, 2000); askId = String(b.client_id || ""); } catch { /* */ }
   if (!code) return json(400, { error: "code_required" });
 
   const pem = env.APPLE_PRIVATE_KEY, keyId = env.APPLE_KEY_ID || DEFAULT_KEY_ID;
   if (!pem || !keyId) return json(503, { error: "not_configured" });
-  const clientId = env.APPLE_CLIENT_ID || DEFAULT_CLIENT_ID;
+  const clientId = OTHER_CLIENT_IDS.includes(askId) ? askId : (env.APPLE_CLIENT_ID || DEFAULT_CLIENT_ID);
 
   try {
     const secret = await clientSecret(pem, keyId, env.APPLE_TEAM_ID || DEFAULT_TEAM_ID, clientId);
