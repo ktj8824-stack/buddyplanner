@@ -56,6 +56,7 @@ const ASSETS = [
   './js/raffle.js',
   './js/courseguide.js',
   './js/ai-agent.js',
+  './js/voice-stt.js',
   './js/ai.js',
   './js/group.js',
   './js/autonav.js',

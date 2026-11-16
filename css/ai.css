@@ -926,3 +926,7 @@
 .ai-text-input { min-width: 0; }
 .ai-input-bar .ai-mic-btn { width: 38px; height: 38px; flex: none; }
 .ai-send-btn { flex: none; }
+
+/* 음성: 받아쓰는 중 (서버 받아쓰기 대기) */
+.ai-mic-btn.busy { opacity: .55; pointer-events: none; }
+.ai-listening-overlay.busy .ai-wave-bar { animation-duration: 2.4s; opacity: .5; }

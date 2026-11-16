@@ -99,7 +99,7 @@ const AI = {
               <div class="ai-wave-bar"></div>
               <div class="ai-wave-bar"></div>
             </div>
-            <span style="font-size:12.5px;letter-spacing:-0.2px;">음성을 듣고 있습니다... 말씀해 주세요</span>
+            <span id="ai-listening-text" style="font-size:12.5px;letter-spacing:-0.2px;">듣고 있어요 · 말을 마치면 자동으로 멈춰요</span>
           </div>
           <button onclick="AI.stopListening()" style="background:none;border:none;color:#94a3b8;font-size:11.5px;cursor:pointer;text-decoration:underline;">취소</button>
         </div>
@@ -957,103 +957,99 @@ const AI = {
     }
   },
 
-  // Voice Speech Recognition (STT)
+  /* ── 음성 입력 ──
+     1순위: 고음질 서버 받아쓰기 (js/voice-stt.js → voice-stt 서버, 골프장 이름 힌트)
+     2순위: 기기 받아쓰기 (웹 음성 인식) — 서버가 꺼졌거나 한도를 넘었을 때
+     두 방법 모두 받아쓴 글은 입력창에 먼저 넣고, 확인한 뒤 전송 */
+  /** 기기 받아쓰기 (웹 음성 인식) 준비 */
   initSpeechRecognition() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) {
-      console.warn('SpeechRecognition API is not supported on this browser.');
-      return;
-    }
-
+    if (!SpeechRec) return;
     try {
       this.recognition = new SpeechRec();
-      this.recognition.continuous = false;
+      this.recognition.continuous = true;      // 잠깐 쉬어도 끊지 않음 (다시 누르면 끝)
       this.recognition.lang = 'ko-KR';
       this.recognition.interimResults = true;
-
-      this.recognition.onstart = () => {
-        this.isListening = true;
-        this.updateMicUI(true);
-      };
-
+      this.recognition.maxAlternatives = 1;
+      this.recognition.onstart = () => { this.isListening = true; this.updateMicUI(true); };
       this.recognition.onresult = (event) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
+        let text = '';
+        for (let i = 0; i < event.results.length; i++) text += event.results[i][0].transcript;   // 처음부터 전부 이어 붙임
         const input = U.$('#ai-input');
-        if (input) input.value = transcript;
-
-        if (event.results[0].isFinal) {
-          this.stopListening();
-          if (transcript.trim()) {
-            this.sendFromInput();
-          }
-        }
+        if (input) input.value = text.replace(/\s+/g, ' ').trim();
+        clearTimeout(this._devSilence);
+        this._devSilence = setTimeout(() => this.stopListening(), 2500);   // 2.5초 조용하면 끝
       };
-
       this.recognition.onerror = (e) => {
-        console.warn('Speech recognition error:', e);
         this.stopListening();
-        if (e.error === 'not-allowed') {
-          if (typeof U !== 'undefined' && U.toast) {
-            U.toast('마이크 권한 허용이 필요합니다.');
-          }
-        }
+        if (e && e.error === 'not-allowed') U.toast('마이크 권한을 허용해 주세요. (설정 > 버디플래너 > 마이크)');
       };
-
-      this.recognition.onend = () => {
-        this.isListening = false;
-        this.updateMicUI(false);
-      };
-    } catch (e) {
-      console.error('Failed to init speech recognition:', e);
-    }
+      this.recognition.onend = () => { clearTimeout(this._devSilence); this.isListening = false; this.updateMicUI(false); this._focusInput(); };
+    } catch (e) { console.warn('speech init', e); }
   },
 
   toggleListening() {
-    if (this.isListening) {
-      this.stopListening();
-    } else {
-      this.startListening();
-    }
+    if (typeof ServerVoice !== 'undefined' && ServerVoice.active()) { ServerVoice.stop(); return; }
+    if (this.isListening) { this.stopListening(); return; }
+    this.startListening();
   },
 
-  startListening() {
-    if (!this.recognition) {
-      this.initSpeechRecognition();
-    }
-    if (!this.recognition) {
-      if (typeof U !== 'undefined' && U.toast) {
-        U.toast('현재 브라우저에서는 음성 인식을 지원하지 않습니다. 텍스트로 입력해 주세요!');
-      } else {
-        alert('음성 인식을 지원하지 않는 환경입니다.');
-      }
+  _voiceOpts() {
+    const { url, key } = Cloud.cfg();
+    return { url, anon: key, token: () => Cloud._freshToken(), app: 'buddy' };
+  },
+
+  async startListening() {
+    if (this._voiceBusy) return;
+    const sv = typeof ServerVoice !== 'undefined' && typeof Cloud !== 'undefined' && Cloud.session && Cloud.session();
+    if (sv && await ServerVoice.ready(this._voiceOpts())) {
+      ServerVoice.start(Object.assign(this._voiceOpts(), {
+        hints: this._hints(),
+        onState: s => { this._voiceBusy = s === 'busy'; this.isListening = s === 'listening'; this.updateMicUI(s === 'listening', s === 'busy'); },
+        onText: text => {
+          const input = U.$('#ai-input');
+          if (input) { input.value = (input.value.trim() ? input.value.trim() + ' ' : '') + text; this._focusInput(); }
+        },
+        onFail: (why, msg) => {
+          if (why === 'no_recorder') return this._startDevice();
+          if (msg) U.toast(msg);
+        }
+      }));
       return;
     }
+    this._startDevice();
+  },
 
-    try {
-      this.recognition.start();
-    } catch (e) {
-      console.warn('Recognition start error:', e);
-    }
+  _startDevice() {
+    if (!this.recognition) this.initSpeechRecognition();
+    if (!this.recognition) { U.toast('이 기기에서는 음성 입력을 쓸 수 없어요. 글자로 입력해 주세요.'); return; }
+    try { this.recognition.start(); } catch (e) { console.warn('recognition start', e); }
   },
 
   stopListening() {
-    if (this.recognition && this.isListening) {
-      try {
-        this.recognition.stop();
-      } catch (e) {}
-    }
+    if (typeof ServerVoice !== 'undefined' && ServerVoice.active()) { ServerVoice.cancel(); return; }
+    clearTimeout(this._devSilence);
+    if (this.recognition && this.isListening) { try { this.recognition.stop(); } catch (e) { } }
     this.isListening = false;
     this.updateMicUI(false);
   },
 
-  updateMicUI(listening) {
+  _focusInput() { const i = U.$('#ai-input'); if (i && i.value.trim()) { try { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } catch (e) { } } },
+
+  _hints() {
+    const names = [];
+    try { (State.schedules || []).slice(-30).forEach(s => { const n = s && s.course && s.course.name; if (n) names.push(n); }); } catch (e) { }
+    try { (typeof Group !== 'undefined' && Group.cachedList ? Group.cachedList() : []).forEach(g => { if (g && g.course) names.push(g.course); }); } catch (e) { }
+    return [...new Set(names)].slice(-25);
+  },
+
+  updateMicUI(listening, busy) {
     const btn = U.$('#ai-mic-btn');
     const overlay = U.$('#ai-listening-banner');
-    if (btn) btn.classList.toggle('listening', listening);
-    if (overlay) overlay.classList.toggle('active', listening);
+    const label = U.$('#ai-listening-text');
+    if (btn) { btn.classList.toggle('listening', !!listening); btn.classList.toggle('busy', !!busy); }
+    if (overlay) { overlay.classList.toggle('active', !!(listening || busy)); overlay.classList.toggle('busy', !!busy); }
+    if (label) label.textContent = busy ? '받아쓰는 중이에요…' : '듣고 있어요 · 말을 마치면 자동으로 멈춰요';
   },
 
   scrollToBottom() {
