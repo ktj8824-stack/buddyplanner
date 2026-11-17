@@ -33,6 +33,7 @@ const Register = {
   reset() {
     this.editIdx = null;
     this.groupCode = null;
+    this.groupLogin = false;   // 단체 링크로 받은 일정: 로그인해야 알람
     this.searchTimer = null;
     this.course = null;
     this.date = window._selectedDateForRegister || null;
@@ -195,6 +196,7 @@ const Register = {
     if (!s) return;
     this.editIdx = idx;
     this.groupCode = s.groupCode || null;
+    this.groupLogin = !!s.groupLogin;
     this.course = s.course;
     this.date = s.date;
     const [th, tm] = s.teeOff.split(':').map(Number);
@@ -1149,8 +1151,8 @@ ${this._afterHTML()}
     
     window._currentMealType = type;
     const isPost = type === 'post';
-    const title = isPost ? '🍻 뒷풀이 식당 선택' : '🍽️ 라운딩 전 식당 선택';
-    const radius = isPost ? 10 : 5; // 뒷풀이는 10km
+    const title = isPost ? '🍻 뒤풀이 식당 선택' : '🍽️ 라운딩 전 식당 선택';
+    const radius = isPost ? 10 : 5; // 뒤풀이는 10km
     
     // 모달을 띄우되, 로딩 상태로 먼저 보여줍니다.
     App.showModal(title, '<div style="padding:var(--sp-4); text-align:center;">주변 맛집을 검색 중입니다...</div>');
@@ -1454,7 +1456,7 @@ ${this._afterHTML()}
       if (msg) { U.toast(msg); this._refreshSharedSteps(true); return; }
     }
     if (this.hasMeal && !this.mealRestaurant) { U.toast('⚠️ 식당을 선택하거나 식사를 끄세요'); return; }
-    if (this.hasPostMeal && !this.postMealRestaurant) { U.toast('⚠️ 뒷풀이 식당을 선택하거나 기능을 끄세요'); return; }
+    if (this.hasPostMeal && !this.postMealRestaurant) { U.toast('⚠️ 뒤풀이 식당을 고르거나 뒤풀이를 꺼 주세요'); return; }
     // 무료 회원 일정 개수 제한 (수정은 제외)
     if (this.editIdx === null && !Billing.guardScheduleLimit()) return;
 
@@ -1589,6 +1591,7 @@ ${this._afterHTML()}
       meetingPointObj: this.meetingPointObj,
       travelToMeeting,
       groupCode: this.groupCode || null,
+      groupLogin: !!(this.groupCode && this.groupLogin),
       roundLength: this.roundLength || '18',
       showerMin: this.showerMin,
       afterMeet: this.afterMeet && this.afterMeet.mode !== 'asap' && this.afterMeet.time ? { mode: this.afterMeet.mode, time: this.afterMeet.time } : { mode: 'asap', time: '' },

@@ -214,7 +214,7 @@ const Group = {
         ${typeof AutoNav !== 'undefined' ? AutoNav.quickHTML([
           e.meal_before ? { label: '아침 식당', name: e.meal_before.name, lat: e.meal_before.lat, lng: e.meal_before.lng } : null,
           e.course ? { label: '골프장', name: e.course.name, lat: e.course.lat, lng: e.course.lng } : null,
-          e.meal_after ? { label: '뒷풀이', name: e.meal_after.name, lat: e.meal_after.lat, lng: e.meal_after.lng } : null,
+          e.meal_after ? { label: '뒤풀이', name: e.meal_after.name, lat: e.meal_after.lat, lng: e.meal_after.lng } : null,
         ]) : ''}
       </div>`;
   },
@@ -448,26 +448,35 @@ const Group = {
   /** 붙여넣은 글 → [{tee, course, members:[{name, phone, unsure}]}] (조 표시가 없으면 4명씩 나눔) */
   parseLineup(text) {
     const PHONE = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g;
-    const STOP = /^(티업|티오프|티타임|집결|집합|시간|명단|참석|참석자|조편성|조|팀|코스|번|님들|회비|공지|원|만원|일시|장소|오전|오후|AM|PM)$/i;
+    const STOP = /^(티업|티오프|티타임|집결|집합|시간|명단|참석|참석자|불참|조편성|조|팀|코스|번|님들|회비|공지|원|만원|일시|장소|오전|오후|AM|PM|회장|회장님|총무|총무님|고문|감사|클럽하우스|로비|당일|현장|납부|입금|계좌|정기모임|모임|라운딩|골프|골프장|카트|캐디|캐디피|그린피|식사|조식|중식|석식|뒤풀이|문의|연락|부탁|참고|필참|확정|예정|변경|안내|및|등)$/i;
     const teams = []; let cur = null; let loose = [];
     const newTeam = () => { cur = { tee: '', course: '', members: [] }; teams.push(cur); return cur; };
     const lines = String(text || '').replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
     lines.forEach(raw => {
       let line = raw.replace(/^[\s\-•·*▶▷►◆◇■□●○✔✓]+/, '');
-      if (/^\[.*\]$/.test(line) || /^[<(（【].*[>)）】]$/.test(line)) return;          // [11/28 정기 라운딩] 같은 제목 줄
       const head = /^(?:\[)?\s*(\d{1,2}|[A-Za-z])\s*(조|팀)\s*(?:\])?\s*[:：.)\-]?\s*/.exec(line);
+      if (!head) {
+        // 공지 속 안내 줄은 건너뜀: [제목] · ※★📌 메모 · '장소: …' 같은 항목 줄 · 금액 · '…해 주세요' 같은 문장
+        if (/^[\[<(（【※★☆⭐📌📍✅❗❕💡🔔]/u.test(line)) return;
+        if (/\d\s*(만\s*)?원\b|\d+만원/.test(line)) return;
+        if (/(니다|세요|해요|주세요|바랍니다|드림|부탁)[.!~)]*\s*$/.test(line)) return;
+      }
       if (head) { newTeam(); line = line.slice(head[0].length); }
       const tm = /(?:^|\s|\()([01]?\d|2[0-3])\s*[:시]\s*([0-5]\d)\s*(?:분)?/.exec(line);
       if (tm) { if (!cur) newTeam(); if (!cur.tee) cur.tee = `${String(tm[1]).padStart(2, '0')}:${tm[2]}`; line = line.replace(tm[0], ' '); }
+      if (!head && /[:：]/.test(line)) return;                                  // '장소: 클럽하우스 로비' 같은 항목 줄
       const target = () => cur || { members: loose, course: '' };
       // 전화번호는 바로 앞 이름에 붙임
       const parts = line.split(PHONE); const phones = line.match(PHONE) || [];
       parts.forEach((seg, i) => {
         const toks = seg.split(/[,，、/|·\t;]+|\s+/).map(s => s.replace(/^\(?\d{1,2}[.)]\s*/, '').replace(/^[(（\[]+|[)）\]:：.]+$/g, '').trim()).filter(Boolean);
-        toks.forEach(tok => {
+        toks.forEach(tok0 => {
+          let tok = tok0;
           if (/^(OUT|IN|out|in)$/.test(tok) || /(코스|OUT|IN)$/.test(tok) && tok.length <= 8 && !/[0-9]/.test(tok)) { const T = target(); if (!T.course) T.course = tok; return; }
           if (STOP.test(tok) || /^\d+$/.test(tok) || (tok.length < 2 && !/^[가-힣]$/.test(tok)) || tok.length > 12) return;   // '김·이·박' 처럼 성만 적어도 받음
           if (!/^[가-힣A-Za-z][가-힣A-Za-z0-9.]*$/.test(tok)) return;
+          if (/[가-힣]{2,}님$/.test(tok)) tok = tok.slice(0, -1);                  // '김프로님' → '김프로'
+          if (STOP.test(tok)) return;
           target().members.push({ name: tok, phone: '', unsure: tok.length === 1 });
         });
         if (phones[i]) { const T = target(); const last = T.members[T.members.length - 1]; if (last && !last.phone) last.phone = phones[i].replace(/[^0-9]/g, ''); }
@@ -1085,6 +1094,7 @@ const Group = {
     setTimeout(() => {
       Register.prefill({ course: course.lat ? course : null, date, h, m });
       Register.groupCode = this.code;
+      Register.groupLogin = true;   // 단체 링크로 받은 일정 → 로그인하면 알람
       const pill = (sel, txt) => [...document.querySelectorAll(sel)].find(b => b.textContent.trim() === txt || b.dataset.t === txt);
       const pp = pill('#r-pills .pill', String(q.prep));
       if (pp) Register.setPrepTime(q.prep, pp); else { Register.prep = q.prep; if (Register.sg) Register.sg.prep = true; }

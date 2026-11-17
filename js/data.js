@@ -77,16 +77,16 @@ const GOLFER_PICKS = {
   '경기 여주': [
     { place_name: '여주 황금콩밭 두부', address_name: '경기 여주시 여주읍', category: '두부/순두부', tel: '031-882-1234', tag: '⛳ 골퍼 추천 1위', desc: '라운딩 전 든든한 순두부백반' },
     { place_name: '여주 쌀밥 보리굴비', address_name: '경기 여주시 여주읍', category: '한정식', tel: '031-883-5678', tag: '👨‍🍳 캐디 추천', desc: '정갈한 보리굴비 한상차림' },
-    { place_name: '강천섬 장어구이', address_name: '경기 여주시 강천면', category: '장어/보양식', tel: '031-884-9012', tag: '🔥 뒷풀이 인기', desc: '라운딩 후 보양식 최고' },
+    { place_name: '강천섬 장어구이', address_name: '경기 여주시 강천면', category: '장어/보양식', tel: '031-884-9012', tag: '🔥 뒤풀이 인기', desc: '라운딩 후 보양식 최고' },
   ],
   '경기 성남': [
     { place_name: '분당 미금 곰탕집', address_name: '경기 성남시 분당구', category: '곰탕/해장국', tel: '031-712-3456', tag: '⛳ 골퍼 추천', desc: '깊은 사골 육수, 아침 해장으로 최고' },
-    { place_name: '정자동 화로구이', address_name: '경기 성남시 분당구', category: '고기/구이', tel: '031-713-7890', tag: '🔥 뒷풀이 단골', desc: '단체룸 있어서 회식에 딱' },
+    { place_name: '정자동 화로구이', address_name: '경기 성남시 분당구', category: '고기/구이', tel: '031-713-7890', tag: '🔥 뒤풀이 단골', desc: '단체룸 있어서 회식에 딱' },
   ],
   '인천 영종': [
     { place_name: '을왕리 조개구이촌', address_name: '인천 중구 을왕동', category: '조개구이', tel: '032-746-1234', tag: '⛳ 골퍼 추천 1위', desc: '바다 보면서 조개구이 한판' },
     { place_name: '영종도 백운닭칼국수', address_name: '인천 중구 운서동', category: '칼국수/만두', tel: '032-746-5678', tag: '🍜 아침 추천', desc: '뜨끈한 칼국수로 라운딩 준비' },
-    { place_name: '공항 근처 해물탕', address_name: '인천 중구 운서동', category: '해물탕', tel: '032-747-9012', tag: '🔥 뒷풀이 인기', desc: '라운딩 끝나고 뒤풀이 해물탕' },
+    { place_name: '공항 근처 해물탕', address_name: '인천 중구 운서동', category: '해물탕', tel: '032-747-9012', tag: '🔥 뒤풀이 인기', desc: '라운딩 끝나고 뒤풀이 해물탕' },
   ],
   '인천 청라': [
     { place_name: '청라 호수공원 갈비', address_name: '인천 서구 청라동', category: '갈비/구이', tel: '032-568-1234', tag: '⛳ 골퍼 추천', desc: '넓은 룸에서 여유롭게 갈비' },
@@ -94,7 +94,7 @@ const GOLFER_PICKS = {
   ],
   '경기 안양': [
     { place_name: '관악산 기사식당', address_name: '경기 안양시 만안구', category: '국밥/해장', tel: '031-442-1234', tag: '⛳ 골퍼 단골', desc: '새벽부터 든든한 한끼' },
-    { place_name: '안양 숯불 갈비살', address_name: '경기 안양시 만안구', category: '고기/구이', tel: '031-442-5678', tag: '🔥 뒷풀이 인기', desc: '고기 한 점에 피로 회복' },
+    { place_name: '안양 숯불 갈비살', address_name: '경기 안양시 만안구', category: '고기/구이', tel: '031-442-5678', tag: '🔥 뒤풀이 인기', desc: '고기 한 점에 피로 회복' },
   ],
   '경기 안성': [
     { place_name: '안성맞춤 한우마을', address_name: '경기 안성시 금광면', category: '한우', tel: '031-673-1234', tag: '⛳ 골퍼 추천 1위', desc: '안성 한우는 진짜 다르다' },
@@ -102,11 +102,11 @@ const GOLFER_PICKS = {
   ],
   '경기 이천': [
     { place_name: '이천 쌀밥 한정식', address_name: '경기 이천시 모가면', category: '한정식', tel: '031-634-1234', tag: '⛳ 골퍼 추천 1위', desc: '이천 쌀밥의 전설, 20첩 반상' },
-    { place_name: '이천 도자기마을 갈비', address_name: '경기 이천시 신둔면', category: '갈비/구이', tel: '031-634-5678', tag: '🔥 뒷풀이 추천', desc: '한우 양념갈비 맛집' },
+    { place_name: '이천 도자기마을 갈비', address_name: '경기 이천시 신둔면', category: '갈비/구이', tel: '031-634-5678', tag: '🔥 뒤풀이 추천', desc: '한우 양념갈비 맛집' },
   ],
   '강원 원주': [
     { place_name: '원주 막국수 본점', address_name: '강원 원주시 지정면', category: '막국수/냉면', tel: '033-762-1234', tag: '⛳ 골퍼 추천', desc: '시원한 막국수로 리프레시' },
-    { place_name: '오크밸리 근처 닭갈비', address_name: '강원 원주시 지정면', category: '닭갈비', tel: '033-762-5678', tag: '🔥 뒷풀이 단골', desc: '춘천 못지않은 원주 닭갈비' },
+    { place_name: '오크밸리 근처 닭갈비', address_name: '강원 원주시 지정면', category: '닭갈비', tel: '033-762-5678', tag: '🔥 뒤풀이 단골', desc: '춘천 못지않은 원주 닭갈비' },
   ],
   '강원 평창': [
     { place_name: '대관령 한우타운', address_name: '강원 평창군 대관령면', category: '한우', tel: '033-335-1234', tag: '⛳ 골퍼 추천 1위', desc: '해발 700m에서 먹는 한우' },
@@ -119,25 +119,25 @@ const GOLFER_PICKS = {
   ],
   '경남 남해': [
     { place_name: '남해 멸치쌈밥', address_name: '경남 남해군 남면', category: '쌈밥', tel: '055-863-1234', tag: '⛳ 골퍼 추천', desc: '남해 멸치회 + 쌈밥 정식' },
-    { place_name: '남해 한우마을', address_name: '경남 남해군 남면', category: '한우', tel: '055-862-3456', tag: '🔥 뒷풀이 인기', desc: '라운딩 후 한우 보상' },
+    { place_name: '남해 한우마을', address_name: '경남 남해군 남면', category: '한우', tel: '055-862-3456', tag: '🔥 뒤풀이 인기', desc: '라운딩 후 한우 보상' },
   ],
   '경북 상주': [
     { place_name: '상주 곶감한우집', address_name: '경북 상주시 외남면', category: '한우', tel: '054-536-1234', tag: '⛳ 골퍼 추천', desc: '상주 한우와 곶감의 만남' },
   ],
   '충남 서산': [
     { place_name: '서산 어리굴젓 식당', address_name: '충남 서산시 운산면', category: '굴/해물', tel: '041-664-1234', tag: '⛳ 골퍼 추천', desc: '서산 간월도 어리굴젓 백반' },
-    { place_name: '서산 한우불고기', address_name: '충남 서산시 운산면', category: '한우', tel: '041-664-5678', tag: '🔥 뒷풀이 추천', desc: '넓은 단체룸 있는 한우 맛집' },
+    { place_name: '서산 한우불고기', address_name: '충남 서산시 운산면', category: '한우', tel: '041-664-5678', tag: '🔥 뒤풀이 추천', desc: '넓은 단체룸 있는 한우 맛집' },
   ],
   '세종': [
     { place_name: '세종 장군면옥', address_name: '세종시 전의면', category: '냉면/국수', tel: '044-863-1234', tag: '⛳ 골퍼 추천', desc: '평양식 물냉면 맛집' },
   ],
   '전남 여수': [
     { place_name: '돌산 갓김치 백반', address_name: '전남 여수시 돌산읍', category: '백반/한식', tel: '061-644-1234', tag: '⛳ 골퍼 추천', desc: '돌산 갓김치와 정갈한 밥상' },
-    { place_name: '여수 서대회센터', address_name: '전남 여수시 돌산읍', category: '횟집', tel: '061-644-5678', tag: '🐟 뒷풀이 추천', desc: '바다 뷰 + 싱싱한 회' },
+    { place_name: '여수 서대회센터', address_name: '전남 여수시 돌산읍', category: '횟집', tel: '061-644-5678', tag: '🐟 뒤풀이 추천', desc: '바다 뷰 + 싱싱한 회' },
   ],
 };
 
-/* ── 라운딩 길이 (귀가·뒷풀이 시간 계산용) ── */
+/* ── 라운딩 길이 (귀가·뒤풀이 시간 계산용) ── */
 const ROUND_LENGTHS = {
   '18': { label: '18홀', min: 330, desc: '라운딩 약 5시간 30분' },
   '9': { label: '9홀', min: 165, desc: '라운딩 약 2시간 45분' },
@@ -398,13 +398,13 @@ const State = {
       tl.postMealRestaurant = post;
       tl.postTravelDur = postTravel;
       tl.postMealStart = this.mToTime(postStart);
-      tl.postMealEnd = this.mToTime(postStart + 120); // 뒷풀이 2시간
+      tl.postMealEnd = this.mToTime(postStart + 120); // 뒤풀이 2시간
     } else {
       tl.hasPostMeal = false;
     }
 
     const returnStart = post ? postStart + 120 : leave;
-    // 귀가: 갈 때 집결지·식당을 들렀다면 그 시간을 빼고, 골프장(뒷풀이 식당)→출발지로 따로 어림
+    // 귀가: 갈 때 집결지·식당을 들렀다면 그 시간을 빼고, 골프장(뒤풀이 식당)→출발지로 따로 어림
     let returnTravel = s.travelTime || 60;
     const backFrom = tl.hasPostMeal && s.postMealRestaurant && s.postMealRestaurant.lat ? s.postMealRestaurant : s.course;
     if ((s.hasMeetingPoint || s.hasMeal || tl.hasPostMeal) && backFrom && backFrom.lat && s.startLat && s.startLng

@@ -686,7 +686,7 @@ const Timeline = {
   /** 알람 켜기 (일정 생성·수정 직후에도 호출). 이미 켜져 있어도 기존 예약을 지우고 다시 예약하므로 중복되지 않음 */
   /** 단체 일정에서 받은 일정은 로그인해야 알람이 울림 (로그인 없이도 타임라인은 그대로) */
   groupAlarmLocked(s) {
-    if (!s || !s.groupCode) return false;
+    if (!s || !s.groupCode || !s.groupLogin) return false;   // 이번 업데이트 뒤 단체 링크로 받은 일정만 (예전 일정 알람은 그대로)
     try { return !(typeof Cloud !== 'undefined' && Cloud.isConfigured() && Cloud.isSignedIn()); } catch (e) { return false; }
   },
 
@@ -823,7 +823,7 @@ const Timeline = {
     const now = new Date();
     State.schedules.forEach((s) => {
       if (!s.timeline || !s.date || s.alarmOff) return;
-      if (this.groupAlarmLocked(s)) return;   // 단체 일정: 로그인해야 알람
+      if (this.groupAlarmLocked(s)) { this.clearSchedAlarms(s, true); return; }   // 단체 일정: 로그인해야 알람 (폰에 걸린 예전 알람도 지움)
       // 오늘·내일 라운딩만 (새벽 티오프는 준비 시작이 전날 밤일 수 있음)
       const sDate = new Date(s.date); sDate.setHours(0, 0, 0, 0);
       const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
@@ -905,7 +905,7 @@ const Timeline = {
     this.alarmTimeouts = this.alarmTimeouts || [];
     const s = State.schedules[this.schedIdx];
     if (!s || !s.timeline) return;
-    if (this.groupAlarmLocked(s)) return;   // 단체 일정: 로그인해야 알람
+    if (this.groupAlarmLocked(s)) { this.clearSchedAlarms(s, true); return; }   // 단체 일정: 로그인해야 알람
     // 같은 일정에 앞서 걸어 둔 앱 안 타이머는 지우고 다시 검 (중복 알람 방지)
     this.clearSchedAlarms(s, false);
     

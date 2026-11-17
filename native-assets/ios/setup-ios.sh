@@ -11,7 +11,7 @@ APP_DIR="$HOME/Documents/buddyplanner-app"
 CONFIG="$HOME/Documents/buddyplanner-config.js"
 BUNDLE_ID="com.myB11"   # 앱스토어에 출시된 버디플래너와 같은 번호 (2026-11-15 변경, 예전: com.buddyplanner.ktj8824)
 TEAM_ID="WKR837G6CH"
-ADMOB_IOS_APP_ID="ca-app-pub-3940256099942544~1458002511"   # 애드몹 테스트용 (출시 전에 실제 iOS 앱 ID로 교체)
+ADMOB_IOS_APP_ID="ca-app-pub-6195996093323539~9216384071"   # 애드몹 버디플래너 iOS 앱 (2026-11-15 등록)
 
 step() { echo; echo "▶ $1"; }
 

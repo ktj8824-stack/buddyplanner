@@ -4,7 +4,7 @@
    기본 내비(티맵/카카오내비)를 정해 두었으면 바로 열고, '매번 선택'이면 내비 고르기 창을 띄웁니다.
    - 아이폰: 단축어 자동화 "CarPlay(또는 차 블루투스)에 연결되면 → URL 열기"
    - 갤럭시: 모드 및 루틴 "차량 블루투스 연결 시 → 웹페이지 열기"
-   가야 할 곳: 집 → (모임장소) → (식당) → 골프장 → (뒷풀이 식당) → 집
+   가야 할 곳: 집 → (모임장소) → (식당) → 골프장 → (뒤풀이 식당) → 집
    ========================================= */
 const AutoNav = {
   WEB_LINK: 'https://buddyplanner.kr/?go=next',
@@ -103,27 +103,27 @@ const AutoNav = {
     const course = { name: s.course.name, lat: s.course.lat, lng: s.course.lng };
     const meet = s.hasMeetingPoint && s.meetingPointObj ? { name: s.meetingPointObj.name || '모임장소', lat: s.meetingPointObj.lat, lng: s.meetingPointObj.lng } : null;
     const rest = s.hasMeal && s.mealRestaurant ? { name: s.mealRestaurant.name || '식당', lat: s.mealRestaurant.lat, lng: s.mealRestaurant.lng } : null;
-    const post = s.hasPostMeal && s.postMealRestaurant ? { name: s.postMealRestaurant.name || '뒷풀이 식당', lat: s.postMealRestaurant.lat, lng: s.postMealRestaurant.lng } : null;
+    const post = s.hasPostMeal && s.postMealRestaurant ? { name: s.postMealRestaurant.name || '뒤풀이 식당', lat: s.postMealRestaurant.lat, lng: s.postMealRestaurant.lng } : null;
     const legs = [];
     const first = meet || rest || course;
     legs.push({ key: 'depart', dep: tl.homeDepart, from: home, to: first, label: meet ? '모임장소로 출발' : rest ? '식당으로 출발' : '골프장으로 출발' });
     if (meet) legs.push({ key: 'meetDepart', dep: tl.meetDepart, from: meet, to: rest || course, label: rest ? '식당으로 출발' : '골프장으로 출발' });
     if (rest) legs.push({ key: 'restDepart', dep: tl.restDepart, from: rest, to: course, label: '골프장으로 출발' });
-    if (post) legs.push({ key: 'postDepart', dep: tl.leaveCourse || tl.roundEnd, from: course, to: post, label: '뒷풀이 식당으로' });
+    if (post) legs.push({ key: 'postDepart', dep: tl.leaveCourse || tl.roundEnd, from: course, to: post, label: '뒤풀이 식당으로' });
     legs.push({ key: 'return', dep: tl.returnStart, from: post || course, to: home, label: '집으로 귀가' });
     // 구간마다 '언제까지 이 구간이 맞는지(until)'를 붙임 (라운딩 날 0시 기준 분, 전날 밤 출발은 음수)
     //  - 골프장 쪽으로 가는 구간: 티오프 + 45분까지 (늦게 출발해도 골프장으로 안내)
-    //  - 뒷풀이 식당: 귀가 출발 시각까지 / 집으로 귀가: 귀가 출발 + 3시간까지
+    //  - 뒤풀이 식당: 귀가 출발 시각까지 / 집으로 귀가: 귀가 출발 + 3시간까지
     const tee = this._min(s.teeOff);
     const out = [];
     for (const l of legs) {
       let dep = this._min(l.dep);
       if (dep == null || !l.to || !l.to.lat || !l.to.lng) continue;
-      const toCourseSide = l.label !== '뒷풀이 식당으로' && l.label !== '집으로 귀가';
+      const toCourseSide = l.label !== '뒤풀이 식당으로' && l.label !== '집으로 귀가';
       if (toCourseSide && tee != null && dep > tee) dep -= 1440;   // 새벽 티오프: 전날 밤 출발
       let until;
       if (toCourseSide) until = (tee != null ? tee : dep) + this.LATE_MIN;
-      else if (l.label === '뒷풀이 식당으로') until = this._min(tl.returnStart) != null ? this._min(tl.returnStart) : 1440;
+      else if (l.label === '뒤풀이 식당으로') until = this._min(tl.returnStart) != null ? this._min(tl.returnStart) : 1440;
       else until = dep + this.HOME_GRACE;
       out.push({ ...l, depMin: dep, until });
     }
@@ -153,7 +153,14 @@ const AutoNav = {
       todayCount++;
       // 아직 유효한 구간 중, 출발 시각(30분 일찍까지)이 된 마지막 구간 = 지금 타야 하는 구간
       //   예) 06:45 식당 앞 → '식당→골프장' / 07:40 늦게 출발 → 그래도 '식당→골프장' / 05:10 집 → '집→식당'
-      const open = legs.filter(l => cur < l.until);
+      // 뒤풀이 식당 구간: 이미 안내를 시작해 이동이 끝났으면(이동 분 + 15분 지남) 빼기
+      //   예) 뒤풀이 식당에서 일찍 나와 차에 타면 → 그 식당이 아니라 집으로
+      const d0 = new Date(s.date); d0.setHours(0, 0, 0, 0);
+      const left = (s.trip && s.trip.day === d0.getTime() && s.trip.left) || {};
+      const tl = s.timeline || {};
+      const travel = l => Number(l.key === 'postDepart' ? tl.postTravelDur : s.travelTime) || 60;
+      const done = l => l.key === 'postDepart' && left[l.key] && (now.getTime() - left[l.key]) > (travel(l) + 15) * 60000;
+      const open = legs.filter(l => cur < l.until && !done(l));
       if (!open.length) return;
       let pick = open[0];
       for (const l of open) if (l.depMin <= cur + this.EARLY_MIN) pick = l;
