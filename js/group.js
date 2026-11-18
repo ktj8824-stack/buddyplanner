@@ -441,7 +441,7 @@ const Group = {
     const teams = this.parseLineup(text);
     if (!teams.length) { U.toast('이름을 찾지 못했어요. 이름을 줄바꿈이나 쉼표로 나눠 붙여 주세요.'); return; }
     const s = U.$('#gi-sheet'); if (s) s.remove();
-    this.imp = { source: 'paste', teams, photo: null, loading: false };
+    this.imp = { source: 'paste', teams, photo: null, loading: false, courseHint: teams.courseHint || '' };
     this.view = 'import'; this.render();
   },
 
@@ -449,16 +449,24 @@ const Group = {
   parseLineup(text) {
     const PHONE = /01[016789][-.\s]?\d{3,4}[-.\s]?\d{4}/g;
     const STOP = /^(티업|티오프|티타임|집결|집합|시간|명단|참석|참석자|불참|조편성|조|팀|코스|번|님들|회비|공지|원|만원|일시|장소|오전|오후|AM|PM|회장|회장님|총무|총무님|고문|감사|클럽하우스|로비|당일|현장|납부|입금|계좌|정기모임|모임|라운딩|골프|골프장|카트|캐디|캐디피|그린피|식사|조식|중식|석식|뒤풀이|문의|연락|부탁|참고|필참|확정|예정|변경|안내|및|등)$/i;
-    const teams = []; let cur = null; let loose = [];
+    // 골프장 이름 ('남서울CC', '레이크사이드컨트리클럽' 등) → 참석자가 아니라 골프장 후보로
+    const COURSE = /^[가-힣A-Za-z][가-힣A-Za-z0-9]*(CC|GC|cc|gc|C\.C|G\.C|컨트리클럽|골프클럽|골프장|골프리조트|골프앤리조트)$/;
+    const teams = []; let cur = null; let loose = []; let courseHint = '';
     const newTeam = () => { cur = { tee: '', course: '', members: [] }; teams.push(cur); return cur; };
     const lines = String(text || '').replace(/\r/g, '').split('\n').map(l => l.trim()).filter(Boolean);
     lines.forEach(raw => {
       let line = raw.replace(/^[\s\-•·*▶▷►◆◇■□●○✔✓]+/, '');
+      // 줄 끝 괄호 메모 '(늦으면 연락 주세요)' '（카트 2대）' 는 지움. 괄호 안이 한 단어 '(최동욱)' 이면 그대로 둠
+      line = line.replace(/\s*[(（]([^()（）]*)[)）][\s.!~]*$/, (all, inner) => {
+        const t = inner.trim();
+        return (!t || /\s/.test(t) || /(요|니다|세요|주세요|바랍니다|포함|별도|예정)$/.test(t) || /\d/.test(t)) ? '' : all;
+      });
+      if (!line) return;
       const head = /^(?:\[)?\s*(\d{1,2}|[A-Za-z])\s*(조|팀)\s*(?:\])?\s*[:：.)\-]?\s*/.exec(line);
       if (!head) {
         // 공지 속 안내 줄은 건너뜀: [제목] · ※★📌 메모 · '장소: …' 같은 항목 줄 · 금액 · '…해 주세요' 같은 문장
         if (/^[\[<(（【※★☆⭐📌📍✅❗❕💡🔔]/u.test(line)) return;
-        if (/\d\s*(만\s*)?원\b|\d+만원/.test(line)) return;
+        if (/\d\s*(만\s*)?원(?![가-힣])|\d+만원/.test(line)) return;   // '50,000원 (카트비 포함)' 처럼 원 뒤가 띄어쓰기·괄호여도
         if (/(니다|세요|해요|주세요|바랍니다|드림|부탁)[.!~)]*\s*$/.test(line)) return;
       }
       if (head) { newTeam(); line = line.slice(head[0].length); }
@@ -472,6 +480,7 @@ const Group = {
         const toks = seg.split(/[,，、/|·\t;]+|\s+/).map(s => s.replace(/^\(?\d{1,2}[.)]\s*/, '').replace(/^[(（\[]+|[)）\]:：.]+$/g, '').trim()).filter(Boolean);
         toks.forEach(tok0 => {
           let tok = tok0;
+          if (COURSE.test(tok)) { if (!courseHint) courseHint = tok; return; }
           if (/^(OUT|IN|out|in)$/.test(tok) || /(코스|OUT|IN)$/.test(tok) && tok.length <= 8 && !/[0-9]/.test(tok)) { const T = target(); if (!T.course) T.course = tok; return; }
           if (STOP.test(tok) || /^\d+$/.test(tok) || (tok.length < 2 && !/^[가-힣]$/.test(tok)) || tok.length > 12) return;   // '김·이·박' 처럼 성만 적어도 받음
           if (!/^[가-힣A-Za-z][가-힣A-Za-z0-9.]*$/.test(tok)) return;
@@ -487,7 +496,9 @@ const Group = {
     // 같은 이름 두 번은 한 번만
     const seen = new Set();
     teams.forEach(tm => { tm.members = tm.members.filter(m => { if (seen.has(m.name)) return false; seen.add(m.name); return true; }); });
-    return teams.filter(tm => tm.members.length).slice(0, this.MAX_TEAMS);
+    const res = teams.filter(tm => tm.members.length).slice(0, this.MAX_TEAMS);
+    res.courseHint = courseHint;   // 글에 적힌 골프장 이름 (확인 화면에서 알려 줌)
+    return res;
   },
 
   importPhoto() {
@@ -553,6 +564,7 @@ const Group = {
           ${im.loading ? `<div class="gp-empty"><span class="dots"><span></span><span></span><span></span></span><br>이름·조·전화번호를 찾는 중이에요</div>` : im.err ? `<div class="gi-warn">${U.esc(im.err)}</div>${again}` : `
           ${unsure.length ? `<div class="gi-warn">⚠️ ${im.source === 'photo' ? '손글씨라 ' : ''}<b>${unsure.map(U.esc).join(', ')}</b>${unsure.length > 1 ? '은(는)' : '은(는)'} 확실하지 않아요. 맞는지 확인해 주세요.</div>` : ''}
           <div class="gi-note">이름을 눌러 고칠 수 있어요. 지우면 빠져요. 한 조는 4명까지예요.</div>
+          ${im.courseHint ? `<div class="gi-note">⛳ 글에 적힌 골프장 <b>${U.esc(im.courseHint)}</b>은(는) 명단에서 뺐어요.${this.form && this.form.course ? '' : ' 조편성 화면에서 골프장을 골라 주세요.'}</div>` : ''}
           ${im.teams.map((tm, i) => `
             <div class="gi-team">
               <div class="gi-h"><b>${i + 1}조</b><span><input id="gi-${i}-tee" type="time" value="${U.esc(tm.tee || '')}" aria-label="${i + 1}조 티업">${tm.course ? ` · ${U.esc(tm.course)}` : ''}</span></div>

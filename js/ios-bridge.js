@@ -66,6 +66,8 @@
     snoozes().forEach(z => { if (z && z.t > now) out.push({ key: `snooze:${z.t}`, t: z.t, title: z.title || '⏰ 다시 알림', body: z.body || '5분이 지났어요.', alarm: true, aid: z.aid || '' }); });
     S.schedules.forEach((s, idx) => {
       if (!s || !s.date || s.alarmOff) return;
+      // 단체 링크로 받은 일정 + 로그인 안 함 → 알람 없음 (앱 안 타이머·안드로이드와 같게). 전날 밤 '알람 꺼짐' 안내는 아래 scheduleReminders 결과로 들어감
+      if (T.groupAlarmLocked && T.groupAlarmLocked(s)) return;
       if (!s.timeline) { try { S.calculateTimeline(idx); } catch (e) { return; } }
       const tl = s.timeline || {};
       const aid = S.aidOf ? S.aidOf(s) : String(idx);

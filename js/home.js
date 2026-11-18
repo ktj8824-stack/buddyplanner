@@ -81,7 +81,7 @@ const Home = {
       const tl = s.timeline || {};
       return `<button class="v2-li" onclick="App.closeModal(); App.viewTimeline(${i})">
         <span class="k"><b style="font-weight:800;">${U.esc(s.course ? s.course.name : '골프장')}</b>
-        <small>${U.fmtDateShort(s.date)} · ${s.alarmOff ? '알람 꺼짐' : `준비 ${tl.prepStart || '--:--'} · 출발 ${tl.homeDepart || '--:--'}`}</small></span>
+        <small>${U.fmtDateShort(s.date)} · ${s.alarmOff ? '알람 꺼짐' : Timeline.groupAlarmLocked(s) ? '알람 꺼짐 · 로그인하면 울려요' : `준비 ${tl.prepStart || '--:--'} · 출발 ${tl.homeDepart || '--:--'}`}</small></span>
         <svg class="v2-chev" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg></button>`;
     }).join('') : `<div class="v2-cal-empty">예정된 알람이 없어요.<br>라운딩을 등록하면 단계마다 알려 드려요.</div>`;
     App.showModal('알림', `<div class="v2-list" style="border:none;">${body}</div>`);
@@ -161,6 +161,17 @@ const Home = {
         Group.refreshListQuiet().then(() => { if ((localStorage.getItem('bp_ge_list') || '') !== before && State.screen === 'home') this.render(); }).catch(() => {});
       }
     } catch (e) { /* */ }
+    // 단체 링크로 받은 일정인데 로그인 안 함 → 알람이 안 울린다는 걸 홈에서도 알려 줌 (타임라인과 같은 안내)
+    let lockHtml = '';
+    try {
+      const s0 = !grp && upcoming[0];
+      if (s0 && Timeline.groupAlarmLocked(s0) && !Timeline.isRoundOver(s0)) {
+        lockHtml = `<div class="v2-alarm-box off" id="home-alarm-lock" style="margin:0 0 12px;">
+          <div><b>🔕 알람이 꺼져 있어요</b><small>카카오 로그인하면 기상·출발 알람이 울려요</small></div>
+          <button class="v2-btn-line" style="width:auto;margin:0;padding:8px 12px;font-size:.8125rem;" onclick="App.navigate('login')">로그인</button>
+        </div>`;
+      }
+    } catch (e) { lockHtml = ''; }
     const showTl = true;   // 일정이 없을 때도 출발·골프장·티오프 칸을 --:-- 로 보여 줌
     const heroHtml = `
       <div class="home-glounge-wrapper">
@@ -238,6 +249,7 @@ const Home = {
         ${heroHtml}
         <div class="home-glounge-sheet v2-home-sheet">
         <div class="v2-home-body">
+          ${lockHtml}
           <div class="v2-new-pair">
             <div class="v2-new-card" onclick="App.navigate('register')">
               <div class="v2-new-ico img"><img src="img/icons/register.png?v=1" alt=""></div>
