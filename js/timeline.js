@@ -639,7 +639,43 @@ const Timeline = {
     if (this.alarmTimeouts) this.alarmTimeouts = this.alarmTimeouts.filter(id => !ids.includes(id));
     if (native && window.NativeApp && typeof window.NativeApp.cancelAlarm === 'function') {
       this.nativeAlarmTimes(s).forEach(t => { try { window.NativeApp.cancelAlarm(t); } catch (e) {} });
+      // 단체 일정의 '알람이 꺼져 있어요' 전날 밤 안내도 함께 지움 (로그인 뒤 다시 걸 때 남지 않게)
+      const nt = (s.groupCode && s.groupLogin) ? this.lockedNoticeAt(s) : null;
+      if (nt) { try { window.NativeApp.cancelAlarm(nt); } catch (e) {} }
     }
+  },
+
+  /** 알람이 잠긴 단체 일정의 전날 밤 9시 안내 시각 (ms) */
+  lockedNoticeAt(s) {
+    if (!s || !s.date) return null;
+    const eve = new Date(s.date); eve.setHours(0, 0, 0, 0); eve.setDate(eve.getDate() - 1); eve.setHours(21, 0, 0, 0);
+    return eve.getTime();
+  },
+  lockedNoticeText(s) {
+    const tl = (s && s.timeline) || {};
+    const name = (s && s.course && s.course.name) || '라운딩';
+    const prep = tl.prepStart || '';
+    const when = prep && State.tlPrevDay && State.tlPrevDay(s, prep) ? '오늘 밤' : '내일';   // 새벽 티오프라 준비가 전날 밤이면
+    return { title: `🔕 ${when} ${prep ? prep + ' ' : ''}준비 알람이 꺼져 있어요`, body: `카카오 로그인하면 켜져요. ${name} ${s && s.teeOff ? s.teeOff + ' 티오프' : ''}`.trim() };
+  },
+  /** 알람이 잠긴 단체 일정: 전날 밤 9시에 안내 한 번 (이미 지났으면 건너뜀). 이 일정의 알람을 지울 때(clearSchedAlarms) 같이 지워짐 */
+  lockedNightNotice(s) {
+    const at = this.lockedNoticeAt(s);
+    if (!at || at <= Date.now()) return;
+    const { title, body } = this.lockedNoticeText(s);
+    const N = window.NativeApp;
+    if (N) {
+      // 안드로이드: 울리지 않는 안내 알림 / 아이폰: scheduleReminders() 결과로 함께 예약됨 (ios-bridge.js)
+      if (!N.isIOS && typeof N.setReminder === 'function') { try { N.setReminder(at, title, body); } catch (e) {} }
+      return;
+    }
+    const delay = at - Date.now();
+    if (delay >= 2147483647) return;   // setTimeout 한도 (약 24일) — 가까워지면 앱을 열 때 다시 검
+    const id = setTimeout(() => {
+      try { if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body, icon: 'assets/icons/icon-192x192.png' }); } catch (e) {}
+      try { U.toast(`${title} · ${body}`, 5000); } catch (e) {}
+    }, delay);
+    this._trackTimer(s, id);
   },
 
   _trackTimer(s, id) {
@@ -690,10 +726,11 @@ const Timeline = {
     try { return !(typeof Cloud !== 'undefined' && Cloud.isConfigured() && Cloud.isSignedIn()); } catch (e) { return false; }
   },
 
-  alarmOn() {
+  alarmOn(opts) {
     if (this.groupAlarmLocked(State.schedules[this.schedIdx])) {
       this.syncAlarmUI(false);
-      U.toast('단체 일정 알람은 카카오로 로그인하면 울려요. 마이 탭에서 로그인해 주세요.', 3500);
+      this.scheduleTimelineAlarms();   // 잠긴 일정: 전날 밤 안내만 예약
+      if (!(opts && opts.quiet)) U.toast('단체 일정 알람은 카카오로 로그인하면 울려요. 마이 탭에서 로그인해 주세요.', 3500);
       return;
     }
     this.syncAlarmUI(true);
@@ -787,8 +824,13 @@ const Timeline = {
       const eve = new Date(day); eve.setDate(eve.getDate() - 1); eve.setHours(21, 0, 0, 0);
       if (eve.getTime() > now) {
         try {
-          N.setReminder(eve.getTime(), `내일 ${name} 라운딩`,
-            `${U.fmtTimeKo(tl.prepStart)} 준비 시작, ${U.fmtTimeKo(tl.homeDepart)} 출발이에요. 날씨와 준비물을 확인하고 일찍 쉬세요.`);
+          if (this.groupAlarmLocked(s)) {   // 단체 일정 + 로그인 안 함: 알람이 안 울린다고 미리 알림
+            const lt = this.lockedNoticeText(s);
+            N.setReminder(eve.getTime(), lt.title, lt.body);
+          } else {
+            N.setReminder(eve.getTime(), `내일 ${name} 라운딩`,
+              `${U.fmtTimeKo(tl.prepStart)} 준비 시작, ${U.fmtTimeKo(tl.homeDepart)} 출발이에요. 날씨와 준비물을 확인하고 일찍 쉬세요.`);
+          }
           next.push(eve.getTime());
         } catch (e) {}
       }
@@ -823,7 +865,7 @@ const Timeline = {
     const now = new Date();
     State.schedules.forEach((s) => {
       if (!s.timeline || !s.date || s.alarmOff) return;
-      if (this.groupAlarmLocked(s)) { this.clearSchedAlarms(s, true); return; }   // 단체 일정: 로그인해야 알람 (폰에 걸린 예전 알람도 지움)
+      if (this.groupAlarmLocked(s)) { this.clearSchedAlarms(s, true); this.lockedNightNotice(s); return; }   // 단체 일정: 로그인해야 알람 (폰에 걸린 예전 알람도 지움) · 전날 밤 9시 '알람 꺼짐' 안내만
       // 오늘·내일 라운딩만 (새벽 티오프는 준비 시작이 전날 밤일 수 있음)
       const sDate = new Date(s.date); sDate.setHours(0, 0, 0, 0);
       const today0 = new Date(now); today0.setHours(0, 0, 0, 0);
@@ -905,7 +947,7 @@ const Timeline = {
     this.alarmTimeouts = this.alarmTimeouts || [];
     const s = State.schedules[this.schedIdx];
     if (!s || !s.timeline) return;
-    if (this.groupAlarmLocked(s)) { this.clearSchedAlarms(s, true); return; }   // 단체 일정: 로그인해야 알람
+    if (this.groupAlarmLocked(s)) { this.clearSchedAlarms(s, true); this.lockedNightNotice(s); return; }   // 단체 일정: 로그인해야 알람 · 전날 밤 9시 '알람 꺼짐' 안내만
     // 같은 일정에 앞서 걸어 둔 앱 안 타이머는 지우고 다시 검 (중복 알람 방지)
     this.clearSchedAlarms(s, false);
     

@@ -1625,7 +1625,8 @@ ${this._afterHTML()}
         btn.innerHTML = originalText; btn.disabled = false;
         this.shared = null;
         App.viewTimeline(prevIdx);
-        Timeline.alarmOn();
+        const askedP = this._askGroupLogin(prevIdx);
+        Timeline.alarmOn(askedP ? { quiet: true } : undefined);
         if (!U.isNativeApp() && typeof HomeAdd !== 'undefined') setTimeout(() => HomeAdd.offer(prevIdx, true), 700);
         return;
       }
@@ -1635,10 +1636,24 @@ ${this._afterHTML()}
       btn.innerHTML = originalText; btn.disabled = false;
       this.shared = null;
       App.viewTimeline(State.schedules.length - 1);
-      Timeline.alarmOn();
+      const asked = this._askGroupLogin(State.schedules.length - 1);
+      Timeline.alarmOn(asked ? { quiet: true } : undefined);
       // 공유받은 일정을 웹에서 저장 → 앱 설치 / 홈 화면 추가 안내 (광고 대신)
       if (fromShare && !U.isNativeApp() && typeof HomeAdd !== 'undefined') setTimeout(() => HomeAdd.offer(State.schedules.length - 1), 700);
-      else App.maybeInterstitialAfterCreate();
+      else if (!asked) App.maybeInterstitialAfterCreate();
     }
+  },
+
+  /** 단체 링크로 받은 일정을 막 저장했는데 로그인 안 함 → '새벽 알람은 로그인해야' 확인 창 (앱에서만 — 웹은 앱 설치 안내가 먼저)
+   *  띄웠으면 true (그때는 alarmOn 안내 토스트·전면 광고를 생략) */
+  _askGroupLogin(idx) {
+    const s = State.schedules[idx];
+    if (!s || typeof Timeline === 'undefined' || !Timeline.groupAlarmLocked(s) || !U.isNativeApp()) return false;
+    setTimeout(() => {
+      App.ask('새벽 알람을 받으려면 카카오 로그인이 필요해요',
+        '단체 일정은 로그인해야 기상·출발 알람이 울려요.<br>로그인하지 않아도 타임라인은 그대로 볼 수 있어요.',
+        { ok: '로그인', cancel: '알람 없이 볼게요' }).then(ok => { if (ok) App.navigate('login'); });
+    }, 500);
+    return true;
   }
 };

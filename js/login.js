@@ -363,7 +363,19 @@ const Login = {
         U.toast('클라우드에 연결하지 못했어요. 이 기기에만 저장되며, 연결되면 자동으로 동기화돼요.', 3500);
       }
     }
-
+    // 로그인했으니 단체 일정 알람 잠금이 풀림 → 알람을 다시 걸고 '알람 꺼짐' 전날 밤 안내는 지움
+    try {
+      if (typeof Timeline !== 'undefined' && Timeline.autoScheduleAllAlarms) {
+        Timeline.autoScheduleAllAlarms();
+        // 며칠 뒤 단체 일정도 폰 알람을 바로 걸어 둠 (autoScheduleAllAlarms 는 오늘·내일만)
+        const now = Date.now();
+        (State.schedules || []).forEach((s, i) => {
+          if (!s || !s.groupCode || !s.groupLogin || s.alarmOff || Timeline.groupAlarmLocked(s)) return;
+          if (!s.timeline || !s.timeline.prepStart || State.tlAt(s, s.timeline.prepStart).getTime() <= now) return;
+          Timeline.schedIdx = i; Timeline.scheduleTimelineAlarms();
+        });
+      }
+    } catch (e) { }
 
     const hasOnboarded = localStorage.getItem('bp_onboarded') === 'true';
     App.navigate(hasOnboarded ? 'home' : 'onboarding');
