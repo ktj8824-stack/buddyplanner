@@ -374,6 +374,11 @@ const Login = {
           if (!s.timeline || !s.timeline.prepStart || State.tlAt(s, s.timeline.prepStart).getTime() <= now) return;
           Timeline.schedIdx = i; Timeline.scheduleTimelineAlarms();
         });
+        // 홈 '알람이 꺼져 있어요 · 로그인'으로 들어온 경우: 켜진 알람을 한 줄로 확인시켜 줌 (11-19 점검 B10b)
+        const next = (State.schedules || []).filter(s => s && s.groupCode && s.groupLogin && !s.alarmOff && !Timeline.groupAlarmLocked(s)
+          && s.timeline && s.timeline.prepStart && State.tlAt(s, s.timeline.prepStart).getTime() > now)
+          .sort((a, b) => State.tlAt(a, a.timeline.prepStart) - State.tlAt(b, b.timeline.prepStart))[0];
+        if (next) setTimeout(() => U.toast(`⏰ 단체 라운딩 알람이 켜졌어요 · ${U.fmtDateShort(next.date)} ${next.timeline.prepStart} 준비 · ${next.timeline.homeDepart || '--:--'} 출발`, 4000), 1200);
       }
     } catch (e) { }
 
