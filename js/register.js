@@ -861,7 +861,7 @@ ${this._afterHTML()}
     if (valObj && valObj.name && ok) {
       textEl.textContent = (this.startPoint === '직접 입력' ? '출발지: ' : '저장된 주소: ') + valObj.name;
     } else {
-      textEl.textContent = this.startPoint === '직접 입력' ? '출발지 주소를 검색해 주세요 ›' : `${this.startPoint} 주소를 한 번만 등록해 주세요 (출발 시간 계산에 필요해요) ›`;
+      textEl.textContent = this.startPoint === '직접 입력' ? '출발지 주소를 검색해 주세요 ›' : `${this.startPoint} 주소를 등록해 주세요 ›`;
     }
     if (box) box.classList.toggle('warn', !ok);
     this.updateProgress();
