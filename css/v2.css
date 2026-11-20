@@ -132,6 +132,8 @@
 .v2-alarm-box div { flex: 1; }
 .v2-alarm-box b { display: block; font-size: 1.062rem; font-weight: 800; color: var(--v2-ink); }
 .v2-alarm-box small { display: block; font-size: 0.875rem; color: #475569; margin-top: 3px; }
+.v2-alarm-box .v2-btn-line.sm { width: auto; margin: 0; padding: 8px 12px; font-size: 0.8125rem; min-height: 40px; }
+.v2-alarm-box.home-alarm-lock { margin: 0 0 12px; }
 .v2-now { background: var(--v2-navy); color: #fff; border-radius: 22px; padding: 20px 18px 18px; }
 .v2-now-top { display: flex; align-items: center; justify-content: space-between; }
 .v2-now-top span { font-size: 0.9375rem; font-weight: 700; color: var(--v2-sky); }
