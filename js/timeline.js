@@ -256,6 +256,26 @@ const Timeline = {
     let target = -1;
     if (isToday) target = steps.findIndex((st, i) => i >= Math.max(nowIdx, 0) && st.depart && st.state !== 'done');
     else if (tFirst > now) target = steps.findIndex(st => st.depart);
+    // 골프장 가는 중: 티오프 전 출발 단계를 다 마쳤으면(자동 길안내·'출발했어요') 귀가로 넘기지 않고 '클럽하우스 도착'을 보여 줌
+    const tTee = teeI >= 0 ? at(steps[teeI].time) : null;
+    if (isToday && tTee && now < tTee && nowIdx >= 0 && nowIdx < teeI && (target < 0 || target > teeI)) {
+      const ai = steps.findIndex(x => x.key === 'arrival'), a = steps[ai >= 0 ? ai : teeI];
+      let ni = -1; steps.forEach((x, i) => { if (i < teeI && x.depart && x.nav) ni = i; });
+      const mt = Math.max(0, Math.round((tTee - now) / 60000));
+      const left = mt >= 60 ? `${Math.floor(mt / 60)}시간 ${mt % 60 ? (mt % 60) + '분' : ''}`.trim() : `${mt}분`;
+      card.innerHTML = `
+      <div class="v2-now">
+        <div class="v2-now-top"><span>지금 할 일</span><span class="v2-pill yellow">${now < at(a.time) ? '골프장 가는 중' : '티오프까지 ' + left}</span></div>
+        <div class="v2-now-main"><b>${a.time}</b><span>${U.esc(a.title)}</span></div>
+        <div class="v2-now-desc">${a.key === 'arrival' ? a.time + ' 도착 목표 · ' : ''}티오프 ${steps[teeI].time}까지 ${left}${a.inlineSub ? ' · ' + U.esc(a.inlineSub) : ''}</div>
+        ${now < at(a.time) ? this.etaLineHtml(s, 'tl-now-eta') : ''}
+        ${ni >= 0 ? `<div class="v2-now-btns">
+          <button class="tmap" onclick="Timeline.navStep(${ni}, 'tmap')">TMAP</button>
+          <button class="kakao" onclick="Timeline.navStep(${ni}, 'kakao')">카카오내비</button>
+        </div>` : ''}
+      </div>`;
+      return;
+    }
     if (target < 0) { card.innerHTML = ''; return; }
     const st = steps[target];
     const mins = Math.round((at(st.time) - now) / 60000);
@@ -269,6 +289,7 @@ const Timeline = {
         <div class="v2-now-main"><b>${st.time}</b><span>${U.esc(st.title)}</span></div>
         ${st.place ? `<div class="v2-now-place">${U.ico('pin', 15)} ${U.esc(st.place)}</div>` : ''}
         <div class="v2-now-desc">${U.esc(st.sub || '')}${st.tip ? ' · ' + U.esc(st.tip) : ''}</div>
+        ${isToday && mins <= 10 && target < teeI ? this.etaLineHtml(s, 'tl-now-eta') : ''}
         <div class="v2-now-btns">
           <button class="tmap" onclick="Timeline.navStep(${target}, 'tmap')">TMAP</button>
           <button class="kakao" onclick="Timeline.navStep(${target}, 'kakao')">카카오내비</button>
@@ -1194,37 +1215,80 @@ const Timeline = {
 
   /** 알람 카드: 로드플래너처럼 내 위치 → 다음 목적지 실시간 소요시간 (평소보다 막히는지) */
   async _alarmTraffic(c, popup) {
-    const s = c.s, tl = s.timeline || {};
     const el = () => (popup && popup.isConnected) ? popup.querySelector('#v2-alarm-tr') : null;
     const done = (txt, cls) => { const e = el(); if (!e) return; if (!txt) { e.remove(); return; } e.textContent = txt; if (cls) e.classList.add(cls); };
-    if (typeof TmapAPI === 'undefined' || !TmapAPI.getRouteTime) return done('');
-    const pt = o => o && (o.lat || o.y) && (o.lng || o.x) ? { lat: +(o.lat || o.y), lng: +(o.lng || o.x), name: o.name } : null;
-    let dest = null, plan = 0, target = '';
-    if (c.kind === 'meal' || c.kind === 'restDepart') { dest = pt(s.course); plan = tl.restTravelDur; target = tl.arrival; }
-    else if (tl.hasMeetingPoint && pt(s.meetingPointObj)) { dest = pt(s.meetingPointObj); plan = tl.homeTravelDur; target = tl.meetArrival; }
-    else if (tl.restaurantName && pt(s.mealRestaurant)) { dest = pt(s.mealRestaurant); plan = tl.homeTravelDur; target = tl.mealStart; }
-    else { dest = pt(s.course); plan = tl.homeTravelDur || s.travelTime; target = tl.arrival; }
-    if (!dest) return done('');
-    let from = null;
-    if (navigator.geolocation) {
-      const pos = await new Promise(res => { try { navigator.geolocation.getCurrentPosition(p => res(p), () => res(null), { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }); } catch (e) { res(null); } });
-      if (pos) from = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    }
-    if (!from && s.startLat && s.startLng && c.kind !== 'meal' && c.kind !== 'restDepart') from = { lat: +s.startLat, lng: +s.startLng };
-    if (!from) return done('');
-    // 길 찾기가 10초 넘게 걸리면 '확인 중'을 지움
-    const eta = await Promise.race([TmapAPI.getRouteTime(from.lng, from.lat, dest.lng, dest.lat), new Promise(r => setTimeout(() => r(null), 10000))]);
-    if (!eta || eta > 600) return done('');
-    const pad = n => String(n).padStart(2, '0');
-    const arr = new Date(Date.now() + eta * 60000);
-    const arrive = `${pad(arr.getHours())}:${pad(arr.getMinutes())}`;
-    const diff = plan ? eta - plan : 0;
-    let late = 0;
-    if (target) { const t = State.tlAt(s, target); if (t) late = Math.round((arr - t) / 60000); }
+    const r = await this.liveEta(c.s, c.kind);
+    if (!r) return done('');
+    const { eta, arrive, diff, late, target } = r;
     if (late > 0) done(`⏰ 지금 나가도 목표 ${target} 도착보다 ${late}분 늦어요 · ${arrive} 도착`, 'warn');
     else if (diff >= 5) done(`🚦 평소보다 ${diff}분 막혀요 · 지금 나가면 ${arrive} 도착`);
     else if (diff <= -5) done(`🚗 평소보다 ${-diff}분 빨라요 · 지금 나가면 ${arrive} 도착`);
     else done(`🚗 지금 길 ${eta}분 · 지금 나가면 ${arrive} 도착`);
+  },
+
+  /** 내 위치 → 다음 목적지 실시간 길 (알람 화면·홈·타임라인 '지금 할 일'이 같이 씀). 같은 일정·구간은 5분에 한 번만 다시 물음
+   *  kind: 알람 종류(prep·depart·meal·restDepart) 또는 'now'(지금 시각·출발 기록으로 구간을 고름) */
+  liveEta(s, kind) {
+    if (!s) return Promise.resolve(null);
+    const tl = s.timeline || {};
+    const pt = o => o && (o.lat || o.y) && (o.lng || o.x) ? { lat: +(o.lat || o.y), lng: +(o.lng || o.x), name: o.name } : null;
+    const meet = tl.hasMeetingPoint && pt(s.meetingPointObj), rest = tl.restaurantName && pt(s.mealRestaurant);
+    let homeOk = true;
+    if (kind === 'now') {
+      const past = t => { const d = t && State.tlAt(s, t); return !!(d && Date.now() >= d.getTime()); };
+      kind = rest && past(tl.mealStart) ? 'restDepart' : meet && past(tl.meetDepart) ? 'meetDepart' : 'depart';
+      const d = new Date(s.date); d.setHours(0, 0, 0, 0);
+      homeOk = !(s.tlDone && s.tlDone.day === d.getTime() && s.tlDone.keys.indexOf('depart') >= 0);   // 이미 출발했으면 집 주소로 어림잡지 않음
+    }
+    let dest = null, plan = 0, target = '';
+    if (kind === 'meal' || kind === 'restDepart') { dest = pt(s.course); plan = tl.restTravelDur; target = tl.arrival; homeOk = false; }
+    else if (kind === 'meetDepart') { dest = rest || pt(s.course); plan = tl.meetTravelDur; target = rest ? tl.mealStart : tl.arrival; homeOk = false; }
+    else if (meet) { dest = meet; plan = tl.homeTravelDur; target = tl.meetArrival; }
+    else if (rest) { dest = rest; plan = tl.homeTravelDur; target = tl.mealStart; }
+    else { dest = pt(s.course); plan = tl.homeTravelDur || s.travelTime; target = tl.arrival; }
+    const C = this._etaC || (this._etaC = {});
+    const k = kind, hit = C[k];
+    if (hit && hit.s === s && Date.now() - hit.t < 5 * 60000) return hit.p;
+    const p = (async () => {
+      if (typeof TmapAPI === 'undefined' || !TmapAPI.getRouteTime || !dest) return null;
+      let from = null;
+      if (navigator.geolocation) {
+        const pos = await new Promise(res => { try { navigator.geolocation.getCurrentPosition(p => res(p), () => res(null), { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }); } catch (e) { res(null); } });
+        if (pos) from = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      }
+      if (!from && homeOk && s.startLat && s.startLng) from = { lat: +s.startLat, lng: +s.startLng };
+      if (!from) return null;
+      // 길 찾기가 10초 넘게 걸리면 포기
+      const eta = await Promise.race([TmapAPI.getRouteTime(from.lng, from.lat, dest.lng, dest.lat), new Promise(r => setTimeout(() => r(null), 10000))]);
+      if (!eta || eta > 600) return null;
+      const pad = n => String(n).padStart(2, '0');
+      const arr = new Date(Date.now() + eta * 60000);
+      let late = 0;
+      if (target) { const t = State.tlAt(s, target); if (t) late = Math.round((arr - t) / 60000); }
+      return { eta, arr, arrive: `${pad(arr.getHours())}:${pad(arr.getMinutes())}`, diff: plan ? eta - plan : 0, late, target };
+    })();
+    C[k] = { s, t: Date.now(), p }; p.key = k;
+    p.then(v => { if (C[k] && C[k].p === p) C[k].val = v; }).catch(() => {});
+    return p;
+  },
+
+  /** 홈·타임라인 '지금 할 일' 아래 한 줄: '지금 길로 06:58 도착 · 티오프까지 2분' (받아 둔 값은 바로, 없으면 받아 와서 채움) */
+  etaLineHtml(s, id, style) {
+    const text = r => {
+      if (!r) return null;
+      const tee = State.tlAt(s, (s.timeline || {}).teeOff || s.teeOff);
+      const m = tee ? Math.round((tee - r.arr) / 60000) : null;
+      return { txt: `지금 길로 ${r.arrive} 도착${m == null ? '' : m >= 0 ? ` · 티오프까지 ${m}분` : ` · 티오프보다 ${-m}분 늦어요`}`, warn: r.late > 0 || (m != null && m < 0) };
+    };
+    const p = this.liveEta(s, 'now');
+    p.then(r => {
+      const e = document.getElementById(id), v = text(r);
+      if (!e || !v) return;
+      e.textContent = v.txt; e.classList.toggle('warn', v.warn); e.hidden = false;
+    }).catch(() => {});
+    const hit = (this._etaC || {})[p.key];
+    const v = hit && hit.p === p && 'val' in hit ? text(hit.val) : null;
+    return `<div class="v2-alarm-c5${v && v.warn ? ' warn' : ''}" id="${id}" style="${style || 'margin-top:8px'}"${v ? '' : ' hidden'}>${v ? U.esc(v.txt) : ''}</div>`;
   },
 
   closeAlarm(idx, opt) {
