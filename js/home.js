@@ -39,7 +39,7 @@ const Home = {
       const tEnd = tTee ? new Date(tTee.getTime() + rl.min * 60000) : null;
       if (tPrep && now < tPrep) return { heading: `오늘 라운딩!<br>${prep} 준비 시작`, btnText: '출발 타임라인 확인' };
       if (tDep && now < tDep) return { heading: `${tDep - now < 3600000 ? `출발까지 ${left(tDep)}` : `${dep} 출발`},<br>준비물 챙기셨나요?`, btnText: '출발 타임라인 확인' };
-      if (tTee && now < tTee) return { heading: `${tTee - now < 3600000 ? `티오프까지 ${left(tTee)}` : `티오프 ${tee}`},<br>안전 운전하세요.`, btnText: '타임라인 보기' };
+      if (tTee && now < tTee) return { heading: `${tTee - now < 3600000 ? `티오프까지 ${left(tTee)}` : `티오프 ${tee}`},<br>안전 운전하세요.`, btnText: '타임라인 보기', eta: true };
       if (tEnd && now < tEnd) return { heading: `즐거운 라운딩<br>되세요! ⛳`, btnText: '타임라인 보기' };
       let rec = null;
       try {
@@ -115,7 +115,7 @@ const Home = {
     // 상단 히어로: 예전 G라운지 스타일 (문구 + 미니 타임라인 + 골퍼 그림)
     const arrow = '<div class="mini-tl-arrow"><svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>';
     let subTag = '스마트 라운딩 플래너', mainHeading = '첫 라운딩을<br>등록해 보세요.', btnText = '새 일정 등록하기', btnAction = "App.navigate('register')";
-    let dep = '--:--', arr = '--:--', tee = '--:--';
+    let dep = '--:--', arr = '--:--', tee = '--:--', etaHtml = '';
     if (upcoming.length) {
       const s = upcoming[0];
       const idx = State.schedules.indexOf(s);
@@ -130,6 +130,7 @@ const Home = {
       mainHeading = msg.heading;
       btnText = msg.btnText || '타임라인 보기';
       btnAction = msg.btnAction || `App.viewTimeline(${idx})`;
+      if (msg.eta) { try { etaHtml = Timeline.etaLineHtml(s, 'home-eta', 'margin:-6px 0 12px'); } catch (e) { etaHtml = ''; } }   // 가는 중: 지금 길로 몇 시 도착
       dep = tl.homeDepart || '--:--'; arr = tl.arrival || '--:--'; tee = tl.teeOff || s.teeOff || '--:--';
     }
     // 내 일정으로 등록하지 않은 단체 라운딩이 다음 일정이면: 등록하라고 안내 (출발·골프장·티오프는 등록해야 계산됨)
@@ -151,7 +152,7 @@ const Home = {
       mainHeading = `${gd.getDate()}일 단체 라운딩<br>일정 등록하세요`;
       btnText = '단체 라운딩 등록';
       btnAction = `Group.openCode(${U.jsq(grp.code)})`;
-      dep = '--:--'; arr = '--:--'; tee = '--:--';
+      dep = '--:--'; arr = '--:--'; tee = '--:--'; etaHtml = '';
     }
     // 단체 목록은 가끔 서버에서 새로 받아 둠 (바뀌었으면 홈을 다시 그림)
     try {
@@ -178,7 +179,7 @@ const Home = {
         <div class="home-glounge-hero">
           <div class="glounge-hero-text">
             <div class="hero-sub-tag">${subTag}</div>
-            <div class="hero-main-title">${mainHeading}</div>
+            <div class="hero-main-title">${mainHeading}</div>${etaHtml}
             ${showTl ? `
             <div class="hero-inline-timeline" onclick="${btnAction}">
               <div class="mini-tl-node"><span class="mini-tl-tag tag-depart">출발</span><span class="mini-tl-val">${dep}</span></div>
