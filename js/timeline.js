@@ -179,7 +179,7 @@ const Timeline = {
             </div>
             <div class="v2-alarm-box${on ? '' : ' off'}" id="tl-alarm-box">
               <div><b>${on ? '알람 켜짐' : locked ? '로그인하면 알람이 울려요' : '알람 꺼짐'}</b><small>${on ? '단계마다 미리 알려 드려요' : locked ? '단체 일정은 카카오 로그인 후 기상·출발 알람을 받아요' : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
-              ${locked ? `<button class="v2-btn-line" style="width:auto;margin:0;padding:8px 12px;font-size:.8125rem;" onclick="App.navigate('login')">로그인</button>` : `<button id="tl-alarm-btn" class="v2-switch${on ? ' on alarm-on' : ''}" role="switch" aria-checked="${on}" aria-label="알람" onclick="Timeline.toggleAlarm()"></button>`}
+              ${locked ? `<button class="v2-btn-line sm" onclick="App.navigate('login')">로그인</button>` : `<button id="tl-alarm-btn" class="v2-switch${on ? ' on alarm-on' : ''}" role="switch" aria-checked="${on}" aria-label="알람" onclick="Timeline.toggleAlarm()"></button>`}
             </div>
           </div>
           ${s.groupCode ? `<div class="tl-group-link" onclick="Group.openCode(${U.jsq(s.groupCode)})">👥 단체 일정 · 우리 조 보기 <span>›</span></div>` : ''}

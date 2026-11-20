@@ -323,7 +323,7 @@ const Group = {
           <input id="gp-title" maxlength="40" placeholder="예) 토요 정기 모임" value="${U.esc(f.title)}">
           <label>골프장</label>
           ${edit ? `<div class="gp-fixed">⛳ ${U.esc(f.course && f.course.name)}</div>`
-                 : `<button class="gp-pick ${f.course ? 'on' : ''}" onclick="Group.pickCourse()">${f.course ? '⛳ ' + U.esc(f.course.name) : '골프장 검색하기'}</button>`}
+                 : `<button class="gp-pick ${f.course ? 'on' : ''}" onclick="Group.pickCourse()">${f.course ? '⛳ ' + U.esc(f.course.name) : f.courseHint ? `골프장 찾기 · 글에서 ${U.esc(f.courseHint)}` : '골프장 검색하기'}</button>`}
           ${edit && f.teams ? `
           <label>날짜</label><input id="gp-date" type="date" value="${U.esc(f.date)}">
           <label>조별 티업 · 코스 <span class="gp-hint">사람은 상세 화면에서 이름을 눌러 옮겨요</span></label>
@@ -395,7 +395,7 @@ const Group = {
           <label>모임 이름</label>
           <input id="gp-title" maxlength="40" placeholder="예) 토요 정기 모임" value="${U.esc(f.title)}">
           <label>골프장</label>
-          <button class="gp-pick ${f.course ? 'on' : ''}" onclick="Group.pickCourse()">${f.course ? '⛳ ' + U.esc(f.course.name) : '골프장 검색하기'}</button>
+          <button class="gp-pick ${f.course ? 'on' : ''}" onclick="Group.pickCourse()">${f.course ? '⛳ ' + U.esc(f.course.name) : f.courseHint ? `골프장 찾기 · 글에서 ${U.esc(f.courseHint)}` : '골프장 검색하기'}</button>
           <label>날짜</label>
           <input id="gp-date" type="date" value="${U.esc(f.date)}">
           <label>내 이름 (총무) <span class="gp-hint">조에 같은 이름이 있으면 그 자리가 내 자리</span></label>
@@ -564,7 +564,7 @@ const Group = {
           ${im.loading ? `<div class="gp-empty"><span class="dots"><span></span><span></span><span></span></span><br>이름·조·전화번호를 찾는 중이에요</div>` : im.err ? `<div class="gi-warn">${U.esc(im.err)}</div>${again}` : `
           ${unsure.length ? `<div class="gi-warn">⚠️ ${im.source === 'photo' ? '손글씨라 ' : ''}<b>${unsure.map(U.esc).join(', ')}</b>${unsure.length > 1 ? '은(는)' : '은(는)'} 확실하지 않아요. 맞는지 확인해 주세요.</div>` : ''}
           <div class="gi-note">이름을 눌러 고칠 수 있어요. 지우면 빠져요. 한 조는 4명까지예요.</div>
-          ${im.courseHint ? `<div class="gi-note">⛳ 글에 적힌 골프장 <b>${U.esc(im.courseHint)}</b>은(는) 명단에서 뺐어요.${this.form && this.form.course ? '' : ' 조편성 화면에서 골프장을 골라 주세요.'}</div>` : ''}
+          ${im.courseHint ? `<div class="gi-note">⛳ 글에 적힌 골프장 <b>${U.esc(im.courseHint)}</b>은(는) 명단에서 뺐어요.${this.form && this.form.course ? '' : ' 조편성표에 넣은 뒤 \'골프장 찾기\'를 누르면 이 이름으로 바로 찾아 드려요.'}</div>` : ''}
           ${im.teams.map((tm, i) => `
             <div class="gi-team">
               <div class="gi-h"><b>${i + 1}조</b><span><input id="gi-${i}-tee" type="time" value="${U.esc(tm.tee || '')}" aria-label="${i + 1}조 티업">${tm.course ? ` · ${U.esc(tm.course)}` : ''}</span></div>
@@ -596,6 +596,7 @@ const Group = {
     });
     if (!teams[0].tee) teams[0].tee = (f.teams[0] && f.teams[0].tee) || '07:00';
     f.teams = teams;
+    if (im.courseHint && !f.course) f.courseHint = im.courseHint;   // 글에 적힌 골프장 → 골프장 검색 칸에 미리 넣음 (11-19 점검)
     const lost = out.length > this.MAX_TEAMS;
     this.imp = null; this.view = 'create'; this.render();
     U.toast(lost ? `조가 ${this.MAX_TEAMS}개를 넘어서 앞의 ${this.MAX_TEAMS}개 조만 넣었어요.` : '조편성표에 넣었어요. 티업 시간과 이름을 한 번 더 확인해 주세요.', 3200);
@@ -704,8 +705,12 @@ const Group = {
     if (this.form && this.form.mode === 'teams') this._readTeamForm(); else this._readForm();
     App.openAddressSearch('⛳ 골프장 검색', (p) => {
       this.form.course = { name: p.name || p.place_name, lat: parseFloat(p.lat), lng: parseFloat(p.lng), addr: p.address || p.address_name || '' };
+      delete this.form.courseHint;
       this.render();
     });
+    // 붙여넣은 공지에 골프장 이름이 있었으면 검색 칸에 넣고 바로 찾아 줌 (같은 이름을 다시 칠 필요 없음)
+    const hint = this.form && this.form.courseHint;
+    if (hint) setTimeout(() => { const i = U.$('#addr-search-input'); if (i && !i.value) { i.value = hint; try { window._searchAddress(); } catch (e) { } } }, 80);
   },
   pickMeal(t) {
     this._readForm();

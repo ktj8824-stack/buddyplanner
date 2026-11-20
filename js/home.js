@@ -166,9 +166,9 @@ const Home = {
     try {
       const s0 = !grp && upcoming[0];
       if (s0 && Timeline.groupAlarmLocked(s0) && !Timeline.isRoundOver(s0)) {
-        lockHtml = `<div class="v2-alarm-box off" id="home-alarm-lock" style="margin:0 0 12px;">
-          <div><b>🔕 알람이 꺼져 있어요</b><small>카카오 로그인하면 기상·출발 알람이 울려요</small></div>
-          <button class="v2-btn-line" style="width:auto;margin:0;padding:8px 12px;font-size:.8125rem;" onclick="App.navigate('login')">로그인</button>
+        lockHtml = `<div class="v2-alarm-box off home-alarm-lock" id="home-alarm-lock">
+          <div><b>알람이 꺼져 있어요</b><small>카카오 로그인하면 기상·출발 알람이 울려요</small></div>
+          <button class="v2-btn-line sm" onclick="App.navigate('login')">로그인</button>
         </div>`;
       }
     } catch (e) { lockHtml = ''; }
