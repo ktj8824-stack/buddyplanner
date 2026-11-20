@@ -782,8 +782,8 @@ const Group = {
       return;
     }
     const owner = e.i_am_owner;
-    // 웹(카톡 브라우저)으로 연 참석자: 앱 설치가 기본 → 안내 화면 먼저 ('설치 없이 보기'를 누르면 아래 화면)
-    if (!owner && !U.isNativeApp() && !this._isLite()) return this._renderWebLanding(el, e);
+    // 웹(카톡 브라우저)으로 연 참석자: 앱 설치 안내만 (설치 없이 보기는 뺌 — 2026-11-20 대표 결정)
+    if (!owner && !U.isNativeApp()) return this._renderWebLanding(el, e);
     const me = this.pickId ? this._member(this.pickId) : null;
     const yes = e.members.filter(m => m.status === 'yes').length;
     const meet = e.meet_time || this._minus(e.tee_off, 30);
@@ -1031,8 +1031,6 @@ const Group = {
   },
 
   /* ── 참석자: 웹으로 열었을 때 앱 설치 안내 (기본) ── */
-  _isLite() { try { return sessionStorage.getItem('gp_lite_' + this.code) === '1'; } catch (e) { return !!this._lite; } },
-  gwLite() { try { sessionStorage.setItem('gp_lite_' + this.code, '1'); } catch (e) { this._lite = true; } this.render(); },
   _gwPrep() {
     if (typeof HomeAdd === 'undefined') return false;
     const keep = `g=${this.code}${this.pickId ? `&m=${this.pickId}` : ''}`;
@@ -1051,7 +1049,6 @@ const Group = {
         <button class="store" onclick="Group.gwStore()">앱 설치하고 열기</button>
         <button class="open" onclick="Group.gwOpen()">이미 앱이 있어요 · 앱에서 열기</button>
         <div class="m" style="font-size:12.5px;color:#94a3b8;margin-top:12px;">설치한 뒤 단톡방의 링크를 한 번 더 누르면 앱에서 열려요.</div>
-        <button class="lite" onclick="Group.gwLite()">설치 없이 조편성만 보기</button>
       </div>`;
   },
 
