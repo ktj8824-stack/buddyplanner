@@ -887,12 +887,12 @@ ${this._afterHTML()}
         ${last ? `<button type="button" style="${btn}" onclick="Register.fillFromLast()">
           <span style="font-size:18px;">↺</span>
           <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">지난번처럼</b>
-          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
+          <span style="display:block; font-size:12px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
         </button>` : ''}
         <button type="button" style="${btn}" onclick="Register.openPasteBooking()">
           <span style="display:flex; color:#0b1d4a;">${U.ico('clip', 20)}</span>
           <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">예약 문자로 채우기</b>
-          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
+          <span style="display:block; font-size:12px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
         </button>
       </div>`;
   },
@@ -1205,7 +1205,7 @@ ${this._afterHTML()}
           const regionQuery = (p.address_name || '').split(' ').slice(0, 2).join(' ');
           const reviewUrl = `https://m.search.naver.com/search.naver?query=${encodeURIComponent((p.place_name) + ' ' + regionQuery)}`;
           const rv = ReviewStore.getReviews(p.place_name);
-          const rvHtml = rv.count > 0 ? `<div style="margin-top:2px;">${ReviewStore.renderStars(rv.avgRating, rv.count)}</div>` : '<div style="font-size:0.7rem; color:var(--text-500); margin-top:2px;">아직 평가 없음</div>';
+          const rvHtml = rv.count > 0 ? `<div style="margin-top:2px;">${ReviewStore.renderStars(rv.avgRating, rv.count)}</div>` : '<div style="font-size:0.75rem; color:#64748B; margin-top:2px;">아직 평가 없음</div>';
           return `
           <div class="modal-item" style="display:flex; align-items:flex-start; gap:var(--sp-3); padding:var(--sp-3); border:1px solid var(--border); border-radius:var(--r-md); margin-bottom:var(--sp-2); background:linear-gradient(135deg, #f0fdf4, #ffffff);">
             <div style="flex:1;" onclick="Register.selectGolferPick(${i})">
