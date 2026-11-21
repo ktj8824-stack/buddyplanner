@@ -660,7 +660,7 @@ const AI = {
       const featReply = `💡 <strong>BuddyPlanner 핵심 스마트 기능 안내</strong><br><br>
 1. <strong>🎙️ 버디 AI 비서:</strong> 말이나 채팅으로 일정 자동 등록 & 골프 질의응답<br>
 2. <strong>🚗 역산 타임라인:</strong> 티오프 시간 기준 집 출발시간, 맛집 경유, 준비시간 자동 계산<br>
-3. <strong>🍲 라운딩 맛집 추천:</strong> 골프장 반경 캐디/골퍼 추천 조식 및 뒤풀이 맛집 안내<br>
+3. <strong>🍲 라운딩 맛집 추천:</strong> 골프장 주변 조식·뒤풀이 맛집 검색<br>
 4. <strong>📱 동반자 알림:</strong> 카카오톡 원클릭으로 티오프 일정 및 네비 링크 공유<br>
 5. <strong>📊 라운딩 스코어 기록:</strong> 스코어카드 및 라운딩 분석 관리`;
       this.addSimpleBotReply(botMsgId, featReply);

@@ -1161,16 +1161,22 @@ ${this._afterHTML()}
     // 골프장에서 가까운 순으로 정렬
     const sorted = (rests || []).sort((a, b) => parseFloat(a.distance || 999) - parseFloat(b.distance || 999));
     window._nearbyRestsAll = sorted;
-    const hasPicks = (GOLFER_PICKS[(this.course && this.course.region) || ''] || []).length > 0;
+    // '골퍼추천' 목록은 아직 예시 데이터라 숨김 → 실제 주변 검색('전체')을 먼저 보여 줌 (GOLFER_PICKS_ON 참고)
+    const hasPicks = Register.GOLFER_PICKS_ON && (GOLFER_PICKS[(this.course && this.course.region) || ''] || []).length > 0;
     Register.renderRestaurantModalList(title, hasPicks ? '골퍼추천' : '');
   },
   
   
+  /** '골퍼추천' 탭 켜기/끄기. js/data.js 의 GOLFER_PICKS 는 지어낸 예시 목록(가게·전화번호 확인 안 됨)이라 꺼 둠.
+      실제 골퍼들의 선택·별점으로 목록을 만들면 true 로 바꾸기 */
+  GOLFER_PICKS_ON: false,
+
   renderRestaurantModalList(title, filterKeyword = '') {
+    if (!Register.GOLFER_PICKS_ON && filterKeyword === '골퍼추천') filterKeyword = '';
     const isGolferPick = filterKeyword === '골퍼추천';
     
     // ── 필터 바 (⛳ 골퍼추천 탭 최상단) ──
-    const filters = ['⛳ 골퍼추천', '전체', '해장/국밥', '고기/구이', '한식', '중식'];
+    const filters = (Register.GOLFER_PICKS_ON ? ['⛳ 골퍼추천'] : []).concat(['전체', '해장/국밥', '고기/구이', '한식', '중식']);
     const filterHtml = `
       <div style="display:flex; overflow-x:auto; gap:var(--sp-2); padding-bottom:var(--sp-3); margin-bottom:var(--sp-2); border-bottom:1px solid var(--border); scrollbar-width:none;">
         ${filters.map(f => {
