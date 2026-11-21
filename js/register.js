@@ -887,12 +887,12 @@ ${this._afterHTML()}
         ${last ? `<button type="button" style="${btn}" onclick="Register.fillFromLast()">
           <span style="font-size:18px;">↺</span>
           <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">지난번처럼</b>
-          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
+          <span style="display:block; font-size:12px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${U.esc(last.course.name)}${(last.companions || []).length ? ` · 동반자 ${last.companions.length}명` : ''}</span></span>
         </button>` : ''}
         <button type="button" style="${btn}" onclick="Register.openPasteBooking()">
           <span style="display:flex; color:#0b1d4a;">${U.ico('clip', 20)}</span>
           <span style="min-width:0;"><b style="display:block; font-size:13px; color:#0f172a;">예약 문자로 채우기</b>
-          <span style="display:block; font-size:11px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
+          <span style="display:block; font-size:12px; color:#64748B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">골프장·날짜·시간 자동 입력</span></span>
         </button>
       </div>`;
   },
@@ -1161,16 +1161,22 @@ ${this._afterHTML()}
     // 골프장에서 가까운 순으로 정렬
     const sorted = (rests || []).sort((a, b) => parseFloat(a.distance || 999) - parseFloat(b.distance || 999));
     window._nearbyRestsAll = sorted;
-    const hasPicks = (GOLFER_PICKS[(this.course && this.course.region) || ''] || []).length > 0;
+    // '골퍼추천' 목록은 아직 예시 데이터라 숨김 → 실제 주변 검색('전체')을 먼저 보여 줌 (GOLFER_PICKS_ON 참고)
+    const hasPicks = Register.GOLFER_PICKS_ON && (GOLFER_PICKS[(this.course && this.course.region) || ''] || []).length > 0;
     Register.renderRestaurantModalList(title, hasPicks ? '골퍼추천' : '');
   },
   
   
+  /** '골퍼추천' 탭 켜기/끄기. js/data.js 의 GOLFER_PICKS 는 지어낸 예시 목록(가게·전화번호 확인 안 됨)이라 꺼 둠.
+      실제 골퍼들의 선택·별점으로 목록을 만들면 true 로 바꾸기 */
+  GOLFER_PICKS_ON: false,
+
   renderRestaurantModalList(title, filterKeyword = '') {
+    if (!Register.GOLFER_PICKS_ON && filterKeyword === '골퍼추천') filterKeyword = '';
     const isGolferPick = filterKeyword === '골퍼추천';
     
     // ── 필터 바 (⛳ 골퍼추천 탭 최상단) ──
-    const filters = ['⛳ 골퍼추천', '전체', '해장/국밥', '고기/구이', '한식', '중식'];
+    const filters = (Register.GOLFER_PICKS_ON ? ['⛳ 골퍼추천'] : []).concat(['전체', '해장/국밥', '고기/구이', '한식', '중식']);
     const filterHtml = `
       <div style="display:flex; overflow-x:auto; gap:var(--sp-2); padding-bottom:var(--sp-3); margin-bottom:var(--sp-2); border-bottom:1px solid var(--border); scrollbar-width:none;">
         ${filters.map(f => {
@@ -1205,7 +1211,7 @@ ${this._afterHTML()}
           const regionQuery = (p.address_name || '').split(' ').slice(0, 2).join(' ');
           const reviewUrl = `https://m.search.naver.com/search.naver?query=${encodeURIComponent((p.place_name) + ' ' + regionQuery)}`;
           const rv = ReviewStore.getReviews(p.place_name);
-          const rvHtml = rv.count > 0 ? `<div style="margin-top:2px;">${ReviewStore.renderStars(rv.avgRating, rv.count)}</div>` : '<div style="font-size:0.7rem; color:var(--text-500); margin-top:2px;">아직 평가 없음</div>';
+          const rvHtml = rv.count > 0 ? `<div style="margin-top:2px;">${ReviewStore.renderStars(rv.avgRating, rv.count)}</div>` : '<div style="font-size:0.75rem; color:#64748B; margin-top:2px;">아직 평가 없음</div>';
           return `
           <div class="modal-item" style="display:flex; align-items:flex-start; gap:var(--sp-3); padding:var(--sp-3); border:1px solid var(--border); border-radius:var(--r-md); margin-bottom:var(--sp-2); background:linear-gradient(135deg, #f0fdf4, #ffffff);">
             <div style="flex:1;" onclick="Register.selectGolferPick(${i})">

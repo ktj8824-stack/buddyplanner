@@ -1272,23 +1272,26 @@ const Timeline = {
     return p;
   },
 
-  /** 홈·타임라인 '지금 할 일' 아래 한 줄: '지금 길로 06:58 도착 · 티오프까지 2분' (받아 둔 값은 바로, 없으면 받아 와서 채움) */
+  /** 홈·타임라인 '지금 할 일' 아래 한 줄: '지금 길로 06:58 도착 · 티오프 2분 전' (받아 둔 값은 바로, 없으면 받아 와서 채움) */
   etaLineHtml(s, id, style) {
     const text = r => {
       if (!r) return null;
       const tee = State.tlAt(s, (s.timeline || {}).teeOff || s.teeOff);
       const m = tee ? Math.round((tee - r.arr) / 60000) : null;
-      return { txt: `지금 길로 ${r.arrive} 도착${m == null ? '' : m >= 0 ? ` · 티오프까지 ${m}분` : ` · 티오프보다 ${-m}분 늦어요`}`, warn: r.late > 0 || (m != null && m < 0) };
+      // 뒷부분은 한 덩어리로 묶어 '2분'만 다음 줄로 떨어지지 않게 함
+      // (줄바꿈은 '도착' 뒤 빈칸에서만 일어나도록 빈칸은 묶음 밖에 둠)
+      const tail = m == null ? '' : m >= 0 ? `· 티오프 ${m}분 전` : `· 티오프보다 ${-m}분 늦어요`;
+      return { html: `지금 길로 ${U.esc(r.arrive)} 도착${tail ? ` <span class="nowrap">${U.esc(tail)}</span>` : ''}`, warn: r.late > 0 || (m != null && m < 0) };
     };
     const p = this.liveEta(s, 'now');
     p.then(r => {
       const e = document.getElementById(id), v = text(r);
       if (!e || !v) return;
-      e.textContent = v.txt; e.classList.toggle('warn', v.warn); e.hidden = false;
+      e.innerHTML = v.html; e.classList.toggle('warn', v.warn); e.hidden = false;
     }).catch(() => {});
     const hit = (this._etaC || {})[p.key];
     const v = hit && hit.p === p && 'val' in hit ? text(hit.val) : null;
-    return `<div class="v2-alarm-c5${v && v.warn ? ' warn' : ''}" id="${id}" style="${style || 'margin-top:8px'}"${v ? '' : ' hidden'}>${v ? U.esc(v.txt) : ''}</div>`;
+    return `<div class="v2-alarm-c5${v && v.warn ? ' warn' : ''}" id="${id}" style="${style || 'margin-top:8px'}"${v ? '' : ' hidden'}>${v ? v.html : ''}</div>`;
   },
 
   closeAlarm(idx, opt) {
@@ -1311,8 +1314,14 @@ const Timeline = {
     this._snoozeTimer = setTimeout(() => {
       if (this._lastRingAt && Date.now() - this._lastRingAt < 60000) return;   // 아이폰 알림이 먼저 울렸으면 한 번만
       if (window.NativeApp && NativeApp.snoozeAlarm && Date.now() - at > 2 * 60000) return;   // 잠금 중 폰 알람이 이미 울림 → 앱을 연 뒤 또 울리지 않게
-      // 안드로이드: 앱 안에서 제때 울리면 같은 시각 폰 알람은 지움 (두 번 울리지 않게)
-      if (window.NativeApp && NativeApp.cancelSnooze) { try { NativeApp.cancelSnooze(nativeAt); } catch (e) { } }
+      if (window.NativeApp && NativeApp.cancelSnooze) {
+        // 안드로이드: 화면이 꺼져 있거나 앱이 뒤에 있으면 폰 알람에 맡김 (여기서 지우면 아무것도 안 울림)
+        if (document.visibilityState !== 'visible') return;
+        // 타이머가 늦게 돌아 폰 알람이 이미 울렸으면 앱 소리는 건너뜀
+        if (Date.now() > nativeAt) return;
+        // 앱이 화면에 떠 있을 때 제때 울리면 같은 시각 폰 알람은 지움 (두 번 울리지 않게)
+        try { NativeApp.cancelSnooze(nativeAt); } catch (e) { }
+      }
       this.playAlarmSound(last.msg, last.title, last.iconHtml, last.s ? { s: last.s, time: last.time, _snoozeLeft: left } : null);
     }, 5 * 60000);
     // 아이폰·안드로이드: 앱을 닫거나 화면을 잠가도 5분 뒤 울리게 폰 알람으로도 예약 (앱이 켜져 있으면 위 타이머가 먼저 울리고 폰 알람은 건너뜀/지움)
