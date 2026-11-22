@@ -152,7 +152,7 @@
 .v2-step-ico { width: 30px; height: 30px; border-radius: 50%; background: var(--v2-blue-bg); color: var(--v2-blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .v2-step-ico.meal { background: var(--v2-orange-bg); color: var(--v2-orange-ink); }
 .v2-step-time { font-size: 1rem; font-weight: 800; color: var(--v2-ink); width: 54px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
-.v2-step-time small { display: block; font-size: 0.6875rem; color: var(--v2-sub); font-weight: 700; }
+.v2-step-time small { display: block; font-size: 0.75rem; color: var(--v2-sub); font-weight: 700; }
 .v2-step-title { flex: 1; min-width: 0; font-size: 1rem; font-weight: 800; color: var(--v2-ink); }
 .v2-step-act { background: none; border: none; color: var(--v2-blue); font-size: 0.9375rem; font-weight: 800; cursor: pointer; padding: 4px 0 4px 6px; flex-shrink: 0; }
 .v2-step-sub { font-size: 0.875rem; color: var(--v2-sub); margin: 8px 0 0 96px; line-height: 1.45; }
@@ -484,7 +484,7 @@
 .v2-sc-cells { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; }
 .v2-sc-cells button { border: 1px solid var(--v2-line); background: #fff; border-radius: 10px; padding: 6px 0 5px; display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 0; }
 .v2-sc-cells button span { font-size: 0.8125rem; color: #334155; font-weight: 700; }
-.v2-sc-cells button small { font-size: 0.625rem; color: #94a3b8; }
+.v2-sc-cells button small { font-size: 0.75rem; color: #94a3b8; }
 .v2-sc-cells button b { font-size: 0.9375rem; font-weight: 800; color: var(--v2-ink); margin-top: 2px; }
 .v2-sc-cells button.cur { border: 2px solid var(--v2-blue); background: #eef5ff; }
 .v2-sc-cells button.bird b { color: #fff; background: var(--v2-blue); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.8125rem; }

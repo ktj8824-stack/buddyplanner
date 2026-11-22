@@ -447,7 +447,8 @@ const Timeline = {
       s.roundLength || '18',                                   // arr[26]: 18홀 / 9홀
       (s.afterMeet && s.afterMeet.mode) || 'asap',            // arr[27]: 끝나고 모이는 방식
       (s.afterMeet && s.afterMeet.mode !== 'asap' && s.afterMeet.time) || '', // arr[28]: 약속 시각
-      String(s.sharedFrom || State.aidOf(s) || '').replace(/[^0-9a-z]/gi, '').slice(0, 20)  // arr[29]: 원본 일정 번호 (고쳐서 다시 보내면 받은 쪽 일정을 바꿔 끼움)
+      String(s.sharedFrom || State.aidOf(s) || '').replace(/[^0-9a-z]/gi, '').slice(0, 20),  // arr[29]: 원본 일정 번호 (고쳐서 다시 보내면 받은 쪽 일정을 바꿔 끼움)
+      s.hasPostMeal ? postMealMinOf(s) : ''                    // arr[30]: 뒤풀이 머무는 시간(분)
     ];
     // 한글을 %EC%98%A4… 로 풀지 않고 짧은 코드(?b=)로 묶음 — 링크 길이 약 1/3
     const packed = btoa(unescape(encodeURIComponent(arr.join('|')))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -1039,7 +1040,8 @@ const Timeline = {
     });
 
     if (scheduledCount === 0) {
-      U.toast('오늘 이후의 일정이거나 이미 지난 일정이라 알람을 예약하지 않았습니다.');
+      // 알람 시각이 하나도 없으면(타임라인 미완성) 따로 안내, 있는데 모두 지났으면 '이미 지남'
+      U.toast(events.length ? '기상·출발 알람 시각이 이미 지나 새로 맞출 알람이 없어요.' : '알람으로 맞출 시각이 없어 예약하지 않았어요.');
     }
   },
 
