@@ -1297,31 +1297,91 @@ const Timeline = {
     return p;
   },
 
-  /** 홈·타임라인 '지금 할 일' 아래 한 줄: '지금 길로 06:58 도착 · 티오프 2분 전' (받아 둔 값은 바로, 없으면 받아 와서 채움) */
+  /** 홈·타임라인 '지금 할 일' 아래 한 줄: '지금 길로 06:58 도착 · 티오프 2분 전' (받아 둔 값은 바로, 없으면 받아 와서 채움)
+   *  늦으면 그 아래에 '💬 친구에게 알리기' 버튼 (누르면 보낼 글을 고쳐서 카톡·문자·복사) */
   etaLineHtml(s, id, style) {
+    const tl = s.timeline || {};
     const text = r => {
       if (!r) return null;
       // 지금 가는 곳이 친구 집(집결지)이면 티오프가 아니라 픽업 예정 시각과 비교
       if (r.toMeet && r.target) {
         const tail = r.late > 0 ? `· 예정 ${r.target}보다 ${r.late}분 늦어요` : r.late < 0 ? `· 예정 ${r.target}보다 ${-r.late}분 빨라요` : `· 예정 ${r.target}에 맞춰요`;
-        return { html: `지금 길로 ${U.esc(r.arrive)} 친구 집 도착 <span class="nowrap">${U.esc(tail)}</span>`, warn: r.late > 0 };
+        const place = (s.meetingPointObj && s.meetingPointObj.name) || tl.meetingPointName || '만나는 곳';
+        return { html: `지금 길로 ${U.esc(r.arrive)} 친구 집 도착 <span class="nowrap">${U.esc(tail)}</span>`, warn: r.late > 0,
+          late: r.late > 0 ? { who: '친구', msg: `${r.target} ${place} 도착 예정인데 지금 길로 ${r.arrive}쯤 도착해요 (${r.late}분 늦음)` } : null };
       }
-      const tee = State.tlAt(s, (s.timeline || {}).teeOff || s.teeOff);
+      const teeT = tl.teeOff || s.teeOff;
+      const tee = State.tlAt(s, teeT);
       const m = tee ? Math.round((tee - r.arr) / 60000) : null;
       // 뒷부분은 한 덩어리로 묶어 '2분'만 다음 줄로 떨어지지 않게 함
       // (줄바꿈은 '도착' 뒤 빈칸에서만 일어나도록 빈칸은 묶음 밖에 둠)
       const tail = m == null ? '' : m >= 0 ? `· 티오프 ${m}분 전` : `· 티오프보다 ${-m}분 늦어요`;
-      return { html: `지금 길로 ${U.esc(r.arrive)} 도착${tail ? ` <span class="nowrap">${U.esc(tail)}</span>` : ''}`, warn: r.late > 0 || (m != null && m < 0) };
+      const course = (s.course && s.course.name) || s.courseName || '골프장';
+      return { html: `지금 길로 ${U.esc(r.arrive)} 도착${tail ? ` <span class="nowrap">${U.esc(tail)}</span>` : ''}`, warn: r.late > 0 || (m != null && m < 0),
+        late: m != null && m < 0 ? { who: '동반자', msg: `오늘 ${teeT} ${course} 티오프인데 지금 길로 ${r.arrive}쯤 도착해요 (${-m}분 늦음)` } : null };
     };
+    const L = this._lateMsg || (this._lateMsg = {});
+    const btn = v => v && v.late ? `💬 ${v.late.who}에게 알리기` : '';
     const p = this.liveEta(s, 'now');
     p.then(r => {
       const e = document.getElementById(id), v = text(r);
       if (!e || !v) return;
       e.innerHTML = v.html; e.classList.toggle('warn', v.warn); e.hidden = false;
+      const box = document.getElementById(id + '-box'), b = document.getElementById(id + '-late');
+      if (box) box.hidden = false;
+      L[id] = v.late;
+      if (b) { b.textContent = btn(v); b.hidden = !v.late; }
     }).catch(() => {});
     const hit = (this._etaC || {})[p.key];
     const v = hit && hit.p === p && 'val' in hit ? text(hit.val) : null;
-    return `<div class="v2-alarm-c5${v && v.warn ? ' warn' : ''}" id="${id}" style="${style || 'margin-top:8px'}"${v ? '' : ' hidden'}>${v ? v.html : ''}</div>`;
+    L[id] = v && v.late;
+    return `<div id="${id}-box" style="${style || 'margin-top:8px'}"${v ? '' : ' hidden'}>
+      <div class="v2-alarm-c5${v && v.warn ? ' warn' : ''}" id="${id}">${v ? v.html : ''}</div>
+      <button type="button" class="v2-late-share" id="${id}-late" onclick="event.stopPropagation(); Timeline.openLateShare('${id}')"${v && v.late ? '' : ' hidden'}>${btn(v)}</button>
+    </div>`;
+  },
+
+  /** 늦을 때 친구·동반자에게 보낼 글 (고쳐서 보낼 수 있음) */
+  openLateShare(id) {
+    const info = (this._lateMsg || {})[id];
+    if (!info) return;
+    App.showModal(`💬 ${U.esc(info.who)}에게 알리기`, `
+      <div class="late-share">
+        <textarea id="late-share-msg" rows="4" maxlength="300">${U.esc(info.msg)}</textarea>
+        <button type="button" class="late-share-kakao" onclick="Timeline.sendLate('kakao')">카카오톡으로 보내기</button>
+        <div class="late-share-row">
+          <button type="button" onclick="Timeline.sendLate('sms')">문자로 보내기</button>
+          <button type="button" onclick="Timeline.sendLate('copy')">복사</button>
+        </div>
+        <button type="button" class="btn-ghost" style="width:100%;" onclick="App.closeModal()">닫기</button>
+      </div>`);
+  },
+
+  async sendLate(how) {
+    const ta = document.getElementById('late-share-msg');
+    const msg = ((ta && ta.value) || '').trim();
+    if (!msg) { U.toast('보낼 내용을 적어 주세요'); return; }
+    if (how === 'sms') {
+      const sep = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform() === 'ios') ? '&' : '?';
+      location.href = `sms:${sep}body=${encodeURIComponent(msg)}`;
+      return;
+    }
+    if (how === 'kakao') {
+      // 웹: 카카오 글 공유 / 앱: 휴대폰 공유 창(카카오톡 고르기) → 안 되면 복사 후 카카오톡 열기
+      try {
+        if (!U.isNativeApp() && typeof Kakao !== 'undefined' && typeof Login !== 'undefined' && Login.KAKAO_JS_KEY && Login.KAKAO_JS_KEY !== 'YOUR_KAKAO_JS_KEY') {
+          const url = 'https://buddyplanner.kr';
+          if (U.kakaoSend({ objectType: 'text', text: msg, link: { mobileWebUrl: url, webUrl: url } })) return;
+        }
+      } catch (e) { console.warn('kakao late share', e); }
+      await U.shareOut({ title: '버디플래너', text: msg });
+      return;
+    }
+    try { await navigator.clipboard.writeText(msg); U.toast('복사했어요. 원하는 곳에 붙여 넣으세요'); }
+    catch (e) {
+      try { if (ta) { ta.select(); if (document.execCommand('copy')) { U.toast('복사했어요. 원하는 곳에 붙여 넣으세요'); return; } } } catch (e2) { }
+      prompt('아래 내용을 복사해 주세요', msg);
+    }
   },
 
   closeAlarm(idx, opt) {

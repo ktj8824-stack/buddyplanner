@@ -611,10 +611,11 @@ ${this._afterHTML()}
       [hYear, hMonth, hDay].forEach(col => {
         col.addEventListener('scroll', () => {
           clearTimeout(col.snapTimer);
-          col.snapTimer = setTimeout(() => Register.updateWheelActive(col), 50);
+          col.snapTimer = setTimeout(() => { Register.updateWheelActive(col); if (col !== hDay) U.wheelWeekdays(hYear, hMonth, hDay); }, 50);
         });
         Register.updateWheelActive(col);
       });
+      U.wheelWeekdays(hYear, hMonth, hDay);   // 일 칸에 요일 '28일 (토)'
     }, 100);
   },
 
