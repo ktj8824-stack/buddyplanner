@@ -39,6 +39,9 @@ const Home = {
       const tEnd = tTee ? new Date(tTee.getTime() + rl.min * 60000) : null;
       if (tPrep && now < tPrep) return { heading: `오늘 라운딩!<br>${prep} 준비 시작`, btnText: '출발 타임라인 확인' };
       if (tDep && now < tDep) return { heading: `${tDep - now < 3600000 ? `출발까지 ${left(tDep)}` : `${dep} 출발`},<br>준비물 챙기셨나요?`, btnText: '출발 타임라인 확인' };
+      // 친구 집(집결지) 들르는 날: 출발한 뒤 픽업 전에는 '05:28 ○○ 픽업'
+      const tMeet = tl.hasMeetingPoint ? at(tl.meetArrival) : null;
+      if (tMeet && now < tMeet) return { heading: `${tl.meetArrival} ${U.esc(this.shortName(tl.meetingPointName))} 픽업,<br>안전 운전하세요.`, btnText: '타임라인 보기', eta: true };
       if (tTee && now < tTee) return { heading: `${tTee - now < 3600000 ? `티오프까지 ${left(tTee)}` : `티오프 ${tee}`},<br>안전 운전하세요.`, btnText: '타임라인 보기', eta: true };
       if (tEnd && now < tEnd) return { heading: `즐거운 라운딩<br>되세요! ⛳`, btnText: '타임라인 보기' };
       let rec = null;
@@ -55,6 +58,12 @@ const Home = {
     if (diffDays === 1) return { heading: `내일 라운딩,<br>오늘은 일찍 쉬세요.` };
     if (diffDays <= 6) return { heading: `${DAYS[dateObj.getDay()]}요일 라운딩,<br>준비물 미리 챙겨요.` };
     return { heading: `라운딩까지 ${diffDays}일,<br>동선은 준비 완료!` };
+  },
+
+  /** 히어로에 넣을 짧은 장소 이름 (주소가 길면 앞부분만) */
+  shortName(n) {
+    n = String(n || '친구 집').trim();
+    return n.length > 9 ? n.slice(0, 8) + '…' : n;
   },
 
   /** 기록 화면을 열고 바로 스코어 입력창 (빈 카드·라운딩 후 안내에서 사용) */
@@ -115,7 +124,7 @@ const Home = {
     // 상단 히어로: 예전 G라운지 스타일 (문구 + 미니 타임라인 + 골퍼 그림)
     const arrow = '<div class="mini-tl-arrow"><svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>';
     let subTag = '스마트 라운딩 플래너', mainHeading = '첫 라운딩을<br>등록해 보세요.', btnText = '새 일정 등록하기', btnAction = "App.navigate('register')";
-    let dep = '--:--', arr = '--:--', tee = '--:--', etaHtml = '';
+    let dep = '--:--', arr = '--:--', tee = '--:--', etaHtml = '', pick = '';
     if (upcoming.length) {
       const s = upcoming[0];
       const idx = State.schedules.indexOf(s);
@@ -132,6 +141,7 @@ const Home = {
       btnAction = msg.btnAction || `App.viewTimeline(${idx})`;
       if (msg.eta) { try { etaHtml = Timeline.etaLineHtml(s, 'home-eta', 'margin:-6px 0 12px'); } catch (e) { etaHtml = ''; } }   // 가는 중: 지금 길로 몇 시 도착
       dep = tl.homeDepart || '--:--'; arr = tl.arrival || '--:--'; tee = tl.teeOff || s.teeOff || '--:--';
+      pick = tl.hasMeetingPoint && tl.meetArrival ? tl.meetArrival : '';   // 친구 집 픽업도 작은 동선에 표시
     }
     // 내 일정으로 등록하지 않은 단체 라운딩이 다음 일정이면: 등록하라고 안내 (출발·골프장·티오프는 등록해야 계산됨)
     let grp = null;
@@ -152,7 +162,7 @@ const Home = {
       mainHeading = `${gd.getDate()}일 단체 라운딩<br>일정 등록하세요`;
       btnText = '단체 라운딩 등록';
       btnAction = `Group.openCode(${U.jsq(grp.code)})`;
-      dep = '--:--'; arr = '--:--'; tee = '--:--'; etaHtml = '';
+      dep = '--:--'; arr = '--:--'; tee = '--:--'; etaHtml = ''; pick = '';
     }
     // 단체 목록은 가끔 서버에서 새로 받아 둠 (바뀌었으면 홈을 다시 그림)
     try {
@@ -181,9 +191,11 @@ const Home = {
             <div class="hero-sub-tag">${subTag}</div>
             <div class="hero-main-title">${mainHeading}</div>${etaHtml}
             ${showTl ? `
-            <div class="hero-inline-timeline" onclick="${btnAction}">
+            <div class="hero-inline-timeline${pick ? ' has-pick' : ''}" onclick="${btnAction}">
               <div class="mini-tl-node"><span class="mini-tl-tag tag-depart">출발</span><span class="mini-tl-val">${dep}</span></div>
-              ${arrow}
+              ${arrow}${pick ? `
+              <div class="mini-tl-node"><span class="mini-tl-tag tag-depart">픽업</span><span class="mini-tl-val">${pick}</span></div>
+              ${arrow}` : ''}
               <div class="mini-tl-node"><span class="mini-tl-tag tag-arrival">골프장</span><span class="mini-tl-val">${arr}</span></div>
               ${arrow}
               <div class="mini-tl-node highlight"><span class="mini-tl-tag tag-teeoff">티오프</span><span class="mini-tl-val">${tee}</span></div>

@@ -196,6 +196,13 @@
 .ob-footer {
   margin-top: auto;
   padding: var(--sp-5) 0;
+  /* 작은 화면에서도 '설정 완료 및 시작하기'가 늘 보이게 아래에 붙여 둠 */
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--bg-app);
+  padding-bottom: calc(var(--sp-5) + env(safe-area-inset-bottom, 0px));
+  margin-bottom: -20px;   /* 바깥 여백(20px)만큼 내려 버튼 아래가 비어 보이지 않게 */
 }
 .btn-primary {
   width: 100%;

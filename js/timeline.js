@@ -178,7 +178,7 @@ const Timeline = {
               <span class="v2-pill ${diff < 0 ? 'blue' : 'green'}">${diff === 0 ? '오늘' : diff > 0 ? 'D-' + diff : '지난 라운딩'}</span>
             </div>
             <div class="v2-alarm-box${on ? '' : ' off'}" id="tl-alarm-box">
-              <div><b>${on ? '알람 켜짐' : locked ? '로그인하면 알람이 울려요' : '알람 꺼짐'}</b><small>${on ? '단계마다 미리 알려 드려요' : locked ? '단체 일정은 카카오 로그인 후 기상·출발 알람을 받아요' : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
+              <div><b>${on ? '알람 켜짐' : locked ? '로그인하면 알람이 울려요' : '알람 꺼짐'}</b><small>${on ? U.esc(this.alarmTimesText(s)) : locked ? '단체 일정은 카카오 로그인 후 기상·출발 알람을 받아요' : '켜면 준비·출발 시간에 알려 드려요'}</small></div>
               ${locked ? `<button class="v2-btn-line sm" onclick="App.navigate('login')">로그인</button>` : `<button id="tl-alarm-btn" class="v2-switch${on ? ' on alarm-on' : ''}" role="switch" aria-checked="${on}" aria-label="알람" onclick="Timeline.toggleAlarm()"></button>`}
             </div>
           </div>
@@ -727,6 +727,13 @@ const Timeline = {
     U.toast('출발 알람을 껐어요.');
   },
 
+  /** 알람이 켜져 있을 때 작은 글씨: '준비 05:04 · 출발 05:34에 울려요' */
+  alarmTimesText(s) {
+    const tl = (s && s.timeline) || {};
+    const parts = [tl.prepStart && `준비 ${tl.prepStart}`, tl.homeDepart && `출발 ${tl.homeDepart}`].filter(Boolean);
+    return parts.length ? `${parts.join(' · ')}에 울려요` : '단계마다 미리 알려 드려요';
+  },
+
   /** 화면의 알람 스위치 모양 맞추기 */
   syncAlarmUI(on) {
     const sw = U.$('#tl-alarm-btn');
@@ -737,7 +744,7 @@ const Timeline = {
       const b = box.querySelector('b'), sm = box.querySelector('small');
       const locked = !on && this.groupAlarmLocked(State.schedules[this.schedIdx]);
       if (b) b.textContent = on ? '알람 켜짐' : locked ? '로그인하면 알람이 울려요' : '알람 꺼짐';
-      if (sm) sm.textContent = on ? '단계마다 미리 알려 드려요' : locked ? '단체 일정은 카카오 로그인 후 기상·출발 알람을 받아요' : '켜면 준비·출발 시간에 알려 드려요';
+      if (sm) sm.textContent = on ? this.alarmTimesText(State.schedules[this.schedIdx]) : locked ? '단체 일정은 카카오 로그인 후 기상·출발 알람을 받아요' : '켜면 준비·출발 시간에 알려 드려요';
     }
   },
 
@@ -765,6 +772,13 @@ const Timeline = {
       // 안드로이드 앱: 네이티브 알람 예약 (필요한 권한은 이때 처음 안내)
       if (window.NativeApp) {
         this.scheduleTimelineAlarms();
+        // 아이폰: 처음 한 번은 권한 창 전에 안내 → 허용 결과를 보고 나서 '예약되었습니다'
+        if (NativeApp.isIOS && typeof NativeApp.askPermission === 'function') {
+          NativeApp.askPermission(() => App.ask('알람 허용', '새벽 알람을 울리려면 다음 창에서 <b>허용</b>을 눌러 주세요', { ok: '확인', cancel: '나중에' }))
+            .then(ok => { if (ok && !(opts && opts.quiet)) U.toast('타임라인 일정에 맞춰 알람이 예약되었습니다!'); })
+            .catch(() => {});
+          return;
+        }
         U.toast('타임라인 일정에 맞춰 알람이 예약되었습니다!');
         setTimeout(() => this.offerOverlayPopup(), 1200);
         return;
@@ -784,6 +798,15 @@ const Timeline = {
         this.scheduleTimelineAlarms();
       }
     }
+  },
+
+  /** 친구 집(집결지) 들르는 날 출발 알람 문구: '정자동 ○○ 05:28 픽업 → 남서울CC 06:30 티오프' (없으면 '') */
+  pickupLine(s) {
+    const tl = (s && s.timeline) || {};
+    if (!tl.hasMeetingPoint || !tl.meetArrival) return '';
+    const mp = tl.meetingPointName || (s.meetingPointObj || {}).name || '집결지';
+    const course = (s.course && s.course.name) || '골프장';
+    return `${mp} ${tl.meetArrival} 픽업 → ${course} ${tl.teeOff || s.teeOff || ''} 티오프`.trim();
   },
 
   /** 네이티브 알람으로 예약되는 시각 목록 (예약·취소에 같은 값을 사용) */
@@ -910,7 +933,7 @@ const Timeline = {
         const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
 
         if (tl.prepStart) events.push({ isNative: true, isPrep: true, time: tl.prepStart, title: '준비', msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep, emoji: '🏃' });
-        if (tl.homeDepart) events.push({ isNative: true, time: tl.homeDepart, title: '이동', msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
+        if (tl.homeDepart) events.push({ isNative: true, time: tl.homeDepart, title: '이동', msg: this.pickupLine(s) ? `출발 시간입니다! ${this.pickupLine(s)} 🚗` : '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
         if (tl.mealStart) events.push({ time: tl.mealStart, title: '식사', msg: '식당 예약 시간입니다. 든든한 식사 하세요 🍽️', icon: iMeal, emoji: '🍚' });
         if (tl.restDepart) events.push({ isNative: true, time: tl.restDepart, title: '이동', msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest, emoji: '🚗' });
         if (tl.arrival) events.push({ time: tl.arrival, title: '도착', msg: '클럽하우스 도착 시간입니다. 환복을 준비하세요 🏌️', icon: iArrive, emoji: '👔' });
@@ -990,7 +1013,7 @@ const Timeline = {
     const iTee = `<svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--gold-500)" stroke-width="2"><path d="M4 22V2l10 5-10 5"></path></svg>`;
 
     if (tl.prepStart) events.push({ isNative: true, isPrep: true, time: tl.prepStart, title: '준비', msg: '준비 시작 - 보스턴백과 준비물을 챙겨주세요!', icon: iPrep, emoji: '🏃' });
-    if (tl.homeDepart) events.push({ isNative: true, time: tl.homeDepart, title: '이동', msg: '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
+    if (tl.homeDepart) events.push({ isNative: true, time: tl.homeDepart, title: '이동', msg: this.pickupLine(s) ? `출발 시간입니다! ${this.pickupLine(s)} 🚗` : '출발 시간입니다! 목적지로 출발하세요 🚗', icon: iHome, emoji: '🚗' });
     if (tl.mealStart) events.push({ time: tl.mealStart, title: '식사', msg: '식당 예약 시간입니다. 든든한 식사 하세요 🍽️', icon: iMeal, emoji: '🍚' });
     if (tl.restDepart) events.push({ isNative: true, time: tl.restDepart, title: '이동', msg: '골프장으로 출발할 시간입니다 🚙', icon: iRest, emoji: '🚗' });
     if (tl.arrival) events.push({ time: tl.arrival, title: '도착', msg: '클럽하우스 도착 시간입니다. 환복을 준비하세요 🏌️', icon: iArrive, emoji: '👔' });
@@ -1267,7 +1290,7 @@ const Timeline = {
       const arr = new Date(Date.now() + eta * 60000);
       let late = 0;
       if (target) { const t = State.tlAt(s, target); if (t) late = Math.round((arr - t) / 60000); }
-      return { eta, arr, arrive: `${pad(arr.getHours())}:${pad(arr.getMinutes())}`, diff: plan ? eta - plan : 0, late, target };
+      return { eta, arr, arrive: `${pad(arr.getHours())}:${pad(arr.getMinutes())}`, diff: plan ? eta - plan : 0, late, target, toMeet: !!meet && dest === meet };
     })();
     C[k] = { s, t: Date.now(), p }; p.key = k;
     p.then(v => { if (C[k] && C[k].p === p) C[k].val = v; }).catch(() => {});
@@ -1278,6 +1301,11 @@ const Timeline = {
   etaLineHtml(s, id, style) {
     const text = r => {
       if (!r) return null;
+      // 지금 가는 곳이 친구 집(집결지)이면 티오프가 아니라 픽업 예정 시각과 비교
+      if (r.toMeet && r.target) {
+        const tail = r.late > 0 ? `· 예정 ${r.target}보다 ${r.late}분 늦어요` : r.late < 0 ? `· 예정 ${r.target}보다 ${-r.late}분 빨라요` : `· 예정 ${r.target}에 맞춰요`;
+        return { html: `지금 길로 ${U.esc(r.arrive)} 친구 집 도착 <span class="nowrap">${U.esc(tail)}</span>`, warn: r.late > 0 };
+      }
       const tee = State.tlAt(s, (s.timeline || {}).teeOff || s.teeOff);
       const m = tee ? Math.round((tee - r.arr) / 60000) : null;
       // 뒷부분은 한 덩어리로 묶어 '2분'만 다음 줄로 떨어지지 않게 함
