@@ -902,3 +902,8 @@ html[data-size="large"] .v2-new-pair { grid-template-columns: minmax(0, 1fr); }
 .ai-msg-avatar .u-ico { vertical-align: middle; }
 .rf-img-ico { color: #94a3b8; }
 .ob-addr-ic { color: #0b1d4a; }
+
+/* 홈 작은 동선: 친구 집 픽업이 들어가 칸이 4개일 때 좁은 화면에서도 한 줄에 */
+.home-glounge-hero .hero-inline-timeline.has-pick { padding: 9px 8px; }
+.home-glounge-hero .hero-inline-timeline.has-pick .mini-tl-arrow { padding: 0; }
+.home-glounge-hero .hero-inline-timeline.has-pick .mini-tl-tag { padding: 2px 4px; }

@@ -94,7 +94,7 @@ const Register = {
     const r = U.$('#r-restaurant');
     if (r) { r.textContent = this.mealRestaurant ? this.mealRestaurant.name : '골프장 주변 맛집 고르기'; r.classList.toggle('is-empty', !this.mealRestaurant); }
     const m = U.$('#r-meetingpoint-text');
-    if (m) { m.textContent = this.meetingPointObj ? this.meetingPointObj.name : '집결지 주소(장소명) 검색'; m.classList.toggle('is-empty', !this.meetingPointObj); }
+    if (m) { m.textContent = this.meetingPointObj ? this.meetingPointObj.name : '친구 집·집결지 주소 검색'; m.classList.toggle('is-empty', !this.meetingPointObj); }
     this.updateProgress();
     this._refreshSharedSteps(first);
     U.haptic();
@@ -400,8 +400,8 @@ ${this._sharedCardHTML()}
               <div class="v2-opt-row">
                 <div class="r"><span>동반자 픽업 · 집결지</span>${sw('meeting-toggle', this.hasMeetingPoint, 'Register.toggleMeetingPoint()', '집결지')}</div>
                 <div class="v2-opt-sub meal-body ${this.hasMeetingPoint ? 'show' : ''}" id="meeting-body">
-                  <button class="v2-field" style="width:100%;" id="r-meetingpoint-custom" onclick="Register.searchMode='meeting';Register.searchCustomAddress()"><span>집결지</span><b class="${this.meetingPointObj ? '' : 'is-empty'}" id="r-meetingpoint-text">${this.meetingPointObj ? U.esc(this.meetingPointObj.name) : '집결지 주소(장소명) 검색'}</b></button>
-                  <p class="v2-hint" style="margin-top:8px;">집결지에서 약 10분 대기·탑승 시간이 자동으로 들어가요.</p>
+                  <button class="v2-field" style="width:100%;" id="r-meetingpoint-custom" onclick="Register.searchMode='meeting';Register.searchCustomAddress()"><span>친구 집·집결지</span><b class="${this.meetingPointObj ? '' : 'is-empty'}" id="r-meetingpoint-text">${this.meetingPointObj ? U.esc(this.meetingPointObj.name) : '친구 집·집결지 주소 검색'}</b></button>
+                  <p class="v2-hint" style="margin-top:8px;">들러서 태우는 시간 10분이 자동으로 들어가요</p>
                 </div>
               </div>
               <div class="v2-opt-row" id="r-after">
@@ -467,12 +467,16 @@ ${this._afterHTML()}
     const meal = this.hasMeal && this.mealRestaurant && this.mealRestaurant.lat;
     const manner = meal ? 30 : 40;
     let travel;
-    if (meal) travel = this.estimateDriveMin(st.lng, st.lat, this.mealRestaurant.lng, this.mealRestaurant.lat) + this.mealDuration + (this.mealRestaurant.distMin || 15);
-    else travel = this.estimateDriveMin(st.lng, st.lat, this.course.lng, this.course.lat);
+    // 친구 집·집결지를 들르면 저장할 때와 같게: 출발지→집결지 + 10분(태우기) + 집결지→(식당→)골프장
+    const mp = this.hasMeetingPoint && this.meetingPointObj && this.meetingPointObj.lat ? this.meetingPointObj : null;
+    const from = mp || st;
+    const lead = mp ? this.estimateDriveMin(st.lng, st.lat, mp.lng, mp.lat) + 10 : 0;
+    if (meal) travel = lead + this.estimateDriveMin(from.lng, from.lat, this.mealRestaurant.lng, this.mealRestaurant.lat) + this.mealDuration + (this.mealRestaurant.distMin || 15);
+    else travel = lead + this.estimateDriveMin(from.lng, from.lat, this.course.lng, this.course.lat);
     const tee = this.timeH * 60 + this.timeM;
     const dep = tee - manner - travel, prep = dep - this.prep;
     const f = (x) => { x = ((x % 1440) + 1440) % 1440; return this._hm(Math.floor(x / 60), x % 60); };
-    pv.innerHTML = `미리 계산한 일정 <b>준비 ${f(prep)} → 출발 ${f(dep)} → 티오프 ${f(tee)}</b>`;
+    pv.innerHTML = `미리 계산한 일정(어림) <b>준비 ${f(prep)} → 출발 ${f(dep)} → 티오프 ${f(tee)}</b>`;
   },
 
   bind() {
@@ -1108,7 +1112,7 @@ ${this._afterHTML()}
     if (this.sg && this.searchMode === 'start') this.sg.startTapped = true;
     let title = '📍 출발지 주소 검색';
     if (this.searchMode === 'meeting') {
-      title = '🤝 집결지 주소 검색';
+      title = '🤝 친구 집·집결지 주소 검색';
     } else {
       if (this.startPoint === '집') title = '🏠 집 주소 검색';
       else if (this.startPoint === '회사') title = '🏢 회사 주소 검색';
@@ -1122,6 +1126,7 @@ ${this._afterHTML()}
           textEl.textContent = selectedPlace.name;
           textEl.classList.remove('is-empty');
         }
+        this.updateProgress();
       } else {
         if (this.startPoint === '집') {
           if (!State.userAddresses) State.userAddresses = { home: null, office: null };
@@ -1143,6 +1148,7 @@ ${this._afterHTML()}
     this.hasMeetingPoint = !this.hasMeetingPoint;
     U.$('#meeting-toggle').classList.toggle('on', this.hasMeetingPoint);
     U.$('#meeting-body').classList.toggle('show', this.hasMeetingPoint);
+    this.updateProgress();
     U.haptic();
   },
 

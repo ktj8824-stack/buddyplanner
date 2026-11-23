@@ -43,10 +43,12 @@
   };
 
   let asked = false, warned = false;   // 권한 창은 처음 한 번만, 거절 안내도 한 번만
+  let holding = false;   // 알람을 켤 때 '다음 창에서 허용' 안내를 띄우는 동안은 다시 맞추기가 권한 창을 먼저 띄우지 않게
   // 허용 여부는 매번 다시 확인 (설정에서 알림을 켜고 돌아오면 바로 예약되게)
   async function ensurePermission(LN) {
     try {
       let st = await LN.checkPermissions();
+      if (st.display !== 'granted' && holding) return false;
       if (st.display !== 'granted' && !asked) { asked = true; st = await LN.requestPermissions(); }
       LOG('알림 권한', st.display);
       if (st.display === 'granted') { warned = false; return true; }
@@ -75,7 +77,7 @@
       const tee = UU && UU.fmtTimeKo ? UU.fmtTimeKo(s.teeOff || tl.teeOff) : (s.teeOff || '');
       const kinds = [
         ['prep', tl.prepStart, '⏰ 준비 시작 시간이에요', `${name} ${tee} 티오프 · ${tl.homeDepart || ''} 출발`],
-        ['depart', tl.homeDepart, '🚗 출발할 시간이에요', `${name} ${tee} 티오프까지 늦지 않게 출발하세요`],
+        ['depart', tl.homeDepart, '🚗 출발할 시간이에요', (T.pickupLine && T.pickupLine(s)) || `${name} ${tee} 티오프까지 늦지 않게 출발하세요`],
         ['rest', tl.restDepart, '🍽️ 식당에서 출발할 시간이에요', `${name} ${tee} 티오프`]
       ];
       kinds.forEach(([kind, hm, title, body]) => {
@@ -213,8 +215,28 @@
     } catch (e) { console.warn('[iOS 알람] 알림 연결 실패', e); }
   }
 
+  /** 알람을 켤 때: 처음(아직 묻지 않음)이면 preAsk()로 먼저 안내한 뒤 아이폰 권한 창 → 허용했으면 true
+   *  preAsk가 false를 돌려주면(나중에) 이번에는 묻지 않음 */
+  async function askPermission(preAsk) {
+    const LN = plugin();
+    if (!LN) return false;
+    holding = true;
+    try {
+      const st = await LN.checkPermissions();
+      if (st.display === 'granted') return true;
+      if (/^prompt/.test(st.display || '') && !asked) {
+        const go = preAsk ? await preAsk() : true;
+        if (!go) { asked = true; warned = true; return false; }
+      }
+      holding = false;
+      return await ensurePermission(LN);
+    } catch (e) { return false; }
+    finally { holding = false; schedule(0); }
+  }
+
   window.NativeApp = {
     isIOS: true,
+    askPermission,
     // 아래 호출들은 모두 '일정 전체 다시 맞추기'로 처리 (개별 예약·취소 대신)
     setAlarm() { schedule(); },
     setAlarmWithData() { schedule(); },

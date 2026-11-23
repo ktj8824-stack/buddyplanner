@@ -158,10 +158,7 @@ const Onboarding = {
       localStorage.setItem('bp_office', JSON.stringify(this.officeObj));
     }
     
-    U.toast('✅ 설정이 완료되었습니다!');
-    
-    setTimeout(() => {
-      App.navigate('home');
-    }, 400);
+    // 완료 안내 토스트는 홈 제목을 가려서 빼고 바로 홈으로
+    App.navigate('home');
   }
 };
