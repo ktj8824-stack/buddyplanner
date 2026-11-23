@@ -145,6 +145,10 @@ const ROUND_LENGTHS = {
 /* ── 라운딩 끝나고: 샤워·환복 시간(분), 기본 30분 ── */
 const SHOWER_OPTS = [0, 20, 30, 40, 50, 60];
 const SHOWER_DEFAULT = 30;
+/* ── 뒤풀이 머무는 시간(분): 해장국처럼 짧게 들르면 40분·1시간, 기본은 예전처럼 2시간 ── */
+const POST_MEAL_OPTS = [40, 60, 120];
+const POST_MEAL_DEFAULT = 120;
+const postMealMinOf = (s) => POST_MEAL_OPTS.includes(Number(s && s.postMealMin)) ? Number(s.postMealMin) : POST_MEAL_DEFAULT;
 
 /* ── App State ── */
 const State = {
@@ -398,12 +402,13 @@ const State = {
       tl.postMealRestaurant = post;
       tl.postTravelDur = postTravel;
       tl.postMealStart = this.mToTime(postStart);
-      tl.postMealEnd = this.mToTime(postStart + 120); // 뒤풀이 2시간
+      tl.postMealMin = postMealMinOf(s);
+      tl.postMealEnd = this.mToTime(postStart + tl.postMealMin); // 뒤풀이 머무는 시간 (기본 2시간)
     } else {
       tl.hasPostMeal = false;
     }
 
-    const returnStart = post ? postStart + 120 : leave;
+    const returnStart = post ? postStart + tl.postMealMin : leave;
     // 귀가: 갈 때 집결지·식당을 들렀다면 그 시간을 빼고, 골프장(뒤풀이 식당)→출발지로 따로 어림
     let returnTravel = s.travelTime || 60;
     const backFrom = tl.hasPostMeal && s.postMealRestaurant && s.postMealRestaurant.lat ? s.postMealRestaurant : s.course;

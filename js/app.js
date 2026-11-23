@@ -909,6 +909,7 @@ const App = {
           if (arr[26] === '9' || arr[26] === '18') schedData.roundLength = arr[26];
           if ((arr[27] === 'lobby' || arr[27] === 'place') && /^\d{1,2}:\d{2}$/.test(arr[28] || '')) schedData.afterMeet = { mode: arr[27], time: arr[28] };
           if (/^[0-9a-z]{6,20}$/i.test(arr[29] || '')) schedData.srcId = arr[29];
+          if (POST_MEAL_OPTS.includes(parseInt(arr[30], 10))) schedData.postMealMin = parseInt(arr[30], 10);
         } else {
           // Version 1 레거시 형식
           schedData = {
@@ -1066,6 +1067,7 @@ const App = {
         mealDuration: schedData.mealDuration || 0,
         roundLength: schedData.roundLength || null,
         afterMeet: schedData.afterMeet || null,
+        postMealMin: schedData.postMealMin || null,
         srcId: schedData.srcId || null,
         route: meet ? 'meet' : meal ? 'meal' : 'course'
       };

@@ -14,6 +14,7 @@ const Register = {
   mealRestaurant: null,
   hasPostMeal: false,
   postMealRestaurant: null,
+  postMealMin: 120,
   startPoint: '집',
   hasMeetingPoint: false,
   meetingPointObj: null,
@@ -46,6 +47,7 @@ const Register = {
     this.mealRestaurant = null;
     this.hasPostMeal = false;
     this.postMealRestaurant = null;
+    this.postMealMin = POST_MEAL_DEFAULT;
     this.startPoint = '집';
     this.hasMeetingPoint = false;
     this.meetingPointObj = null;
@@ -64,6 +66,7 @@ const Register = {
       this.sg = { startTapped: false, start: false, prep: false, route: false };
       if (sh.mealDuration) this.mealDuration = sh.mealDuration;
       if (sh.post) { this.hasPostMeal = true; this.postMealRestaurant = sh.post; }
+      if (sh.postMealMin) this.postMealMin = postMealMinOf(sh);
       if (sh.roundLength && ROUND_LENGTHS[sh.roundLength]) this.roundLength = sh.roundLength;
       if (sh.afterMeet && sh.afterMeet.mode) this.afterMeet = { mode: sh.afterMeet.mode, time: sh.afterMeet.time || '' };
       this._applySharedRoute(sh.route);
@@ -209,6 +212,7 @@ const Register = {
     this.mealRestaurant = s.mealRestaurant;
     this.hasPostMeal = s.hasPostMeal || false;
     this.postMealRestaurant = s.postMealRestaurant || null;
+    this.postMealMin = postMealMinOf(s);
     this.startPoint = s.startPoint || '집';
     // '직접 입력' 출발지는 저장 때 주소 이름으로 바뀌어 있음 → 다시 '직접 입력'과 좌표로 되살림
     if (!['집', '회사'].includes(this.startPoint)) {
@@ -387,6 +391,10 @@ ${this._sharedCardHTML()}
                 <div class="r"><span>라운딩 후 식사 (뒤풀이)</span>${sw('postmeal-toggle', this.hasPostMeal, "Register.toggleMeal('post')", '뒤풀이')}</div>
                 <div class="v2-opt-sub meal-body ${this.hasPostMeal ? 'show' : ''}" id="postmeal-body">
                   <button class="v2-field" style="width:100%;" onclick="Register.openRestaurantPicker('post')"><span>뒤풀이 식당</span><b class="${!this.postMealRestaurant ? 'is-empty' : ''}" id="r-post-restaurant">${this.postMealRestaurant ? U.esc(this.postMealRestaurant.name) : '식당 고르기 (반경 10km)'}</b></button>
+                  <div class="v2-after-l">머무는 시간</div>
+                  <div class="v2-opts" id="r-postmeal-pills" style="grid-template-columns:repeat(${POST_MEAL_OPTS.length},1fr);">
+                    ${POST_MEAL_OPTS.map(t => `<button type="button" class="pill ${t === this.postMealMin ? 'on' : ''}" data-t="${t}" onclick="Register.setPostMealMin(${t})">${t % 60 ? t + '분' : (t / 60) + '시간'}</button>`).join('')}
+                  </div>
                 </div>
               </div>
               <div class="v2-opt-row">
@@ -785,7 +793,7 @@ ${this._afterHTML()}
       date: this.date || new Date(), teeOff: `${String(this.timeH).padStart(2, '0')}:${String(this.timeM || 0).padStart(2, '0')}`,
       prepTime: this.prep || 30, travelTime: 60, course: this.course || { name: '' }, startPoint: '집',
       hasMeal: false, roundLength: this.roundLength, showerMin: this.showerMin,
-      hasPostMeal: !!(this.hasPostMeal && this.postMealRestaurant), postMealRestaurant: this.postMealRestaurant,
+      hasPostMeal: !!(this.hasPostMeal && this.postMealRestaurant), postMealRestaurant: this.postMealRestaurant, postMealMin: this.postMealMin,
       afterMeet: this.afterMeet
     };
     try { State.calculateTimeline(fake); } catch (e) { return ''; }
@@ -797,7 +805,7 @@ ${this._afterHTML()}
     else if (tl.afterMode !== 'lobby') parts.push(`<b>${tl.leaveCourse}</b> 골프장 출발`);
     if (tl.afterMode === 'lobby') parts.push(`<b>${tl.meetTime}</b> 로비에서 만나기·출발`);
     else if (tl.showerMin && !sameLeave) parts.push(`<b>${tl.leaveCourse}</b> 골프장 출발`);
-    if (tl.hasPostMeal) parts.push(`<b>${tl.postMealStart}</b> 뒤풀이${tl.afterMode === 'place' ? ' 약속' : ' 도착'}`);
+    if (tl.hasPostMeal) parts.push(`<b>${tl.postMealStart}</b> 뒤풀이${tl.afterMode === 'place' ? ' 약속' : ' 도착'}`, `<b>${tl.returnStart}</b> 집으로 출발`);
     const warn = tl.showerShort != null ? `<div class="warn">⚠️ 약속 시간까지 샤워·환복 시간이 ${tl.showerShort}분뿐이에요</div>` : '';
     return parts.join(' → ') + warn;
   },
@@ -814,6 +822,14 @@ ${this._afterHTML()}
     this.showerMin = t;
     try { localStorage.setItem('bp_last_shower', String(t)); } catch (e) { }
     this._refreshAfter();
+    U.haptic();
+  },
+
+  setPostMealMin(t) {
+    if (!POST_MEAL_OPTS.includes(t)) return;
+    this.postMealMin = t;
+    document.querySelectorAll('#r-postmeal-pills .pill').forEach(b => b.classList.toggle('on', Number(b.dataset.t) === t));
+    const pv = U.$('#r-after-pv'); if (pv) pv.innerHTML = this._afterPreview();
     U.haptic();
   },
 
@@ -910,7 +926,7 @@ ${this._afterHTML()}
     if (this.startPoint === '직접 입력') this.customStartObj = { name: l.startAddress, lat: l.startLat, lng: l.startLng };
     this.hasMeetingPoint = !!l.hasMeetingPoint; this.meetingPointObj = l.meetingPointObj || null;
     this.hasMeal = !!l.hasMeal; this.mealDuration = l.mealDuration || 50; this.mealRestaurant = l.mealRestaurant || null;
-    this.hasPostMeal = !!l.hasPostMeal; this.postMealRestaurant = l.postMealRestaurant || null;
+    this.hasPostMeal = !!l.hasPostMeal; this.postMealRestaurant = l.postMealRestaurant || null; this.postMealMin = postMealMinOf(l);
     this.roundLength = ROUND_LENGTHS[l.roundLength] ? l.roundLength : '18';
     this.afterMeet = { mode: 'asap', time: '' };
     this.date = null;
@@ -1588,6 +1604,7 @@ ${this._afterHTML()}
       mealRestaurant: this.mealRestaurant,
       hasPostMeal: this.hasPostMeal,
       postMealRestaurant: this.postMealRestaurant,
+      postMealMin: this.postMealMin,
       travelToRestaurant: travelToRest,
       startPoint: finalStartPoint,
       startAddress: valObj.name,
