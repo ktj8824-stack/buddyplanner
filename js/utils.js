@@ -39,6 +39,26 @@ const U = {
 
   fmtDate(d){ return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${this.DAYS[d.getDay()]})`; },
   fmtDateShort(d){ return `${d.getMonth()+1}월 ${d.getDate()}일 (${this.DAYS[d.getDay()]})`; },
+  /** 날짜 휠: 일 칸에 요일을 붙임 '28일 (토)' — 연·월 칸이 바뀔 때마다 다시 부름 (그 달에 없는 날은 요일 없이) */
+  wheelWeekdays(yearCol, monthCol, dayCol) {
+    const H = 44, val = c => { const it = c && c.querySelectorAll('.wheel-item')[Math.round(c.scrollTop / H)]; return it ? +it.dataset.val : 0; };
+    const y = val(yearCol), m = val(monthCol);
+    if (!y || !m || !dayCol || dayCol._wdKey === y * 100 + m) return;
+    dayCol._wdKey = y * 100 + m;
+    const last = new Date(y, m, 0).getDate(), lab = [];
+    for (let d = 1; d <= 31; d++) {
+      const w = d <= last ? new Date(y, m - 1, d).getDay() : -1;
+      lab[d] = `${d}일${w >= 0 ? ` <span class="wd${w === 6 ? ' sat' : w === 0 ? ' sun' : ''}">(${this.DAYS[w]})</span>` : ''}`;
+    }
+    dayCol.querySelectorAll('.wheel-item').forEach(it => { it.innerHTML = lab[+it.dataset.val] || it.innerHTML; });
+  },
+  /** 'YYYY-MM-DD' → 요일 표시 칸 '(토)' (단체 일정 날짜 칸 옆) */
+  wdTag(ymd) {
+    const d = /^\d{4}-\d{2}-\d{2}$/.test(ymd || '') ? new Date(ymd + 'T00:00:00') : null;
+    if (!d || isNaN(d)) return '';
+    const w = d.getDay();
+    return `<span class="gp-wd${w === 6 ? ' sat' : w === 0 ? ' sun' : ''}">(${this.DAYS[w]})</span>`;
+  },
 
   dday(target) {
     const t=new Date();t.setHours(0,0,0,0);

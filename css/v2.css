@@ -907,3 +907,18 @@ html[data-size="large"] .v2-new-pair { grid-template-columns: minmax(0, 1fr); }
 .home-glounge-hero .hero-inline-timeline.has-pick { padding: 9px 8px; }
 .home-glounge-hero .hero-inline-timeline.has-pick .mini-tl-arrow { padding: 0; }
 .home-glounge-hero .hero-inline-timeline.has-pick .mini-tl-tag { padding: 2px 4px; }
+
+/* 늦을 때: 친구·동반자에게 알리기 */
+.v2-late-share { display: inline-flex; align-items: center; margin-top: 8px; height: 34px; padding: 0 12px; border: 1px solid rgba(255,138,122,.55); background: rgba(255,138,122,.12); color: #ffd1ca; border-radius: 999px; font-size: 0.875rem; font-weight: 700; cursor: pointer; }
+.v2-late-share:active { transform: scale(.97); }
+.late-share { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+.late-share textarea { width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; padding: 12px; font-size: 16px; line-height: 1.5; font-family: inherit; color: #0f172a; resize: vertical; min-height: 96px; margin-bottom: 4px; }
+.late-share button { height: 48px; border-radius: 13px; font-size: 1rem; font-weight: 800; cursor: pointer; }
+.late-share .late-share-kakao { border: none; background: #fee500; color: #191919; }
+.late-share-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.late-share-row button { border: 1px solid #e2e8f0; background: #fff; color: #0f172a; }
+
+/* 날짜 휠: 일 칸 요일 '28일 (토)' */
+.wheel-item .wd { font-size: 0.78em; font-weight: 600; margin-left: 3px; color: var(--text-400); }
+.wheel-item .wd.sat { color: #2563eb; } .wheel-item .wd.sun { color: #dc2626; }
+.gp-wd { margin-left: 4px; font-weight: 700; color: var(--text-400); } .gp-wd.sat { color: #2563eb; } .gp-wd.sun { color: #dc2626; }

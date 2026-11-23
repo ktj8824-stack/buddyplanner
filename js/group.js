@@ -162,6 +162,8 @@ const Group = {
     lines.push('', '내 일정·일어날 시간 보기 👇', this.personalUrl(m));
     return lines.join('\n');
   },
+  /** 날짜 칸 옆 요일 '(토)' */
+  _dateWd(el) { const w = document.getElementById('gp-date-wd'); if (w) w.innerHTML = U.wdTag(el && el.value); },
   _smsHref(phones, body) {
     const sep = /iPhone|iPad|iPod/i.test(navigator.userAgent) ? '&' : '?';
     return `sms:${phones.join(',')}${sep}body=${encodeURIComponent(body)}`;
@@ -325,14 +327,14 @@ const Group = {
           ${edit ? `<div class="gp-fixed">⛳ ${U.esc(f.course && f.course.name)}</div>`
                  : `<button class="gp-pick ${f.course ? 'on' : ''}" onclick="Group.pickCourse()">${f.course ? '⛳ ' + U.esc(f.course.name) : f.courseHint ? `골프장 찾기 · 글에서 ${U.esc(f.courseHint)}` : '골프장 검색하기'}</button>`}
           ${edit && f.teams ? `
-          <label>날짜</label><input id="gp-date" type="date" value="${U.esc(f.date)}">
+          <label>날짜<span id="gp-date-wd">${U.wdTag(f.date)}</span></label><input id="gp-date" type="date" value="${U.esc(f.date)}" onchange="Group._dateWd(this)" oninput="Group._dateWd(this)">
           <label>조별 티업 · 코스 <span class="gp-hint">사람은 상세 화면에서 이름을 눌러 옮겨요</span></label>
           ${f.teams.map((t, i) => `<div class="gt-head edit"><b>${t.no}조</b>
             <input class="gt-tee" id="gp-et-${i}-tee" type="time" value="${U.esc(t.tee)}" aria-label="${t.no}조 티업">
             <input class="gt-course" id="gp-et-${i}-course" maxlength="20" placeholder="코스" value="${U.esc(t.course)}" aria-label="${t.no}조 코스"></div>`).join('')}
           <button class="gt-add" onclick="Group.addEditTeam()">＋ ${f.teams.length + 1}조 추가</button>` : `
           <div class="gp-row2">
-            <div><label>날짜</label><input id="gp-date" type="date" value="${U.esc(f.date)}"></div>
+            <div><label>날짜<span id="gp-date-wd">${U.wdTag(f.date)}</span></label><input id="gp-date" type="date" value="${U.esc(f.date)}" onchange="Group._dateWd(this)" oninput="Group._dateWd(this)"></div>
             <div><label>티오프 (첫 조)</label><input id="gp-tee" type="time" value="${U.esc(f.tee)}"></div>
           </div>
           <label>다 같이 모이는 시간 <span class="gp-hint">비우면 티오프 30분 전</span></label>
@@ -396,8 +398,8 @@ const Group = {
           <input id="gp-title" maxlength="40" placeholder="예) 토요 정기 모임" value="${U.esc(f.title)}">
           <label>골프장</label>
           <button class="gp-pick ${f.course ? 'on' : ''}" onclick="Group.pickCourse()">${f.course ? '⛳ ' + U.esc(f.course.name) : f.courseHint ? `골프장 찾기 · 글에서 ${U.esc(f.courseHint)}` : '골프장 검색하기'}</button>
-          <label>날짜</label>
-          <input id="gp-date" type="date" value="${U.esc(f.date)}">
+          <label>날짜<span id="gp-date-wd">${U.wdTag(f.date)}</span></label>
+          <input id="gp-date" type="date" value="${U.esc(f.date)}" onchange="Group._dateWd(this)" oninput="Group._dateWd(this)">
           <label>내 이름 (총무) <span class="gp-hint">조에 같은 이름이 있으면 그 자리가 내 자리</span></label>
           <input id="gp-me" maxlength="20" placeholder="참석자들이 알아볼 이름" value="${U.esc(f.me)}">
 
