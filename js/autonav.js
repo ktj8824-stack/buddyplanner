@@ -163,7 +163,17 @@ const AutoNav = {
       const open = legs.filter(l => cur < l.until && !done(l));
       if (!open.length) return;
       let pick = open[0];
-      for (const l of open) if (l.depMin <= cur + this.EARLY_MIN) pick = l;
+      // 친구 픽업(집결지) 구간: 집에서 안내를 시작했거나 집결지 도착 시각이 지난 뒤에만 '집결지 → 골프장'으로 넘어감
+      //   (집을 늦게 나서 차에 탔는데 30분 규칙 때문에 친구 집을 건너뛰고 골프장으로 안내하던 문제 — 11-23 점검 B14)
+      const meetArr = this._min(tl.meetArrival);
+      for (const l of open) {
+        if (l.key === 'meetDepart' && !left.depart) {
+          let arr = meetArr != null ? meetArr : l.depMin - 10;
+          if (arr > l.depMin) arr -= 1440;   // 새벽 티오프로 전날 밤 쪽에 놓인 구간
+          if (cur < arr) continue;
+        }
+        if (l.depMin <= cur + this.EARLY_MIN) pick = l;
+      }
       cands.push({ ...pick, depMin: pick.depMin + diff * 1440, s });
     });
     // 후보가 여럿이면 출발 시각이 지금과 가장 가까운 구간 (예: 밤 11시 45분 = 오늘 귀가보다 오늘 밤 출발하는 내일 새벽 라운딩)
