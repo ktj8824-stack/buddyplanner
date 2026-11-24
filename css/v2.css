@@ -911,6 +911,7 @@ html[data-size="large"] .v2-new-pair { grid-template-columns: minmax(0, 1fr); }
 /* 늦을 때: 친구·동반자에게 알리기 */
 .v2-late-share { display: inline-flex; align-items: center; margin-top: 8px; height: 34px; padding: 0 12px; border: 1px solid rgba(255,138,122,.55); background: rgba(255,138,122,.12); color: #ffd1ca; border-radius: 999px; font-size: 0.875rem; font-weight: 700; cursor: pointer; }
 .v2-late-share:active { transform: scale(.97); }
+.v2-late-share[hidden] { display: none; }   /* 늦지 않을 때 빈 버튼이 보이지 않게 (11-24 점검) */
 .late-share { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
 .late-share textarea { width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; padding: 12px; font-size: 16px; line-height: 1.5; font-family: inherit; color: #0f172a; resize: vertical; min-height: 96px; margin-bottom: 4px; }
 .late-share button { height: 48px; border-radius: 13px; font-size: 1rem; font-weight: 800; cursor: pointer; }
