@@ -39,6 +39,24 @@ const Home = {
       const tEnd = tTee ? new Date(tTee.getTime() + rl.min * 60000) : null;
       if (tPrep && now < tPrep) return { heading: `오늘 라운딩!<br>${prep} 준비 시작`, btnText: '출발 타임라인 확인' };
       if (tDep && now < tDep) return { heading: `${tDep - now < 3600000 ? `출발까지 ${left(tDep)}` : `${dep} 출발`},<br>준비물 챙기셨나요?`, btnText: '출발 타임라인 확인' };
+      // 11/24: 출발 시각이 5분 넘게 지났는데 '출발했어요'·자동 길안내 기록이 없으면 (늦잠) — 한 줄 제목 + 지금 나가면 몇 시 도착
+      try {
+        const d0 = new Date(dateObj); d0.setHours(0, 0, 0, 0);
+        const done = (s.tlDone && s.tlDone.day === d0.getTime()) ? s.tlDone.keys : [];
+        const left0 = (s.trip && s.trip.day === d0.getTime() && s.trip.left) || {};
+        const gone = ['depart', 'meet', 'meetDepart', 'restDepart', 'arrival'].some(k => done.indexOf(k) >= 0 || left0[k]);
+        let away = false;   // 위치로 보아 이미 집을 나섰으면 늦잠 아님
+        if (tDep && tTee && !gone && now - tDep >= 5 * 60000 && now < tTee && typeof Timeline !== 'undefined' && Timeline.liveEta) {
+          const pr = Timeline.liveEta(s, 'now'), hit = (Timeline._etaC || {})[pr.key];
+          if (hit && 'val' in hit) away = !!(hit.val && hit.val.atHome === false);
+          else { away = true; if (this._olWait !== pr) { this._olWait = pr; pr.then(() => { if (State.screen === 'home') this.render(); }).catch(() => {}); } }
+        }
+        if (tDep && tTee && !gone && !away && now - tDep >= 5 * 60000 && now < tTee) {
+          const tP = at(prep);
+          const prepMin = tP ? Math.max(0, Math.round((tDep - tP) / 60000)) : 0;
+          return { heading: `<span class="nowrap">출발 ${left(new Date(now.getTime() * 2 - tDep.getTime()))} 지났어요</span>`, btnText: '타임라인 보기', eta: true, notLeft: { prepMin } };
+        }
+      } catch (e) { /* */ }
       // 친구 집(집결지) 들르는 날: 출발한 뒤 픽업 전에는 '05:28 ○○ 픽업'
       const tMeet = tl.hasMeetingPoint ? at(tl.meetArrival) : null;
       if (tMeet && now < tMeet) return { heading: `${tl.meetArrival} ${U.esc(this.shortName(tl.meetingPointName))} 픽업,<br>안전 운전하세요.`, btnText: '타임라인 보기', eta: true };
@@ -139,7 +157,7 @@ const Home = {
       mainHeading = msg.heading;
       btnText = msg.btnText || '타임라인 보기';
       btnAction = msg.btnAction || `App.viewTimeline(${idx})`;
-      if (msg.eta) { try { etaHtml = Timeline.etaLineHtml(s, 'home-eta', 'margin:-6px 0 12px'); } catch (e) { etaHtml = ''; } }   // 가는 중: 지금 길로 몇 시 도착
+      if (msg.eta) { try { etaHtml = Timeline.etaLineHtml(s, 'home-eta', 'margin:-6px 0 12px', msg.notLeft ? { notLeft: msg.notLeft } : null); } catch (e) { etaHtml = ''; } }   // 가는 중: 지금 길로 몇 시 도착
       dep = tl.homeDepart || '--:--'; arr = tl.arrival || '--:--'; tee = tl.teeOff || s.teeOff || '--:--';
       pick = tl.hasMeetingPoint && tl.meetArrival ? tl.meetArrival : '';   // 친구 집 픽업도 작은 동선에 표시
     }

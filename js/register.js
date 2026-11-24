@@ -1634,12 +1634,22 @@ ${this._afterHTML()}
       if (typeof Timeline !== 'undefined' && Timeline.clearSchedAlarms) Timeline.clearSchedAlarms(prev, true);
       State.updateSchedule(this.editIdx, schedData);
       if (State.saveFailed) { State.schedules[this.editIdx] = prev; try { Timeline.autoScheduleAllAlarms(); } catch (e) {} btn.innerHTML = originalText; btn.disabled = false; return; }
-      U.toast('✅ 스마트 플랜이 수정되었습니다!');
+      // 11/24: 알림 한 줄 — 기상(준비 시작) 알람이 바뀌었으면 '알람이 04:32로 22분 당겨졌습니다'
+      let alarmMsg = '';
+      try {
+        const hm = v => { const m = /^(\d{1,2}):(\d{2})/.exec(String(v || '')); return m ? (+m[1]) * 60 + (+m[2]) : null; };
+        const a = hm(prev && prev.timeline && prev.timeline.prepStart), cur = State.schedules[this.editIdx];
+        const b = hm(cur && cur.timeline && cur.timeline.prepStart);
+        if (a != null && b != null && a !== b && (!prev || prev.date === cur.date)) {
+          let d = b - a; if (d > 720) d -= 1440; if (d < -720) d += 1440;
+          alarmMsg = `알람이 ${cur.timeline.prepStart}로 ${Math.abs(d)}분 ${d < 0 ? '당겨졌습니다' : '늦춰졌습니다'}`;
+        }
+      } catch (e) { alarmMsg = ''; }
       const idx = this.editIdx;
       this.editIdx = null;
       btn.innerHTML = originalText; btn.disabled = false;
       App.viewTimeline(idx);
-      Timeline.alarmOn();
+      Timeline.alarmOn(alarmMsg ? { msg: alarmMsg } : undefined);
       // 일정을 고칠 때는 전면 광고를 띄우지 않음
     } else {
       const fromShare = !!this.shared;
