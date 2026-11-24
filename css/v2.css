@@ -914,6 +914,7 @@ html[data-size="large"] .v2-new-pair { grid-template-columns: minmax(0, 1fr); }
 .v2-late-line { color: #ff8a7a; font-weight: 700; white-space: nowrap; margin-top: 2px; }
 .v2-step .v2-late-share { margin: 8px 0 0 96px; color: #d6453a; background: #fff1ef; border-color: #f5b5ac; }
 .v2-step.done .v2-late-share { display: none; }
+.v2-late-share[hidden] { display: none; }   /* 늦지 않을 때 빈 버튼이 보이지 않게 (11-24 점검) */
 .late-share { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
 .late-share textarea { width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; padding: 12px; font-size: 16px; line-height: 1.5; font-family: inherit; color: #0f172a; resize: vertical; min-height: 96px; margin-bottom: 4px; }
 .late-share button { height: 48px; border-radius: 13px; font-size: 1rem; font-weight: 800; cursor: pointer; }
