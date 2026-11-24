@@ -93,7 +93,7 @@ const Timeline = {
       sub: s.routeEstimated ? `${next1.name}까지 약 ${tl.homeTravelDur}분 (거리로 어림잡음)` : `${next1.name}까지 약 ${tl.homeTravelDur}분`,
       nav: { to: next1, from: startFrom }, tip: '보스턴백, 거리측정기, 골프공 챙기셨나요?' });
     if (meet) {
-      steps.push({ key: 'meet', time: tl.meetArrival, ico: I.people, title: '집결지 도착 · 동반자 탑승', sub: `${meet.name} · 여유 약 10분` });
+      steps.push({ key: 'meet', time: tl.meetArrival, ico: I.people, title: '집결지 도착 · 동반자 탑승', sub: `${meet.name} · 여유 약 10분`, share: true });
       const nx = rest || course;
       steps.push({ key: 'meetDepart', time: tl.meetDepart, ico: I.car, title: `${U.josa(nx.name, '으로/로')} 출발`, depart: true, sub: `${nx.name}까지 약 ${tl.meetTravelDur}분`, nav: { to: nx, from: meet } });
     }
@@ -159,6 +159,7 @@ const Timeline = {
           <span class="v2-step-now" style="display:none">지금</span>
         </div>
         ${st.sub ? `<div class="v2-step-sub">${U.esc(st.sub)}</div>` : ''}
+        ${st.share ? `<button type="button" class="v2-late-share" onclick="event.stopPropagation(); Timeline.sharePickup(${i})">💬 동반자에게 픽업 시각 보내기</button>` : ''}
         ${st.extra ? `<div class="v2-step-extra">${st.extra}</div>` : ''}
       </div>`;
     }).join('');
@@ -775,11 +776,11 @@ const Timeline = {
         // 아이폰: 처음 한 번은 권한 창 전에 안내 → 허용 결과를 보고 나서 '예약되었습니다'
         if (NativeApp.isIOS && typeof NativeApp.askPermission === 'function') {
           NativeApp.askPermission(() => App.ask('알람 허용', '새벽 알람을 울리려면 다음 창에서 <b>허용</b>을 눌러 주세요', { ok: '확인', cancel: '나중에' }))
-            .then(ok => { if (ok && !(opts && opts.quiet)) U.toast('타임라인 일정에 맞춰 알람이 예약되었습니다!'); })
+            .then(ok => { if (ok && !(opts && opts.quiet)) U.toast((opts && opts.msg) || '알람이 예약되었습니다'); })
             .catch(() => {});
           return;
         }
-        U.toast('타임라인 일정에 맞춰 알람이 예약되었습니다!');
+        U.toast((opts && opts.msg) || '알람이 예약되었습니다');
         setTimeout(() => this.offerOverlayPopup(), 1200);
         return;
       }
@@ -787,7 +788,7 @@ const Timeline = {
       if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
           if (permission === 'granted') {
-            U.toast('실제 타임라인 일정에 맞춰 알람이 예약되었습니다!');
+            U.toast((opts && opts.msg) || '알람이 예약되었습니다');
           } else {
             U.toast('푸시 알림은 차단되었지만 앱 내 알람은 작동합니다.');
           }
@@ -1281,6 +1282,11 @@ const Timeline = {
         const pos = await new Promise(res => { try { navigator.geolocation.getCurrentPosition(p => res(p), () => res(null), { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }); } catch (e) { res(null); } });
         if (pos) from = { lat: pos.coords.latitude, lng: pos.coords.longitude };
       }
+      let atHome = null;   // 11/24: 지금 위치가 출발지(집) 근처인지 (늦잠 판단용) — 위치를 모르면 null
+      if (from && s.startLat && s.startLng) {
+        const dy = (from.lat - +s.startLat) * 111, dx = (from.lng - +s.startLng) * 88;
+        atHome = Math.sqrt(dx * dx + dy * dy) < 0.5;
+      }
       if (!from && homeOk && s.startLat && s.startLng) from = { lat: +s.startLat, lng: +s.startLng };
       if (!from) return null;
       // 길 찾기가 10초 넘게 걸리면 포기
@@ -1290,7 +1296,7 @@ const Timeline = {
       const arr = new Date(Date.now() + eta * 60000);
       let late = 0;
       if (target) { const t = State.tlAt(s, target); if (t) late = Math.round((arr - t) / 60000); }
-      return { eta, arr, arrive: `${pad(arr.getHours())}:${pad(arr.getMinutes())}`, diff: plan ? eta - plan : 0, late, target, toMeet: !!meet && dest === meet };
+      return { eta, arr, arrive: `${pad(arr.getHours())}:${pad(arr.getMinutes())}`, diff: plan ? eta - plan : 0, late, target, toMeet: !!meet && dest === meet, atHome };
     })();
     C[k] = { s, t: Date.now(), p }; p.key = k;
     p.then(v => { if (C[k] && C[k].p === p) C[k].val = v; }).catch(() => {});
@@ -1299,16 +1305,17 @@ const Timeline = {
 
   /** 홈·타임라인 '지금 할 일' 아래 한 줄: '지금 길로 06:58 도착 · 티오프 2분 전' (받아 둔 값은 바로, 없으면 받아 와서 채움)
    *  늦으면 그 아래에 '💬 친구에게 알리기' 버튼 (누르면 보낼 글을 고쳐서 카톡·문자·복사) */
-  etaLineHtml(s, id, style) {
+  etaLineHtml(s, id, style, opts) {
     const tl = s.timeline || {};
+    const notLeft = opts && opts.notLeft;   // 11/24: 출발 시각이 지났는데 아직 안 나감 (늦잠)
     const text = r => {
       if (!r) return null;
       // 지금 가는 곳이 친구 집(집결지)이면 티오프가 아니라 픽업 예정 시각과 비교
       if (r.toMeet && r.target) {
         const tail = r.late > 0 ? `· 예정 ${r.target}보다 ${r.late}분 늦어요` : r.late < 0 ? `· 예정 ${r.target}보다 ${-r.late}분 빨라요` : `· 예정 ${r.target}에 맞춰요`;
         const place = (s.meetingPointObj && s.meetingPointObj.name) || tl.meetingPointName || '만나는 곳';
-        return { html: `지금 길로 ${U.esc(r.arrive)} 친구 집 도착 <span class="nowrap">${U.esc(tail)}</span>`, warn: r.late > 0,
-          late: r.late > 0 ? { who: '친구', msg: `${r.target} ${place} 도착 예정인데 지금 길로 ${r.arrive}쯤 도착해요 (${r.late}분 늦음)` } : null };
+        return { html: `지금 길로 ${U.esc(r.arrive)} 픽업 장소 도착 <span class="nowrap">${U.esc(tail)}</span>`, warn: r.late > 0,
+          late: r.late > 0 ? { who: '동반자', msg: `${place}에 ${r.arrive}쯤 도착할 것 같습니다. ${r.late}분 정도 늦어 죄송합니다.` } : null };
       }
       const teeT = tl.teeOff || s.teeOff;
       const tee = State.tlAt(s, teeT);
@@ -1317,8 +1324,17 @@ const Timeline = {
       // (줄바꿈은 '도착' 뒤 빈칸에서만 일어나도록 빈칸은 묶음 밖에 둠)
       const tail = m == null ? '' : m >= 0 ? `· 티오프 ${m}분 전` : `· 티오프보다 ${-m}분 늦어요`;
       const course = (s.course && s.course.name) || s.courseName || '골프장';
+      if (notLeft) {
+        // 한 줄씩: '지금 나가면 06:43 도착' / (늦으면 빨간) '준비 30분 하면 티오프 13분 늦어요'
+        const prep = Number(notLeft.prepMin) || 0;
+        const m2 = m == null ? null : m - prep;
+        const red = prep > 0 && m2 != null && m2 < 0 ? `<div class="v2-late-line">준비 ${prep}분 하면 티오프 ${-m2}분 늦어요</div>` : '';
+        const lateN = m != null && m < 0 ? -m : (m2 != null && m2 < 0 ? -m2 : 0);
+        return { html: `<span class="nowrap">지금 나가면 ${U.esc(r.arrive)} 도착</span>${red}`, warn: m != null && m < 0,
+          late: lateN ? { who: '동반자', msg: `오늘 ${teeT} ${course} 티오프에 ${lateN}분 정도 늦을 것 같습니다. 죄송합니다.` } : null };
+      }
       return { html: `지금 길로 ${U.esc(r.arrive)} 도착${tail ? ` <span class="nowrap">${U.esc(tail)}</span>` : ''}`, warn: r.late > 0 || (m != null && m < 0),
-        late: m != null && m < 0 ? { who: '동반자', msg: `오늘 ${teeT} ${course} 티오프인데 지금 길로 ${r.arrive}쯤 도착해요 (${-m}분 늦음)` } : null };
+        late: m != null && m < 0 ? { who: '동반자', msg: `오늘 ${teeT} ${course} 티오프인데 ${r.arrive}쯤 도착할 것 같습니다. ${-m}분 정도 늦어 죄송합니다.` } : null };
     };
     const L = this._lateMsg || (this._lateMsg = {});
     const btn = v => v && v.late ? `💬 ${v.late.who}에게 알리기` : '';
@@ -1341,11 +1357,29 @@ const Timeline = {
     </div>`;
   },
 
-  /** 늦을 때 친구·동반자에게 보낼 글 (고쳐서 보낼 수 있음) */
+  /** 11/24: 집결지(픽업) 시각을 동반자에게 미리 보내기 — 받는 사람이 누구든 쓸 수 있는 존댓말 */
+  sharePickup(i) {
+    const s = State.schedules[this.schedIdx], st = (this._steps || [])[i];
+    if (!s || !st) return;
+    const tl = s.timeline || {};
+    const place = (s.meetingPointObj && s.meetingPointObj.name) || tl.meetingPointName || '만나는 곳';
+    let day = '';
+    try {
+      const d = new Date(s.date); d.setHours(0, 0, 0, 0);
+      if (State.tlPrevDay && State.tlPrevDay(s, st.time)) d.setDate(d.getDate() - 1);
+      const t = new Date(); t.setHours(0, 0, 0, 0);
+      const diff = Math.round((d - t) / 864e5);
+      day = diff === 0 ? '오늘' : diff === 1 ? '내일' : `${d.getMonth() + 1}/${d.getDate()}(${'일월화수목금토'[d.getDay()]})`;
+    } catch (e) { day = ''; }
+    (this._lateMsg || (this._lateMsg = {})).pickup = { who: '동반자', title: '픽업 시각 보내기', msg: `${day ? day + ' ' : ''}${st.time}에 ${place} 앞으로 픽업 가겠습니다.` };
+    this.openLateShare('pickup');
+  },
+
+  /** 늦을 때 동반자에게 보낼 글 (고쳐서 보낼 수 있음) */
   openLateShare(id) {
     const info = (this._lateMsg || {})[id];
     if (!info) return;
-    App.showModal(`💬 ${U.esc(info.who)}에게 알리기`, `
+    App.showModal(`💬 ${U.esc(info.who)}에게 ${U.esc(info.title || '알리기')}`, `
       <div class="late-share">
         <textarea id="late-share-msg" rows="4" maxlength="300">${U.esc(info.msg)}</textarea>
         <button type="button" class="late-share-kakao" onclick="Timeline.sendLate('kakao')">카카오톡으로 보내기</button>

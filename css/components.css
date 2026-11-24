@@ -298,7 +298,7 @@
 .toast {
   position:fixed; top:calc(var(--header-h) + var(--sp-4));
   left:50%; transform:translateX(-50%) translateY(-80px);
-  max-width:calc(var(--app-w) - var(--sp-10));
+  width:max-content; max-width:calc(var(--app-w) - var(--sp-10));
   padding:var(--sp-3) var(--sp-6);
   background: rgba(30, 30, 30, 0.95); color: #ffffff;
   border-radius: var(--r-full); font-size: 15px; font-weight: var(--fw-bold);
