@@ -1371,7 +1371,7 @@ const Timeline = {
       const diff = Math.round((d - t) / 864e5);
       day = diff === 0 ? '오늘' : diff === 1 ? '내일' : `${d.getMonth() + 1}/${d.getDate()}(${'일월화수목금토'[d.getDay()]})`;
     } catch (e) { day = ''; }
-    (this._lateMsg || (this._lateMsg = {})).pickup = { who: '동반자', title: '픽업 시각 보내기', msg: `${day ? day + ' ' : ''}${st.time}에 ${place} 앞으로 픽업 가겠습니다.` };
+    (this._lateMsg || (this._lateMsg = {})).pickup = { who: '동반자', title: '픽업 시각 보내기', msg: `${day ? day + ' ' : ''}${st.time}에 ${String(place).replace(/\s*앞$/, '')} 앞으로 픽업 가겠습니다.` };
     this.openLateShare('pickup');
   },
 
