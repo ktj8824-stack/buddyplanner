@@ -776,7 +776,7 @@ body.ha-guide .bottom-nav { visibility: hidden; }
 .cg-tee button { flex: 1; padding: 8px 0; border-radius: 10px; background: #fff; border: 1.5px solid #e2e6ec; font-size: 13px; font-weight: 700; color: #333; font-family: inherit; }
 .cg-tee button.on { background: #0b1d4a; color: #fff; border-color: #0b1d4a; }
 .cg-strip { display: grid; gap: 4px; padding: 8px 14px; }
-.cg-strip button { background: #fff; border-radius: 10px; text-align: center; padding: 6px 0; font-size: 11px; color: #666; border: 1.5px solid transparent; font-family: inherit; }
+.cg-strip button { background: #fff; border-radius: 10px; text-align: center; padding: 6px 0; font-size: 12px; color: #666; border: 1.5px solid transparent; font-family: inherit; }
 .cg-strip button b { display: block; font-size: 15px; color: #111; }
 .cg-strip button.p5 { background: #e9f8f0; }
 .cg-strip button.p3 { background: #eef3ff; }
@@ -795,7 +795,7 @@ body.ha-guide .bottom-nav { visibility: hidden; }
 .cg-hh small { margin-left: auto; color: #666; font-size: 13px; }
 .cg-photo { display: block; width: 100%; height: 96px; border: none; border-radius: 12px; margin: 10px 0; background: repeating-linear-gradient(45deg,#e7efe9,#e7efe9 10px,#dfe9e2 10px,#dfe9e2 20px); color: #355; font-size: 14px; font-weight: 700; font-family: inherit; }
 .cg-tags { margin: 8px 0 4px; }
-.cg-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 4px; }
+.cg-tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-right: 4px; }
 .cg-tag.t1 { background: #e9f8f0; color: #1f6b45; }
 .cg-tag.t2 { background: #fff1cc; color: #8a6200; }
 .cg-tip { font-size: 15px; line-height: 1.6; margin: 6px 0; color: #222; }
@@ -815,7 +815,7 @@ body.ha-guide .bottom-nav { visibility: hidden; }
 .v2-after-pv .warn { color: #b45309; font-weight: 700; margin-top: 4px; }
 .v2-pill2 { display: flex !important; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding-top: 8px !important; padding-bottom: 8px !important; }
 .v2-pill2 b { font-size: 16px; }
-.v2-pill2 small { font-size: 11.5px; font-weight: 500; opacity: .75; }
+.v2-pill2 small { font-size: 12px; font-weight: 500; opacity: .75; }
 .v2-after-time { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding: 10px 14px; border: 1.5px solid #e2e6ec; border-radius: 12px; background: #fff; font-size: 14px; color: #333; }
 .v2-after-time input { border: none; background: none; font: inherit; font-weight: 800; font-size: 17px; color: #0b1d4a; text-align: right; }
 /* 저장 후 안내: 카드 자체가 버튼 */

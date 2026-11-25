@@ -560,7 +560,7 @@ const Group = {
       <div class="gp-wrap">
         <div class="gp-top"><button class="gp-back" onclick="Group.cancelImport()">‹ 조편성으로</button>
           <div class="gp-top-t">읽은 결과 확인</div>
-          <div class="gp-top-m">${im.loading ? 'AI가 사진을 읽고 있어요… (10초쯤)' : im.err ? '다시 해 볼까요?' : `${im.teams.length}개 조 · ${n}명${ph ? ` · 전화번호 ${ph}개` : ''}를 찾았어요`}</div></div>
+          <div class="gp-top-m">${im.loading ? 'AI가 사진을 읽고 있어요… (10초쯤)' : im.err ? '다시 해 볼까요?' : `${im.teams.length}개 조 · ${n}명${ph ? ` · 전화번호 ${ph}개를` : '을'} 찾았어요`}</div></div>
         <div class="gp-sec">
           ${im.photo ? `<img class="gi-photo" src="${im.photo}" alt="찍은 사진">` : ''}
           ${im.loading ? `<div class="gp-empty"><span class="dots"><span></span><span></span><span></span></span><br>이름·조·전화번호를 찾는 중이에요</div>` : im.err ? `<div class="gi-warn">${U.esc(im.err)}</div>${again}` : `
