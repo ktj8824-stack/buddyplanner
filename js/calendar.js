@@ -112,7 +112,7 @@ const Calendar = {
           </div>
           <div class="v2-rcard-foot">
             <span class="st${on ? '' : ' off'}">${on ? '알람 켜짐' : '알람 꺼짐'}${n ? ` · 동반자 ${n}명` : ''}</span>
-            <button class="v2-link" onclick="App.viewTimeline(${idx})">타임라인 보기</button>
+            <span class="v2-rcard-acts"><button class="v2-link del" onclick="Calendar.deleteSchedule(${idx})">삭제</button><button class="v2-link" onclick="App.viewTimeline(${idx})">타임라인 보기</button></span>
           </div>
         </div>`;
     }).join('');

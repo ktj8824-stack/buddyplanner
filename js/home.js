@@ -143,6 +143,7 @@ const Home = {
     const arrow = '<div class="mini-tl-arrow"><svg viewBox="0 0 24 24" width="11" height="11" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>';
     let subTag = '스마트 라운딩 플래너', mainHeading = '첫 라운딩을<br>등록해 보세요.', btnText = '새 일정 등록하기', btnAction = "App.navigate('register')";
     let dep = '--:--', arr = '--:--', tee = '--:--', etaHtml = '', pick = '';
+    if (!upcoming.length && (State.schedules || []).length) mainHeading = '다음 라운딩을<br>등록해 보세요.';   // 지난 라운딩만 있을 때
     if (upcoming.length) {
       const s = upcoming[0];
       const idx = State.schedules.indexOf(s);

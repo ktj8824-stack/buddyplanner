@@ -202,6 +202,8 @@
 .v2-rcard-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid #eef2f6; margin-top: 14px; padding-top: 12px; }
 .v2-rcard-foot .st { font-size: 0.875rem; font-weight: 800; color: var(--v2-green-dark); }
 .v2-rcard-foot .st.off { color: var(--v2-sub); }
+.v2-rcard-acts { display: flex; align-items: center; gap: 14px; }
+.v2-link.del { color: #e5484d; }
 .v2-cal-empty { font-size: 0.9375rem; color: var(--v2-sub); text-align: center; padding: 22px 10px; }
 
 /* ========== 등록 ========== */
